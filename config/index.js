@@ -15,11 +15,8 @@ const config = {
   outputRoot: 'dist',
   plugins: [],
   defineConstants: {},
-  mini: {
-    webpack5: {}
-  },
+  mini: {},
   h5: {
-    webpack5: {},
     devServer: {
       port: 10086
     }

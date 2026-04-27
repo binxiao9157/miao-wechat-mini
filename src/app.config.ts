@@ -75,5 +75,4 @@ export default defineAppConfig({
       },
     ],
   },
-  lazyCodeLoading: 'native',
-});
+  });

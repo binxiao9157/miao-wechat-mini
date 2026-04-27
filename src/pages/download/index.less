@@ -1,0 +1,125 @@
+.download-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #FFF9F5 0%, #FFFFFF 100%);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background: transparent;
+
+  .back-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+  }
+
+  .title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .placeholder {
+    width: 40px;
+  }
+}
+
+.content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+
+  .qr-code {
+    width: 180px;
+    height: 180px;
+    background: #fff;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+
+  .hint {
+    font-size: 14px;
+    color: #666;
+  }
+}
+
+.features {
+  width: 100%;
+  margin-bottom: 32px;
+
+  .section-title {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+
+    .feature-icon {
+      font-size: 32px;
+    }
+
+    .feature-text {
+      .feature-title {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 4px;
+      }
+
+      .feature-desc {
+        font-size: 12px;
+        color: #999;
+      }
+    }
+  }
+}
+
+.download-btn {
+  width: 200px;
+  height: 48px;
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  &.android {
+    background: #fff;
+    color: #333;
+    border: 1px solid #ddd;
+  }
+}

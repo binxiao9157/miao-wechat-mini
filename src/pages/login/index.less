@@ -1,0 +1,179 @@
+.login-page {
+  min-height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 375px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo-section {
+  text-align: center;
+  margin-bottom: 24px;
+
+  .logo-text {
+    display: block;
+    font-size: 36px;
+    font-weight: 900;
+    color: #5D4037;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: #666;
+  }
+}
+
+.cat-image-container {
+  width: 180px;
+  height: 180px;
+  border-radius: 48px;
+  overflow: hidden;
+  background: #FEF6F0;
+  box-shadow: 0 10px 30px rgba(232, 159, 113, 0.1);
+  margin-bottom: 24px;
+
+  .cat-image {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.form-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .miao-input {
+    width: 100%;
+    height: 48px;
+    padding: 0 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 14px;
+    background: #fafafa;
+    box-sizing: border-box;
+
+    &:focus {
+      border-color: #ff8c5a;
+      outline: none;
+    }
+  }
+
+  .password-wrapper {
+    position: relative;
+
+    .eye-icon {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+      padding: 4px;
+    }
+  }
+
+  .forgot-password {
+    text-align: right;
+    margin-bottom: 8px;
+
+    text {
+      font-size: 12px;
+      color: #ff8c5a;
+    }
+  }
+
+  .error-text {
+    color: #f44336;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .agreement {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 16px;
+
+    .agreement-text {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .link {
+      color: #ff8c5a;
+      margin: 0 2px;
+    }
+  }
+
+  .miao-btn-primary {
+    width: 100%;
+    height: 48px;
+    background: linear-gradient(135deg, #ff9a5a 0%, #ff6b3d 100%);
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+
+    &:active {
+      opacity: 0.8;
+    }
+
+    &[disabled] {
+      opacity: 0.6;
+    }
+  }
+
+  .miao-btn-secondary {
+    width: 100%;
+    height: 48px;
+    background: #fff;
+    color: #ff8c5a;
+    border: 1px solid #ff8c5a;
+    border-radius: 24px;
+    font-size: 16px;
+    font-weight: 600;
+
+    &:active {
+      background: #fff5f0;
+    }
+  }
+}
+
+.footer-section {
+  margin-top: auto;
+  padding-top: 40px;
+  text-align: center;
+
+  .download-link {
+    color: #ff8c5a;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+
+    text {
+      font-size: 12px;
+      color: #999;
+    }
+  }
+}

@@ -1,0 +1,149 @@
+.points-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background: #fff;
+
+  .back-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+  }
+
+  .title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .placeholder {
+    width: 40px;
+  }
+}
+
+.points-card {
+  background: linear-gradient(135deg, #ff9a5a 0%, #ff6b3d 100%);
+  margin: 20px;
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #fff;
+
+  .points-icon {
+    margin-bottom: 12px;
+  }
+
+  .points-value {
+    font-size: 48px;
+    font-weight: 700;
+  }
+
+  .points-label {
+    font-size: 14px;
+    opacity: 0.8;
+  }
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  padding: 20px;
+  background: #fff;
+  margin: 0 20px;
+  border-radius: 16px;
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #999;
+    }
+  }
+}
+
+.history-section {
+  margin: 20px;
+
+  .section-title {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+  }
+}
+
+.history-list {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.empty {
+  padding: 40px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #f5f5f5;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .tx-info {
+    .tx-reason {
+      display: block;
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .tx-time {
+      font-size: 12px;
+      color: #999;
+    }
+  }
+
+  .tx-amount {
+    font-size: 16px;
+    font-weight: 600;
+
+    &.earn {
+      color: #52c41a;
+    }
+
+    &.spend {
+      color: #ff4d4f;
+    }
+  }
+}

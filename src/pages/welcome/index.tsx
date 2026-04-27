@@ -1,24 +1,37 @@
+import { View, Text } from '@tarojs/components';
 import { useEffect } from 'react';
-import { View, Text, Image, Button } from '@tarojs/components';
-import { reLaunch } from '@tarojs/taro';
-import './index.less';
+import { reLaunch, navigateTo } from '@tarojs/taro';
+import { storage } from '../../services/storage';
 
 export default function Welcome() {
   useEffect(() => {
-    // 欢迎页展示2秒后跳转
-    const timer = setTimeout(() => {
-      reLaunch({ url: '/pages/login/index' });
-    }, 2000);
-    return () => clearTimeout(timer);
+    // 检查是否已登录
+    const user = storage.getUserInfo();
+    const hasCat = storage.getCatList().length > 0;
+
+    setTimeout(() => {
+      if (user && hasCat) {
+        reLaunch({ url: '/pages/home/index' });
+      } else if (user) {
+        reLaunch({ url: '/pages/emptyCat/index' });
+      } else {
+        reLaunch({ url: '/pages/login/index' });
+      }
+    }, 500);
   }, []);
 
   return (
-    <View className="welcome-page">
-      <View className="logo">
-        <Text className="logo-emoji">🐱</Text>
-        <Text className="logo-text">Miao</Text>
-      </View>
-      <Text className="slogan">以喵星之名，守护你的温暖</Text>
+    <View style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100vh',
+      backgroundColor: '#FFF9F5'
+    }}>
+      <Text style={{ fontSize: '48px', marginBottom: '20px' }}>🐱</Text>
+      <Text style={{ fontSize: '24px', fontWeight: 'bold', color: '#5D4037' }}>Miao</Text>
+      <Text style={{ fontSize: '14px', color: '#999', marginTop: '10px' }}>以喵星之名</Text>
     </View>
   );
 }

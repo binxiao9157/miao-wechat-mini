@@ -1,12 +1,21 @@
 /**
  * HTTP 请求适配器
- * 统一 axios（Web）和 Taro.request（小程序）的调用
+ * 统一 fetch（Web）和 Taro.request（小程序）的调用
  */
 
 import Taro from '@tarojs/taro';
 
-const isMiniProgram = process.env.TARO_ENV === 'weapp';
-const baseURL = process.env.TARO_ENV === 'weapp' ? '' : '/api';
+/**
+ * 检测是否在小程序环境
+ */
+const isMiniProgram = (): boolean => {
+  try {
+    const env = Taro.getEnv();
+    return env === Taro.ENV_TYPE.WEBVIEW || env === Taro.ENV_TYPE.WEB;
+  } catch {
+    return typeof wx !== 'undefined' && typeof wx.request === 'function';
+  }
+};
 
 interface RequestOptions {
   url: string;
@@ -31,12 +40,14 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
     method = 'GET',
     data,
     headers = {},
-    timeout = 30000,
+    timeout = 10000, // 小程序环境缩短超时时间
   } = options;
 
+  const isMini = isMiniProgram();
+  const baseURL = isMini ? '' : '/api';
   const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`;
 
-  if (isMiniProgram) {
+  if (isMini) {
     try {
       const res = await Taro.request({
         url: fullUrl,
@@ -52,7 +63,8 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
         headers: res.header || {},
       };
     } catch (error: any) {
-      throw new Error(`Request failed: ${error.message}`);
+      console.error('Taro request error:', error);
+      throw new Error(`网络请求失败: ${error.message || '未知错误'}`);
     }
   }
 
@@ -81,7 +93,10 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
       headers: {},
     };
   } catch (error: any) {
-    throw new Error(`Request failed: ${error.message}`);
+    if (error.name === 'AbortError') {
+      throw new Error('请求超时');
+    }
+    throw new Error(`网络请求失败: ${error.message}`);
   }
 };
 

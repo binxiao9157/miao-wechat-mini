@@ -6,38 +6,56 @@
 import Taro from '@tarojs/taro';
 
 /**
+ * 检测是否在小程序环境
+ */
+const checkIsMiniProgram = (): boolean => {
+  try {
+    const env = Taro.getEnv();
+    return env === Taro.ENV_TYPE.WEBVIEW || env === Taro.ENV_TYPE.WEB;
+  } catch {
+    return typeof wx !== 'undefined' && typeof wx.request === 'function';
+  }
+};
+
+/**
  * 是否为微信小程序环境
  */
 export const isWeApp = (): boolean => {
-  return process.env.TARO_ENV === 'weapp';
+  return checkIsMiniProgram();
 };
 
 /**
  * 是否为 H5/Web 环境
  */
 export const isH5 = (): boolean => {
-  return process.env.TARO_ENV === 'h5';
+  return typeof window !== 'undefined' && !checkIsMiniProgram();
 };
 
 /**
  * 是否为 React Native 环境
  */
 export const isRN = (): boolean => {
-  return process.env.TARO_ENV === 'rn';
+  try {
+    return Taro.getEnv() === Taro.ENV_TYPE.RN;
+  } catch {
+    return false;
+  }
 };
 
 /**
  * 获取当前平台
  */
 export const getPlatform = (): 'weapp' | 'h5' | 'rn' | 'quickapp' => {
-  return process.env.TARO_ENV as any || 'h5';
+  if (checkIsMiniProgram()) return 'weapp';
+  if (isRN()) return 'rn';
+  return 'h5';
 };
 
 /**
  * 是否在微信环境中（小程序或微信浏览器）
  */
 export const isWeChat = (): boolean => {
-  if (isWeApp()) {
+  if (checkIsMiniProgram()) {
     return true;
   }
   // H5 环境检测微信浏览器
@@ -63,33 +81,39 @@ export const isMobile = (): boolean => {
  * 获取系统信息
  */
 export const getSystemInfo = async () => {
-  if (isWeApp()) {
+  if (checkIsMiniProgram()) {
     return Taro.getSystemInfoSync();
   }
   // Web 环境
-  return {
-    platform: typeof navigator !== 'undefined' ? navigator.platform : '',
-    system: typeof navigator !== 'undefined' ? navigator.appVersion : '',
-    brand: '',
-    model: '',
-    screenWidth: window.screen.width,
-    screenHeight: window.screen.height,
-    windowWidth: window.innerWidth,
-    windowHeight: window.innerHeight,
-    statusBarHeight: 0,
-    navigationBarHeight: 44,
-  };
+  if (typeof window !== 'undefined') {
+    return {
+      platform: navigator.platform || '',
+      system: navigator.appVersion || '',
+      brand: '',
+      model: '',
+      screenWidth: window.screen.width,
+      screenHeight: window.screen.height,
+      windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight,
+      statusBarHeight: 0,
+      navigationBarHeight: 44,
+    };
+  }
+  return {};
 };
 
 /**
  * 获取网络状态
  */
 export const getNetworkType = async (): Promise<string> => {
-  if (isWeApp()) {
-    const res = await Taro.getNetworkType();
-    return res.networkType;
+  if (checkIsMiniProgram()) {
+    try {
+      const res = await Taro.getNetworkType();
+      return res.networkType;
+    } catch {
+      return 'unknown';
+    }
   }
-  // Web 环境假设一直在线
   return 'wifi';
 };
 
@@ -97,7 +121,7 @@ export const getNetworkType = async (): Promise<string> => {
  * 设置剪贴板
  */
 export const setClipboard = async (text: string): Promise<boolean> => {
-  if (isWeApp()) {
+  if (checkIsMiniProgram()) {
     try {
       await Taro.setClipboardData({ data: text });
       return true;
@@ -107,17 +131,14 @@ export const setClipboard = async (text: string): Promise<boolean> => {
   }
   // Web 环境
   if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return true;
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      return false;
+    }
   }
-  // 降级方案
-  const textarea = document.createElement('textarea');
-  textarea.value = text;
-  document.body.appendChild(textarea);
-  textarea.select();
-  const success = document.execCommand('copy');
-  document.body.removeChild(textarea);
-  return success;
+  return false;
 };
 
 /**
@@ -129,13 +150,15 @@ export const copyToClipboard = setClipboard;
  * 震动反馈
  */
 export const vibrate = (type: 'short' | 'long' = 'short'): void => {
-  if (isWeApp()) {
-    if (type === 'short') {
-      Taro.vibrateShort();
-    } else {
-      Taro.vibrateLong();
-    }
-  } else if (navigator.vibrate) {
+  if (checkIsMiniProgram()) {
+    try {
+      if (type === 'short') {
+        Taro.vibrateShort();
+      } else {
+        Taro.vibrateLong();
+      }
+    } catch {}
+  } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
     navigator.vibrate(type === 'short' ? 50 : 200);
   }
 };
@@ -148,14 +171,15 @@ export const showToast = (options: {
   icon?: 'success' | 'error' | 'loading' | 'none';
   duration?: number;
 }) => {
-  if (isWeApp()) {
-    Taro.showToast({
-      title: options.title,
-      icon: options.icon || 'none',
-      duration: options.duration || 2000,
-    });
+  if (checkIsMiniProgram()) {
+    try {
+      Taro.showToast({
+        title: options.title,
+        icon: options.icon || 'none',
+        duration: options.duration || 2000,
+      });
+    } catch {}
   } else {
-    // Web 环境可以使用简单的 alert 或自定义 toast
     console.log('[Toast]', options.title);
   }
 };
@@ -164,8 +188,10 @@ export const showToast = (options: {
  * 显示加载中
  */
 export const showLoading = (title: string = '加载中') => {
-  if (isWeApp()) {
-    Taro.showLoading({ title });
+  if (checkIsMiniProgram()) {
+    try {
+      Taro.showLoading({ title });
+    } catch {}
   }
 };
 
@@ -173,8 +199,10 @@ export const showLoading = (title: string = '加载中') => {
  * 隐藏加载中
  */
 export const hideLoading = () => {
-  if (isWeApp()) {
-    Taro.hideLoading();
+  if (checkIsMiniProgram()) {
+    try {
+      Taro.hideLoading();
+    } catch {}
   }
 };
 
@@ -182,11 +210,13 @@ export const hideLoading = () => {
  * 预览图片
  */
 export const previewImage = (urls: string[], current?: string) => {
-  if (isWeApp()) {
-    Taro.previewImage({
-      urls,
-      current: current || urls[0],
-    });
+  if (checkIsMiniProgram()) {
+    try {
+      Taro.previewImage({
+        urls,
+        current: current || urls[0],
+      });
+    } catch {}
   }
 };
 

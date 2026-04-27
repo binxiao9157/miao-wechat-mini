@@ -5,26 +5,50 @@
 
 import Taro from '@tarojs/taro';
 
-const isMiniProgram = process.env.TARO_ENV === 'weapp';
+/**
+ * 检测是否在小程序环境
+ */
+const isMiniProgram = (): boolean => {
+  try {
+    return Taro.getEnv() === Taro.ENV_TYPE.WEBVIEW || Taro.getEnv() === Taro.ENV_TYPE.WEB;
+  } catch {
+    return typeof wx !== 'undefined' && typeof wx.getStorageSync === 'function';
+  }
+};
 
 /**
  * 获取存储值
  */
 export const getItem = (key: string): string | null => {
-  if (isMiniProgram) {
-    return Taro.getStorageSync(key) || null;
+  if (isMiniProgram()) {
+    try {
+      return Taro.getStorageSync(key) || null;
+    } catch {
+      return null;
+    }
   }
-  return localStorage.getItem(key);
+  if (typeof localStorage !== 'undefined') {
+    return localStorage.getItem(key);
+  }
+  return null;
 };
 
 /**
  * 设置存储值
  */
 export const setItem = (key: string, value: string): void => {
-  if (isMiniProgram) {
-    Taro.setStorageSync(key, value);
+  if (isMiniProgram()) {
+    try {
+      Taro.setStorageSync(key, value);
+    } catch (e) {
+      console.error('setStorageSync error:', e);
+    }
   } else {
-    localStorage.setItem(key, value);
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.error('localStorage setItem error:', e);
+    }
   }
 };
 
@@ -32,10 +56,14 @@ export const setItem = (key: string, value: string): void => {
  * 移除存储值
  */
 export const removeItem = (key: string): void => {
-  if (isMiniProgram) {
-    Taro.removeStorage({ key });
+  if (isMiniProgram()) {
+    try {
+      Taro.removeStorageSync(key);
+    } catch {}
   } else {
-    localStorage.removeItem(key);
+    try {
+      localStorage.removeItem(key);
+    } catch {}
   }
 };
 
@@ -43,10 +71,14 @@ export const removeItem = (key: string): void => {
  * 清空所有存储
  */
 export const clear = (): void => {
-  if (isMiniProgram) {
-    Taro.clearStorageSync();
+  if (isMiniProgram()) {
+    try {
+      Taro.clearStorageSync();
+    } catch {}
   } else {
-    localStorage.clear();
+    try {
+      localStorage.clear();
+    } catch {}
   }
 };
 
@@ -54,83 +86,24 @@ export const clear = (): void => {
  * 获取存储键列表
  */
 export const getAllKeys = (): string[] => {
-  if (isMiniProgram) {
-    const keys: string[] = [];
-    const info = Taro.getStorageInfoSync();
-    return info.keys;
-  }
-  const keys: string[] = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key) keys.push(key);
-  }
-  return keys;
-};
-
-/**
- * 异步获取存储值
- */
-export const getItemAsync = async (key: string): Promise<string | null> => {
-  if (isMiniProgram) {
+  if (isMiniProgram()) {
     try {
-      const result = await Taro.getStorage({ key });
-      return result.data as string || null;
+      const info = Taro.getStorageInfoSync();
+      return info.keys || [];
     } catch {
-      return null;
+      return [];
     }
   }
-  return getItem(key);
-};
-
-/**
- * 异步设置存储值
- */
-export const setItemAsync = async (key: string, value: string): Promise<void> => {
-  if (isMiniProgram) {
-    await Taro.setStorage({ key, data: value });
-  } else {
-    setItem(key, value);
-  }
-};
-
-/**
- * 异步移除存储值
- */
-export const removeItemAsync = async (key: string): Promise<void> => {
-  if (isMiniProgram) {
-    await Taro.removeStorage({ key });
-  } else {
-    removeItem(key);
-  }
-};
-
-/**
- * 获取存储信息
- */
-export const getStorageInfo = (): {
-  keys: string[];
-  currentSize: number;
-  keysSize: number;
-  limit: number;
-} | null => {
-  if (isMiniProgram) {
-    return Taro.getStorageInfoSync();
-  }
-  let total = 0;
-  const keys: string[] = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key) {
-      keys.push(key);
-      total += localStorage.getItem(key)?.length || 0;
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) keys.push(key);
     }
+    return keys;
+  } catch {
+    return [];
   }
-  return {
-    keys,
-    currentSize: total,
-    keysSize: keys.length,
-    limit: 5 * 1024 * 1024, // 5MB estimate for web
-  };
 };
 
 export default {
@@ -139,8 +112,4 @@ export default {
   removeItem,
   clear,
   getAllKeys,
-  getItemAsync,
-  setItemAsync,
-  removeItemAsync,
-  getStorageInfo,
 };

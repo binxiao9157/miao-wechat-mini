@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Input, Image } from '@tarojs/components';
-import { navigateTo, navigateBack, switchTab } from '@tarojs/taro';
+import { navigateTo, navigateBack } from '@tarojs/taro';
 import { ArrowLeft, Sparkles } from '../../components/common/Icons';
 import { storage, PresetCat } from '../../services/storage';
 import './index.less';
@@ -10,8 +10,7 @@ export default function CreateCompanion() {
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
-  const [hasName, setHasName] = useState(false);
-  const catNameRef = useRef('');
+  const [catName, setCatName] = useState('');
 
   useEffect(() => {
     setPresets(storage.getPresetCats());
@@ -22,13 +21,7 @@ export default function CreateCompanion() {
     setTimeout(() => setShowToast(null), 3000);
   };
 
-  const handleNameInput = (e: any) => {
-    catNameRef.current = e.detail.value;
-    setHasName(e.detail.value.trim().length > 0);
-  };
-
   const handleGenerate = () => {
-    const catName = catNameRef.current;
     if (!catName.trim() || !selectedPresetId) {
       triggerToast('请填写完整信息后再生成哦！');
       return;
@@ -55,7 +48,7 @@ export default function CreateCompanion() {
     navigateTo({ url: '/pages/generation-progress/index' });
   };
 
-  const isFormComplete = hasName && selectedPresetId !== null;
+  const isFormComplete = catName.trim().length > 0 && selectedPresetId !== null;
 
   return (
     <View className="create-companion-page">
@@ -82,11 +75,9 @@ export default function CreateCompanion() {
           <Input
             className="name-input"
             type="text"
-            onInput={handleNameInput}
             placeholder="给它起个好听的名字"
-            placeholderStyle="color: rgba(93,64,55,0.3)"
-            adjustPosition
-            alwaysEmbed
+            value={catName}
+            onInput={(e) => setCatName(e.detail.value)}
           />
         </View>
 

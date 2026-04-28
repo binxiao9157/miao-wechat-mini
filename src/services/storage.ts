@@ -52,10 +52,9 @@ export const mediaStorage = {
       // Web 环境：使用 localStorage（仅适合小文件）
       try {
         setItem(`${MEDIA_STORAGE_PREFIX}${id}`, data);
-        resolve();
       } catch (err) {
         console.error('localStorage saveMedia error:', err);
-        reject(err);
+        throw err;
       }
     }
   },
@@ -286,7 +285,8 @@ async function request(url: string, options: RequestInit = {}) {
   
   if (isMini) {
   // 小程序环境：使用 Taro 文件系统
-    const response = await taroRequest(url, options);
+    const { method, headers, body } = options;
+    const response = await taroRequest({ url, method: (method as any) || 'GET', headers: headers as Record<string, string>, data: body ? JSON.parse(body as string) : undefined });
     return response;
   } else {
     // Web 环境使用原生 fetch
@@ -299,7 +299,7 @@ async function request(url: string, options: RequestInit = {}) {
 function syncCatToServer(userId: string, cat: CatInfo) {
   request('/api/cats', {
     method: 'POST',
-    header: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, cat: { ...cat, placeholderImage: undefined, anchorFrame: undefined } }),
   }).catch(() => {});
 }
@@ -319,7 +319,7 @@ function syncDiaryToServer(userId: string, diary: DiaryEntry) {
   const payload = media?.startsWith('miao_media:') ? rest : diary;
   request('/api/diaries', {
     method: 'POST',
-    header: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, diary: payload }),
   }).catch(() => {});
 }
@@ -337,7 +337,7 @@ function deleteAllDiariesFromServer(userId: string) {
 function syncLetterToServer(userId: string, letter: TimeLetter) {
   request('/api/letters', {
     method: 'POST',
-    header: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, letter }),
   }).catch(() => {});
 }
@@ -351,7 +351,7 @@ function deleteLetterFromServer(userId: string, letterId: string) {
 function syncPointsToServer(userId: string, data: PointsInfo) {
   request('/api/points', {
     method: 'POST',
-    header: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, data }),
   }).catch(() => {});
 }

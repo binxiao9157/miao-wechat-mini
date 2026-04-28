@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
-import { View, Text, Input, Button } from '@tarojs/components';
+import { View, Text, Input, Button, Textarea } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
 import { ArrowLeft, Send } from '../../components/common/Icons';
 import './index.less';
@@ -37,9 +37,8 @@ export default function Feedback() {
       ) : (
         <View className="content">
           <Text className="label">请描述您遇到的问题或建议</Text>
-          <Input
+          <Textarea
             className="input-area"
-            type="textarea"
             placeholder="请输入详细内容..."
             value={content}
             onInput={(e) => setContent(e.detail.value)}

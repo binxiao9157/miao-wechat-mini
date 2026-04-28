@@ -11,9 +11,9 @@ import Taro from '@tarojs/taro';
 const checkIsMiniProgram = (): boolean => {
   try {
     const env = Taro.getEnv();
-    return env === Taro.ENV_TYPE.WEBVIEW || env === Taro.ENV_TYPE.WEB;
+    return env === Taro.ENV_TYPE.WEAPP;
   } catch {
-    return typeof wx !== 'undefined' && typeof wx.request === 'function';
+    return typeof Taro !== 'undefined' && typeof Taro.request === 'function';
   }
 };
 

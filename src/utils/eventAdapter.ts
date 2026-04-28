@@ -10,7 +10,7 @@ const isMiniProgram = process.env.TARO_ENV === 'weapp';
 /**
  * 监听事件
  */
-export const on = (event: string, handler: Function): void => {
+export const on = (event: string, handler: (...args: any[]) => void): void => {
   if (isMiniProgram) {
     Taro.eventCenter.on(event, handler);
   } else {
@@ -21,7 +21,7 @@ export const on = (event: string, handler: Function): void => {
 /**
  * 移除事件监听
  */
-export const off = (event: string, handler: Function): void => {
+export const off = (event: string, handler: (...args: any[]) => void): void => {
   if (isMiniProgram) {
     Taro.eventCenter.off(event, handler);
   } else {
@@ -43,7 +43,7 @@ export const trigger = (event: string, data?: any): void => {
 /**
  * 只监听一次
  */
-export const once = (event: string, handler: Function): void => {
+export const once = (event: string, handler: (...args: any[]) => void): void => {
   const wrappedHandler = (...args: any[]) => {
     off(event, wrappedHandler);
     handler(...args);

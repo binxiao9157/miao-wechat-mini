@@ -90,10 +90,11 @@ export default function Register() {
         <View className="password-wrapper">
           <Input
             className="miao-input"
-            type={showPassword ? 'text' : 'password'}
+            type="text"
             placeholder="密码"
             value={password}
             onInput={(e) => setPassword(e.detail.value)}
+            password={!showPassword}
           />
           <View className="eye-icon" onClick={() => setShowPassword(!showPassword)}>
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -103,10 +104,11 @@ export default function Register() {
         <View className="password-wrapper">
           <Input
             className="miao-input"
-            type={showConfirmPassword ? 'text' : 'password'}
+            type="text"
             placeholder="确认密码"
             value={confirmPassword}
             onInput={(e) => setConfirmPassword(e.detail.value)}
+            password={!showConfirmPassword}
           />
           <View className="eye-icon" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
             {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}

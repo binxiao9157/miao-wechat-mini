@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text } from '@tarojs/components';
 import { ArrowLeft } from '../../components/common/Icons';
 import { navigateBack } from '@tarojs/taro';

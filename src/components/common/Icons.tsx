@@ -157,6 +157,18 @@ export const Mail = createTextIcon('✉️');
 // 上传图标
 export const Upload = createTextIcon('📤');
 
+// 警告图标
+export const AlertCircle = createTextIcon('⚠️');
+
+// 右箭头图标
+export const ArrowRight = createSymbolIcon(() => '→');
+
+// 盾牌图标
+export const ShieldCheck = createTextIcon('🛡️');
+
+// 扫描图标
+export const Scan = createTextIcon('📷');
+
 // 导出所有图标
 export default {
   Eye,
@@ -198,4 +210,8 @@ export default {
   Lock,
   Mail,
   Upload,
+  AlertCircle,
+  ArrowRight,
+  ShieldCheck,
+  Scan,
 };

@@ -119,10 +119,11 @@ export default function Login() {
             <View className="password-wrapper">
               <Input
                 className="miao-input password-input"
-                type={showPassword ? 'text' : 'password'}
+                type="text"
                 placeholder="密码"
                 value={password}
                 onInput={(e) => setPassword(e.detail.value)}
+                password={!showPassword}
               />
               <View className="eye-icon" onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}

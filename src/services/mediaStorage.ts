@@ -76,7 +76,14 @@ export const mediaStorage = {
       try {
         const fs = Taro.getFileSystemManager();
         const filePath = `${Taro.env.USER_DATA_PATH}/media_${id}`;
-        const { data } = await fs.readFile({ filePath, encoding: 'binary' });
+        const data = await new Promise<ArrayBuffer>((resolve, reject) => {
+          fs.readFile({
+            filePath,
+            encoding: 'binary' as any,
+            success: (res: any) => resolve(res.data as ArrayBuffer),
+            fail: (err: any) => reject(err),
+          });
+        });
         const base64 = Taro.arrayBufferToBase64(data);
         return `data:image/jpeg;base64,${base64}`;
       } catch {

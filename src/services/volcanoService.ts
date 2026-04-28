@@ -34,7 +34,8 @@ export class VolcanoService {
     let lastError: any;
     for (let i = 0; i <= retries; i++) {
       try {
-        const response = await request("/api/generate-video", {
+        const response = await request({
+          url: "/api/generate-video",
           method: 'POST',
           data: {
             model: VolcanoConfig.ModelId,
@@ -49,7 +50,7 @@ export class VolcanoService {
           }
         });
 
-        const taskId = response?.id || response?.task_id || response?.data?.id;
+        const taskId = response?.data?.id || response?.data?.task_id;
 
         if (!taskId) {
           throw new Error("服务器返回数据格式错误，未获取到任务 ID");
@@ -117,16 +118,17 @@ export class VolcanoService {
     }
 
     try {
-      const response = await request("/api/generate-image", {
+      const response = await request({
+        url: "/api/generate-image",
         method: 'POST',
-        data: {
+         data: {
           prompt,
           image_base64: imageBase64,
           model: VolcanoConfig.T2IModelId
         }
       });
 
-      const taskId = response?.id || response?.task_id || response?.data?.id;
+      const taskId = response?.data?.id || response?.data?.task_id;
 
       if (!taskId) {
         throw new Error("文生图任务提交失败，未获取到 ID");
@@ -134,8 +136,8 @@ export class VolcanoService {
 
       return {
         id: taskId,
-        image_url: response?.image_url,
-        status: response?.status
+        image_url: response?.data?.image_url,
+        status: response?.data?.status
       };
     } catch (error: any) {
       let errorMsg = "文生图提交失败";

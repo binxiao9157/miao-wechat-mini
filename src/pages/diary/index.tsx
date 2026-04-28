@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { View, Text, Image, Button, Input } from '@tarojs/components';
+import { View, Text, Image, Button, Input, Textarea } from '@tarojs/components';
 import { switchTab } from '@tarojs/taro';
 import { ArrowLeft, Plus, Heart, MessageCircle } from '../../components/common/Icons';
 import { storage, DiaryEntry } from '../../services/storage';
@@ -116,9 +116,8 @@ export default function Diary() {
             <Text className="compose-title">写日记</Text>
             <View className="close-btn" onClick={() => setShowCompose(false)}>×</View>
           </View>
-          <Input
+          <Textarea
             className="compose-input"
-            type="textarea"
             placeholder="记录今天的美好时光..."
             value={newContent}
             onInput={(e) => setNewContent(e.detail.value)}

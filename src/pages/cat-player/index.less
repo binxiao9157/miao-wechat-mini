@@ -1,0 +1,480 @@
+.cat-player-page {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* === Toast === */
+.toast {
+  position: fixed;
+  bottom: 200rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  padding: 20rpx 40rpx;
+  border-radius: 40rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  z-index: 500;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.2);
+}
+
+.toast-text {
+  color: #333;
+  font-size: 26rpx;
+}
+
+/* === 错误弹窗 === */
+.error-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 48rpx;
+}
+
+.error-dialog {
+  width: 100%;
+  max-width: 600rpx;
+  background: #fff;
+  border-radius: 48rpx;
+  padding: 56rpx 40rpx;
+  text-align: center;
+}
+
+.error-icon-box {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: rgba(255, 77, 79, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff4d4f;
+  margin: 0 auto 32rpx;
+}
+
+.error-title {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #333;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.error-desc {
+  font-size: 26rpx;
+  color: rgba(93, 64, 55, 0.6);
+  line-height: 1.6;
+  display: block;
+  margin-bottom: 48rpx;
+}
+
+.error-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.error-btn {
+  width: 100%;
+  height: 88rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-btn.primary {
+  background: #FF9D76;
+}
+
+.error-btn.secondary {
+  background: #f5f5f5;
+}
+
+.error-btn-text.white {
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.error-btn-text.dark {
+  color: #333;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+/* === 删除确认弹窗 === */
+.delete-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 48rpx;
+}
+
+.delete-dialog {
+  width: 100%;
+  max-width: 600rpx;
+  background: #fff;
+  border-radius: 48rpx;
+  padding: 56rpx 40rpx;
+  text-align: center;
+  box-shadow: 0 20rpx 80rpx rgba(0, 0, 0, 0.2);
+}
+
+.delete-icon-box {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: rgba(255, 77, 79, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff4d4f;
+  margin: 0 auto 32rpx;
+}
+
+.delete-title {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #333;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.delete-desc {
+  font-size: 26rpx;
+  color: rgba(93, 64, 55, 0.6);
+  line-height: 1.6;
+  display: block;
+  margin-bottom: 48rpx;
+}
+
+.delete-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.delete-btn {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-btn.cancel {
+  background: #f5f5f5;
+}
+
+.delete-btn.confirm {
+  background: #ff4d4f;
+  box-shadow: 0 8rpx 24rpx rgba(255, 77, 79, 0.2);
+}
+
+.delete-btn-text {
+  font-size: 28rpx;
+  font-weight: 800;
+  color: #333;
+}
+
+.delete-btn-text.white {
+  color: #fff;
+}
+
+/* === 顶部导航栏 === */
+.player-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  padding: 24rpx 32rpx;
+  padding-top: calc(env(safe-area-inset-top) + 24rpx);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent);
+}
+
+.header-back {
+  width: 72rpx;
+  height: 72rpx;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.header-center {
+  text-align: center;
+}
+
+.header-name {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #fff;
+  display: block;
+}
+
+.header-subtitle {
+  font-size: 18rpx;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 2rpx;
+  display: block;
+}
+
+.header-placeholder {
+  width: 72rpx;
+}
+
+/* === 视频区域 === */
+.video-area {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.video-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.video-bg-image {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.3;
+  filter: blur(20px);
+  -webkit-filter: blur(20px);
+}
+
+.video-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.player-video {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.no-video-placeholder {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.no-video-text {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 32rpx;
+}
+
+.loading-indicator {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.loading-ring {
+  width: 80rpx;
+  height: 80rpx;
+  border: 6rpx solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.pause-indicator {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.pause-btn-circle {
+  width: 120rpx;
+  height: 120rpx;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+/* === 底部操作栏 === */
+.player-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  padding: 48rpx 48rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 48rpx);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4), transparent);
+}
+
+.footer-info {
+  margin-bottom: 24rpx;
+}
+
+.footer-tags {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.breed-tag {
+  padding: 4rpx 20rpx;
+  background: #FF9D76;
+  border-radius: 20rpx;
+}
+
+.breed-tag-text {
+  color: #fff;
+  font-size: 18rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+}
+
+.footer-date {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.footer-desc {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+
+.footer-actions-side {
+  position: absolute;
+  right: 32rpx;
+  bottom: 240rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 40rpx;
+}
+
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.action-circle {
+  width: 80rpx;
+  height: 80rpx;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.action-label {
+  color: #fff;
+  font-size: 18rpx;
+  font-weight: 700;
+}
+
+.footer-btns {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 32rpx;
+}
+
+.footer-btn {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+}
+
+.footer-btn.save {
+  background: #fff;
+  color: #000;
+}
+
+.footer-btn.delete {
+  background: rgba(255, 77, 79, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1rpx solid rgba(255, 77, 79, 0.3);
+  color: #ff4d4f;
+}
+
+.footer-btn-text {
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+/* === 加载中 === */
+.loading-view {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.loading-text {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 28rpx;
+}

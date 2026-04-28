@@ -1,10 +1,5 @@
-import { View, Text, Button } from '@tarojs/components';
+import { View, Text } from '@tarojs/components';
 import { X } from '../../components/common/Icons';
-
-// 小程序环境不支持这些图标，使用文字替�?const Wechat = () => <span>微信</span>;
-const Moments = () => <span>朋友�?/span>;
-const Link = () => <span>链接</span>;
-const Copy = () => <span>复制</span>;
 import { shareService } from '../../services/shareService';
 import './index.less';
 
@@ -39,21 +34,21 @@ export default function ShareSheet({ visible, title = '分享', text, url, onClo
         <View className="share-options">
           <View className="share-option" onClick={() => handleShare('wechat')}>
             <View className="option-icon wechat">
-              <Wechat size={24} />
+              <Text>💬</Text>
             </View>
             <Text className="option-label">微信好友</Text>
           </View>
 
           <View className="share-option" onClick={() => handleShare('moments')}>
             <View className="option-icon moments">
-              <Moments size={24} />
+              <Text>🌐</Text>
             </View>
-            <Text className="option-label">朋友�?/Text>
+            <Text className="option-label">朋友圈</Text>
           </View>
 
           <View className="share-option" onClick={() => handleShare('copy')}>
             <View className="option-icon link">
-              <Copy size={24} />
+              <Text>🔗</Text>
             </View>
             <Text className="option-label">复制链接</Text>
           </View>

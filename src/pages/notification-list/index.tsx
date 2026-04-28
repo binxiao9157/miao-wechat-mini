@@ -1,9 +1,179 @@
+import React, { useState, useEffect } from 'react';
 import { View, Text } from '@tarojs/components';
+import { navigateBack, navigateTo } from '@tarojs/taro';
+import { ArrowLeft, Bell, Sparkles, Coins, Heart, Settings } from '../../components/common/Icons';
+import { storage, TimeLetter, PointsInfo } from '../../services/storage';
+import './index.less';
 
-export default function Page() {
+interface Notification {
+  id: string;
+  type: 'letter' | 'points' | 'greeting';
+  title: string;
+  content: string;
+  time: number;
+  read: boolean;
+  catAvatar?: string;
+}
+
+function computeNotifications(): Notification[] {
+  const notifications: Notification[] = [];
+  const readIds = storage.getReadNotificationIds();
+  const isFastForward = storage.getIsFastForward();
+
+  // 时光信件解锁通知
+  const letters = storage.getTimeLetters();
+  letters.forEach((letter: TimeLetter) => {
+    const now = isFastForward ? Date.now() * 10 : Date.now();
+    if (letter.unlockAt <= now) {
+      notifications.push({
+        id: `letter_${letter.id}`,
+        type: 'letter',
+        title: '时光信件已解锁',
+        content: `"${letter.title || '一封来自过去的信'}" 可以查看了`,
+        time: letter.unlockAt,
+        read: readIds.includes(`letter_${letter.id}`),
+        catAvatar: letter.catAvatar,
+      });
+    }
+  });
+
+  // 积分变动通知
+  const points: PointsInfo = storage.getPoints();
+  if (points.history && points.history.length > 0) {
+    const recentPoints = points.history.slice(0, 5);
+    recentPoints.forEach((tx) => {
+      notifications.push({
+        id: `points_${tx.id}`,
+        type: 'points',
+        title: tx.type === 'earn' ? '积分收入' : '积分支出',
+        content: `${tx.reason}：${tx.type === 'earn' ? '+' : '-'}${tx.amount} 积分`,
+        time: tx.timestamp,
+        read: readIds.includes(`points_${tx.id}`),
+      });
+    });
+  }
+
+  // 系统问候
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? '早上好' : hour < 18 ? '下午好' : '晚上好';
+  const today = new Date().toISOString().slice(0, 10);
+  notifications.push({
+    id: `greeting_${today}`,
+    type: 'greeting',
+    title: `${greeting}，喵~`,
+    content: '今天也要和猫咪一起度过美好的一天哦！',
+    time: new Date().setHours(8, 0, 0, 0),
+    read: readIds.includes(`greeting_${today}`),
+  });
+
+  // 按时间倒序排列
+  notifications.sort((a, b) => b.time - a.time);
+  return notifications;
+}
+
+export default function NotificationList() {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    setNotifications(computeNotifications());
+  }, []);
+
+  const handleNotificationClick = (notification: Notification) => {
+    // 标记已读
+    storage.markNotificationAsRead(notification.id);
+    setNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, read: true } : n));
+
+    // 跳转到对应页面
+    if (notification.type === 'letter') {
+      navigateTo({ url: '/pages/time-letters/index' });
+    } else if (notification.type === 'points') {
+      navigateTo({ url: '/pages/points/index' });
+    }
+  };
+
+  const handleMarkAllRead = () => {
+    notifications.forEach(n => {
+      if (!n.read) storage.markNotificationAsRead(n.id);
+    });
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const formatTime = (timestamp: number) => {
+    const now = Date.now();
+    const diff = now - timestamp;
+    if (diff < 60000) return '刚刚';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`;
+    return new Date(timestamp).toLocaleDateString();
+  };
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case 'letter': return <Sparkles size={20} />;
+      case 'points': return <Coins size={20} />;
+      case 'greeting': return <Heart size={20} />;
+      default: return <Bell size={20} />;
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   return (
-    <View className="page">
-      <Text>Page</Text>
+    <View className="notification-list-page">
+      {/* Header */}
+      <View className="header">
+        <View className="back-btn" onClick={() => navigateBack()}>
+          <ArrowLeft size={24} />
+        </View>
+        <Text className="header-title">消息中心</Text>
+        <View className="settings-btn" onClick={() => navigateTo({ url: '/pages/notifications/index' })}>
+          <Settings size={22} />
+        </View>
+      </View>
+
+      {/* 操作栏 */}
+      {unreadCount > 0 && (
+        <View className="action-bar">
+          <Text className="unread-count">{unreadCount} 条未读</Text>
+          <View className="mark-all-btn" onClick={handleMarkAllRead}>
+            <Text className="mark-all-text">全部已读</Text>
+          </View>
+        </View>
+      )}
+
+      {/* 通知列表 */}
+      {notifications.length > 0 ? (
+        <View className="notification-list">
+          {notifications.map((notification) => (
+            <View
+              key={notification.id}
+              className={`notification-item ${notification.read ? 'read' : 'unread'}`}
+              onClick={() => handleNotificationClick(notification)}
+            >
+              <View className={`notification-icon ${notification.type}`}>
+                {getIcon(notification.type)}
+              </View>
+              <View className="notification-content">
+                <View className="notification-header">
+                  <Text className="notification-title">{notification.title}</Text>
+                  {!notification.read && <View className="unread-dot" />}
+                </View>
+                <Text className="notification-desc">{notification.content}</Text>
+                <Text className="notification-time">{formatTime(notification.time)}</Text>
+              </View>
+              <Text className="notification-arrow">›</Text>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View className="empty-state">
+          <View className="empty-icon-box">
+            <Bell size={40} />
+          </View>
+          <Text className="empty-title">暂无消息</Text>
+          <Text className="empty-desc">当有新消息时，会在这里显示</Text>
+        </View>
+      )}
     </View>
   );
 }

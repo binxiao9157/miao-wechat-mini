@@ -81,7 +81,15 @@ export const getCurrentPath = (): string => {
 export const getParams = (): Record<string, string> => {
   if (isMiniProgram) {
     const instance = Taro.getCurrentInstance();
-    return instance.router?.params || {};
+    const raw = instance.router?.params || {};
+    // Filter out undefined values
+    const result: Record<string, string> = {};
+    for (const key of Object.keys(raw)) {
+      if (raw[key] !== undefined) {
+        result[key] = raw[key] as string;
+      }
+    }
+    return result;
   }
   // Web 环境从 URL 解析
   const hash = window.location.hash;

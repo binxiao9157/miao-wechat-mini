@@ -13,7 +13,7 @@ const isMiniProgram = (): boolean => {
     const env = Taro.getEnv();
     return env === Taro.ENV_TYPE.WEAPP;
   } catch {
-    return typeof wx !== 'undefined' && typeof wx.request === 'function';
+    return typeof Taro !== 'undefined' && typeof Taro.request === 'function';
   }
 };
 

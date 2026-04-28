@@ -1,0 +1,206 @@
+.notification-list-page {
+  min-height: 100vh;
+  background: #FFF9F5;
+}
+
+/* === Header === */
+.header {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 32rpx;
+  padding-top: calc(env(safe-area-inset-top) + 20rpx);
+  background: rgba(255, 249, 245, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.back-btn {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5D4037;
+}
+
+.header-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #5D4037;
+  flex: 1;
+  text-align: center;
+}
+
+.settings-btn {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5D4037;
+}
+
+/* === 操作栏 === */
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 32rpx;
+  border-bottom: 1rpx solid rgba(93, 64, 55, 0.06);
+}
+
+.unread-count {
+  font-size: 24rpx;
+  color: rgba(93, 64, 55, 0.5);
+}
+
+.mark-all-btn {
+  padding: 8rpx 20rpx;
+}
+
+.mark-all-text {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #FF9D76;
+}
+
+/* === 通知列表 === */
+.notification-list {
+  padding: 16rpx 32rpx;
+}
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 28rpx 24rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
+}
+
+.notification-item:active {
+  transform: scale(0.98);
+}
+
+.notification-item.unread {
+  background: #fff;
+  border-left: 4rpx solid #FF9D76;
+}
+
+.notification-item.read {
+  opacity: 0.7;
+}
+
+.notification-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notification-icon.letter {
+  background: rgba(255, 157, 118, 0.1);
+  color: #FF9D76;
+}
+
+.notification-icon.points {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+.notification-icon.greeting {
+  background: rgba(255, 77, 79, 0.1);
+  color: #ff4d4f;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 6rpx;
+}
+
+.notification-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #5D4037;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.unread-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: #ff4d4f;
+  flex-shrink: 0;
+}
+
+.notification-desc {
+  font-size: 24rpx;
+  color: rgba(93, 64, 55, 0.5);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.notification-time {
+  font-size: 20rpx;
+  color: rgba(93, 64, 55, 0.3);
+  display: block;
+}
+
+.notification-arrow {
+  font-size: 32rpx;
+  color: rgba(93, 64, 55, 0.2);
+  flex-shrink: 0;
+}
+
+/* === 空状态 === */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 240rpx;
+}
+
+.empty-icon-box {
+  width: 140rpx;
+  height: 140rpx;
+  background: #f5f5f5;
+  border-radius: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(93, 64, 55, 0.2);
+  margin-bottom: 24rpx;
+}
+
+.empty-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #5D4037;
+  margin-bottom: 8rpx;
+}
+
+.empty-desc {
+  font-size: 24rpx;
+  color: rgba(93, 64, 55, 0.4);
+}

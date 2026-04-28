@@ -18,7 +18,6 @@ export default function UploadMaterial() {
     setTimeout(() => setShowToast(null), 2500);
   };
 
-  // 选择图片 - 使用 Taro.chooseMedia
   const handleChooseImage = () => {
     Taro.chooseMedia({
       count: 1,
@@ -26,34 +25,25 @@ export default function UploadMaterial() {
       sourceType: ['album', 'camera'],
       sizeType: ['compressed'],
       success: (res) => {
-        const tempFile = res.tempFiles[0];
-        setSelectedImage(tempFile.tempFilePath);
+        setSelectedImage(res.tempFiles[0].tempFilePath);
       },
-      fail: (err) => {
-        console.error('chooseMedia failed:', err);
-        // 降级到 chooseImage
+      fail: () => {
         Taro.chooseImage({
           count: 1,
           sourceType: ['album', 'camera'],
           sizeType: ['compressed'],
-          success: (imgRes) => {
-            setSelectedImage(imgRes.tempFilePaths[0]);
-          },
-          fail: () => {
-            triggerToast('选择图片失败，请重试');
-          }
+          success: (imgRes) => setSelectedImage(imgRes.tempFilePaths[0]),
+          fail: () => triggerToast('选择图片失败，请重试'),
         });
-      }
+      },
     });
   };
 
-  // 移除已选图片
   const handleRemoveImage = (e: any) => {
     e.stopPropagation();
     setSelectedImage(null);
   };
 
-  // 生成AI首帧形象
   const handleGenerateImage = async () => {
     if (!selectedImage || !nickname.trim()) {
       triggerToast('请输入猫咪名字并上传照片哦~');
@@ -62,26 +52,9 @@ export default function UploadMaterial() {
 
     setIsDrawing(true);
     try {
-      // 将本地图片转为 base64
-      let imageBase64 = selectedImage;
-      if (!selectedImage.startsWith('data:')) {
-        try {
-          const fs = Taro.getFileSystemManager();
-          const fileData = fs.readFileSync(selectedImage, 'base64');
-          imageBase64 = `data:image/jpeg;base64,${fileData}`;
-        } catch (e) {
-          console.error('读取图片失败:', e);
-          triggerToast('读取图片失败，请重新选择');
-          setIsDrawing(false);
-          return;
-        }
-      }
-
-      // 构建提示词
+      // 直接传文件路径，volcanoService 内部用 Taro.uploadFile 上传，避免 base64 过大触发微信限制
       const prompt = IMAGE_PROMPTS.anchor(nickname, '未知');
-
-      // 调用AI生成首帧
-      const task = await VolcanoService.submitImageTask(prompt, imageBase64);
+      const task = await VolcanoService.submitImageTask(prompt, selectedImage);
       const imageUrl = await VolcanoService.pollImageResult(task.id, task.image_url);
       setFirstFrameUrl(imageUrl);
     } catch (e: any) {
@@ -92,11 +65,9 @@ export default function UploadMaterial() {
     }
   };
 
-  // 确认首帧并跳转到视频生成
   const handleConfirmAndGenerate = () => {
     if (!firstFrameUrl || !nickname.trim()) return;
 
-    // 保存猫咪信息到 storage
     const newCat = {
       id: 'cat_' + Date.now(),
       name: nickname.trim(),
@@ -108,26 +79,20 @@ export default function UploadMaterial() {
     };
     storage.saveCatInfo(newCat);
 
-    // 跳转到生成进度页
     navigateTo({ url: '/pages/generation-progress/index' });
   };
 
-  // 重新生成
   const handleRegenerate = () => {
     setFirstFrameUrl(null);
     handleGenerateImage();
   };
 
-  // 保存图片到相册
   const handleSaveImage = () => {
     if (!firstFrameUrl) return;
     Taro.saveImageToPhotosAlbum({
       filePath: firstFrameUrl,
-      success: () => {
-        triggerToast('已保存到相册');
-      },
+      success: () => triggerToast('已保存到相册'),
       fail: () => {
-        // 如果是网络图片，需要先下载
         if (firstFrameUrl.startsWith('http')) {
           Taro.downloadFile({
             url: firstFrameUrl,
@@ -145,7 +110,7 @@ export default function UploadMaterial() {
         } else {
           triggerToast('保存失败，请长按图片手动保存');
         }
-      }
+      },
     });
   };
 
@@ -153,14 +118,12 @@ export default function UploadMaterial() {
 
   return (
     <View className="upload-material-page">
-      {/* Toast */}
       {showToast && (
         <View className="toast">
           <Text className="toast-text">{showToast}</Text>
         </View>
       )}
 
-      {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
           <ArrowLeft size={24} />
@@ -168,16 +131,13 @@ export default function UploadMaterial() {
         <Text className="header-title">上传素材</Text>
       </View>
 
-      {/* Content */}
       <View className="content">
-        {/* Title Section */}
         <View className="title-section">
           <Text className="main-title">AI 形象生成</Text>
           <Text className="sub-title">AI IMAGE GENERATION</Text>
           <Text className="desc">上传一张您家猫咪的照片，AI 将为您生成专属的数字形象。</Text>
         </View>
 
-        {/* Image Upload Area */}
         <View className="image-area">
           {selectedImage ? (
             <View className="image-preview">
@@ -197,7 +157,6 @@ export default function UploadMaterial() {
           )}
         </View>
 
-        {/* Nickname Input */}
         <View className="input-section">
           <Input
             className="nickname-input"
@@ -209,7 +168,6 @@ export default function UploadMaterial() {
           />
         </View>
 
-        {/* Generate Button */}
         <View className="btn-section">
           <View
             className={`generate-btn ${isReady && !isDrawing ? 'active' : 'disabled'}`}
@@ -221,7 +179,6 @@ export default function UploadMaterial() {
         </View>
       </View>
 
-      {/* 首帧确认弹窗 */}
       {firstFrameUrl && (
         <View className="confirm-overlay">
           <View className="confirm-dialog">
@@ -229,11 +186,9 @@ export default function UploadMaterial() {
               <Text className="confirm-title">专属形象初稿</Text>
               <Text className="confirm-desc">AI 已捕捉到了猫咪的灵魂特征</Text>
             </View>
-
             <View className="confirm-image-box">
               <Image className="confirm-image" src={firstFrameUrl} mode="aspectFill" />
             </View>
-
             <View className="confirm-actions">
               <View className="confirm-btn primary" onClick={handleConfirmAndGenerate}>
                 <Sparkles size={18} className="confirm-btn-icon" />
@@ -252,7 +207,6 @@ export default function UploadMaterial() {
         </View>
       )}
 
-      {/* 生成中加载遮罩 */}
       {isDrawing && (
         <View className="loading-overlay">
           <View className="loading-spinner">

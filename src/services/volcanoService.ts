@@ -1,3 +1,4 @@
+import Taro from '@tarojs/taro';
 import { request, get } from '../utils/httpAdapter';
 
 export const VolcanoConfig = {
@@ -110,6 +111,27 @@ export class VolcanoService {
     }
 
     try {
+      // 本地文件路径用 Taro.uploadFile，避免 base64 过大触发微信数据检查上限
+      const isLocalFile = imageBase64 && !imageBase64.startsWith('') && !imageBase64.startsWith('http');
+      if (isLocalFile) {
+        const baseURL = process.env.TARO_APP_API_BASE_URL || 'https://your-server.com';
+        const data = await new Promise<any>((resolve, reject) => {
+          Taro.uploadFile({
+            url: `${baseURL}/api/generate-image-file`,
+            filePath: imageBase64!,
+            name: 'image',
+            formData: { prompt, model: VolcanoConfig.T2IModelId },
+            success: (res) => {
+              try { resolve(JSON.parse(res.data)); } catch { reject(new Error('响应解析失败')); }
+            },
+            fail: (err) => reject(new Error(err.errMsg || '上传失败')),
+          });
+        });
+        const taskId = data?.id || data?.task_id;
+        if (!taskId) throw new Error("文生图任务提交失败，未获取到 ID");
+        return { id: taskId, image_url: data?.image_url, status: data?.status };
+      }
+
       const response = await request({
         url: "/api/generate-image",
         method: 'POST',

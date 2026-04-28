@@ -10,7 +10,7 @@ export default function EmptyCat() {
   };
 
   const handleUploadCat = () => {
-    navigateTo({ url: '/pages/uploadMaterial/index' });
+    navigateTo({ url: '/pages/upload-material/index' });
   };
 
   return (

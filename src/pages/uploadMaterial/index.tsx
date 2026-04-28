@@ -23,7 +23,7 @@ export default function UploadMaterial() {
     // 模拟上传过程
     setTimeout(() => {
       setIsUploading(false);
-      navigateTo({ url: '/pages/generationProgress/index' });
+      navigateTo({ url: '/pages/generation-progress/index' });
     }, 2000);
   };
 

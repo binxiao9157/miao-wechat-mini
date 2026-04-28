@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
-import { navigateTo, switchTab } from '@tarojs/taro';
+import { navigateTo, switchTab, reLaunch } from '@tarojs/taro';
 import { User, Settings, Heart, MessageCircle, Users, LogOut, ChevronRight } from '../../components/common/Icons';
 import { storage, UserInfo, CatInfo } from '../../services/storage';
 import './index.less';
@@ -28,11 +28,11 @@ export default function Profile() {
 
   const handleLogout = () => {
     storage.clearCurrentUser();
-    switchTab({ url: '/pages/login/index' });
+    reLaunch({ url: '/pages/login/index' });
   };
 
   const menuItems = [
-    { icon: <User size={20} />, label: '编辑资料', url: '/pages/editProfile/index' },
+    { icon: <User size={20} />, label: '编辑资料', url: '/pages/edit-profile/index' },
     { icon: <Heart size={20} />, label: '我的收藏', url: '' },
     { icon: <MessageCircle size={20} />, label: '我的日记', url: '/pages/diary/index' },
     { icon: <Users size={20} />, label: '好友列表', url: '' },

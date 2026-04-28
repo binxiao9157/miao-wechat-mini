@@ -18,7 +18,7 @@ export default function Home() {
   }, []);
 
   const handleCatClick = () => {
-    navigateTo({ url: '/pages/catPlayer/index' });
+    navigateTo({ url: '/pages/cat-player/index' });
   };
 
   const handleFeed = () => {
@@ -80,7 +80,7 @@ export default function Home() {
           <Text>📔</Text>
           <Text className="nav-label">日记</Text>
         </View>
-        <View className="nav-item" onClick={() => switchTab({ url: '/pages/friends/index' })}>
+        <View className="nav-item" onClick={() => navigateTo({ url: '/pages/scan-friend/index' })}>
           <Text>👥</Text>
           <Text className="nav-label">好友</Text>
         </View>

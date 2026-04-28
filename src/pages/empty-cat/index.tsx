@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Button } from '@tarojs/components';
-import { navigateTo, reLaunch } from '@tarojs/taro';
+import { navigateTo } from '@tarojs/taro';
 import { Sparkles, ArrowLeft, PawPrint } from '../../components/common/Icons';
 import { useAuthContext } from '../../context/AuthContext';
 import './index.less';
@@ -14,7 +14,7 @@ export default function EmptyCatPage() {
   };
 
   const handleStart = () => {
-    reLaunch({ url: '/pages/welcome/index' });
+    navigateTo({ url: '/pages/createCompanion/index' });
   };
 
   return (

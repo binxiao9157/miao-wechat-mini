@@ -60,12 +60,21 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
         timeout,
       });
 
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        const errData = res.data as any;
+        const msg = errData?.message || errData?.error || `HTTP ${res.statusCode}`;
+        const err: any = new Error(msg);
+        err.response = { status: res.statusCode, data: errData };
+        throw err;
+      }
+
       return {
         data: res.data,
         status: res.statusCode,
         headers: res.header || {},
       };
     } catch (error: any) {
+      if (error.response) throw error;
       console.error('Taro request error:', error);
       throw new Error(`网络请求失败: ${error.message || '未知错误'}`);
     }

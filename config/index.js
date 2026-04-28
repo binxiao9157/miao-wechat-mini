@@ -14,7 +14,11 @@ const config = {
   sourceRoot: 'src',
   outputRoot: 'dist',
   plugins: [],
-  defineConstants: {},
+  defineConstants: {
+    'process.env.TARO_APP_API_BASE_URL': JSON.stringify(
+      process.env.TARO_APP_API_BASE_URL || 'http://localhost:3000'
+    ),
+  },
   mini: {},
   h5: {
     devServer: {

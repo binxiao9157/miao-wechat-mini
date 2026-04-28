@@ -37,6 +37,7 @@ export class VolcanoService {
         const response = await request({
           url: "/api/generate-video",
           method: 'POST',
+          timeout: 90000,
           data: {
             model: VolcanoConfig.ModelId,
             prompt: prompt || "A high quality video of this cat, cinematic lighting, realistic.",
@@ -51,21 +52,16 @@ export class VolcanoService {
         });
 
         const taskId = response?.data?.id || response?.data?.task_id;
-
         if (!taskId) {
           throw new Error("服务器返回数据格式错误，未获取到任务 ID");
         }
 
-        return {
-          ...response,
-          id: taskId
-        };
+        return { ...response, id: taskId };
       } catch (error: any) {
         lastError = error;
-        const isNetworkError = !error.response;
-        const shouldRetry = isNetworkError;
-
-        if (!shouldRetry || i === retries) break;
+        // 只对网络错误重试，HTTP 错误（有 response）和应用错误直接终止
+        const isRetryable = !error.response && error.message?.includes('网络请求失败');
+        if (!isRetryable || i === retries) break;
 
         console.warn(`提交任务失败，正在进行第 ${i + 1} 次重试...`, error.message);
         await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)));
@@ -75,13 +71,9 @@ export class VolcanoService {
     const error = lastError;
     if (error?.response?.data) {
       const data = error.response.data;
-      const detailedMsg = data.message || data.error?.message || data.error || `提交失败`;
-      throw new Error(detailedMsg);
-    } else if (error?.message) {
-      throw new Error(`请求错误: ${error.message}`);
-    } else {
-      throw new Error("未知错误");
+      throw new Error(data.message || data.error || '提交失败');
     }
+    throw new Error(error?.message || '未知错误');
   }
 
   public static async getTaskResult(taskId: string) {

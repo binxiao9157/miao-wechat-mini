@@ -64,15 +64,16 @@ export default function UploadMaterial() {
     try {
       // 将本地图片转为 base64
       let imageBase64 = selectedImage;
-      if (!selectedImage.startsWith('')) {
+      if (!selectedImage.startsWith('data:')) {
         try {
           const fs = Taro.getFileSystemManager();
           const fileData = fs.readFileSync(selectedImage, 'base64');
           imageBase64 = `data:image/jpeg;base64,${fileData}`;
         } catch (e) {
           console.error('读取图片失败:', e);
-          // 如果读取失败，直接使用文件路径
-          imageBase64 = selectedImage;
+          triggerToast('读取图片失败，请重新选择');
+          setIsDrawing(false);
+          return;
         }
       }
 

@@ -6,7 +6,7 @@ import './index.less';
 
 export default function EmptyCat() {
   const handleCreateCat = () => {
-    navigateTo({ url: '/pages/createCompanion/index' });
+    navigateTo({ url: '/pages/create-companion/index' });
   };
 
   const handleUploadCat = () => {

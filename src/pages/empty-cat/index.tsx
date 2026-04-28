@@ -14,7 +14,7 @@ export default function EmptyCatPage() {
   };
 
   const handleStart = () => {
-    navigateTo({ url: '/pages/createCompanion/index' });
+    navigateTo({ url: '/pages/create-companion/index' });
   };
 
   return (

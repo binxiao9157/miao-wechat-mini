@@ -25,11 +25,54 @@ export const IMAGE_PROMPTS = {
     `A ultra-realistic, high-detail portrait of a ${breed} cat with ${color} fur, sitting comfortably in a soft cat nest, cinematic lighting, 4k resolution, looking at the camera.`
 };
 
+// 判断是否为需要 uploadFile 上传的本地文件路径
+// 微信临时文件可能是 wxfile://tmp_xxx.jpg 或 http://tmp/xxx.jpg，都不能被外部服务器访问
+function isLocalFilePath(path?: string): boolean {
+  if (!path) return false;
+  if (path.startsWith('data:')) return false; // 已是 base64，不需要上传
+  return true; // 其他全部视为本地路径，用 uploadFile 上传
+}
+
+function getBaseURL(): string {
+  return process.env.TARO_APP_API_BASE_URL || 'https://your-server.com';
+}
+
+// 通用文件上传函数，返回服务器响应的 JSON
+function uploadFile(filePath: string, endpoint: string, formData: Record<string, string>): Promise<any> {
+  return new Promise((resolve, reject) => {
+    Taro.uploadFile({
+      url: `${getBaseURL()}${endpoint}`,
+      filePath,
+      name: 'image',
+      formData,
+      success: (res) => {
+        try { resolve(JSON.parse(res.data)); } catch { reject(new Error('响应解析失败')); }
+      },
+      fail: (err) => reject(new Error(err.errMsg || '文件上传失败')),
+    });
+  });
+}
+
 export class VolcanoService {
   public static async submitTask(imageBase64: string, prompt?: string, retries: number = 2) {
     if (VolcanoConfig.MOCK_MODE) {
       await new Promise(resolve => setTimeout(resolve, 1000));
       return { id: 'mock_task_' + Date.now() };
+    }
+
+    // 本地文件路径改用 uploadFile，避免 base64 过大触发微信数据检查上限
+    if (isLocalFilePath(imageBase64)) {
+      const data = await uploadFile(imageBase64, '/api/generate-video-file', {
+        model: VolcanoConfig.ModelId,
+        prompt: prompt || "A high quality video of this cat, cinematic lighting, realistic.",
+        seed: '12345',
+        resolution: '480p',
+        duration: '5',
+        audio: 'false',
+      });
+      const taskId = data?.id || data?.task_id;
+      if (!taskId) throw new Error("服务器返回数据格式错误，未获取到任务 ID");
+      return { ...data, id: taskId };
     }
 
     let lastError: any;
@@ -43,27 +86,17 @@ export class VolcanoService {
             model: VolcanoConfig.ModelId,
             prompt: prompt || "A high quality video of this cat, cinematic lighting, realistic.",
             image_base64: imageBase64,
-            parameters: {
-              seed: 12345,
-              resolution: "480p",
-              duration: 5,
-              audio: false
-            }
+            parameters: { seed: 12345, resolution: "480p", duration: 5, audio: false }
           }
         });
 
         const taskId = response?.data?.id || response?.data?.task_id;
-        if (!taskId) {
-          throw new Error("服务器返回数据格式错误，未获取到任务 ID");
-        }
-
+        if (!taskId) throw new Error("服务器返回数据格式错误，未获取到任务 ID");
         return { ...response, id: taskId };
       } catch (error: any) {
         lastError = error;
-        // 只对网络错误重试，HTTP 错误（有 response）和应用错误直接终止
         const isRetryable = !error.response && error.message?.includes('网络请求失败');
         if (!isRetryable || i === retries) break;
-
         console.warn(`提交任务失败，正在进行第 ${i + 1} 次重试...`, error.message);
         await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)));
       }
@@ -80,15 +113,9 @@ export class VolcanoService {
   public static async getTaskResult(taskId: string) {
     if (VolcanoConfig.MOCK_MODE) {
       await new Promise(resolve => setTimeout(resolve, 500));
-
       const progress = Math.random();
       if (progress > 0.8) {
-        return {
-          status: 'succeeded',
-          content: {
-            video_url: 'https://www.w3schools.com/html/mov_bbb.mp4'
-          }
-        };
+        return { status: 'succeeded', content: { video_url: 'https://www.w3schools.com/html/mov_bbb.mp4' } };
       }
       return { status: 'running' };
     }
@@ -111,21 +138,11 @@ export class VolcanoService {
     }
 
     try {
-      // 本地文件路径用 Taro.uploadFile，避免 base64 过大触发微信数据检查上限
-      const isLocalFile = imageBase64 && !imageBase64.startsWith('') && !imageBase64.startsWith('http');
-      if (isLocalFile) {
-        const baseURL = process.env.TARO_APP_API_BASE_URL || 'https://your-server.com';
-        const data = await new Promise<any>((resolve, reject) => {
-          Taro.uploadFile({
-            url: `${baseURL}/api/generate-image-file`,
-            filePath: imageBase64!,
-            name: 'image',
-            formData: { prompt, model: VolcanoConfig.T2IModelId },
-            success: (res) => {
-              try { resolve(JSON.parse(res.data)); } catch { reject(new Error('响应解析失败')); }
-            },
-            fail: (err) => reject(new Error(err.errMsg || '上传失败')),
-          });
+      // 本地文件路径改用 uploadFile，避免 base64 过大触发微信数据检查上限
+      if (isLocalFilePath(imageBase64)) {
+        const data = await uploadFile(imageBase64!, '/api/generate-image-file', {
+          prompt,
+          model: VolcanoConfig.T2IModelId,
         });
         const taskId = data?.id || data?.task_id;
         if (!taskId) throw new Error("文生图任务提交失败，未获取到 ID");
@@ -135,30 +152,14 @@ export class VolcanoService {
       const response = await request({
         url: "/api/generate-image",
         method: 'POST',
-         data: {
-          prompt,
-          image_base64: imageBase64,
-          model: VolcanoConfig.T2IModelId
-        }
+        data: { prompt, image_base64: imageBase64, model: VolcanoConfig.T2IModelId }
       });
 
       const taskId = response?.data?.id || response?.data?.task_id;
-
-      if (!taskId) {
-        throw new Error("文生图任务提交失败，未获取到 ID");
-      }
-
-      return {
-        id: taskId,
-        image_url: response?.data?.image_url,
-        status: response?.data?.status
-      };
+      if (!taskId) throw new Error("文生图任务提交失败，未获取到 ID");
+      return { id: taskId, image_url: response?.data?.image_url, status: response?.data?.status };
     } catch (error: any) {
-      let errorMsg = "文生图提交失败";
-      if (error?.message) {
-        errorMsg = error.message;
-      }
-      throw new Error(errorMsg);
+      throw new Error(error?.message || "文生图提交失败");
     }
   }
 
@@ -169,9 +170,8 @@ export class VolcanoService {
     }
 
     if (initialUrl) return initialUrl;
-    if (taskId.startsWith('sync:')) {
-      throw new Error("同步任务未提供图片地址");
-    }
+    if (taskId.startsWith('sync:')) throw new Error("同步任务未提供图片地址");
+
     const maxDelay = 10000;
     let delay = 2000;
     const startTime = Date.now();
@@ -247,19 +247,15 @@ export class VolcanoService {
           result.data?.video_url ||
           result.video_url;
 
-        if (!videoUrl && result.response?.video?.uri) {
-          videoUrl = result.response.video.uri;
-        }
+        if (!videoUrl && result.response?.video?.uri) videoUrl = result.response.video.uri;
 
         if (videoUrl && (videoUrl.startsWith('http') || videoUrl.startsWith('/api'))) {
           return videoUrl;
-        } else {
-          throw new Error(`任务成功但未获取到有效的视频播放地址。`);
         }
+        throw new Error(`任务成功但未获取到有效的视频播放地址。`);
       } else if (status === 'failed' || status === 'cancelled') {
         const errorDetail = result.error || result.message || "未知错误";
-        const errorMsg = typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail);
-        throw new Error(`任务失败 (${status}): ${errorMsg}`);
+        throw new Error(`任务失败 (${status}): ${typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail)}`);
       }
 
       await new Promise(resolve => setTimeout(resolve, delay));

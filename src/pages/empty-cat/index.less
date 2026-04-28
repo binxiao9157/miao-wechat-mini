@@ -6,6 +6,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  overflow: hidden;
 }
 
 .logout-btn {
@@ -139,30 +140,25 @@
   font-size: 28rpx;
   color: rgba(102, 102, 102, 0.6);
   line-height: 1.6;
-  margin-bottom: 60rpx;
+  margin-bottom: 48rpx;
 }
 
 .start-btn {
+  width: 560rpx;
+  height: 96rpx;
+  background: linear-gradient(135deg, #ff9a5a 0%, #ff6b3d 100%);
+  border: none;
+  border-radius: 48rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16rpx;
-  background: linear-gradient(135deg, #ff9a5a 0%, #ff6b3d 100%);
-  color: #fff;
-  border-radius: 48rpx;
-  padding: 24rpx 80rpx;
-  box-shadow: 0 12rpx 32rpx rgba(255, 107, 61, 0.3);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.start-btn:active {
-  transform: scale(0.97);
-  box-shadow: 0 6rpx 16rpx rgba(255, 107, 61, 0.2);
+  box-shadow: 0 30rpx 60rpx rgba(232, 159, 113, 0.3);
 }
 
 .btn-text {
   font-size: 32rpx;
-  font-weight: 700;
+  font-weight: 900;
   color: #fff;
 }
 
@@ -177,7 +173,7 @@
     transform: translateX(0);
   }
   50% {
-    transform: translateX(8rpx);
+    transform: translateX(10rpx);
   }
 }
 

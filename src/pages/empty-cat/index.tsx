@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text } from '@tarojs/components';
-import { navigateTo } from '@tarojs/taro';
-import { ArrowLeft, PawPrint, Sparkles } from '../../components/common/Icons';
+import { View, Text, Button } from '@tarojs/components';
+import { navigateTo, reLaunch } from '@tarojs/taro';
+import { Sparkles, ArrowLeft, PawPrint } from '../../components/common/Icons';
 import { useAuthContext } from '../../context/AuthContext';
 import './index.less';
 
@@ -10,7 +10,7 @@ export default function EmptyCatPage() {
 
   const handleLogout = () => {
     logout();
-    navigateTo({ url: '/pages/login/index' });
+    reLaunch({ url: '/pages/login/index' });
   };
 
   const handleStart = () => {
@@ -45,13 +45,13 @@ export default function EmptyCatPage() {
 
         <Text className="title">还没有猫咪伙伴</Text>
         <Text className="description">
-          每一个温暖的灵魂都在等待相遇，开启你的缘分之旅吧
+          每一个温暖的灵魂都在等待相遇。开启一段专属缘分，领养你的第一只数字猫咪吧！
         </Text>
 
-        <View className="start-btn" onClick={handleStart}>
+        <Button className="start-btn" onClick={handleStart}>
           <Text className="btn-text">开启缘分</Text>
           <Text className="btn-arrow">→</Text>
-        </View>
+        </Button>
       </View>
 
       <View className="footer">

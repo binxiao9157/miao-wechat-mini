@@ -186,6 +186,32 @@
   gap: 16rpx;
   margin-bottom: 32rpx;
 
+  .custom-checkbox {
+    width: 36rpx;
+    height: 36rpx;
+    min-width: 36rpx;
+    border: 2rpx solid #d0d0d0;
+    border-radius: 8rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    margin-top: 4rpx;
+    transition: all 0.2s;
+
+    &.checked {
+      background: #E89F71;
+      border-color: #E89F71;
+    }
+
+    .check-mark {
+      color: #fff;
+      font-size: 24rpx;
+      font-weight: 700;
+      line-height: 1;
+    }
+  }
+
   .agreement-text {
     font-size: 24rpx;
     color: #666;

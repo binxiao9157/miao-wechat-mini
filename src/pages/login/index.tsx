@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Input, Button, Image, Checkbox, Navigator } from '@tarojs/components';
+import { View, Text, Input, Button, Image } from '@tarojs/components';
 import { navigateTo, switchTab } from '@tarojs/taro';
 import { Eye, EyeOff, PawPrint } from '../../components/common/Icons';
 import { storage } from '../../services/storage';
@@ -138,17 +138,15 @@ export default function Login() {
 
           {error && <Text className="error-text">{error}</Text>}
 
-          <View className="agreement">
-            <Checkbox
-              checked={isAgreed}
-              onChange={(e) => setIsAgreed(e.detail.value)}
-              color="#E89F71"
-            />
+          <View className="agreement" onClick={() => setIsAgreed(!isAgreed)}>
+            <View className={`custom-checkbox ${isAgreed ? 'checked' : ''}`}>
+              {isAgreed && <Text className="check-mark">✓</Text>}
+            </View>
             <Text className="agreement-text">
               我已阅读并同意
-              <Text className="link" onClick={() => navigateTo({ url: '/pages/terms-of-service/index' })}>《Miao 服务条款》</Text>
+              <Text className="link" onClick={(e) => { e.stopPropagation(); navigateTo({ url: '/pages/terms-of-service/index' }); }}>《Miao 服务条款》</Text>
               和
-              <Text className="link" onClick={() => navigateTo({ url: '/pages/privacy-policy/index' })}>《隐私政策》</Text>
+              <Text className="link" onClick={(e) => { e.stopPropagation(); navigateTo({ url: '/pages/privacy-policy/index' }); }}>《隐私政策》</Text>
             </Text>
           </View>
 

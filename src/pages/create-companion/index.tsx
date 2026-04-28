@@ -78,6 +78,9 @@ export default function CreateCompanion() {
             value={catName}
             onInput={(e) => setCatName(e.detail.value)}
             placeholder="给它起个好听的名字"
+            placeholderStyle="color: rgba(93,64,55,0.3)"
+            adjustPosition
+            alwaysEmbed
           />
         </View>
 

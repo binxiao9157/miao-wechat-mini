@@ -1,64 +1,125 @@
-import { View, Text, Image } from '@tarojs/components';
-import { navigateTo, switchTab } from '@tarojs/taro';
-import { storage } from '../../services/storage';
-import { catService } from '../../services/catService';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Input, Image } from '@tarojs/components';
+import { navigateTo, navigateBack, switchTab } from '@tarojs/taro';
+import { ArrowLeft, Sparkles } from '../../components/common/Icons';
+import { storage, PresetCat } from '../../services/storage';
 import './index.less';
 
 export default function CreateCompanion() {
-  const handleCreateCat = () => {
-    navigateTo({ url: '/pages/create-companion/index' });
+  const [presets, setPresets] = useState<PresetCat[]>([]);
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
+  const [catName, setCatName] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showToast, setShowToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPresets(storage.getPresetCats());
+  }, []);
+
+  const triggerToast = (msg: string) => {
+    setShowToast(msg);
+    setTimeout(() => setShowToast(null), 3000);
   };
 
-  const handleUploadCat = () => {
-    navigateTo({ url: '/pages/upload-material/index' });
+  const handleGenerate = () => {
+    if (!catName.trim() || !selectedPresetId) {
+      triggerToast('请填写完整信息后再生成哦！');
+      return;
+    }
+
+    const selectedPreset = presets.find(p => p.id === selectedPresetId);
+    if (!selectedPreset) return;
+
+    setIsGenerating(true);
+
+    // 保存猫咪信息并跳转到生成进度页
+    const newCat = {
+      id: 'cat_' + Date.now(),
+      name: catName.trim(),
+      breed: selectedPreset.name,
+      color: '预设',
+      avatar: selectedPreset.imageUrl,
+      source: 'created' as const,
+      createdAt: Date.now()
+    };
+    storage.saveCatInfo(newCat);
+
+    // 跳转到生成进度页
+    navigateTo({ url: '/pages/generation-progress/index' });
   };
+
+  const isFormComplete = catName.trim() !== '' && selectedPresetId !== null;
 
   return (
     <View className="create-companion-page">
-      <View className="content">
-        <View className="illustration">
-          <Text className="cat-emoji">🐱</Text>
+      {/* Toast */}
+      {showToast && (
+        <View className="toast">
+          <Text className="toast-text">{showToast}</Text>
+        </View>
+      )}
+
+      {/* Header */}
+      <View className="header">
+        <View className="back-btn" onClick={() => navigateBack()}>
+          <ArrowLeft size={24} />
+        </View>
+        <Text className="header-title">手捏小猫</Text>
+      </View>
+
+      {/* Scrollable Content */}
+      <View className="scroll-content">
+        {/* Name Input */}
+        <View className="form-section">
+          <Text className="form-label">猫咪昵称</Text>
+          <Input
+            className="name-input"
+            type="text"
+            value={catName}
+            onInput={(e) => setCatName(e.detail.value)}
+            placeholder="给它起个好听的名字"
+          />
         </View>
 
-        <Text className="title">还没有猫咪陪伴你</Text>
-        <Text className="subtitle">领养一只属于你的猫咪，开始温暖的旅程</Text>
-
-        <View className="options">
-          <View className="option-card" onClick={handleCreateCat}>
-            <View className="option-icon">✨</View>
-            <Text className="option-title">AI 生成</Text>
-            <Text className="option-desc">用AI创造一只独一无二的猫咪</Text>
-          </View>
-
-          <View className="option-card" onClick={handleUploadCat}>
-            <View className="option-icon">📷</View>
-            <Text className="option-title">上传照片</Text>
-            <Text className="option-desc">上传照片生成你的猫咪形象</Text>
-          </View>
-        </View>
-
-        <View className="preset-cats">
-          <Text className="preset-title">或选择预设猫咪</Text>
-          <View className="preset-list">
-            {catService.breeds.map((breed) => (
-              <View key={breed.id} className="preset-item" onClick={() => {
-                const newCat = {
-                  id: 'cat_' + Date.now(),
-                  name: breed.name,
-                  breed: breed.name,
-                  color: '未知',
-                  avatar: breed.image,
-                  source: 'created' as const,
-                  createdAt: Date.now()
-                };
-                storage.saveCatInfo(newCat);
-                switchTab({ url: '/pages/home/index' });
-              }}>
-                <Image className="preset-image" src={breed.image} mode="aspectFill" />
-                <Text className="preset-name">{breed.name}</Text>
+        {/* Breed Selection - Grid */}
+        <View className="form-section">
+          <Text className="form-label">选择品种</Text>
+          <View className="breed-grid">
+            {presets.map((preset) => (
+              <View
+                key={preset.id}
+                className={`breed-card ${selectedPresetId === preset.id ? 'selected' : ''}`}
+                onClick={() => setSelectedPresetId(preset.id)}
+              >
+                {selectedPresetId === preset.id && (
+                  <View className="check-badge">
+                    <Text className="check-mark">✓</Text>
+                  </View>
+                )}
+                <View className="breed-image-wrapper">
+                  <Image
+                    className="breed-image"
+                    src={preset.imageUrl}
+                    mode="aspectFill"
+                  />
+                </View>
+                <Text className={`breed-name ${selectedPresetId === preset.id ? 'selected' : ''}`}>
+                  {preset.name}
+                </Text>
               </View>
             ))}
           </View>
+        </View>
+      </View>
+
+      {/* Fixed Bottom Button */}
+      <View className="bottom-bar">
+        <View
+          className={`generate-btn ${isFormComplete && !isGenerating ? 'active' : 'disabled'}`}
+          onClick={isFormComplete && !isGenerating ? handleGenerate : undefined}
+        >
+          <Sparkles size={22} className="btn-icon" />
+          <Text className="btn-label">{isGenerating ? '生成中...' : '确认生成'}</Text>
         </View>
       </View>
     </View>

@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, Button } from '@tarojs/components';
+import { View, Text } from '@tarojs/components';
 import { navigateTo, reLaunch } from '@tarojs/taro';
-import { Sparkles, ArrowLeft, PawPrint } from '../../components/common/Icons';
+import { ArrowLeft, Camera, PawPrint } from '../../components/common/Icons';
 import { useAuthContext } from '../../context/AuthContext';
 import './index.less';
 
@@ -13,49 +13,66 @@ export default function EmptyCatPage() {
     reLaunch({ url: '/pages/login/index' });
   };
 
-  const handleStart = () => {
+  const handleUpload = () => {
+    navigateTo({ url: '/pages/upload-material/index' });
+  };
+
+  const handleCreate = () => {
     navigateTo({ url: '/pages/create-companion/index' });
   };
 
   return (
-    <View className="empty-cat-page">
-      {/* Logout Button */}
-      <View className="logout-btn" onClick={handleLogout}>
+    <View className="welcome-page">
+      {/* Header - Back Button */}
+      <View className="back-btn" onClick={handleLogout}>
         <ArrowLeft size={20} />
       </View>
 
-      {/* Background Decorative */}
-      <View className="bg-decoration bg-decoration-1"></View>
-      <View className="bg-decoration bg-decoration-2"></View>
+      {/* Logo */}
+      <View className="logo-section">
+        <View className="logo-icon-wrapper">
+          <PawPrint size={44} className="logo-icon" />
+        </View>
+        <Text className="logo-text">Miao</Text>
+      </View>
 
-      <View className="content">
-        {/* Illustration Container */}
-        <View className="illustration-container">
-          <View className="glow-bg"></View>
-          <View className="icon-wrapper">
-            <PawPrint size={80} className="paw-icon paw-icon-1" />
-            <View className="paw-float">
-              <PawPrint size={80} className="paw-icon paw-icon-2" />
+      {/* Title */}
+      <Text className="main-title">遇见你的{'\n'}数字猫咪</Text>
+      <Text className="main-desc">开启一段温暖的治愈旅程，记录你与毛{'\n'}孩子的每一个瞬间。</Text>
+
+      {/* Option Cards */}
+      <View className="option-cards">
+        {/* 我有猫咪 - Upload */}
+        <View className="option-card" onClick={handleUpload}>
+          <View className="card-header">
+            <View className="card-icon-box">
+              <Camera size={28} className="card-icon" />
             </View>
+            <Text className="card-arrow">›</Text>
           </View>
-          <View className="sparkles">
-            <Sparkles size={24} />
+          <Text className="card-title">我有猫咪</Text>
+          <Text className="card-desc">上传照片，由 AI 为你的真实猫咪生成专属数字形象。</Text>
+          <View className="upload-hint">
+            <Text className="upload-hint-text">点击上传照片或视频</Text>
           </View>
         </View>
 
-        <Text className="title">还没有猫咪伙伴</Text>
-        <Text className="description">
-          每一个温暖的灵魂都在等待相遇。开启一段专属缘分，领养你的第一只数字猫咪吧！
-        </Text>
-
-        <Button className="start-btn" onClick={handleStart}>
-          <Text className="btn-text">开启缘分</Text>
-          <Text className="btn-arrow">→</Text>
-        </Button>
+        {/* 我想养猫 - Create */}
+        <View className="option-card" onClick={handleCreate}>
+          <View className="card-header">
+            <View className="card-icon-box">
+              <PawPrint size={28} className="card-icon" />
+            </View>
+            <Text className="card-arrow">›</Text>
+          </View>
+          <Text className="card-title">我想养猫</Text>
+          <Text className="card-desc">选择你心仪的品种，在数字世界领养你的第一只猫咪。</Text>
+        </View>
       </View>
 
+      {/* Footer */}
       <View className="footer">
-        <Text className="footer-text">Miao Sanctuary · Pure Companionship</Text>
+        <Text className="footer-text">© 2026 MIAO · 纯粹的猫咪生活</Text>
       </View>
     </View>
   );

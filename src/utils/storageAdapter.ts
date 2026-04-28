@@ -19,11 +19,17 @@ const isMiniProgram = (): boolean => {
 
 /**
  * 获取存储值
+ * 微信小程序的 getStorageSync 可能返回对象而非字符串，
+ * 因此需要判断返回值类型，对象类型直接 JSON.stringify 转为字符串
  */
 export const getItem = (key: string): string | null => {
   if (isMiniProgram()) {
     try {
-      return Taro.getStorageSync(key) || null;
+      const value = Taro.getStorageSync(key);
+      if (value === '' || value === undefined || value === null) return null;
+      if (typeof value === 'string') return value;
+      // 小程序可能返回已反序列化的对象，转为 JSON 字符串
+      return JSON.stringify(value);
     } catch {
       return null;
     }
@@ -36,10 +42,13 @@ export const getItem = (key: string): string | null => {
 
 /**
  * 设置存储值
+ * 确保小程序中存储的值始终为字符串，避免 getStorageSync 返回对象
  */
 export const setItem = (key: string, value: string): void => {
   if (isMiniProgram()) {
     try {
+      // value 已经是字符串，直接存储
+      // 不做额外 JSON.stringify，避免双重编码
       Taro.setStorageSync(key, value);
     } catch (e) {
       console.error('setStorageSync error:', e);

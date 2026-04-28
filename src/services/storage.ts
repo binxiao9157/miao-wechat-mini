@@ -380,7 +380,13 @@ function cachedRead<T>(storageKey: string, defaultValue: T): T {
     return safeClone(defaultValue);
   }
   try {
-    const parsed = JSON.parse(raw) as T;
+    // raw 可能是 JSON 字符串，做防御性处理
+    let parsed: any;
+    if (typeof raw === 'string') {
+      parsed = JSON.parse(raw);
+    } else {
+      parsed = raw;
+    }
     memCache.set(storageKey, { raw, parsed });
     return parsed ?? safeClone(defaultValue);
   } catch {
@@ -492,7 +498,14 @@ export const storage = {
     try {
       const data = getItem(key);
       if (!data) return defaultValue;
-      const parsed = JSON.parse(data);
+      // getItem 可能返回 JSON 字符串，也可能已被解析（防御性处理）
+      let parsed: any;
+      if (typeof data === 'string') {
+        parsed = JSON.parse(data);
+      } else {
+        // data 已经是对象/数组（理论上 getItem 总返回字符串，但做防御）
+        parsed = data;
+      }
       return parsed === null ? defaultValue : (parsed as T);
     } catch (e) {
       console.error(`Error parsing storage key "${key}":`, e);

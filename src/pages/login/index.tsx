@@ -47,6 +47,8 @@ export default function Login() {
 
     try {
       const user = storage.findUser(trimmedU);
+      console.log('[Login] findUser result:', user ? { username: user.username, hasPassword: !!user.password } : null);
+      console.log('[Login] all users count:', storage.getAllUsers().length);
       if (user && user.password === trimmedP) {
         storage.saveUserInfo(user);
         const hasCat = storage.getCatList().length > 0;

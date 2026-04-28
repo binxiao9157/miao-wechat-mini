@@ -1,7 +1,8 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image, Button, Input } from '@tarojs/components';
 import { switchTab } from '@tarojs/taro';
-import { ArrowLeft, Plus, Heart, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Heart, MessageCircle } from '../../components/common/Icons';
 import { storage, DiaryEntry } from '../../services/storage';
 import './index.less';
 
@@ -83,7 +84,7 @@ export default function Diary() {
               <View className="diary-header">
                 <Image className="avatar" src={storage.getUserInfo()?.avatar || ''} mode="aspectFill" />
                 <View className="user-info">
-                  <Text className="username">{storage.getUserInfo()?.nickname || '我'}</Text>
+                  <Text className="username">{storage.getUserInfo()?.nickname || '未知'}</Text>
                   <Text className="time">{formatTime(diary.createdAt)}</Text>
                 </View>
               </View>

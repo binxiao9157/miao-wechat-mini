@@ -1,11 +1,14 @@
+import React from 'react';
 import { useState } from 'react';
 import { View, Text, Input, Button } from '@tarojs/components';
 import { navigateBack, reLaunch } from '@tarojs/taro';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
-import { storage } from '../../services/storage';
+import { Eye, EyeOff, ArrowLeft } from '../../components/common/Icons';
+import { storage, UserInfo } from '../../services/storage';
+import { useAuthContext } from '../../context/AuthContext';
 import './index.less';
 
 export default function Register() {
+  const { register } = useAuthContext();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -15,7 +18,7 @@ export default function Register() {
   const [isAgreed, setIsAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!isAgreed) {
       setError('请先阅读并勾选同意服务条款与隐私政策');
       return;
@@ -44,18 +47,20 @@ export default function Register() {
         return;
       }
 
-      storage.saveUserInfo({
+      const newUser: UserInfo = {
         username: trimmedUsername,
         password: trimmedPassword,
         nickname: trimmedUsername,
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${trimmedUsername}`
-      });
+      };
+
+      await register(newUser);
 
       const hasCat = storage.getCatList().length > 0;
       if (hasCat) {
         reLaunch({ url: '/pages/home/index' });
       } else {
-        reLaunch({ url: '/pages/emptyCat/index' });
+        reLaunch({ url: '/pages/empty-cat/index' });
       }
     } catch (e: any) {
       setError(e.message || '注册失败，请重试');

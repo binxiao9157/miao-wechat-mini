@@ -1,7 +1,8 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import { switchTab } from '@tarojs/taro';
-import { ArrowLeft, Coins, TrendingUp, Calendar, Gift } from 'lucide-react';
+import { ArrowLeft, Coins, TrendingUp, Calendar, Gift } from '../../components/common/Icons';
 import { storage, PointsInfo, PointTransaction } from '../../services/storage';
 import './index.less';
 
@@ -61,7 +62,7 @@ export default function Points() {
         <View className="stat-item">
           <Calendar size={20} />
           <Text className="stat-value">{pointsInfo.onlineMinutes}</Text>
-          <Text className="stat-label">在线时长(分)</Text>
+          <Text className="stat-label">在线时长(�?</Text>
         </View>
         <View className="stat-item">
           <Gift size={20} />

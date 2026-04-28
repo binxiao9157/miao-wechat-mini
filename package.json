@@ -5,10 +5,10 @@
   "description": "Miao WeChat Mini Program - Taro Version",
   "template": "react",
   "scripts": {
-    "dev:weapp": "taro build --type weapp --watch",
-    "dev:h5": "taro build --type h5 --watch",
-    "build:weapp": "taro build --type weapp",
-    "build:h5": "taro build --type h5",
+    "dev:weapp": "set NODE_OPTIONS=--openssl-legacy-provider && taro build --type weapp --watch",
+    "dev:h5": "set NODE_OPTIONS=--openssl-legacy-provider && taro build --type h5 --watch",
+    "build:weapp": "set NODE_OPTIONS=--openssl-legacy-provider && taro build --type weapp",
+    "build:h5": "set NODE_OPTIONS=--openssl-legacy-provider && taro build --type h5",
     "lint": "eslint --ext .js,.jsx,.ts,.tsx src",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\""
   },

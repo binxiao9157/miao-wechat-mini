@@ -1,65 +1,136 @@
+import Taro from '@tarojs/taro';
 import { getItem, setItem, removeItem, getAllKeys } from '../utils/storageAdapter';
 import { trigger } from '../utils/eventAdapter';
+import { request as taroRequest } from '../utils/httpAdapter';
 
-const DB_NAME = 'miao_media_db';
-const STORE_NAME = 'media';
-const DB_VERSION = 1;
+// 小程序环境使用文件系统存储媒体文件
+
+const MEDIA_STORAGE_PREFIX = 'miao_media_';
 
 export const mediaStorage = {
-  db: null as any,
-
-  async init(): Promise<any> {
-    if (this.db) return this.db;
-    return new Promise((resolve, reject) => {
-      const request = (window as any).indexedDB.open(DB_NAME, DB_VERSION);
-      request.onupgradeneeded = (event: any) => {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME);
-        }
-      };
-      request.onsuccess = (event: any) => {
-        this.db = event.target.result;
-        resolve(this.db);
-      };
-      request.onerror = (event: any) => {
-        console.error('IndexedDB error:', event.target.error);
-        reject(event.target.error);
-      };
-    });
-  },
-
+  // 小程序环境：使用 Taro 文件系统
+      // Web 环境：使用 localStorage（仅适合小文件）
+  
   async saveMedia(id: string, data: string): Promise<void> {
-    const db = await this.init();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORE_NAME], 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.put(data, id);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    const isMini = Taro.getEnv() === Taro.ENV_TYPE.WEAPP;
+    
+    if (isMini) {
+      // 小程序环境：使用 FileSystemManager
+      return new Promise((resolve, reject) => {
+        try {
+          const fs = Taro.getFileSystemManager();
+          const filePath = `${Taro.env.USER_DATA_PATH || ''}/media_${id}.jpg`;
+          
+          // 纭繚鐩綍瀛樺湪
+          fs.mkdir({
+            dirPath: Taro.env.USER_DATA_PATH || '',
+            fail: () => {}, // 鐩綍宸插瓨鍦ㄦ椂蹇界暐閿欒
+            success: () => {
+              // 写入文件
+              fs.writeFile({
+                filePath,
+                   data: data.replace(/^image\/\w+;base64,/, ''),
+                encoding: 'base64',
+                success: () => {
+                  // 保存路径映射到 storage
+                  setItem(`${MEDIA_STORAGE_PREFIX}${id}`, filePath);
+                  resolve();
+                },
+                fail: (err) => {
+                  console.error('FileSystemManager writeFile error:', err);
+                  reject(err);
+                }
+              });
+            }
+          });
+        } catch (err) {
+          console.error('FileSystemManager error:', err);
+          reject(err);
+        }
+      });
+    } else {
+      // Web 环境：使用 localStorage（仅适合小文件）
+      try {
+        setItem(`${MEDIA_STORAGE_PREFIX}${id}`, data);
+        resolve();
+      } catch (err) {
+        console.error('localStorage saveMedia error:', err);
+        reject(err);
+      }
+    }
   },
 
   async getMedia(id: string): Promise<string | null> {
-    const db = await this.init();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORE_NAME], 'readonly');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.get(id);
-      request.onsuccess = () => resolve(request.result || null);
-      request.onerror = () => reject(request.error);
-    });
+    const isMini = Taro.getEnv() === Taro.ENV_TYPE.WEAPP;
+    
+    if (isMini) {
+// 小程序环境使用文件系统存储媒体文件
+      return new Promise((resolve, reject) => {
+
+        try {
+          const filePath = getItem(`${MEDIA_STORAGE_PREFIX}${id}`);
+          if (!filePath) {
+            resolve(null);
+            return;
+          }
+          
+          const fs = Taro.getFileSystemManager();
+          fs.readFile({
+            filePath,
+            encoding: 'base64',
+            success: (res) => {
+              resolve(`image/jpeg;base64,${res.data}`);
+            },
+            fail: (err) => {
+              console.error('FileSystemManager readFile error:', err);
+              resolve(null);
+            }
+          });
+        } catch (err) {
+          console.error('FileSystemManager error:', err);
+          resolve(null);
+        }
+      });
+    } else {
+      // Web 环境：从 localStorage 读取
+      return Promise.resolve(getItem(`${MEDIA_STORAGE_PREFIX}${id}`));
+    }
   },
 
   async deleteMedia(id: string): Promise<void> {
-    const db = await this.init();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORE_NAME], 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.delete(id);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    const isMini = Taro.getEnv() === Taro.ENV_TYPE.WEAPP;
+    
+    if (isMini) {
+      // 小程序环境：删除文件
+      return new Promise((resolve, reject) => {
+        try {
+          const filePath = getItem(`${MEDIA_STORAGE_PREFIX}${id}`);
+          if (filePath) {
+            const fs = Taro.getFileSystemManager();
+            fs.unlink({
+              filePath,
+              success: () => {
+                removeItem(`${MEDIA_STORAGE_PREFIX}${id}`);
+                resolve();
+              },
+              fail: (err) => {
+                console.error('FileSystemManager unlink error:', err);
+                reject(err);
+              }
+            });
+          } else {
+            resolve();
+          }
+        } catch (err) {
+          console.error('FileSystemManager error:', err);
+          reject(err);
+        }
+      });
+    } else {
+      // Web 环境：从 localStorage 删除
+      removeItem(`${MEDIA_STORAGE_PREFIX}${id}`);
+      Promise.resolve();
+    }
   }
 };
 
@@ -209,10 +280,26 @@ function getCurrentUsername(): string | null {
   } catch { return null; }
 }
 
+// 使用 taroRequest 替代 fetch
+async function request(url: string, options: RequestInit = {}) {
+  const isMini = Taro.getEnv() === Taro.ENV_TYPE.WEAPP;
+  
+  if (isMini) {
+  // 小程序环境：使用 Taro 文件系统
+    const response = await taroRequest(url, options);
+    return response;
+  } else {
+    // Web 环境使用原生 fetch
+    const response = await fetch(url, options);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  }
+}
+
 function syncCatToServer(userId: string, cat: CatInfo) {
   request('/api/cats', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    header: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, cat: { ...cat, placeholderImage: undefined, anchorFrame: undefined } }),
   }).catch(() => {});
 }
@@ -227,18 +314,12 @@ function deleteAllCatsFromServer(userId: string) {
   request(`/api/cats/${encodeURIComponent(userId)}`, { method: 'DELETE' }).catch(() => {});
 }
 
-async function request(url: string, options: RequestInit = {}) {
-  const response = await fetch(url, options);
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return response.json();
-}
-
 function syncDiaryToServer(userId: string, diary: DiaryEntry) {
   const { media, ...rest } = diary;
-  const payload = media?.startsWith('indexeddb:') ? rest : diary;
+  const payload = media?.startsWith('miao_media:') ? rest : diary;
   request('/api/diaries', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    header: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, diary: payload }),
   }).catch(() => {});
 }
@@ -249,10 +330,14 @@ function deleteDiaryFromServer(userId: string, diaryId: string) {
   }).catch(() => {});
 }
 
+function deleteAllDiariesFromServer(userId: string) {
+  request(`/api/diaries/${encodeURIComponent(userId)}`, { method: 'DELETE' }).catch(() => {});
+}
+
 function syncLetterToServer(userId: string, letter: TimeLetter) {
   request('/api/letters', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    header: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, letter }),
   }).catch(() => {});
 }
@@ -266,7 +351,7 @@ function deleteLetterFromServer(userId: string, letterId: string) {
 function syncPointsToServer(userId: string, data: PointsInfo) {
   request('/api/points', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    header: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, data }),
   }).catch(() => {});
 }
@@ -556,9 +641,9 @@ export const storage = {
   syncFromServer: async (username: string): Promise<void> => {
     const enc = encodeURIComponent(username);
     try {
-      const catResp = await fetch(`/api/cats/${enc}`);
-      if (catResp.ok) {
-        const serverCats: CatInfo[] = await catResp.json();
+      const catResp = await request(`/api/cats/${enc}`);
+      if (catResp) {
+        const serverCats: CatInfo[] = Array.isArray(catResp) ? catResp : [];
         if (!serverCats.length) {
           const local = storage.getCatList();
           for (const cat of local) syncCatToServer(username, cat);
@@ -582,9 +667,9 @@ export const storage = {
     } catch {}
 
     try {
-      const resp = await fetch(`/api/diaries/${enc}`);
-      if (resp.ok) {
-        const serverDiaries: DiaryEntry[] = await resp.json();
+      const resp = await request(`/api/diaries/${enc}`);
+      if (resp) {
+        const serverDiaries: DiaryEntry[] = Array.isArray(resp) ? resp : [];
         const localDiaries = storage.getDiaries();
         const localMap = new Map(localDiaries.map(d => [d.id, d]));
         const serverMap = new Map(serverDiaries.map(d => [d.id, d]));
@@ -605,9 +690,9 @@ export const storage = {
     } catch {}
 
     try {
-      const resp = await fetch(`/api/letters/${enc}`);
-      if (resp.ok) {
-        const serverLetters: TimeLetter[] = await resp.json();
+      const resp = await request(`/api/letters/${enc}`);
+      if (resp) {
+        const serverLetters: TimeLetter[] = Array.isArray(resp) ? resp : [];
         const localLetters = storage.getTimeLetters();
         const localMap = new Map(localLetters.map(l => [l.id, l]));
         const serverMap = new Map(serverLetters.map(l => [l.id, l]));
@@ -628,18 +713,13 @@ export const storage = {
     } catch {}
 
     try {
-      const resp = await fetch(`/api/points/${enc}`);
-      if (resp.ok) {
-        const serverPoints = await resp.json();
-        if (serverPoints) {
-          const localPoints = storage.getPoints();
-          if ((serverPoints.total || 0) > (localPoints.total || 0)) {
-            const key = getUserKey(USER_DATA_KEYS.POINTS);
-            storage.setItem(key, JSON.stringify(serverPoints));
-            invalidateCache(key);
-          } else {
-            syncPointsToServer(username, localPoints);
-          }
+      const resp = await request(`/api/points/${enc}`);
+      if (resp) {
+        const serverPoints = resp;
+        if (serverPoints && (serverPoints.total || 0) > (storage.getPoints().total || 0)) {
+          const key = getUserKey(USER_DATA_KEYS.POINTS);
+          storage.setItem(key, JSON.stringify(serverPoints));
+          invalidateCache(key);
         } else {
           syncPointsToServer(username, storage.getPoints());
         }
@@ -819,7 +899,7 @@ export const storage = {
   deleteDiary: (id: string) => {
     const diaries = storage.getDiaries();
     const diary = diaries.find(d => d.id === id);
-    if (diary?.media?.startsWith('indexeddb:')) {
+    if (diary?.media?.startsWith('miao_media:')) {
       mediaStorage.deleteMedia(id);
     }
     const updated = diaries.filter(d => d.id !== id);
@@ -892,6 +972,12 @@ export const storage = {
     if (userId) deleteAllCatsFromServer(userId);
   },
 
+  deleteAllDiaries: () => {
+    storage.removeItem(getUserKey(USER_DATA_KEYS.DIARIES));
+    const userId = getCurrentUsername();
+    if (userId) deleteAllDiariesFromServer(userId);
+  },
+
   getFriends: (): FriendInfo[] => {
     return storage.safeParse<FriendInfo[]>(getUserKey(USER_DATA_KEYS.FRIENDS), []);
   },
@@ -940,7 +1026,7 @@ export const storage = {
           authorNickname: friend.nickname,
           authorAvatar: friend.avatar,
           catName: friend.catName,
-          content: `新买的逗猫棒，${friend.catName} 玩疯了哈哈。`,
+          content: `新买的郗猫棒，${friend.catName} 玩疯了哈哈。`,
           media: `https://picsum.photos/seed/${friend.id}_3/800/600`,
           mediaType: 'image',
           createdAt: Date.now() - 172800000,

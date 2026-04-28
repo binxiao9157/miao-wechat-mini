@@ -1,7 +1,8 @@
+import React from 'react';
 import { useState } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
 import { navigateBack, navigateTo } from '@tarojs/taro';
-import { ArrowLeft, Camera, Upload, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Camera, Upload, ImageIcon } from '../../components/common/Icons';
 import './index.less';
 
 export default function UploadMaterial() {
@@ -9,7 +10,7 @@ export default function UploadMaterial() {
   const [isUploading, setIsUploading] = useState(false);
 
   const handleSelectImage = () => {
-    // 微信小程序使用 chooseImage API
+    // 微信小程序使�?chooseImage API
     // 这里模拟选择图片
     console.log('Select image');
   };
@@ -37,7 +38,7 @@ export default function UploadMaterial() {
       </View>
 
       <View className="content">
-        <Text className="desc">上传一张猫咪照片，AI将为你生成可爱的小猫咪</Text>
+        <Text className="desc">上传一张猫咪照片，AI将为你生成可爱的小猫�?/Text>
 
         <View className="upload-area" onClick={handleSelectImage}>
           {selectedImage ? (
@@ -52,10 +53,10 @@ export default function UploadMaterial() {
         </View>
 
         <View className="tips">
-          <Text className="tips-title">上传建议：</Text>
-          <Text className="tips-item">• 照片清晰、光线充足</Text>
-          <Text className="tips-item">• 猫咪正脸或侧脸效果更好</Text>
-          <Text className="tips-item">• 背景简洁为佳</Text>
+          <Text className="tips-title">上传建议�?/Text>
+          <Text className="tips-item">�?照片清晰、光线充�?/Text>
+          <Text className="tips-item">�?猫咪正脸或侧脸效果更�?/Text>
+          <Text className="tips-item">�?背景简洁为�?/Text>
         </View>
 
         <Button
@@ -63,7 +64,7 @@ export default function UploadMaterial() {
           onClick={handleUpload}
           disabled={!selectedImage || isUploading}
         >
-          {isUploading ? '上传中...' : '开始生成'}
+          {isUploading ? '上传�?..' : '开始生�?}
         </Button>
       </View>
     </View>

@@ -1,7 +1,8 @@
+import React from 'react';
 import { useState } from 'react';
 import { View, Text, Input, Button } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send } from '../../components/common/Icons';
 import './index.less';
 
 export default function Feedback() {
@@ -27,8 +28,8 @@ export default function Feedback() {
 
       {submitted ? (
         <View className="success-view">
-          <Text className="success-icon">✓</Text>
-          <Text className="success-text">感谢您的反馈！</Text>
+          <Text className="success-icon">✅</Text>
+          <Text className="success-text">感谢您的反馈</Text>
           <Button className="back-btn" onClick={() => navigateBack()}>
             返回
           </Button>
@@ -49,7 +50,7 @@ export default function Feedback() {
           <Input
             className="contact-input"
             type="text"
-            placeholder="邮箱或微信"
+            placeholder="邮箱或微信号"
             value={contact}
             onInput={(e) => setContact(e.detail.value)}
           />

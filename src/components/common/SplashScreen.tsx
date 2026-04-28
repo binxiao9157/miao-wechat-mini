@@ -14,7 +14,7 @@ export default function SplashScreen({ visible }: SplashScreenProps) {
         <Text className="logo-emoji">🐱</Text>
         <Text className="logo-text">Miao</Text>
       </View>
-      <Text className="slogan">以喵星之名</Text>
+      <Text className="slogan">以喵星之�?/Text>
     </View>
   );
 }

@@ -1,7 +1,8 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
-import { ArrowLeft, Plus, Lock, Mail } from 'lucide-react';
+import { ArrowLeft, Plus, Lock, Mail } from '../../components/common/Icons';
 import { storage, TimeLetter } from '../../services/storage';
 import './index.less';
 
@@ -24,7 +25,7 @@ export default function TimeLetters() {
       id: 'letter_' + Date.now(),
       catId: storage.getActiveCatId() || '',
       catAvatar: storage.getActiveCat()?.avatar || '',
-      content: '写给未来的自己...',
+      content: '写给未来的自�?..',
       unlockAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7天后解锁
       createdAt: Date.now()
     };
@@ -37,7 +38,7 @@ export default function TimeLetters() {
 
   const formatUnlockTime = (timestamp: number) => {
     const date = new Date(timestamp);
-    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+    return `${date.getFullYear()}�?{date.getMonth() + 1}�?{date.getDate()}日`;
   };
 
   const isUnlocked = (unlockAt: number) => {
@@ -60,7 +61,7 @@ export default function TimeLetters() {
         {letters.length === 0 ? (
           <View className="empty">
             <Mail size={48} />
-            <Text className="empty-text">还没有时光信件</Text>
+            <Text className="empty-text">还没有时光信�?/Text>
             <Text className="empty-hint">写一封信给未来的自己</Text>
           </View>
         ) : (
@@ -89,14 +90,13 @@ export default function TimeLetters() {
       {showCompose && (
         <View className="compose-modal">
           <View className="compose-header">
-            <Text className="compose-title">写时光信件</Text>
+            <Text className="compose-title">写时光信�?/Text>
             <View className="close-btn" onClick={() => setShowCompose(false)}>×</View>
           </View>
           <View className="compose-content">
             <Text className="compose-hint">选择解锁时间，写下想对未来自己说的话</Text>
             <Button className="write-btn" onClick={handleWriteLetter}>
-              写给7天后的自己
-            </Button>
+              写给7天后的自�?            </Button>
           </View>
         </View>
       )}

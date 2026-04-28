@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
 import { switchTab, navigateTo } from '@tarojs/taro';
@@ -51,7 +52,7 @@ export default function Home() {
         ) : (
           <View className="no-cat">
             <Text className="no-cat-text">还没有猫咪</Text>
-            <Button className="add-cat-btn" onClick={() => navigateTo({ url: '/pages/emptyCat/index' })}>
+            <Button className="add-cat-btn" onClick={() => navigateTo({ url: '/pages/empty-cat/index' })}>
               领养一只
             </Button>
           </View>

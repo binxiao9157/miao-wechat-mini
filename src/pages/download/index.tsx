@@ -1,6 +1,6 @@
 import { View, Text, Image, Button } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download } from '../../components/common/Icons';
 import './index.less';
 
 export default function DownloadPage() {

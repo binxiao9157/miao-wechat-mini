@@ -1,7 +1,8 @@
+import React from 'react';
 import { useState } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
 import { navigateBack, scanCode } from '@tarojs/taro';
-import { ArrowLeft, QrCode, Camera } from 'lucide-react';
+import { ArrowLeft, QrCode, Camera } from '../../components/common/Icons';
 import { storage } from '../../services/storage';
 import './index.less';
 
@@ -36,7 +37,7 @@ export default function AddFriendQR() {
       </View>
 
       <View className="content">
-        <Text className="desc">让好友扫描二维码或输入你的用户名来添加你为好友</Text>
+        <Text className="desc">让好友扫描二维码或输入你的用户名来添加你为好友。</Text>
 
         <View className="qr-container">
           {qrCodeUrl ? (

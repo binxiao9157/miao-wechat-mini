@@ -1,7 +1,8 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
 import { navigateTo, switchTab } from '@tarojs/taro';
-import { User, Settings, Heart, MessageCircle, Users, LogOut, ChevronRight } from 'lucide-react';
+import { User, Settings, Heart, MessageCircle, Users, LogOut, ChevronRight } from '../../components/common/Icons';
 import { storage, UserInfo, CatInfo } from '../../services/storage';
 import './index.less';
 

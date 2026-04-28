@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { storage, UserInfo, CatInfo } from '../services/storage';
 

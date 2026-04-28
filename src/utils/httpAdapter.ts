@@ -44,7 +44,10 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
   } = options;
 
   const isMini = isMiniProgram();
-  const baseURL = isMini ? '' : '/api';
+  // 小程序环境需要完整域名，Web 环境使用相对路径
+  const baseURL = isMini 
+    ? (process.env.TARO_APP_API_BASE_URL || 'https://your-server.com') 
+    : '/api';
   const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`;
 
   if (isMini) {

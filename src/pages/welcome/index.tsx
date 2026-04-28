@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text } from '@tarojs/components';
 import { useEffect } from 'react';
 import { reLaunch, navigateTo } from '@tarojs/taro';
@@ -13,7 +14,7 @@ export default function Welcome() {
       if (user && hasCat) {
         reLaunch({ url: '/pages/home/index' });
       } else if (user) {
-        reLaunch({ url: '/pages/emptyCat/index' });
+        reLaunch({ url: '/pages/empty-cat/index' });
       } else {
         reLaunch({ url: '/pages/login/index' });
       }
@@ -31,7 +32,7 @@ export default function Welcome() {
     }}>
       <Text style={{ fontSize: '48px', marginBottom: '20px' }}>🐱</Text>
       <Text style={{ fontSize: '24px', fontWeight: 'bold', color: '#5D4037' }}>Miao</Text>
-      <Text style={{ fontSize: '14px', color: '#999', marginTop: '10px' }}>以喵星之名</Text>
+      <Text style={{ fontSize: '14px', color: '#999', marginTop: '10px' }}>以喵星之名，开启治愈之旅</Text>
     </View>
   );
 }

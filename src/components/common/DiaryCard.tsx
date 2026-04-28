@@ -1,5 +1,5 @@
 import { View, Text, Image } from '@tarojs/components';
-import { Heart, MessageCircle, Share2 } from 'lucide-react';
+import { Heart, MessageCircle, Share2 } from '../../components/common/Icons';
 import { DiaryEntry, storage } from '../../services/storage';
 import './index.less';
 
@@ -13,7 +13,7 @@ interface DiaryCardProps {
 export default function DiaryCard({ diary, onLike, onComment, onShare }: DiaryCardProps) {
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
-    return `${date.getMonth() + 1}æœˆ${date.getDate()}æ—¥ ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+    return `${date.getMonth() + 1}æœ?{date.getDate()}æ—?${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
 
   const user = storage.getUserInfo();
@@ -27,7 +27,7 @@ export default function DiaryCard({ diary, onLike, onComment, onShare }: DiaryCa
           mode="aspectFill"
         />
         <View className="user-info">
-          <Text className="username">{user?.nickname || 'æˆ‘'}</Text>
+          <Text className="username">{user?.nickname || 'æˆ?}</Text>
           <Text className="time">{formatTime(diary.createdAt)}</Text>
         </View>
       </View>

@@ -6,7 +6,9 @@ module.exports = {
         ios: 9
       }
     }],
-    '@babel/preset-react',
+    ['@babel/preset-react', {
+      runtime: 'classic'
+    }],
     '@babel/preset-typescript'
   ]
 };

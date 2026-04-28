@@ -1,5 +1,5 @@
 import { View, Text } from '@tarojs/components';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from '../../components/common/Icons';
 import { navigateBack } from '@tarojs/taro';
 import './index.less';
 

@@ -1,6 +1,7 @@
+import React from 'react';
 import { useState } from 'react';
 import { View, Input, Button } from '@tarojs/components';
-import { Send } from 'lucide-react';
+import { Send } from '../../components/common/Icons';
 import './index.less';
 
 interface CommentInputProps {
@@ -8,7 +9,7 @@ interface CommentInputProps {
   placeholder?: string;
 }
 
-export default function CommentInput({ onSubmit, placeholder = '说点什么...' }: CommentInputProps) {
+export default function CommentInput({ onSubmit, placeholder = '说点什�?..' }: CommentInputProps) {
   const [content, setContent] = useState('');
 
   const handleSubmit = () => {

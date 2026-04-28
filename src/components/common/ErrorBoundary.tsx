@@ -1,3 +1,4 @@
+import React from 'react';
 import { Component, ReactNode } from 'react';
 import { View, Text, Button } from '@tarojs/components';
 import './index.less';
@@ -39,7 +40,7 @@ export default class ErrorBoundary extends Component<Props, State> {
       return (
         <View className="error-boundary">
           <Text className="error-icon">⚠️</Text>
-          <Text className="error-title">出了点问题</Text>
+          <Text className="error-title">出了点问�?/Text>
           <Text className="error-message">{this.state.error?.message || '未知错误'}</Text>
           <Button className="retry-btn" onClick={this.handleRetry}>
             重试

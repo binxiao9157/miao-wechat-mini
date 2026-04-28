@@ -1,7 +1,8 @@
+import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { View, Text, Image, Video, Button, RichText } from '@tarojs/components';
 import { navigateBack, navigateTo } from '@tarojs/taro';
-import { ArrowLeft, Play, Pause, Download, Trash2 } from 'lucide-react';
+import { ArrowLeft, Play, Pause, Download, Trash2 } from '../../components/common/Icons';
 import { storage, CatInfo } from '../../services/storage';
 import { FileManager } from '../../services/fileManager';
 import './index.less';
@@ -20,7 +21,7 @@ export default function CatPlayer() {
     if (activeCat) {
       setCat(activeCat);
     } else {
-      navigateTo({ url: '/pages/emptyCat/index' });
+      navigateTo({ url: '/pages/empty-cat/index' });
     }
     setIsLoading(false);
   }, []);
@@ -64,7 +65,7 @@ export default function CatPlayer() {
   if (!cat) {
     return (
       <View className="cat-player-page">
-        <Text>加载中...</Text>
+        <Text>加载�?..</Text>
       </View>
     );
   }
@@ -86,7 +87,7 @@ export default function CatPlayer() {
       <View className="video-container" onClick={() => setShowControls(!showControls)}>
         {isLoading ? (
           <View className="loading">
-            <Text>视频加载中...</Text>
+            <Text>视频加载�?..</Text>
           </View>
         ) : videoUrl ? (
           <Video
@@ -141,7 +142,7 @@ export default function CatPlayer() {
         <View className="modal-overlay">
           <View className="modal-content">
             <Text className="modal-title">确认删除</Text>
-            <Text className="modal-desc">确定要删除这只猫咪吗？此操作不可恢复。</Text>
+            <Text className="modal-desc">确定要删除这只猫咪吗？此操作不可恢复�?/Text>
             <View className="modal-actions">
               <Button className="modal-btn cancel" onClick={() => setShowDeleteConfirm(false)}>取消</Button>
               <Button className="modal-btn confirm" onClick={confirmDelete}>删除</Button>

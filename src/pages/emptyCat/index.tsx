@@ -20,7 +20,7 @@ export default function EmptyCat() {
           <Text className="cat-emoji">🐱</Text>
         </View>
 
-        <Text className="title">还没有猫咪陪伴</Text>
+        <Text className="title">还没有猫咪陪伴你</Text>
         <Text className="subtitle">领养一只属于你的猫咪，开始温暖的旅程</Text>
 
         <View className="options">

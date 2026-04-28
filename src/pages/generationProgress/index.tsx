@@ -1,7 +1,8 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image, Button, Progress } from '@tarojs/components';
 import { navigateTo } from '@tarojs/taro';
-import { CheckCircle, RefreshCw } from 'lucide-react';
+import { CheckCircle, RefreshCw } from '../../components/common/Icons';
 import { VolcanoService } from '../../services/volcanoService';
 import { storage } from '../../services/storage';
 import './index.less';
@@ -45,7 +46,7 @@ export default function GenerationProgress() {
             <View className="success-icon">
               <CheckCircle size={64} />
             </View>
-            <Text className="title">生成完成！</Text>
+            <Text className="title">生成完成�?/Text>
             <Image className="result-image" src={resultImage} mode="aspectFill" />
             <Button className="view-btn" onClick={handleViewResult}>
               查看我的猫咪
@@ -56,7 +57,7 @@ export default function GenerationProgress() {
             <View className="progress-circle">
               <Text className="progress-text">{progress}%</Text>
             </View>
-            <Text className="title">AI 正在生成中...</Text>
+            <Text className="title">AI 正在生成�?..</Text>
             <Text className="status">
               {progress < 30 && '正在分析照片...'}
               {progress >= 30 && progress < 60 && '正在生成猫咪形象...'}

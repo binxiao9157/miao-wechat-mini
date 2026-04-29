@@ -25,20 +25,29 @@ export const IMAGE_PROMPTS = {
     `A ultra-realistic, high-detail portrait of a ${breed} cat with ${color} fur, sitting comfortably in a soft cat nest, cinematic lighting, 4k resolution, looking at the camera.`
 };
 
-// 判断是否为需要 uploadFile 上传的本地文件路径
-// 微信临时文件可能是 wxfile://tmp_xxx.jpg 或 http://tmp/xxx.jpg，都不能被外部服务器访问
-function isLocalFilePath(path?: string): boolean {
-  if (!path) return false;
-  if (path.startsWith('data:')) return false; // 已是 base64，不需要上传
-  return true; // 其他全部视为本地路径，用 uploadFile 上传
-}
-
 function getBaseURL(): string {
   return process.env.TARO_APP_API_BASE_URL || 'https://your-server.com';
 }
 
+// base64 数据 URL 写入临时文件，返回临时文件路径，避免通过 JSON 传输过大数据
+function dataUrlToTempFile(dataUrl: string): string {
+  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) throw new Error('无效的 base64 数据 URL');
+  const ext = match[1].split('/')[1] || 'jpg';
+  const base64Data = match[2];
+  const tempPath = `${Taro.env.USER_DATA_PATH}/upload_${Date.now()}.${ext}`;
+  Taro.getFileSystemManager().writeFileSync(tempPath, base64Data, 'base64');
+  return tempPath;
+}
+
+// 判断是否为微信本地文件路径（需要 uploadFile 上传）
+function isLocalFilePath(path: string): boolean {
+  if (path.startsWith('https://')) return false; // 真实 CDN URL
+  return true; // wxfile://、http://tmp/ 等微信本地路径
+}
+
 // 通用文件上传函数，返回服务器响应的 JSON
-function uploadFile(filePath: string, endpoint: string, formData: Record<string, string>): Promise<any> {
+function uploadFileToServer(filePath: string, endpoint: string, formData: Record<string, string>): Promise<any> {
   return new Promise((resolve, reject) => {
     Taro.uploadFile({
       url: `${getBaseURL()}${endpoint}`,
@@ -46,11 +55,30 @@ function uploadFile(filePath: string, endpoint: string, formData: Record<string,
       name: 'image',
       formData,
       success: (res) => {
-        try { resolve(JSON.parse(res.data)); } catch { reject(new Error('响应解析失败')); }
+        try {
+          resolve(JSON.parse(res.data));
+        } catch {
+          console.error('uploadFile 响应解析失败，statusCode:', res.statusCode, '原始内容:', String(res.data).substring(0, 300));
+          reject(new Error('响应解析失败: ' + String(res.data).substring(0, 100)));
+        }
       },
       fail: (err) => reject(new Error(err.errMsg || '文件上传失败')),
     });
   });
+}
+
+// 获取可上传的文件路径：
+// -  base64 URL → 写入临时文件，返回路径
+// - 本地路径（wxfile://、http://tmp/）→ 直接返回
+// - https:// CDN URL → 返回 null，走 JSON 请求
+function getUploadPath(image: string): string | null {
+  if (image.startsWith('data:')) {
+    return dataUrlToTempFile(image);
+  }
+  if (isLocalFilePath(image)) {
+    return image;
+  }
+  return null;
 }
 
 export class VolcanoService {
@@ -60,9 +88,10 @@ export class VolcanoService {
       return { id: 'mock_task_' + Date.now() };
     }
 
-    // 本地文件路径改用 uploadFile，避免 base64 过大触发微信数据检查上限
-    if (isLocalFilePath(imageBase64)) {
-      const data = await uploadFile(imageBase64, '/api/generate-video-file', {
+    // data: URL 或本地路径改用 uploadFile，避免 base64 过大触发微信数据检查上限
+    const uploadPath = getUploadPath(imageBase64);
+    if (uploadPath) {
+      const data = await uploadFileToServer(uploadPath, '/api/generate-video-file', {
         model: VolcanoConfig.ModelId,
         prompt: prompt || "A high quality video of this cat, cinematic lighting, realistic.",
         seed: '12345',
@@ -89,7 +118,6 @@ export class VolcanoService {
             parameters: { seed: 12345, resolution: "480p", duration: 5, audio: false }
           }
         });
-
         const taskId = response?.data?.id || response?.data?.task_id;
         if (!taskId) throw new Error("服务器返回数据格式错误，未获取到任务 ID");
         return { ...response, id: taskId };
@@ -119,14 +147,11 @@ export class VolcanoService {
       }
       return { status: 'running' };
     }
-
     try {
       const response = await get(`/api/video-status/${taskId}`);
-      return response;
+      return response.data;
     } catch (error: any) {
-      if (error.message?.includes('timeout')) {
-        throw new Error("查询状态超时，请检查网络连接或稍后重试");
-      }
+      if (error.message?.includes('timeout')) throw new Error("查询状态超时，请检查网络连接或稍后重试");
       throw new Error(error.message || "查询失败");
     }
   }
@@ -138,9 +163,10 @@ export class VolcanoService {
     }
 
     try {
-      // 本地文件路径改用 uploadFile，避免 base64 过大触发微信数据检查上限
-      if (isLocalFilePath(imageBase64)) {
-        const data = await uploadFile(imageBase64!, '/api/generate-image-file', {
+      //  URL 或本地路径改用 uploadFile，避免 base64 过大触发微信数据检查上限
+      const uploadPath = imageBase64 ? getUploadPath(imageBase64) : null;
+      if (uploadPath) {
+        const data = await uploadFileToServer(uploadPath, '/api/generate-image-file', {
           prompt,
           model: VolcanoConfig.T2IModelId,
         });
@@ -154,7 +180,6 @@ export class VolcanoService {
         method: 'POST',
         data: { prompt, image_base64: imageBase64, model: VolcanoConfig.T2IModelId }
       });
-
       const taskId = response?.data?.id || response?.data?.task_id;
       if (!taskId) throw new Error("文生图任务提交失败，未获取到 ID");
       return { id: taskId, image_url: response?.data?.image_url, status: response?.data?.status };
@@ -184,7 +209,7 @@ export class VolcanoService {
       let result: any;
       try {
         const response = await get(`/api/image-status/${taskId}`);
-        result = response;
+        result = response.data;
       } catch (error: any) {
         if (signal?.aborted) throw new Error("任务中止");
         console.warn("Polling encountered network/server error, retrying...", error.message);
@@ -252,7 +277,7 @@ export class VolcanoService {
         if (videoUrl && (videoUrl.startsWith('http') || videoUrl.startsWith('/api'))) {
           return videoUrl;
         }
-        throw new Error(`任务成功但未获取到有效的视频播放地址。`);
+        throw new Error('任务成功但未获取到有效的视频播放地址。');
       } else if (status === 'failed' || status === 'cancelled') {
         const errorDetail = result.error || result.message || "未知错误";
         throw new Error(`任务失败 (${status}): ${typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail)}`);

@@ -14,29 +14,34 @@ interface IconProps {
 }
 
 // 通用图标渲染器 - 使用 emoji/unicode 字符
-function createTextIcon(emoji: string) {
-  const IconComponent: React.FC<IconProps> = ({ size = 24, className }) => (
-    <Text
-      className={className}
-      style={{ fontSize: size * 0.7, lineHeight: `${size}px`, display: 'inline-block', width: size, height: size, textAlign: 'center' }}
-    >
-      {emoji}
-    </Text>
-  );
+function createTextIcon(emoji: string): React.FC<IconProps> {
+  const IconComponent: React.FC<IconProps> = function Icon({ size = 24, className }) {
+    return (
+      <Text
+        className={className}
+        style={{ fontSize: size * 0.7, lineHeight: `${size}px`, display: 'inline-block', width: size, height: size, textAlign: 'center' }}
+      >
+        {emoji}
+      </Text>
+    );
+  };
   IconComponent.displayName = `Icon_${emoji}`;
   return IconComponent;
 }
 
 // 通用图标渲染器 - 使用 Unicode 箭头/符号（支持 color）
-function createSymbolIcon(getSymbol: (color: string) => string) {
-  const IconComponent: React.FC<IconProps> = ({ size = 24, color = 'currentColor', className }) => (
-    <Text
-      className={className}
-      style={{ fontSize: size * 0.65, lineHeight: `${size}px`, display: 'inline-block', width: size, height: size, textAlign: 'center', color }}
-    >
-      {getSymbol(color)}
-    </Text>
-  );
+function createSymbolIcon(getSymbol: (color: string) => string): React.FC<IconProps> {
+  const IconComponent: React.FC<IconProps> = function SymbolIcon({ size = 24, color = 'currentColor', className }) {
+    return (
+      <Text
+        className={className}
+        style={{ fontSize: size * 0.65, lineHeight: `${size}px`, display: 'inline-block', width: size, height: size, textAlign: 'center', color }}
+      >
+        {getSymbol(color)}
+      </Text>
+    );
+  };
+  IconComponent.displayName = 'SymbolIcon';
   return IconComponent;
 }
 
@@ -99,6 +104,9 @@ export const Video = createTextIcon('🎥');
 
 // 图片图标
 export const ImageIcon = createTextIcon('🖼️');
+
+// 胶片/视频选择图标
+export const Film = createTextIcon('🎬');
 
 // 发送图标
 export const Send = createTextIcon('➤');
@@ -191,6 +199,7 @@ export default {
   Camera,
   Video,
   ImageIcon,
+  Film,
   Send,
   X,
   ChevronRight,

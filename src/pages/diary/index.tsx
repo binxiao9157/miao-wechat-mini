@@ -1,64 +1,368 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { View, Text, Image, Button, Input, Textarea } from '@tarojs/components';
-import { switchTab } from '@tarojs/taro';
-import { ArrowLeft, Plus, Heart, MessageCircle } from '../../components/common/Icons';
-import { storage, DiaryEntry } from '../../services/storage';
+import { View, Text, Image, Button, Input, Textarea, Video } from '@tarojs/components';
+import Taro, { switchTab } from '@tarojs/taro';
+import { ArrowLeft, Plus, Heart, MessageCircle, ImageIcon, Film, X, Trash2, Share2, UserPlus } from '../../components/common/Icons';
+import { storage, DiaryEntry, mediaStorage } from '../../services/storage';
+import { mockFriendService } from '../../services/mockFriendService';
 import './index.less';
 
+interface DiaryWithMedia extends DiaryEntry {
+  mediaUrl?: string;
+}
+
+// 微信小程序分享配置
+const shareConfig = {
+  onShareAppMessage: function (res: any) {
+    if (res.from === 'button') {
+      // 来自页面内转发按钮
+      console.log(res.target);
+    }
+    return {
+      title: 'Miao - 记录猫咪的美好时光',
+      path: '/pages/diary/index',
+      imageUrl: '' // 可以设置分享图片
+    };
+  },
+  onShareTimeline: function () {
+    return {
+      title: 'Miao - 记录猫咪的美好时光',
+      query: '',
+      imageUrl: ''
+    };
+  }
+};
+
 export default function Diary() {
-  const [diaries, setDiaries] = useState<DiaryEntry[]>([]);
+  const [diaries, setDiaries] = useState<DiaryWithMedia[]>([]);
   const [showCompose, setShowCompose] = useState(false);
   const [newContent, setNewContent] = useState('');
+  const [selectedMedia, setSelectedMedia] = useState<{ url: string; type: 'image' | 'video'; tempFilePath?: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [commentingId, setCommentingId] = useState<string | null>(null);
+  const [commentText, setCommentText] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'mine' | 'friends'>('mine');
+  const [friendDiaries, setFriendDiaries] = useState<DiaryWithMedia[]>([]);
+  const [sharingId, setSharingId] = useState<string | null>(null);
+  const [activeCat, setActiveCat] = useState<{ id: string; name: string } | null>(null);
+
+  // 加载媒体文件
+  const loadMediaForDiary = async (diary: DiaryEntry): Promise<DiaryWithMedia> => {
+    if (!diary.media || !diary.media.startsWith('miao_media:')) {
+      return { ...diary, mediaUrl: diary.media };
+    }
+    try {
+      const mediaId = diary.media.replace('miao_media:', '');
+      const mediaData = await mediaStorage.getMedia(mediaId);
+      return { ...diary, mediaUrl: mediaData || '' };
+    } catch (e) {
+      console.error('加载媒体失败:', e);
+      return { ...diary, mediaUrl: '' };
+    }
+  };
 
   useEffect(() => {
     loadDiaries();
   }, []);
 
-  const loadDiaries = () => {
+  const loadDiaries = async () => {
+    // 初始化好友模拟数据
+    mockFriendService.initializeMockData();
+
+    const activeCatId = storage.getActiveCatId();
+    const catList = storage.getCatList();
+    const currentCat = catList.find(c => c.id === activeCatId);
+    setActiveCat(currentCat || null);
+
     const list = storage.getDiaries();
-    setDiaries(list);
+
+    // 按当前活跃猫咪过滤日记
+    const filteredList = activeCatId ? list.filter(d => d.catId === activeCatId) : list;
+
+    // 加载每个日记的媒体文件
+    const diariesWithMedia = await Promise.all(filteredList.map(loadMediaForDiary));
+    setDiaries(diariesWithMedia);
+
+    // 加载好友动态
+    const friendsList = storage.getFriendDiaries();
+    const friendsWithMedia = await Promise.all(friendsList.map(loadMediaForDiary));
+    setFriendDiaries(friendsWithMedia);
   };
 
-  const handleAddDiary = () => {
-    if (!newContent.trim()) return;
+  // 选择图片
+  const chooseImage = () => {
+    Taro.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const tempFile = res.tempFiles[0];
+        setSelectedMedia({
+          url: tempFile.tempFilePath,
+          type: 'image',
+          tempFilePath: tempFile.tempFilePath
+        });
+      },
+      fail: (err) => {
+        console.error('选择图片失败:', err);
+        Taro.showToast({ title: '选择图片失败', icon: 'none' });
+      }
+    });
+  };
 
-    const newDiary: DiaryEntry = {
-      id: 'diary_' + Date.now(),
-      catId: storage.getActiveCatId() || '',
-      content: newContent,
-      createdAt: Date.now(),
-      likes: 0,
-      isLiked: false,
-      comments: []
-    };
+  // 选择视频
+  const chooseVideo = () => {
+    Taro.chooseMedia({
+      count: 1,
+      mediaType: ['video'],
+      sourceType: ['album', 'camera'],
+      maxDuration: 60,
+      success: (res) => {
+        const tempFile = res.tempFiles[0];
+        // 检查视频大小（限制 20MB）
+        if (tempFile.size && tempFile.size > 20 * 1024 * 1024) {
+          Taro.showToast({ title: '视频不能超过20MB', icon: 'none' });
+          return;
+        }
+        setSelectedMedia({
+          url: tempFile.tempFilePath,
+          type: 'video',
+          tempFilePath: tempFile.tempFilePath
+        });
+      },
+      fail: (err) => {
+        console.error('选择视频失败:', err);
+        Taro.showToast({ title: '选择视频失败', icon: 'none' });
+      }
+    });
+  };
 
-    const updated = [newDiary, ...diaries];
-    storage.saveDiaries(updated);
-    setDiaries(updated);
-    setNewContent('');
-    setShowCompose(false);
+  // 清除已选媒体
+  const clearMedia = () => {
+    setSelectedMedia(null);
+  };
+
+  const handleAddDiary = async () => {
+    if (!newContent.trim() && !selectedMedia) {
+      Taro.showToast({ title: '请填写内容或选择媒体', icon: 'none' });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const diaryId = 'diary_' + Date.now();
+      let mediaUrl: string | undefined;
+      let mediaType: 'image' | 'video' | undefined;
+
+      // 如果有媒体文件，保存到本地文件系统
+      if (selectedMedia?.tempFilePath) {
+        mediaType = selectedMedia.type;
+
+        // 读取文件为 base64
+        const fs = Taro.getFileSystemManager();
+        const fileData = fs.readFileSync(selectedMedia.tempFilePath, 'base64');
+
+        // 保存到媒体存储
+        await mediaStorage.saveMedia(diaryId, `data:${selectedMedia.type === 'image' ? 'image/jpeg' : 'video/mp4'};base64,${fileData}`);
+        mediaUrl = `miao_media:${diaryId}`;
+      }
+
+      const newDiary: DiaryEntry = {
+        id: diaryId,
+        catId: storage.getActiveCatId() || '',
+        content: newContent,
+        media: mediaUrl,
+        mediaType: mediaType,
+        createdAt: Date.now(),
+        likes: 0,
+        isLiked: false,
+        comments: []
+      };
+
+      const updated = [newDiary, ...diaries];
+      const success = storage.saveDiaries(updated);
+
+      if (success) {
+        setDiaries(updated);
+        setNewContent('');
+        setSelectedMedia(null);
+        setShowCompose(false);
+        Taro.showToast({ title: '发布成功', icon: 'success' });
+        // 刷新日记列表
+        loadDiaries();
+      } else {
+        Taro.showToast({ title: '存储空间不足', icon: 'none' });
+      }
+    } catch (error) {
+      console.error('发布日记失败:', error);
+      Taro.showToast({ title: '发布失败，请重试', icon: 'none' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleLike = (diaryId: string) => {
-    const updated = diaries.map(d => {
-      if (d.id === diaryId) {
-        return {
-          ...d,
-          isLiked: !d.isLiked,
-          likes: d.isLiked ? d.likes - 1 : d.likes + 1
-        };
+    if (activeTab === 'mine') {
+      const updated = diaries.map(d => {
+        if (d.id === diaryId) {
+          return {
+            ...d,
+            isLiked: !d.isLiked,
+            likes: d.isLiked ? d.likes - 1 : d.likes + 1
+          };
+        }
+        return d;
+      });
+      // 转换为 DiaryEntry 类型保存（去掉 mediaUrl）
+      const toSave: DiaryEntry[] = updated.map(({ mediaUrl, ...rest }) => rest);
+      storage.saveDiaries(toSave);
+      setDiaries(updated);
+    } else {
+      // 好友动态点赞
+      const updated = friendDiaries.map(d => {
+        if (d.id === diaryId) {
+          return {
+            ...d,
+            isLiked: !d.isLiked,
+            likes: d.isLiked ? d.likes - 1 : d.likes + 1
+          };
+        }
+        return d;
+      });
+      storage.saveFriendDiaries(updated);
+      setFriendDiaries(updated);
+    }
+  };
+
+  // 添加评论
+  const handleAddComment = () => {
+    if (!commentText.trim() || !commentingId) return;
+
+    const newComment = {
+      id: 'comment_' + Date.now(),
+      content: commentText.trim()
+    };
+
+    if (activeTab === 'mine') {
+      // 我的记录 - 更新本地存储
+      const updated = diaries.map(d => {
+        if (d.id === commentingId) {
+          return {
+            ...d,
+            comments: [...d.comments, newComment]
+          };
+        }
+        return d;
+      });
+
+      // 转换为 DiaryEntry 类型保存
+      const toSave: DiaryEntry[] = updated.map(({ mediaUrl, ...rest }) => rest);
+      storage.saveDiaries(toSave);
+      setDiaries(updated);
+    } else {
+      // 好友动态 - 更新好友日记存储
+      const updated = friendDiaries.map(d => {
+        if (d.id === commentingId) {
+          return {
+            ...d,
+            comments: [...d.comments, newComment]
+          };
+        }
+        return d;
+      });
+
+      storage.saveFriendDiaries(updated);
+      setFriendDiaries(updated);
+    }
+
+    setCommentText('');
+    setCommentingId(null);
+    Taro.showToast({ title: '评论成功', icon: 'success' });
+  };
+
+  // 删除日记
+  const handleDeleteDiary = (diaryId: string) => {
+    Taro.showModal({
+      title: '确认删除',
+      content: '确定要删除这条日记吗？删除后无法恢复。',
+      confirmColor: '#ff4d4f',
+      success: (res) => {
+        if (res.confirm) {
+          storage.deleteDiary(diaryId);
+          setDiaries(prev => prev.filter(d => d.id !== diaryId));
+          setDeletingId(null);
+          Taro.showToast({ title: '已删除', icon: 'success' });
+        }
       }
-      return d;
     });
-    storage.saveDiaries(updated);
-    setDiaries(updated);
+  };
+
+  // 删除评论
+  const handleDeleteComment = (diaryId: string, commentId: string) => {
+    Taro.showModal({
+      title: '确认删除',
+      content: '确定要删除这条评论吗？',
+      confirmColor: '#ff6b3d',
+      success: (res) => {
+        if (res.confirm) {
+          const updated = diaries.map(d => {
+            if (d.id === diaryId) {
+              return {
+                ...d,
+                comments: d.comments.filter(c => c.id !== commentId)
+              };
+            }
+            return d;
+          });
+
+          // 转换为 DiaryEntry 类型保存
+          const toSave: DiaryEntry[] = updated.map(({ mediaUrl, ...rest }) => rest);
+          storage.saveDiaries(toSave);
+          setDiaries(updated);
+          Taro.showToast({ title: '已删除', icon: 'success' });
+        }
+      }
+    });
   };
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
     return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
+
+  // 分享功能
+  const handleShare = (diary: DiaryWithMedia) => {
+    // 微信小程序分享
+    Taro.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline']
+    });
+
+    // 设置分享内容
+    const shareTitle = diary.content.substring(0, 30) + (diary.content.length > 30 ? '...' : '');
+    const shareImage = diary.mediaUrl || '';
+
+    // 使用微信小程序分享
+    Taro.onAppRoute((res) => {
+      console.log('页面路由变化:', res);
+    });
+
+    Taro.showToast({ title: '点击右上角分享', icon: 'none' });
+    setSharingId(diary.id);
+  };
+
+  // 使用微信小程序原生分享
+  useEffect(() => {
+    if (sharingId) {
+      // 配置分享参数
+      Taro.showShareMenu({
+        withShareTicket: true,
+        menus: ['shareAppMessage', 'shareTimeline']
+      });
+    }
+  }, [sharingId]);
 
   return (
     <View className="diary-page">
@@ -67,65 +371,310 @@ export default function Diary() {
           <ArrowLeft size={20} />
         </View>
         <Text className="title">日记</Text>
-        <View className="add-btn" onClick={() => setShowCompose(true)}>
-          <Plus size={20} />
+        <View className="header-actions">
+          <View className="friend-btn" onClick={() => Taro.showToast({ title: '好友功能开发中', icon: 'none' })}>
+            <UserPlus size={20} />
+          </View>
+          <View className="add-btn" onClick={() => setShowCompose(true)}>
+            <Plus size={20} />
+          </View>
+        </View>
+      </View>
+
+      {/* Tab 切换 */}
+      <View className="tab-bar">
+        <View
+          className={`tab-item ${activeTab === 'mine' ? 'active' : ''}`}
+          onClick={() => setActiveTab('mine')}
+        >
+          <Text className="tab-text">我的记录</Text>
+          {activeTab === 'mine' && <View className="tab-indicator" />}
+        </View>
+        <View
+          className={`tab-item ${activeTab === 'friends' ? 'active' : ''}`}
+          onClick={() => setActiveTab('friends')}
+        >
+          <Text className="tab-text">好友动态</Text>
+          {activeTab === 'friends' && <View className="tab-indicator" />}
         </View>
       </View>
 
       <View className="diary-list">
-        {diaries.length === 0 ? (
-          <View className="empty">
-            <Text className="empty-text">还没有日记</Text>
-            <Text className="empty-hint">记录你和猫咪的美好时光</Text>
-          </View>
-        ) : (
-          diaries.map((diary) => (
-            <View key={diary.id} className="diary-item">
-              <View className="diary-header">
-                <Image className="avatar" src={storage.getUserInfo()?.avatar || ''} mode="aspectFill" />
-                <View className="user-info">
-                  <Text className="username">{storage.getUserInfo()?.nickname || '未知'}</Text>
-                  <Text className="time">{formatTime(diary.createdAt)}</Text>
-                </View>
-              </View>
-
-              <Text className="diary-content">{diary.content}</Text>
-
-              {diary.media && (
-                <Image className="diary-media" src={diary.media} mode="aspectFill" />
-              )}
-
-              <View className="diary-actions">
-                <View className={`action-btn ${diary.isLiked ? 'liked' : ''}`} onClick={() => handleLike(diary.id)}>
-                  <Heart size={18} />
-                  <Text>{diary.likes}</Text>
-                </View>
-                <View className="action-btn">
-                  <MessageCircle size={18} />
-                  <Text>{diary.comments.length}</Text>
-                </View>
-              </View>
+        {activeTab === 'mine' ? (
+          // 我的记录
+          diaries.length === 0 ? (
+            <View className="empty">
+              <Text className="empty-text">还没有记录</Text>
+              <Text className="empty-hint">
+                还没有关于 {activeCat?.name || '猫咪'} 的记录，快去分享你们的第一个温暖瞬间吧～
+              </Text>
             </View>
-          ))
+          ) : (
+            diaries.map((diary) => (
+              <View key={diary.id} className="diary-item">
+                <View className="diary-header">
+                  <Image className="avatar" src={storage.getUserInfo()?.avatar || ''} mode="aspectFill" />
+                  <View className="user-info">
+                    <Text className="username">{storage.getUserInfo()?.nickname || '未知'}</Text>
+                    <Text className="time">{formatTime(diary.createdAt)}</Text>
+                  </View>
+                </View>
+
+                <Text className="diary-content">{diary.content}</Text>
+
+                {diary.mediaUrl && (
+                  diary.mediaType === 'video' ? (
+                    <Video
+                      className="diary-media"
+                      src={diary.mediaUrl}
+                      poster={diary.mediaUrl}
+                      controls
+                      showPlayBtn
+                      objectFit="cover"
+                    />
+                  ) : (
+                    <Image
+                      className="diary-media"
+                      src={diary.mediaUrl}
+                      mode="aspectFill"
+                    />
+                  )
+                )}
+
+                <View className="diary-actions">
+                  <View className={`action-btn ${diary.isLiked ? 'liked' : ''}`} onClick={() => handleLike(diary.id)}>
+                    <Heart size={18} />
+                    <Text>{diary.likes}</Text>
+                  </View>
+                  <View className="action-btn" onClick={() => setCommentingId(diary.id)}>
+                    <MessageCircle size={18} />
+                    <Text>{diary.comments.length}</Text>
+                  </View>
+                  <View className="action-btn" onClick={() => handleShare(diary)}>
+                    <Share2 size={18} />
+                  </View>
+                  <View className="action-btn delete-btn" onClick={() => setDeletingId(diary.id)}>
+                    <Trash2 size={18} />
+                  </View>
+                </View>
+
+                {/* 评论列表 */}
+                {diary.comments.length > 0 && (
+                  <View className="comments-section">
+                    {diary.comments.map((comment) => (
+                      <View key={comment.id} className="comment-item">
+                        <Text className="comment-content">{comment.content}</Text>
+                        <View className="comment-delete" onClick={() => handleDeleteComment(diary.id, comment.id)}>
+                          <X size={12} />
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))
+          )
+        ) : (
+          // 好友动态
+          friendDiaries.length === 0 ? (
+            <View className="empty">
+              <Text className="empty-text">还没有好友动态</Text>
+              <Text className="empty-hint">快去添加好友，看看 TA 们的猫咪在做什么吧</Text>
+            </View>
+          ) : (
+            friendDiaries.map((diary) => (
+              <View key={diary.id} className="diary-item">
+                <View className="diary-header">
+                  <Image className="avatar" src={diary.authorAvatar || ''} mode="aspectFill" />
+                  <View className="user-info">
+                    <Text className="username">{diary.authorNickname || '好友'}</Text>
+                    <Text className="time">{formatTime(diary.createdAt)}</Text>
+                  </View>
+                </View>
+
+                <Text className="diary-content">{diary.content}</Text>
+
+                {diary.mediaUrl && (
+                  diary.mediaType === 'video' ? (
+                    <Video
+                      className="diary-media"
+                      src={diary.mediaUrl}
+                      poster={diary.mediaUrl}
+                      controls
+                      showPlayBtn
+                      objectFit="cover"
+                    />
+                  ) : (
+                    <Image
+                      className="diary-media"
+                      src={diary.mediaUrl}
+                      mode="aspectFill"
+                    />
+                  )
+                )}
+
+                <View className="diary-actions">
+                  <View className={`action-btn ${diary.isLiked ? 'liked' : ''}`} onClick={() => handleLike(diary.id)}>
+                    <Heart size={18} />
+                    <Text>{diary.likes}</Text>
+                  </View>
+                  <View className="action-btn" onClick={() => setCommentingId(diary.id)}>
+                    <MessageCircle size={18} />
+                    <Text>{diary.comments.length}</Text>
+                  </View>
+                  <View className="action-btn" onClick={() => handleShare(diary)}>
+                    <Share2 size={18} />
+                  </View>
+                </View>
+
+                {/* 评论列表 */}
+                {diary.comments.length > 0 && (
+                  <View className="comments-section">
+                    {diary.comments.map((comment) => (
+                      <View key={comment.id} className="comment-item">
+                        <Text className="comment-content">{comment.content}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))
+          )
         )}
       </View>
 
       {showCompose && (
         <View className="compose-modal">
-          <View className="compose-header">
-            <Text className="compose-title">写日记</Text>
-            <View className="close-btn" onClick={() => setShowCompose(false)}>×</View>
+          <View className="compose-content">
+            <View className="compose-header">
+              <View className="compose-title-wrap">
+                <Text className="compose-title">记录此刻</Text>
+                <Text className="compose-subtitle">Capture the moment</Text>
+              </View>
+              <View className="close-btn" onClick={() => {
+                setShowCompose(false);
+                setSelectedMedia(null);
+                setNewContent('');
+              }}>
+                <Text>×</Text>
+              </View>
+            </View>
+
+            <View className="compose-body">
+              <Textarea
+                className="compose-input"
+                placeholder="这一刻在想什么..."
+                value={newContent}
+                onInput={(e) => setNewContent(e.detail.value)}
+                maxlength={500}
+                focus
+              />
+
+              {/* 媒体预览区域 */}
+              {selectedMedia && (
+                <View className="media-preview">
+                  {selectedMedia.type === 'video' ? (
+                    <Video
+                      className="preview-video"
+                      src={selectedMedia.url}
+                      controls={false}
+                      showPlayBtn={false}
+                      objectFit="cover"
+                      autoplay
+                      loop
+                      muted
+                    />
+                  ) : (
+                    <Image className="preview-image" src={selectedMedia.url} mode="aspectFill" />
+                  )}
+                  <View className="remove-media-btn" onClick={clearMedia}>
+                    <X size={14} />
+                  </View>
+                </View>
+              )}
+            </View>
+
+            <View className="compose-footer">
+              {/* 媒体选择按钮 */}
+              <View className="media-actions">
+                <View className="media-btn" onClick={chooseImage}>
+                  <ImageIcon size={22} />
+                </View>
+                <View className="media-btn" onClick={chooseVideo}>
+                  <Film size={22} />
+                </View>
+              </View>
+
+              <Button
+                className={`publish-btn ${isLoading ? 'loading' : ''}`}
+                onClick={handleAddDiary}
+                disabled={isLoading || (!newContent.trim() && !selectedMedia)}
+              >
+                {isLoading ? '发布中...' : '发布'}
+              </Button>
+            </View>
           </View>
-          <Textarea
-            className="compose-input"
-            placeholder="记录今天的美好时光..."
-            value={newContent}
-            onInput={(e) => setNewContent(e.detail.value)}
-            maxlength={500}
-          />
-          <Button className="publish-btn" onClick={handleAddDiary}>
-            发布
-          </Button>
+        </View>
+      )}
+
+      {/* 删除确认弹窗 */}
+      {deletingId && (
+        <View className="delete-modal">
+          <View className="delete-modal-mask" onClick={() => setDeletingId(null)} />
+          <View className="delete-modal-content">
+            <View className="delete-icon">
+              <Trash2 size={32} />
+            </View>
+            <Text className="delete-title">确定删除吗？</Text>
+            <Text className="delete-desc">确定要删除这条记录吗？删除后将无法找回。</Text>
+            <View className="delete-actions">
+              <Button className="delete-confirm-btn" onClick={() => handleDeleteDiary(deletingId)}>
+                确定删除
+              </Button>
+              <Button className="delete-cancel-btn" onClick={() => setDeletingId(null)}>
+                取消
+              </Button>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* 评论输入弹窗 */}
+      {commentingId && (
+        <View className="comment-modal">
+          <View className="comment-modal-mask" onClick={() => {
+            setCommentingId(null);
+            setCommentText('');
+          }} />
+          <View className="comment-modal-content">
+            <View className="comment-modal-header">
+              <Text className="comment-modal-title">写评论</Text>
+              <View className="comment-modal-close" onClick={() => {
+                setCommentingId(null);
+                setCommentText('');
+              }}>
+                <X size={20} />
+              </View>
+            </View>
+            <Input
+              className="comment-input"
+              placeholder="写下你的评论..."
+              value={commentText}
+              onInput={(e) => setCommentText(e.detail.value)}
+              maxlength={100}
+              focus
+            />
+            <View className="comment-modal-footer">
+              <Text className="comment-count">{commentText.length}/100</Text>
+              <Button
+                className="comment-submit-btn"
+                onClick={handleAddComment}
+                disabled={!commentText.trim()}
+              >
+                发送
+              </Button>
+            </View>
+          </View>
         </View>
       )}
     </View>

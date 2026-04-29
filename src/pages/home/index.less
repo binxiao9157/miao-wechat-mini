@@ -1,150 +1,258 @@
+/* ─── 全屏沉浸式首页 ─── */
 .home-page {
-  min-height: 100vh;
-  background: linear-gradient(180deg, #FFF9F5 0%, #FFFFFF 100%);
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 100px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-
-  .greeting {
-    font-size: 24px;
-    font-weight: 600;
-    color: #333;
-  }
-
-  .points-badge {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: #FFF5E6;
-    padding: 8px 16px;
-    border-radius: 20px;
-
-    .points-icon {
-      font-size: 16px;
-    }
-
-    .points-value {
-      font-size: 14px;
-      font-weight: 600;
-      color: #FF8C5A;
-    }
-  }
-}
-
-.cat-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-
-  .cat-image {
-    width: 280px;
-    height: 280px;
-    border-radius: 140px;
-    background: #FEF6F0;
-    box-shadow: 0 20px 60px rgba(232, 159, 113, 0.2);
-    margin-bottom: 20px;
-  }
-
-  .cat-info {
-    text-align: center;
-
-    .cat-name {
-      display: block;
-      font-size: 28px;
-      font-weight: 700;
-      color: #333;
-      margin-bottom: 8px;
-    }
-
-    .cat-breed {
-      font-size: 14px;
-      color: #999;
-    }
-  }
-
-  .no-cat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    .no-cat-text {
-      font-size: 18px;
-      color: #999;
-      margin-bottom: 20px;
-    }
-
-    .add-cat-btn {
-      width: 160px;
-      height: 44px;
-      background: linear-gradient(135deg, #ff9a5a 0%, #ff6b3d 100%);
-      color: #fff;
-      border: none;
-      border-radius: 22px;
-      font-size: 14px;
-    }
-  }
-}
-
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  padding: 20px;
-
-  .action-btn {
-    width: 100px;
-    height: 44px;
-    background: #fff;
-    border: 1px solid #eee;
-    border-radius: 22px;
-    font-size: 14px;
-    color: #666;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-.bottom-nav {
   position: fixed;
-  bottom: 0;
+  top: 0;
   left: 0;
   right: 0;
-  height: 80px;
-  background: #fff;
+  bottom: 0;
+  background: #000;
+  overflow: hidden;
+}
+
+/* ─── 全屏视频容器 ─── */
+.video-fullscreen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.placeholder-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.cat-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+/* ─── 视频错误遮罩 ─── */
+.video-error-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
   display: flex;
-  justify-content: space-around;
+  flex-direction: column;
   align-items: center;
-  border-top: 1px solid #f0f0f0;
-  padding-bottom: env(safe-area-inset-bottom);
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  gap: 16rpx;
+}
 
-  .nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
+.video-error-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #fff;
+}
 
-    text:first-child {
-      font-size: 24px;
-    }
+.video-error-desc {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8rpx;
+}
 
-    .nav-label {
-      font-size: 12px;
-      color: #999;
-    }
+.retry-btn {
+  padding: 20rpx 64rpx;
+  background: #FF9D76;
+  border-radius: 40rpx;
+}
 
-    &.active .nav-label {
-      color: #FF8C5A;
-    }
-  }
+.retry-btn-text {
+  font-size: 28rpx;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ─── 无猫咪状态 ─── */
+.no-cat-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32rpx;
+}
+
+.no-cat-text {
+  font-size: 36rpx;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.add-cat-btn {
+  padding: 24rpx 80rpx;
+  background: #FF9D76;
+  border-radius: 999rpx;
+}
+
+.add-cat-btn-text {
+  font-size: 28rpx;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ─── 浮层 UI ─── */
+
+/* 秘密入口 - 右上角透明区域 */
+.secret-tap-area {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 128rpx;
+  height: 128rpx;
+  z-index: 200;
+}
+
+/* 积分 badge - 右上角 */
+.points-badge {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 24rpx);
+  right: 32rpx;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  border: 1rpx solid rgba(255, 255, 255, 0.25);
+  padding: 12rpx 24rpx;
+  border-radius: 999rpx;
+}
+
+.points-icon {
+  font-size: 28rpx;
+}
+
+.points-value {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* 气泡提示 */
+.bubble-container {
+  position: fixed;
+  top: 22%;
+  left: 32rpx;
+  z-index: 100;
+}
+
+.bubble {
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(16px);
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  border-radius: 32rpx;
+  padding: 20rpx 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
+  animation: bubbleIn 0.3s ease-out;
+}
+
+.bubble-text {
+  font-size: 26rpx;
+  color: #fff;
+  font-weight: 600;
+}
+
+@keyframes bubbleIn {
+  from { opacity: 0; transform: translateY(16rpx) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 积分奖励提示 */
+.point-toast {
+  position: fixed;
+  top: 200rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: #FF9D76;
+  padding: 16rpx 40rpx;
+  border-radius: 40rpx;
+  animation: bubbleIn 0.3s ease-out;
+  white-space: nowrap;
+}
+
+.point-toast-text {
+  font-size: 26rpx;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* 解锁中提示 */
+.unlocking-hint {
+  position: fixed;
+  top: 200rpx;
+  right: 32rpx;
+  z-index: 100;
+  padding: 12rpx 32rpx;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  border-radius: 24rpx;
+}
+
+.unlocking-text {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+/* 猫咪名字 - 底部浮层（tabBar 高度约 100rpx，留足间距）*/
+.cat-name-overlay {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom) + 200rpx);
+  left: 48rpx;
+  z-index: 100;
+}
+
+.cat-name-text {
+  display: block;
+  font-size: 48rpx;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.4);
+  margin-bottom: 8rpx;
+}
+
+.cat-breed-text {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+/* 手势提示 - 底部居中（tabBar 上方）*/
+.gesture-hints {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom) + 140rpx);
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.gesture-hint {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 8rpx 24rpx;
+  border-radius: 20rpx;
 }

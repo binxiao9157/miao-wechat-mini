@@ -75,8 +75,18 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
       };
     } catch (error: any) {
       if (error.response) throw error;
-      console.error('Taro request error:', error);
-      throw new Error(`网络请求失败: ${error.message || '未知错误'}`);
+      const errMsg: string = error.errMsg || error.message || '';
+      console.error('[httpAdapter] Taro request failed:', JSON.stringify({ url: fullUrl, errMsg }));
+      if (errMsg.includes('url not in domain list')) {
+        throw new Error('域名未加白名单，请在开发者工具中勾选「不校验合法域名」');
+      }
+      if (errMsg.includes('abort') || errMsg.includes('timeout')) {
+        throw new Error('请求超时，请检查网络或服务器是否启动');
+      }
+      if (errMsg.includes('fail')) {
+        throw new Error(`网络请求失败，请确认服务器已启动且手机与电脑在同一网络 (${errMsg.trim()})`);
+      }
+      throw new Error(`网络请求失败: ${errMsg || '未知错误'}`);
     }
   }
 

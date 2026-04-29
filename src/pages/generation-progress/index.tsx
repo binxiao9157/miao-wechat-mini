@@ -127,32 +127,25 @@ export default function GenerationProgress() {
     const cat = catRef.current;
     setIsUnlocking(true);
 
-    // 先跳转到首页
     reLaunch({ url: '/pages/home/index' });
 
-    // 后台静默生成其他动作视频
+    // 串行提交视频生成任务，避免触发 DashScope rate limit
     const secondaryActions: (keyof typeof ACTION_PROMPTS)[] = ['tail', 'rubbing', 'blink'];
     try {
       await FileManager.updateCatVideos(cat.id, {}, true);
 
       const anchorFrame = anchorImage || cat.avatar;
-      const tasks = secondaryActions.map(action =>
-        VolcanoService.submitTask(anchorFrame, ACTION_PROMPTS[action])
-      );
-      const taskResults = await Promise.all(tasks);
-
-      const pollPromises = taskResults.map((task, index) =>
-        VolcanoService.pollTaskResult(task.id).then(url => {
-          FileManager.updateCatVideos(cat.id, { [secondaryActions[index]]: url }, true);
-        })
-      );
-
-      const results = await Promise.allSettled(pollPromises);
-      results.forEach((r, i) => {
-        if (r.status === 'rejected') {
-          console.error(`动作 ${secondaryActions[i]} 生成失败:`, r.reason);
+      for (const action of secondaryActions) {
+        try {
+          const task = await VolcanoService.submitTask(anchorFrame, ACTION_PROMPTS[action]);
+          const videoUrl = await VolcanoService.pollTaskResult(task.id);
+          await FileManager.updateCatVideos(cat.id, { [action]: videoUrl }, true);
+          // 提交下一个任务前等待 3 秒，避免限流
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        } catch (e) {
+          console.error(`动作 ${action} 生成失败:`, e);
         }
-      });
+      }
 
       await FileManager.updateCatVideos(cat.id, {}, false);
     } catch (e) {

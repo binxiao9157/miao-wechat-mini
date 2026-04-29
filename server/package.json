@@ -1,0 +1,23 @@
+{
+  "name": "miao-server",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx index.ts",
+    "start": "node --loader tsx index.ts"
+  },
+  "dependencies": {
+    "axios": "^1.14.0",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "multer": "^2.1.1",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/multer": "^2.1.0",
+    "@types/node": "^22.14.0"
+  }
+}

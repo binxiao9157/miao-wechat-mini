@@ -159,6 +159,9 @@ export const RefreshCw = createTextIcon('🔄');
 // 锁图标
 export const Lock = createTextIcon('🔒');
 
+// 解锁图标
+export const Unlock = createTextIcon('🔓');
+
 // 邮件图标
 export const Mail = createTextIcon('✉️');
 
@@ -217,6 +220,7 @@ export default {
   CheckCircle,
   RefreshCw,
   Lock,
+  Unlock,
   Mail,
   Upload,
   AlertCircle,

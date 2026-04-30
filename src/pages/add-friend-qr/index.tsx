@@ -1,103 +1,162 @@
 import React, { useState } from 'react';
-import { View, Text, Image } from '@tarojs/components';
-import Taro, { navigateBack } from '@tarojs/taro';
-import { ArrowLeft, Download } from '../../components/common/Icons';
+import { View, Text, Image, Button } from '@tarojs/components';
+import Taro, { useRouter, navigateBack } from '@tarojs/taro';
+import { ArrowLeft, Download, Share2, AlertCircle } from '../../components/common/Icons';
 import { storage } from '../../services/storage';
-import { useAuthContext } from '../../context/AuthContext';
 import './index.less';
 
 export default function AddFriendQR() {
-  const { user } = useAuthContext();
-  const [showToast, setShowToast] = useState<string | null>(null);
+  const router = useRouter();
+  const { catId, catName, catAvatar } = router.params;
 
-  const activeCat = storage.getActiveCat();
-  const nickname = user?.nickname || 'Miao 用户';
-  const catName = activeCat?.name || '小猫';
+  const [isSaving, setIsSaving] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
-  const triggerToast = (msg: string) => {
-    setShowToast(msg);
-    setTimeout(() => setShowToast(null), 2500);
+  const userInfo = storage.getUserInfo();
+
+  // 获取猫咪信息
+  const getCat = () => {
+    if (catId && catName) {
+      return { id: catId, name: catName, avatar: catAvatar || '' };
+    }
+    const activeCat = storage.getActiveCat();
+    if (activeCat) return activeCat;
+    const catList = storage.getCatList();
+    return catList[0] || null;
   };
 
+  const cat = getCat();
+
+  const showToastMessage = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
+  // 保存图片
   const handleSaveImage = () => {
-    // 小程序中保存名片图到相册
-    triggerToast('长按名片卡片可保存图片');
+    if (isSaving) return;
+    setIsSaving(true);
+    showToastMessage('请截图保存名片');
+    setIsSaving(false);
   };
 
-  const handleShare = () => {
-    Taro.showShareMenu({
-      withShareTicket: true,
-    });
-  };
+  // 分享链接
+  const handleShareLink = () => {
+    if (!userInfo || !cat) return;
 
-  const handleCopyLink = () => {
-    const link = `https://miao.app/join?uid=${user?.username || ''}&cat=${encodeURIComponent(catName)}`;
+    const inviteText = `我是 ${userInfo.nickname}，快来 Miao 看看我的小猫 ${cat.name} 吧！一起记录萌宠瞬间～`;
+
     Taro.setClipboardData({
-         data: link,
-      success: () => triggerToast('邀请链接已复制'),
+      data: inviteText,
+      success: () => {
+        showToastMessage('邀请文案已复制');
+      },
+      fail: () => {
+        showToastMessage('复制失败，请手动复制');
+      }
     });
   };
+
+  if (!userInfo || !cat) {
+    return (
+      <View className="add-friend-qr-page error-page">
+        <View className="error-icon">
+          <AlertCircle size={40} />
+        </View>
+        <Text className="error-title">缺少必要信息</Text>
+        <Text className="error-desc">请先去生成或选择一只猫咪哦</Text>
+        <Button className="error-btn" onClick={() => navigateBack()}>
+          返回
+        </Button>
+      </View>
+    );
+  }
 
   return (
     <View className="add-friend-qr-page">
-      {/* Toast */}
-      {showToast && (
-        <View className="toast">
-          <Text className="toast-text">{showToast}</Text>
-        </View>
-      )}
-
-      {/* Header */}
+      {/* 头部 */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={24} />
+          <ArrowLeft size={20} />
         </View>
-        <Text className="header-title">面对面添加</Text>
+        <View className="header-title">
+          <Text className="title">面对面添加</Text>
+          <Text className="subtitle">Face-to-Face</Text>
+        </View>
         <View className="header-placeholder" />
       </View>
 
-      {/* 名片卡 */}
-      <View className="card-section">
-        <View className="name-card">
-          {/* 头像和昵称 */}
-          <View className="card-top">
-            <View className="card-avatar-box">
-              {user?.avatar ? (
-                <Image className="card-avatar" src={user.avatar} mode="aspectFill" />
-              ) : (
-                <Text className="card-avatar-text">{nickname.charAt(0)}</Text>
-              )}
+      {/* 名片卡片 */}
+      <View className="card-container">
+        <View className="qr-card">
+          <View className="card-top-line" />
+
+          {/* 用户信息 */}
+          <View className="user-info-row">
+            <Image
+              className="user-avatar"
+              src={userInfo.avatar || ''}
+              mode="aspectFill"
+            />
+            <View className="user-text">
+              <Text className="user-nickname">{userInfo.nickname}</Text>
+              <Text className="user-subtitle">邀请你成为好友</Text>
             </View>
-            <Text className="card-nickname">{nickname}</Text>
           </View>
 
           {/* 二维码区域 */}
-          <View className="qr-section">
-            <View className="qr-placeholder">
-              <Text className="qr-emoji">📱</Text>
-              <Text className="qr-hint">扫码添加好友</Text>
+          <View className="qr-area">
+            <View className="qr-wrapper">
+              <View className="qr-placeholder">
+                <Text className="qr-emoji">📱</Text>
+                <Text className="qr-hint">二维码区域</Text>
+                <Text className="qr-hint">(请使用扫一扫)</Text>
+              </View>
             </View>
           </View>
 
           {/* 猫咪信息 */}
-          <View className="card-cat-info">
-            <Text className="cat-label">🐾</Text>
-            <Text className="cat-name">{catName}</Text>
+          <View className="cat-info-bar">
+            <Image
+              className="cat-avatar-small"
+              src={cat.avatar || ''}
+              mode="aspectFill"
+            />
+            <Text className="cat-name-text">代表猫咪：{cat.name}</Text>
           </View>
 
-          <Text className="card-tip">打开 Miao 扫一扫，即可添加好友</Text>
+          {/* 底部提示 */}
+          <Text className="footer-hint">
+            让好友打开 Miao 扫描上方二维码{'\n'}即可建立跨时空的温暖连接
+          </Text>
         </View>
       </View>
 
-      {/* 操作按钮 */}
-      <View className="action-section">
-        <View className="action-btn primary" onClick={handleCopyLink}>
-          <Text className="action-btn-text white">复制邀请链接</Text>
+      {/* 底部按钮 */}
+      <View className="action-buttons">
+        <View className="action-btn" onClick={handleSaveImage}>
+          <View className={`action-icon ${isSaving ? 'loading' : ''}`}>
+            {isSaving ? <Text className="loading-text">...</Text> : <Download size={24} />}
+          </View>
+          <Text className="action-text">{isSaving ? '保存中...' : '保存图片'}</Text>
         </View>
-        <View className="action-btn secondary" onClick={handleShare}>
-          <Text className="action-btn-text">分享给好友</Text>
+
+        <View className="action-btn" onClick={handleShareLink}>
+          <View className="action-icon">
+            <Share2 size={24} />
+          </View>
+          <Text className="action-text">分享链接</Text>
         </View>
       </View>
+
+      {/* Toast 提示 */}
+      {showToast && (
+        <View className="toast">
+          <Text className="toast-message">{toastMessage}</Text>
+        </View>
+      )}
     </View>
   );
 }

@@ -47,6 +47,12 @@ export default function Diary() {
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [activeCat, setActiveCat] = useState<{ id: string; name: string } | null>(null);
 
+  // 添加好友相关状态 - v2
+  const [showAddFriendMenu, setShowAddFriendMenu] = useState<boolean>(false);
+  const [addFriendStep, setAddFriendStep] = useState<number>(1);
+  const [selectedCatForQR, setSelectedCatForQR] = useState<{ id: string; name: string; avatar: string } | null>(null);
+  const [catList, setCatList] = useState<{ id: string; name: string; avatar: string }[]>([]);
+
   // 加载媒体文件
   const loadMediaForDiary = async (diary: DiaryEntry): Promise<DiaryWithMedia> => {
     if (!diary.media || !diary.media.startsWith('miao_media:')) {
@@ -74,6 +80,7 @@ export default function Diary() {
     const catList = storage.getCatList();
     const currentCat = catList.find(c => c.id === activeCatId);
     setActiveCat(currentCat || null);
+    setCatList(catList);
 
     const list = storage.getDiaries();
 
@@ -372,7 +379,7 @@ export default function Diary() {
         </View>
         <Text className="title">日记</Text>
         <View className="header-actions">
-          <View className="friend-btn" onClick={() => Taro.showToast({ title: '好友功能开发中', icon: 'none' })}>
+          <View className="friend-btn" onClick={() => setShowAddFriendMenu(true)}>
             <UserPlus size={20} />
           </View>
           <View className="add-btn" onClick={() => setShowCompose(true)}>
@@ -677,6 +684,74 @@ export default function Diary() {
           </View>
         </View>
       )}
+
+      {/* 添加好友菜单 */}
+      {showAddFriendMenu && (
+        <View className="add-friend-modal">
+          <View className="add-friend-mask" onClick={() => {
+            setShowAddFriendMenu(false);
+            setAddFriendStep(1);
+          }} />
+          <View className="add-friend-content">
+            {addFriendStep === 1 ? (
+              <>
+                <View className="add-friend-header">
+                  <Text className="add-friend-title">选择代表猫咪</Text>
+                  <Text className="add-friend-subtitle">Select your cat representative</Text>
+                </View>
+                <View className="cat-grid">
+                  {catList.length === 0 ? (
+                    <View className="cat-empty">
+                      <Text>还没有生成的猫咪哦</Text>
+                    </View>
+                  ) : (
+                    catList.map((cat) => (
+                      <View
+                        key={cat.id}
+                        className={`cat-item ${selectedCatForQR?.id === cat.id ? 'selected' : ''}`}
+                        onClick={() => {
+                          setSelectedCatForQR(cat);
+                          setAddFriendStep(2);
+                        }}
+                      >
+                        <Image className="cat-avatar" src={cat.avatar} mode="aspectFill" />
+                        <Text className="cat-name">{cat.name}</Text>
+                      </View>
+                    ))
+                  )}
+                </View>
+              </>
+            ) : (
+              <>
+                <View className="add-friend-header">
+                  <Text className="add-friend-title">选择添加方式</Text>
+                  <Text className="add-friend-subtitle">Choose addition method</Text>
+                </View>
+                <View className="add-method-grid">
+                  <View
+                    className="add-method-item"
+                    onClick={() => {
+                      setShowAddFriendMenu(false);
+                      setAddFriendStep(1);
+                      Taro.navigateTo({
+                        url: `/pages/add-friend-qr/index?catId=${selectedCatForQR?.id}&catName=${selectedCatForQR?.name}&catAvatar=${selectedCatForQR?.avatar}`
+                      });
+                    }}
+                  >
+                    <View className="add-method-icon qr-icon">
+                      <Text className="method-icon-text">QR</Text>
+                    </View>
+                    <Text className="add-method-text">面对面添加</Text>
+                  </View>
+                </View>
+                <View className="add-friend-back" onClick={() => setAddFriendStep(1)}>
+                  <Text>返回上一步</Text>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      )}
     </View>
   );
-}
+}  

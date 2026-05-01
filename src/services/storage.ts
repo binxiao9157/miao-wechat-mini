@@ -231,6 +231,7 @@ export interface PointsInfo {
   lastInteractionDate: string | null;
   onlineMinutes: number;
   lastOnlineUpdate: number;
+  updatedAt?: number;
   history: PointTransaction[];
 }
 
@@ -324,13 +325,17 @@ function syncDiaryToServer(userId: string, diary: DiaryEntry) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ diary: payload }),
-  }).catch(() => {});
+  }).catch((error) => {
+    console.warn('[storage] sync diary failed:', error);
+  });
 }
 
 function deleteDiaryFromServer(userId: string, diaryId: string) {
   request(`/api/v1/diaries/${encodeURIComponent(diaryId)}`, {
     method: 'DELETE',
-  }).catch(() => {});
+  }).catch((error) => {
+    console.warn('[storage] delete diary failed:', error);
+  });
 }
 
 function deleteAllDiariesFromServer(userId: string) {
@@ -342,13 +347,17 @@ function syncLetterToServer(userId: string, letter: TimeLetter) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ letter }),
-  }).catch(() => {});
+  }).catch((error) => {
+    console.warn('[storage] sync letter failed:', error);
+  });
 }
 
 function deleteLetterFromServer(userId: string, letterId: string) {
   request(`/api/v1/letters/${encodeURIComponent(letterId)}`, {
     method: 'DELETE',
-  }).catch(() => {});
+  }).catch((error) => {
+    console.warn('[storage] delete letter failed:', error);
+  });
 }
 
 function syncPointsToServer(userId: string, data: PointsInfo) {
@@ -356,7 +365,9 @@ function syncPointsToServer(userId: string, data: PointsInfo) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ data }),
-  }).catch(() => {});
+  }).catch((error) => {
+    console.warn('[storage] sync points failed:', error);
+  });
 }
 
 const MAX_DIARIES = 200;
@@ -802,7 +813,9 @@ export const storage = {
         storage.setItem(key, JSON.stringify(merged.slice(0, MAX_DIARIES)));
         invalidateCache(key);
       }
-    } catch {}
+    } catch (error) {
+      console.warn('[storage] sync diaries failed:', error);
+    }
 
     try {
       const resp = await request('/api/v1/letters');
@@ -825,21 +838,26 @@ export const storage = {
         storage.setItem(key, JSON.stringify(merged.slice(0, MAX_TIME_LETTERS)));
         invalidateCache(key);
       }
-    } catch {}
+    } catch (error) {
+      console.warn('[storage] sync letters failed:', error);
+    }
 
     try {
       const resp = await request('/api/v1/points');
       if (resp) {
-        const serverPoints = resp;
-        if (serverPoints && (serverPoints.total || 0) > (storage.getPoints().total || 0)) {
+        const serverPoints = resp as PointsInfo;
+        const localPoints = storage.getPoints();
+        if ((serverPoints.updatedAt || 0) >= (localPoints.updatedAt || 0)) {
           const key = getUserKey(USER_DATA_KEYS.POINTS);
           storage.setItem(key, JSON.stringify(serverPoints));
           invalidateCache(key);
         } else {
-          syncPointsToServer(username, storage.getPoints());
+          syncPointsToServer(username, localPoints);
         }
       }
-    } catch {}
+    } catch (error) {
+      console.warn('[storage] sync points failed:', error);
+    }
   },
 
   saveCatInfo: (cat: CatInfo) => {
@@ -940,11 +958,15 @@ export const storage = {
   },
 
   savePoints: (points: PointsInfo) => {
+    const nextPoints = {
+      ...points,
+      updatedAt: Date.now(),
+    };
     const key = getUserKey(USER_DATA_KEYS.POINTS);
-    storage.setItem(key, JSON.stringify(points));
+    storage.setItem(key, JSON.stringify(nextPoints));
     invalidateCache(key);
     const userId = getCurrentUsername();
-    if (userId) syncPointsToServer(userId, points);
+    if (userId) syncPointsToServer(userId, nextPoints);
   },
 
   addPoints: (amount: number, reason: string = '系统奖励') => {
@@ -1107,62 +1129,15 @@ export const storage = {
     return storage.safeParse<FriendInfo[]>(getUserKey(USER_DATA_KEYS.FRIENDS), []);
   },
 
+  saveFriends: (friends: FriendInfo[]) => {
+    storage.setItem(getUserKey(USER_DATA_KEYS.FRIENDS), JSON.stringify(friends));
+  },
+
   addFriend: (friend: FriendInfo) => {
     const friends = storage.getFriends();
     if (!friends.find(f => f.id === friend.id)) {
       friends.push(friend);
       storage.setItem(getUserKey(USER_DATA_KEYS.FRIENDS), JSON.stringify(friends));
-
-      const mockDiaries: FriendDiaryEntry[] = [
-        {
-          id: `fdiary_${friend.id}_1`,
-          catId: `cat_${friend.id}`,
-          authorId: friend.id,
-          authorNickname: friend.nickname,
-          authorAvatar: friend.avatar,
-          catName: friend.catName,
-          content: `今天和 ${friend.catName} 一起晒了太阳，它睡得好香呀～`,
-          media: `https://picsum.photos/seed/${friend.id}_1/800/600`,
-          mediaType: 'image',
-          createdAt: Date.now() - 3600000,
-          likes: 5,
-          isLiked: false,
-          comments: []
-        },
-        {
-          id: `fdiary_${friend.id}_2`,
-          catId: `cat_${friend.id}`,
-          authorId: friend.id,
-          authorNickname: friend.nickname,
-          authorAvatar: friend.avatar,
-          catName: friend.catName,
-          content: `${friend.catName} 好像又胖了一点点，是不是该减肥了？`,
-          media: `https://picsum.photos/seed/${friend.id}_2/800/600`,
-          mediaType: 'image',
-          createdAt: Date.now() - 86400000,
-          likes: 12,
-          isLiked: true,
-          comments: [{ id: 'c1', content: '好可爱的猫咪！' }]
-        },
-        {
-          id: `fdiary_${friend.id}_3`,
-          catId: `cat_${friend.id}`,
-          authorId: friend.id,
-          authorNickname: friend.nickname,
-          authorAvatar: friend.avatar,
-          catName: friend.catName,
-          content: `新买的郗猫棒，${friend.catName} 玩疯了哈哈。`,
-          media: `https://picsum.photos/seed/${friend.id}_3/800/600`,
-          mediaType: 'image',
-          createdAt: Date.now() - 172800000,
-          likes: 8,
-          isLiked: false,
-          comments: []
-        }
-      ];
-      const existingFriendDiaries = storage.getFriendDiaries();
-      storage.saveFriendDiaries([...mockDiaries, ...existingFriendDiaries]);
-
       return true;
     }
     return false;

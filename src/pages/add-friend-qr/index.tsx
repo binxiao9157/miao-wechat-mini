@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
 import Taro, { useRouter, navigateBack } from '@tarojs/taro';
 import { ArrowLeft, Download, Share2, AlertCircle } from '../../components/common/Icons';
 import { storage } from '../../services/storage';
+import { friendService, FriendInvite } from '../../services/friendService';
 import './index.less';
 
 export default function AddFriendQR() {
@@ -12,6 +13,8 @@ export default function AddFriendQR() {
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [invite, setInvite] = useState<FriendInvite | null>(null);
+  const [isCreatingInvite, setIsCreatingInvite] = useState(false);
 
   const userInfo = storage.getUserInfo();
 
@@ -28,6 +31,18 @@ export default function AddFriendQR() {
 
   const cat = getCat();
 
+  useEffect(() => {
+    if (!cat || isCreatingInvite || invite) return;
+    setIsCreatingInvite(true);
+    friendService.createInvite({ id: cat.id, name: cat.name, avatar: cat.avatar })
+      .then(setInvite)
+      .catch((error) => {
+        console.error('创建好友邀请码失败:', error);
+        showToastMessage(error?.message || '创建邀请码失败');
+      })
+      .finally(() => setIsCreatingInvite(false));
+  }, [cat?.id]);
+
   const showToastMessage = (message: string) => {
     setToastMessage(message);
     setShowToast(true);
@@ -38,7 +53,7 @@ export default function AddFriendQR() {
   const handleSaveImage = () => {
     if (isSaving) return;
     setIsSaving(true);
-    showToastMessage('请截图保存名片');
+    showToastMessage('请截图保存名片或复制邀请码');
     setIsSaving(false);
   };
 
@@ -46,7 +61,10 @@ export default function AddFriendQR() {
   const handleShareLink = () => {
     if (!userInfo || !cat) return;
 
-    const inviteText = `我是 ${userInfo.nickname}，快来 Miao 看看我的小猫 ${cat.name} 吧！一起记录萌宠瞬间～`;
+    const invitePayload = invite ? friendService.buildInvitePayload(invite.code) : '';
+    const inviteText = invitePayload
+      ? `我是 ${userInfo.nickname}，快来 Miao 看看我的小猫 ${cat.name} 吧！${invitePayload}`
+      : `我是 ${userInfo.nickname}，快来 Miao 看看我的小猫 ${cat.name} 吧！一起记录萌宠瞬间～`;
 
     Taro.setClipboardData({
       data: inviteText,
@@ -110,9 +128,9 @@ export default function AddFriendQR() {
           <View className="qr-area">
             <View className="qr-wrapper">
               <View className="qr-placeholder">
-                <Text className="qr-emoji">📱</Text>
-                <Text className="qr-hint">二维码区域</Text>
-                <Text className="qr-hint">(请使用扫一扫)</Text>
+                <Text className="qr-emoji">QR</Text>
+                <Text className="qr-hint">{isCreatingInvite ? '正在生成邀请码' : '好友邀请码'}</Text>
+                <Text className="qr-hint">{invite?.code || '请稍候'}</Text>
               </View>
             </View>
           </View>
@@ -129,7 +147,7 @@ export default function AddFriendQR() {
 
           {/* 底部提示 */}
           <Text className="footer-hint">
-            让好友打开 Miao 扫描上方二维码{'\n'}即可建立跨时空的温暖连接
+            让好友打开 Miao 扫描或复制邀请码{'\n'}即可建立跨时空的温暖连接
           </Text>
         </View>
       </View>

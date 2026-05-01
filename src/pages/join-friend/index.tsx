@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text } from '@tarojs/components';
 import Taro, { useRouter, navigateTo } from '@tarojs/taro';
 import { Sparkles } from '../../components/common/Icons';
-import { storage } from '../../services/storage';
 import { useAuthContext } from '../../context/AuthContext';
+import { friendService } from '../../services/friendService';
 import './index.less';
 
 export default function JoinFriend() {
@@ -11,35 +11,32 @@ export default function JoinFriend() {
   const { isAuthenticated } = useAuthContext();
   const [inviterName, setInviterName] = useState('');
   const [catName, setCatName] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
-    const uid = router.params.uid || '';
-    const cat = router.params.cat ? decodeURIComponent(router.params.cat) : '';
-    setCatName(cat);
+    const code = router.params.invite || router.params.code || '';
+    setInviteCode(code);
+    if (!code) return;
 
-    if (uid) {
-      const foundUser = storage.findUser(uid);
-      if (foundUser) {
-        setInviterName(foundUser.nickname || uid);
-      } else {
-        setInviterName(uid);
-      }
-    }
+    friendService.getInvite(code)
+      .then((invite) => {
+        setInviterName(invite.inviter?.nickname || invite.ownerId);
+        setCatName(invite.catName || '小猫');
+      })
+      .catch(() => {
+        setInviterName('');
+      });
   }, []);
 
-  const handleAddFriend = () => {
-    if (!inviterName) return;
-    const uid = useRouter().params.uid || '';
-    storage.addFriend({
-      id: uid || 'friend_' + Date.now(),
-      nickname: inviterName,
-      avatar: '',
-      catName: catName || '小猫',
-      catAvatar: '',
-      addedAt: Date.now(),
-    });
-    setShowSuccess(true);
+  const handleAddFriend = async () => {
+    if (!inviteCode) return;
+    try {
+      await friendService.acceptInvite(inviteCode);
+      setShowSuccess(true);
+    } catch (error: any) {
+      Taro.showToast({ title: error?.message || '添加好友失败', icon: 'none' });
+    }
   };
 
   const handleLogin = () => {

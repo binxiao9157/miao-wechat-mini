@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { View, Text } from '@tarojs/components';
 import Taro, { navigateBack, navigateTo } from '@tarojs/taro';
 import { ArrowLeft, Scan } from '../../components/common/Icons';
-import { storage, FriendInfo } from '../../services/storage';
-import { useAuthContext } from '../../context/AuthContext';
+import { FriendInfo } from '../../services/storage';
+import { friendService } from '../../services/friendService';
 import './index.less';
 
 export default function ScanFriend() {
-  const { user } = useAuthContext();
   const [scanning, setScanning] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
   const [friendInfo, setFriendInfo] = useState<FriendInfo | null>(null);
+  const [inviteCode, setInviteCode] = useState('');
   const [showToast, setShowToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,50 +35,41 @@ export default function ScanFriend() {
     });
   };
 
-  const handleScanResult = (result: string) => {
+  const handleScanResult = async (result: string) => {
     try {
-      // 尝试解析二维码内容
-      const url = new URL(result);
-      const uid = url.searchParams.get('uid');
-      const cat = url.searchParams.get('cat');
-
-      if (uid) {
-        const foundUser = storage.findUser(uid);
-        if (foundUser) {
-          const activeCat = storage.getActiveCat();
-          setFriendInfo({
-            id: foundUser.username,
-            nickname: foundUser.nickname,
-            avatar: foundUser.avatar || '',
-            catName: cat || activeCat?.name || '小猫',
-            catAvatar: activeCat?.avatar || '',
-            addedAt: Date.now(),
-          });
-          setShowConfirm(true);
-        } else {
-          triggerToast('未找到该用户');
-        }
-      } else {
+      const code = friendService.extractInviteCode(result);
+      if (!code) {
         triggerToast('无效的邀请码');
+        return;
       }
-    } catch {
-      // 简单字符串处理
-      if (result.includes('miao_friend_invite')) {
-        triggerToast('扫描成功，正在处理...');
-      } else {
-        triggerToast('无法识别的二维码');
-      }
+      const invite = await friendService.getInvite(code);
+      setInviteCode(code);
+      setFriendInfo({
+        id: invite.ownerId,
+        nickname: invite.inviter?.nickname || invite.ownerId,
+        avatar: invite.inviter?.avatar || '',
+        catName: invite.catName || '小猫',
+        catAvatar: invite.catAvatar || '',
+        addedAt: Date.now(),
+      });
+      setShowConfirm(true);
+    } catch (error: any) {
+      triggerToast(error?.message || '无法识别的二维码');
     }
   };
 
-  const handleConfirmAdd = () => {
-    if (!friendInfo) return;
-    storage.addFriend(friendInfo);
-    setShowConfirm(false);
-    triggerToast('添加好友成功！');
-    setTimeout(() => {
-      navigateBack();
-    }, 1500);
+  const handleConfirmAdd = async () => {
+    if (!friendInfo || !inviteCode) return;
+    try {
+      await friendService.acceptInvite(inviteCode);
+      setShowConfirm(false);
+      triggerToast('添加好友成功！');
+      setTimeout(() => {
+        navigateBack();
+      }, 1500);
+    } catch (error: any) {
+      triggerToast(error?.message || '添加好友失败');
+    }
   };
 
   const triggerToast = (msg: string) => {

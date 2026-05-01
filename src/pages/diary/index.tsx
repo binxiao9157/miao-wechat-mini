@@ -4,7 +4,7 @@ import { View, Text, Image, Button, Input, Textarea, Video } from '@tarojs/compo
 import Taro, { switchTab } from '@tarojs/taro';
 import { ArrowLeft, Plus, Heart, MessageCircle, ImageIcon, Film, X, Trash2, Share2, UserPlus } from '../../components/common/Icons';
 import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage } from '../../services/storage';
-import { mockFriendService } from '../../services/mockFriendService';
+import { friendService } from '../../services/friendService';
 import './index.less';
 
 interface DiaryWithMedia extends DiaryEntry {
@@ -75,9 +75,6 @@ export default function Diary() {
   }, []);
 
   const loadDiaries = async () => {
-    // 初始化好友模拟数据
-    mockFriendService.initializeMockData();
-
     const activeCatId = storage.getActiveCatId();
     const catList = storage.getCatList();
     const currentCat = catList.find(c => c.id === activeCatId);
@@ -93,7 +90,13 @@ export default function Diary() {
     const diariesWithMedia = await Promise.all(filteredList.map(loadMediaForDiary));
     setDiaries(diariesWithMedia);
 
-    // 加载好友动态
+    try {
+      await friendService.syncFriends();
+      await friendService.syncFriendDiaries();
+    } catch (error) {
+      console.warn('同步好友动态失败:', error);
+    }
+
     const friendsList = storage.getFriendDiaries();
     const friendsWithMedia = await Promise.all(friendsList.map(loadMediaForDiary));
     setFriendDiaries(friendsWithMedia);

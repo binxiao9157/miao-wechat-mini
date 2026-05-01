@@ -4,6 +4,7 @@ import Taro, { useRouter } from '@tarojs/taro';
 import { ArrowLeft, Play, Pause, Download, Trash2, Heart, Share2, AlertCircle } from '../../components/common/Icons';
 import { storage, CatInfo } from '../../services/storage';
 import { FileManager } from '../../services/fileManager';
+import { getPrimaryVideoUrl } from '../../services/catLifecycle';
 import './index.less';
 
 export default function CatPlayer() {
@@ -116,7 +117,7 @@ export default function CatPlayer() {
     );
   }
 
-  const videoSrc = cat.videoPaths?.idle || cat.videoPaths?.petting || cat.videoPath || cat.remoteVideoUrl || '';
+  const videoSrc = cat.videoPaths?.petting || getPrimaryVideoUrl(cat);
   const createdDate = cat.id.includes('_')
     ? new Date(parseInt(cat.id.split('_')[1])).toLocaleDateString()
     : '';

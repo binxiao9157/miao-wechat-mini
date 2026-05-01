@@ -1,10 +1,11 @@
 import React from 'react';
 import { useState } from 'react';
 import { View, Text, Input, Button } from '@tarojs/components';
-import { navigateBack, reLaunch } from '@tarojs/taro';
+import { navigateBack } from '@tarojs/taro';
 import { Eye, EyeOff, ArrowLeft } from '../../components/common/Icons';
 import { storage, UserInfo } from '../../services/storage';
 import { useAuthContext } from '../../context/AuthContext';
+import { routeAfterCatSync } from '../../services/catLifecycle';
 import './index.less';
 
 export default function Register() {
@@ -55,13 +56,7 @@ export default function Register() {
       };
 
       await register(newUser);
-
-      const hasCat = storage.getCatList().length > 0;
-      if (hasCat) {
-        reLaunch({ url: '/pages/home/index' });
-      } else {
-        reLaunch({ url: '/pages/empty-cat/index' });
-      }
+      routeAfterCatSync();
     } catch (e: any) {
       setError(e.message || '注册失败，请重试');
     } finally {

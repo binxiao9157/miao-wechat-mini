@@ -135,6 +135,8 @@ export class FileManager {
         ...cat.videoPaths,
         ...persistedUrls
       },
+      videoPath: persistedUrls.idle || cat.videoPath || cat.remoteVideoUrl,
+      remoteVideoUrl: persistedUrls.idle || cat.remoteVideoUrl || cat.videoPath,
       isUnlocking
     };
 

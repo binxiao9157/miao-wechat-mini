@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, Image, Video } from '@tarojs/components';
 import Taro, { navigateTo, useDidShow } from '@tarojs/taro';
 import { storage, CatInfo } from '../../services/storage';
+import { getPrimaryVideoUrl } from '../../services/catLifecycle';
 import { on, off } from '../../utils/eventAdapter';
 import './index.less';
 
@@ -247,8 +248,9 @@ export default function Home() {
     setIsVideoReady(false);
   };
 
-  const videoSrc = cat?.videoPaths?.[currentAction] || cat?.videoPaths?.idle || '';
-  const hasVideo = !!cat?.videoPaths?.idle;
+  const primaryVideo = getPrimaryVideoUrl(cat);
+  const videoSrc = cat?.videoPaths?.[currentAction] || primaryVideo;
+  const hasVideo = !!primaryVideo;
 
   return (
     <View className="home-page">

@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text } from '@tarojs/components';
 import { useEffect } from 'react';
-import { reLaunch, navigateTo } from '@tarojs/taro';
+import { reLaunch } from '@tarojs/taro';
 import { storage } from '../../services/storage';
+import { routeAfterCatSync } from '../../services/catLifecycle';
 
 export default function Welcome() {
   useEffect(() => {
@@ -17,11 +18,8 @@ export default function Welcome() {
         }
       }
 
-      const hasCat = storage.getCatList().length > 0;
-      if (user && hasCat) {
-        reLaunch({ url: '/pages/home/index' });
-      } else if (user) {
-        reLaunch({ url: '/pages/empty-cat/index' });
+      if (user) {
+        routeAfterCatSync();
       } else {
         reLaunch({ url: '/pages/login/index' });
       }

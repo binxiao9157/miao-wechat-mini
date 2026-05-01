@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Input, Button, Image } from '@tarojs/components';
-import { navigateTo, switchTab } from '@tarojs/taro';
+import { navigateTo } from '@tarojs/taro';
 import { Eye, EyeOff, PawPrint } from '../../components/common/Icons';
 import { storage } from '../../services/storage';
 import { useAuthContext } from '../../context/AuthContext';
+import { routeAfterCatSync } from '../../services/catLifecycle';
 import './index.less';
 
 const DEFAULT_CAT_IMAGE = 'https://api.dicebear.com/7.x/avataaars/svg?seed=default_cat';
@@ -50,12 +51,7 @@ export default function Login() {
     try {
       const result = await login(trimmedU, trimmedP);
       if (result.success) {
-        const hasCat = storage.getCatList().length > 0;
-        if (hasCat) {
-          switchTab({ url: '/pages/home/index' });
-        } else {
-          navigateTo({ url: '/pages/empty-cat/index' });
-        }
+        routeAfterCatSync();
       } else {
         setError(result.error || '用户名或密码错误');
       }
@@ -83,12 +79,7 @@ export default function Login() {
         setError(result.error || '微信登录失败');
         return;
       }
-      const hasCat = storage.getCatList().length > 0;
-      if (hasCat) {
-        switchTab({ url: '/pages/home/index' });
-      } else {
-        navigateTo({ url: '/pages/empty-cat/index' });
-      }
+      routeAfterCatSync();
     } finally {
       setIsLoading(false);
     }

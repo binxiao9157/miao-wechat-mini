@@ -138,6 +138,8 @@ export interface UserInfo {
   nickname: string;
   avatar: string;
   password?: string;
+  passwordSet?: boolean;
+  openidBound?: boolean;
 }
 
 export interface CatInfo {
@@ -405,8 +407,16 @@ function stripServerCat(cat: CatInfo & { userId?: string }): CatInfo {
   return normalizeCatVideoUrls(rest);
 }
 
+function getApiBaseURL(): string {
+  return (process.env.TARO_APP_API_BASE_URL || '').replace(/\/$/, '');
+}
+
 function normalizePlayableVideoUrl(url?: string): string | undefined {
   if (!url) return url;
+  if (url.startsWith('/')) {
+    const baseURL = getApiBaseURL();
+    return baseURL ? `${baseURL}${url}` : url;
+  }
   return url.replace(/^http:\/\/localhost(?::|\/)/, (match) => match.replace('localhost', '127.0.0.1'));
 }
 

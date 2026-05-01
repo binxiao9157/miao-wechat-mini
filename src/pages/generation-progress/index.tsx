@@ -5,6 +5,7 @@ import { Sparkles, CheckCircle, AlertCircle, ArrowRight } from '../../components
 import { VolcanoService, ACTION_PROMPTS } from '../../services/volcanoService';
 import { FileManager } from '../../services/fileManager';
 import { storage } from '../../services/storage';
+import { isCatReady } from '../../services/catLifecycle';
 import { useAuthContext } from '../../context/AuthContext';
 import './index.less';
 
@@ -30,6 +31,10 @@ export default function GenerationProgress() {
     if (!activeCat) {
       // 没有猫咪数据，返回创建页
       navigateBack();
+      return;
+    }
+    if (isCatReady(activeCat)) {
+      reLaunch({ url: '/pages/home/index' });
       return;
     }
     catRef.current = {

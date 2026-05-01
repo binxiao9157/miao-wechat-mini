@@ -18,6 +18,8 @@ function normalizeUser(raw: any, fallbackPassword?: string): UserInfo {
     nickname: raw?.nickname || raw?.username || 'Miao 用户',
     avatar: raw?.avatar || '',
     password: fallbackPassword,
+    passwordSet: !!raw?.passwordSet || !!fallbackPassword,
+    openidBound: !!raw?.openidBound,
   };
 }
 
@@ -111,6 +113,19 @@ export const authService = {
     if (!token) throw new Error('微信登录失败：服务端未返回 token');
     const user = normalizeUser(res.data?.user);
     persistAuth(token, user);
+    return user;
+  },
+
+  async setPassword(password: string, currentPassword?: string): Promise<UserInfo> {
+    const res = await request({
+      url: '/api/v1/auth/set-password',
+      method: 'POST',
+      data: { password, currentPassword },
+      timeout: 15000,
+    });
+    const cached = this.getCachedUser();
+    const user = normalizeUser(res.data?.user || cached, password);
+    persistAuth(this.getToken() || '', user);
     return user;
   },
 

@@ -51,6 +51,7 @@ export default function Profile() {
 
   const menuItems = [
     { icon: <User size={20} />, label: '编辑资料', url: '/pages/edit-profile/index' },
+    { icon: <Settings size={20} />, label: user?.passwordSet ? '修改登录密码' : '设置 PWA 登录密码', url: '/pages/change-password/index' },
     { icon: <Heart size={20} />, label: '我的收藏', url: '' },
     { icon: <MessageCircle size={20} />, label: '我的日记', url: '/pages/diary/index' },
     { icon: <Users size={20} />, label: '好友列表', url: '' },

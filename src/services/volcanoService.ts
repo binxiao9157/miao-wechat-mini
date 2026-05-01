@@ -1,19 +1,32 @@
 import Taro from '@tarojs/taro';
 import { request, get } from '../utils/httpAdapter';
 import { uploadFile } from '../utils/uploadAdapter';
+import { aiConfig } from './aiConfig';
 
 export const VolcanoConfig = {
   get MOCK_MODE() {
-    return false;
+    return aiConfig.getProfile().mockMode;
   },
   get Provider() {
-    return "volcengine";
+    return aiConfig.getProfile().provider;
   },
   get ModelId() {
-    return "doubao-seedance-1-5-pro-251215";
+    return aiConfig.getProfile().videoModel;
   },
   get T2IModelId() {
-    return "doubao-seedream-4-5-251128";
+    return aiConfig.getProfile().imageModel;
+  },
+  get Resolution() {
+    return aiConfig.getProfile().resolution;
+  },
+  get Duration() {
+    return aiConfig.getProfile().duration;
+  },
+  get Seed() {
+    return aiConfig.getProfile().seed;
+  },
+  get PromptExtend() {
+    return aiConfig.getProfile().promptExtend;
   },
 };
 
@@ -79,9 +92,10 @@ export class VolcanoService {
           provider: VolcanoConfig.Provider,
           model: VolcanoConfig.ModelId,
           prompt: prompt || "A high quality video of this cat, cinematic lighting, realistic.",
-          seed: '12345',
-          resolution: '480p',
-          duration: '5',
+          seed: String(VolcanoConfig.Seed),
+          resolution: VolcanoConfig.Resolution,
+          duration: String(VolcanoConfig.Duration),
+          prompt_extend: String(VolcanoConfig.PromptExtend),
           audio: 'false',
         },
       });
@@ -103,7 +117,13 @@ export class VolcanoService {
             model: VolcanoConfig.ModelId,
             prompt: prompt || "A high quality video of this cat, cinematic lighting, realistic.",
             image_base64: imageBase64,
-            parameters: { seed: 12345, resolution: "480p", duration: 5, audio: false }
+            parameters: {
+              seed: VolcanoConfig.Seed,
+              resolution: VolcanoConfig.Resolution,
+              duration: VolcanoConfig.Duration,
+              prompt_extend: VolcanoConfig.PromptExtend,
+              audio: false
+            }
           }
         });
         const taskId = response?.data?.id || response?.data?.task_id;

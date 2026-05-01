@@ -18,6 +18,9 @@ const config = {
     'process.env.TARO_APP_API_BASE_URL': JSON.stringify(
       process.env.TARO_APP_API_BASE_URL || 'http://localhost:3000'
     ),
+    'process.env.TARO_APP_AI_PROVIDER': JSON.stringify(
+      process.env.TARO_APP_AI_PROVIDER || 'volcengine'
+    ),
   },
   mini: {},
   h5: {

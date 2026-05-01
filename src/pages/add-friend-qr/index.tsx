@@ -15,6 +15,7 @@ export default function AddFriendQR() {
   const [toastMessage, setToastMessage] = useState('');
   const [invite, setInvite] = useState<FriendInvite | null>(null);
   const [isCreatingInvite, setIsCreatingInvite] = useState(false);
+  const [qrLoadError, setQrLoadError] = useState(false);
 
   const userInfo = storage.getUserInfo();
 
@@ -30,6 +31,10 @@ export default function AddFriendQR() {
   };
 
   const cat = getCat();
+  const invitePayload = invite ? friendService.buildInvitePayload(invite.code) : '';
+  const qrImageUrl = invitePayload
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=10&format=png&data=${encodeURIComponent(invitePayload)}`
+    : '';
 
   useEffect(() => {
     if (!cat || isCreatingInvite || invite) return;
@@ -42,6 +47,10 @@ export default function AddFriendQR() {
       })
       .finally(() => setIsCreatingInvite(false));
   }, [cat?.id]);
+
+  useEffect(() => {
+    setQrLoadError(false);
+  }, [invite?.code]);
 
   const showToastMessage = (message: string) => {
     setToastMessage(message);
@@ -61,7 +70,6 @@ export default function AddFriendQR() {
   const handleShareLink = () => {
     if (!userInfo || !cat) return;
 
-    const invitePayload = invite ? friendService.buildInvitePayload(invite.code) : '';
     const inviteText = invitePayload
       ? `我是 ${userInfo.nickname}，快来 Miao 看看我的小猫 ${cat.name} 吧！${invitePayload}`
       : `我是 ${userInfo.nickname}，快来 Miao 看看我的小猫 ${cat.name} 吧！一起记录萌宠瞬间～`;
@@ -127,11 +135,22 @@ export default function AddFriendQR() {
           {/* 二维码区域 */}
           <View className="qr-area">
             <View className="qr-wrapper">
-              <View className="qr-placeholder">
-                <Text className="qr-emoji">QR</Text>
-                <Text className="qr-hint">{isCreatingInvite ? '正在生成邀请码' : '好友邀请码'}</Text>
-                <Text className="qr-hint">{invite?.code || '请稍候'}</Text>
-              </View>
+              {qrImageUrl && !qrLoadError ? (
+                <Image
+                  className="qr-image"
+                  src={qrImageUrl}
+                  mode="aspectFit"
+                  showMenuByLongpress
+                  onError={() => setQrLoadError(true)}
+                />
+              ) : (
+                <View className="qr-placeholder" onClick={() => setQrLoadError(false)}>
+                  <Text className="qr-emoji">QR</Text>
+                  <Text className="qr-hint">{isCreatingInvite ? '正在生成二维码' : qrLoadError ? '二维码加载失败' : '好友邀请码'}</Text>
+                  <Text className="qr-code-text">{invite?.code || '请稍候'}</Text>
+                  {qrLoadError && <Text className="qr-hint">点此重试，或复制邀请码添加</Text>}
+                </View>
+              )}
             </View>
           </View>
 

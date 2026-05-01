@@ -1,7 +1,7 @@
 import React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
-import { navigateTo, switchTab, reLaunch } from '@tarojs/taro';
+import Taro, { navigateTo, reLaunch } from '@tarojs/taro';
 import { User, Settings, Heart, MessageCircle, Users, LogOut, ChevronRight } from '../../components/common/Icons';
 import { storage, UserInfo, CatInfo } from '../../services/storage';
 import './index.less';
@@ -10,6 +10,8 @@ export default function Profile() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [catList, setCatList] = useState<CatInfo[]>([]);
   const [points, setPoints] = useState(0);
+  const adminTapCountRef = useRef(0);
+  const adminTapTimerRef = useRef<any>(null);
 
   useEffect(() => {
     loadProfile();
@@ -31,6 +33,22 @@ export default function Profile() {
     reLaunch({ url: '/pages/login/index' });
   };
 
+  const handleAdminTap = () => {
+    adminTapCountRef.current += 1;
+    if (adminTapTimerRef.current) clearTimeout(adminTapTimerRef.current);
+
+    if (adminTapCountRef.current >= 5) {
+      adminTapCountRef.current = 0;
+      Taro.vibrateShort({ type: 'light' }).catch(() => {});
+      navigateTo({ url: '/pages/admin-settings/index' });
+      return;
+    }
+
+    adminTapTimerRef.current = setTimeout(() => {
+      adminTapCountRef.current = 0;
+    }, 2000);
+  };
+
   const menuItems = [
     { icon: <User size={20} />, label: '编辑资料', url: '/pages/edit-profile/index' },
     { icon: <Heart size={20} />, label: '我的收藏', url: '' },
@@ -41,7 +59,7 @@ export default function Profile() {
 
   return (
     <View className="profile-page">
-      <View className="profile-header">
+      <View className="profile-header" onClick={handleAdminTap}>
         <Image
           className="avatar"
           src={user?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}

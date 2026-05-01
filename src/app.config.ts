@@ -8,6 +8,7 @@ export default defineAppConfig({
     'pages/notifications/index',
     'pages/points/index',
     'pages/profile/index',
+    'pages/admin-settings/index',
     'pages/create-companion/index',
     'pages/generation-progress/index',
     'pages/scan-friend/index',

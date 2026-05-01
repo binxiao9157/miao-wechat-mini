@@ -1,36 +1,131 @@
-import React from 'react';
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
 import Taro, { navigateTo, reLaunch } from '@tarojs/taro';
-import { User, Settings, Heart, MessageCircle, Users, LogOut, ChevronRight } from '../../components/common/Icons';
 import { storage, UserInfo, CatInfo } from '../../services/storage';
 import './index.less';
 
+type ProfileIconName =
+  | 'scan'
+  | 'bell'
+  | 'camera'
+  | 'calendar'
+  | 'image'
+  | 'heart'
+  | 'user'
+  | 'message'
+  | 'logout'
+  | 'trash';
+
+function ProfileIcon({ name, className = '' }: { name: ProfileIconName; className?: string }) {
+  return <View className={`profile-icon profile-icon-${name} ${className}`} />;
+}
+
+function getUnreadNotificationCount() {
+  const readIds = storage.getReadNotificationIds();
+  let count = 0;
+
+  const isFastForward = storage.getIsFastForward();
+  const now = isFastForward ? Date.now() * 10 : Date.now();
+  storage.getTimeLetters().forEach((letter) => {
+    const id = `letter_${letter.id}`;
+    if (letter.unlockAt <= now && !readIds.includes(id)) count += 1;
+  });
+
+  storage.getPoints().history?.slice(0, 5).forEach((tx) => {
+    const id = `points_${tx.id}`;
+    if (!readIds.includes(id)) count += 1;
+  });
+
+  const today = new Date().toISOString().slice(0, 10);
+  if (!readIds.includes(`greeting_${today}`)) count += 1;
+
+  return count;
+}
+
 export default function Profile() {
   const [user, setUser] = useState<UserInfo | null>(null);
-  const [catList, setCatList] = useState<CatInfo[]>([]);
-  const [points, setPoints] = useState(0);
+  const [activeCat, setActiveCat] = useState<CatInfo | null>(null);
+  const [stats, setStats] = useState({ days: 0, entries: 0 });
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [navStyle, setNavStyle] = useState<React.CSSProperties>({});
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const adminTapCountRef = useRef(0);
   const adminTapTimerRef = useRef<any>(null);
+  const footerClickRef = useRef(0);
+  const footerTimerRef = useRef<any>(null);
 
   useEffect(() => {
+    setupMiniNavSpace();
     loadProfile();
+    const handleNotificationsRead = () => setUnreadCount(getUnreadNotificationCount());
+    Taro.eventCenter.on('notifications-read', handleNotificationsRead);
+    return () => {
+      Taro.eventCenter.off('notifications-read', handleNotificationsRead);
+      if (adminTapTimerRef.current) clearTimeout(adminTapTimerRef.current);
+      if (footerTimerRef.current) clearTimeout(footerTimerRef.current);
+    };
   }, []);
+
+  const setupMiniNavSpace = () => {
+    try {
+      const systemInfo = Taro.getSystemInfoSync();
+      const capsule = Taro.getMenuButtonBoundingClientRect();
+      const windowWidth = systemInfo.windowWidth || 375;
+      const statusBarHeight = systemInfo.statusBarHeight || 0;
+      const capsuleTop = capsule?.top || statusBarHeight + 6;
+      const capsuleHeight = capsule?.height || 32;
+
+      setNavStyle({
+        '--profile-nav-top': `${capsuleTop + capsuleHeight + 18}px`,
+        '--profile-nav-height': `${capsuleHeight}px`,
+        '--profile-page-side': `${Math.max(21, windowWidth - (capsule?.right || windowWidth) + 21)}px`,
+      } as React.CSSProperties);
+    } catch {
+      setNavStyle({});
+    }
+  };
 
   const loadProfile = () => {
     const userInfo = storage.getUserInfo();
     setUser(userInfo);
 
-    const cats = storage.getCatList();
-    setCatList(cats);
+    const cat = storage.getActiveCat();
+    setActiveCat(cat);
 
-    const pointsInfo = storage.getPoints();
-    setPoints(pointsInfo.total);
+    if (cat) {
+      const diaries = storage.getDiaries();
+      const catDiaries = diaries.filter(d => d.catId === cat.id);
+
+      let startTime = cat.createdAt;
+      if (!startTime && catDiaries.length > 0) {
+        startTime = Math.min(...catDiaries.map(d => d.createdAt));
+      }
+
+      const days = startTime
+        ? Math.max(1, Math.ceil((Date.now() - startTime) / (1000 * 60 * 60 * 24)))
+        : 1;
+
+      setStats({
+        days,
+        entries: catDiaries.length
+      });
+    } else {
+      setStats({ days: 0, entries: 0 });
+    }
+
+    setUnreadCount(getUnreadNotificationCount());
   };
 
   const handleLogout = () => {
     storage.clearCurrentUser();
     reLaunch({ url: '/pages/login/index' });
+  };
+
+  const handleClearLocalData = () => {
+    storage.clearAll();
+    storage.clearCurrentUser();
+    reLaunch({ url: '/pages/register/index' });
   };
 
   const handleAdminTap = () => {
@@ -49,60 +144,185 @@ export default function Profile() {
     }, 2000);
   };
 
+  const handleFooterClick = () => {
+    footerClickRef.current += 1;
+    if (footerTimerRef.current) clearTimeout(footerTimerRef.current);
+
+    if (footerClickRef.current >= 5) {
+      footerClickRef.current = 0;
+      Taro.vibrateShort({ type: 'light' }).catch(() => {});
+      navigateTo({ url: '/pages/admin-settings/index' });
+      return;
+    }
+
+    footerTimerRef.current = setTimeout(() => {
+      footerClickRef.current = 0;
+    }, 2000);
+  };
+
   const menuItems = [
-    { icon: <User size={20} />, label: '编辑资料', url: '/pages/edit-profile/index' },
-    { icon: <Settings size={20} />, label: user?.passwordSet ? '修改登录密码' : '设置 PWA 登录密码', url: '/pages/change-password/index' },
-    { icon: <Heart size={20} />, label: '我的收藏', url: '' },
-    { icon: <MessageCircle size={20} />, label: '我的日记', url: '/pages/diary/index' },
-    { icon: <Users size={20} />, label: '好友列表', url: '' },
-    { icon: <Settings size={20} />, label: '设置', url: '' },
+    { icon: 'user' as const, label: '个人资料设置', url: '/pages/edit-profile/index', color: 'bg-blue-50' },
+    { icon: 'bell' as const, label: '通知设置', url: '/pages/notifications/index', color: 'bg-orange-50' },
+    { icon: 'message' as const, label: '意见反馈', url: '/pages/feedback/index', color: 'bg-purple-50' },
   ];
 
-  return (
-    <View className="profile-page">
-      <View className="profile-header" onClick={handleAdminTap}>
-        <Image
-          className="avatar"
-          src={user?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}
-          mode="aspectFill"
-        />
-        <Text className="nickname">{user?.nickname || '未登录'}</Text>
-        <Text className="username">@{user?.username || 'guest'}</Text>
+  const handleNotificationClick = () => {
+    navigateTo({ url: '/pages/notification-list/index' });
+  };
 
-        <View className="stats">
-          <View className="stat-item">
-            <Text className="stat-value">{catList.length}</Text>
-            <Text className="stat-label">猫咪</Text>
+  const handleScanClick = () => {
+    navigateTo({ url: '/pages/scan-friend/index' });
+  };
+
+  return (
+    <View className="profile-page" style={navStyle}>
+      {/* Header */}
+      <View className="header">
+        <View className="header-title">
+          <Text className="title">Miao</Text>
+          <Text className="subtitle">MIAO SANCTUARY</Text>
+        </View>
+        <View className="header-actions">
+          <View className="header-btn" onClick={handleScanClick}>
+            <ProfileIcon name="scan" />
           </View>
-          <View className="stat-item">
-            <Text className="stat-value">{points}</Text>
-            <Text className="stat-label">积分</Text>
-          </View>
-          <View className="stat-item">
-            <Text className="stat-value">{storage.getFriends().length}</Text>
-            <Text className="stat-label">好友</Text>
+          <View className="header-btn" onClick={handleNotificationClick}>
+            <ProfileIcon name="bell" />
+            {unreadCount > 0 && (
+              <View className="unread-badge">
+                <Text className="unread-text">{unreadCount > 99 ? '99+' : unreadCount}</Text>
+              </View>
+            )}
           </View>
         </View>
       </View>
 
-      <View className="menu-section">
-        {menuItems.map((item, index) => (
-          <View
-            key={index}
-            className="menu-item"
-            onClick={() => item.url && navigateTo({ url: item.url })}
-          >
-            <View className="menu-icon">{item.icon}</View>
-            <Text className="menu-label">{item.label}</Text>
-            <ChevronRight size={20} className="menu-arrow" />
+      <View className="profile-content">
+        {/* 头像区域 */}
+        <View className="profile-header" onClick={handleAdminTap}>
+          <View className="avatar-wrapper">
+            <Image
+              className="avatar"
+              src={user?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}
+              mode="aspectFill"
+            />
+            <View className="avatar-edit-btn" onClick={(e) => { e.stopPropagation(); navigateTo({ url: '/pages/edit-profile/index' }); }}>
+              <ProfileIcon name="camera" />
+            </View>
           </View>
-        ))}
+          <Text className="nickname">{user?.nickname || '未登录'}</Text>
+          <Text className="username">ID: {user?.username || 'guest'}</Text>
+
+          {/* 统计卡片 - 可点击 */}
+          <View className="stats-row">
+            <View className="stat-card" onClick={() => navigateTo({ url: '/pages/accompany-milestone/index' })}>
+              <ProfileIcon name="calendar" className="stat-icon" />
+              <Text className="stat-value">{stats.days}</Text>
+              <Text className="stat-label">陪伴天数</Text>
+            </View>
+            <View className="stat-card" onClick={() => navigateTo({ url: '/pages/diary/index' })}>
+              <ProfileIcon name="image" className="stat-icon" />
+              <Text className="stat-value">{stats.entries}</Text>
+              <Text className="stat-label">记录瞬间</Text>
+            </View>
+          </View>
+
+          {/* 当前猫咪入口 */}
+          <View className="cat-entry" onClick={() => navigateTo({ url: '/pages/switch-companion/index' })}>
+            <View className="cat-entry-icon">
+              <ProfileIcon name="heart" />
+            </View>
+            <View className="cat-entry-text">
+              <Text className="cat-entry-label">我的伙伴</Text>
+              <Text className="cat-entry-value">当前：{activeCat?.name || '未选择'}</Text>
+            </View>
+            <Text className="cat-entry-arrow">›</Text>
+          </View>
+        </View>
+
+        {/* 菜单区域 */}
+        <View className="menu-section">
+          <Text className="menu-title">账户设置</Text>
+          {menuItems.map((item, index) => (
+            <View
+              key={index}
+              className="menu-item"
+              onClick={() => item.url && navigateTo({ url: item.url })}
+            >
+              <View className={`menu-icon ${item.color}`}>
+                <ProfileIcon name={item.icon} />
+              </View>
+              <Text className="menu-label">{item.label}</Text>
+              <Text className="menu-arrow">›</Text>
+            </View>
+          ))}
+
+          {/* 退出登录 */}
+          <View
+            className="menu-item"
+            onClick={() => setShowLogoutConfirm(true)}
+          >
+            <View className="menu-icon bg-gray-50"><ProfileIcon name="logout" /></View>
+            <Text className="menu-label">退出登录</Text>
+            <Text className="menu-arrow">›</Text>
+          </View>
+
+          {/* 注销账户 */}
+          <View
+            className="menu-item danger"
+            onClick={() => setShowClearConfirm(true)}
+          >
+            <View className="menu-icon bg-red-50"><ProfileIcon name="trash" /></View>
+            <Text className="menu-label danger-text">注销账户</Text>
+            <Text className="menu-arrow danger">›</Text>
+          </View>
+        </View>
+
+        {/* Footer */}
+        <View className="footer" onClick={handleFooterClick}>
+          <Text className="footer-text">MIAO SANCTUARY</Text>
+          <View className="footer-hearts">
+            <View className="footer-dot heart-primary" />
+            <View className="footer-dot heart-secondary" />
+            <View className="footer-dot heart-primary" />
+          </View>
+          <Text className="footer-icp">浙ICP备2026026483号-1</Text>
+        </View>
       </View>
 
-      <Button className="logout-btn" onClick={handleLogout}>
-        <LogOut size={18} />
-        退出登录
-      </Button>
+      {/* 退出登录确认弹窗 */}
+      {showLogoutConfirm && (
+        <View className="modal-mask" onClick={() => setShowLogoutConfirm(false)}>
+          <View className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <View className="modal-icon logout">
+              <ProfileIcon name="logout" />
+            </View>
+            <Text className="modal-title">退出登录？</Text>
+            <Text className="modal-desc">确定要退出登录吗？</Text>
+            <View className="modal-actions">
+              <Button className="modal-btn confirm" onClick={handleLogout}>确定退出</Button>
+              <Button className="modal-btn cancel" onClick={() => setShowLogoutConfirm(false)}>取消</Button>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* 注销账户确认弹窗 */}
+      {showClearConfirm && (
+        <View className="modal-mask" onClick={() => setShowClearConfirm(false)}>
+          <View className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <View className="modal-icon delete">
+              <ProfileIcon name="trash" />
+            </View>
+            <Text className="modal-title danger">注销账户？</Text>
+            <Text className="modal-desc">注销账户将永久删除您的所有数据（包括猫咪、日记、信件），此操作不可撤销。确定继续吗？</Text>
+            <View className="modal-actions">
+              <Button className="modal-btn danger" onClick={handleClearLocalData}>确定注销</Button>
+              <Button className="modal-btn cancel" onClick={() => setShowClearConfirm(false)}>再想想</Button>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   );
 }

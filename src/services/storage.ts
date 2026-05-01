@@ -8,39 +8,30 @@ import { request as taroRequest } from '../utils/httpAdapter';
 const MEDIA_STORAGE_PREFIX = 'miao_media_';
 
 export const mediaStorage = {
-  // 小程序环境：使用 Taro 文件系统
-      // Web 环境：使用 localStorage（仅适合小文件）
-  
   async saveMedia(id: string, data: string): Promise<void> {
     const isMini = Taro.getEnv() === Taro.ENV_TYPE.WEAPP;
     
     if (isMini) {
-      // 小程序环境：使用 FileSystemManager
       return new Promise((resolve, reject) => {
         try {
           const fs = Taro.getFileSystemManager();
-          const filePath = `${Taro.env.USER_DATA_PATH || ''}/media_${id}.jpg`;
-          
-          // 纭繚鐩綍瀛樺湪
-          fs.mkdir({
-            dirPath: Taro.env.USER_DATA_PATH || '',
-            fail: () => {}, // 鐩綍宸插瓨鍦ㄦ椂蹇界暐閿欒
+          const mimeMatch = data.match(/^data:([^;]+);base64,/);
+          const mimeType = mimeMatch?.[1] || 'image/jpeg';
+          const extension = mimeType.startsWith('video/') ? 'mp4' : 'jpg';
+          const filePath = `${Taro.env.USER_DATA_PATH}/media_${id}.${extension}`;
+          const base64Data = data.replace(/^data:[^;]+;base64,/, '');
+
+          fs.writeFile({
+            filePath,
+            data: base64Data,
+            encoding: 'base64',
             success: () => {
-              // 写入文件
-              fs.writeFile({
-                filePath,
-                   data: data.replace(/^image\/\w+;base64,/, ''),
-                encoding: 'base64',
-                success: () => {
-                  // 保存路径映射到 storage
-                  setItem(`${MEDIA_STORAGE_PREFIX}${id}`, filePath);
-                  resolve();
-                },
-                fail: (err) => {
-                  console.error('FileSystemManager writeFile error:', err);
-                  reject(err);
-                }
-              });
+              setItem(`${MEDIA_STORAGE_PREFIX}${id}`, JSON.stringify({ filePath, mimeType }));
+              resolve();
+            },
+            fail: (err) => {
+              console.error('FileSystemManager writeFile error:', err);
+              reject(err);
             }
           });
         } catch (err) {
@@ -63,33 +54,14 @@ export const mediaStorage = {
     const isMini = Taro.getEnv() === Taro.ENV_TYPE.WEAPP;
     
     if (isMini) {
-// 小程序环境使用文件系统存储媒体文件
-      return new Promise((resolve, reject) => {
-
-        try {
-          const filePath = getItem(`${MEDIA_STORAGE_PREFIX}${id}`);
-          if (!filePath) {
-            resolve(null);
-            return;
-          }
-          
-          const fs = Taro.getFileSystemManager();
-          fs.readFile({
-            filePath,
-            encoding: 'base64',
-            success: (res) => {
-              resolve(`image/jpeg;base64,${res.data}`);
-            },
-            fail: (err) => {
-              console.error('FileSystemManager readFile error:', err);
-              resolve(null);
-            }
-          });
-        } catch (err) {
-          console.error('FileSystemManager error:', err);
-          resolve(null);
-        }
-      });
+      const stored = getItem(`${MEDIA_STORAGE_PREFIX}${id}`);
+      if (!stored) return null;
+      try {
+        const parsed = JSON.parse(stored) as { filePath?: string };
+        return parsed.filePath || null;
+      } catch {
+        return stored;
+      }
     } else {
       // Web 环境：从 localStorage 读取
       return Promise.resolve(getItem(`${MEDIA_STORAGE_PREFIX}${id}`));
@@ -103,7 +75,13 @@ export const mediaStorage = {
       // 小程序环境：删除文件
       return new Promise((resolve, reject) => {
         try {
-          const filePath = getItem(`${MEDIA_STORAGE_PREFIX}${id}`);
+          const stored = getItem(`${MEDIA_STORAGE_PREFIX}${id}`);
+          let filePath = stored;
+          if (stored) {
+            try {
+              filePath = (JSON.parse(stored) as { filePath?: string }).filePath || stored;
+            } catch {}
+          }
           if (filePath) {
             const fs = Taro.getFileSystemManager();
             fs.unlink({
@@ -132,6 +110,41 @@ export const mediaStorage = {
     }
   }
 };
+
+async function readLocalMediaAsDataUrl(id: string): Promise<string | null> {
+  const stored = getItem(`${MEDIA_STORAGE_PREFIX}${id}`);
+  if (!stored) return null;
+
+  let filePath = stored;
+  let mimeType = stored.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg';
+  try {
+    const parsed = JSON.parse(stored) as { filePath?: string; mimeType?: string };
+    filePath = parsed.filePath || stored;
+    mimeType = parsed.mimeType || mimeType;
+  } catch {}
+
+  if (!filePath) return null;
+
+  return new Promise((resolve) => {
+    try {
+      const fs = Taro.getFileSystemManager();
+      fs.readFile({
+        filePath,
+        encoding: 'base64',
+        success: (res) => {
+          resolve(`data:${mimeType};base64,${res.data}`);
+        },
+        fail: (err) => {
+          console.warn('[storage] read local diary media failed:', err);
+          resolve(null);
+        },
+      });
+    } catch (error) {
+      console.warn('[storage] read local diary media failed:', error);
+      resolve(null);
+    }
+  });
+}
 
 export interface UserInfo {
   username: string;
@@ -318,9 +331,20 @@ async function deleteAllCatsFromServer(userId: string): Promise<void> {
   await request('/api/v1/cats', { method: 'DELETE' });
 }
 
-function syncDiaryToServer(userId: string, diary: DiaryEntry) {
+async function resolveServerDiaryPayload(diary: DiaryEntry): Promise<DiaryEntry> {
   const { media, ...rest } = diary;
-  const payload = media?.startsWith('miao_media:') ? rest : diary;
+
+  if (media?.startsWith('miao_media:')) {
+    const mediaId = media.replace('miao_media:', '');
+    const mediaData = await readLocalMediaAsDataUrl(mediaId);
+    return mediaData ? { ...diary, media: mediaData } : rest;
+  }
+
+  return diary;
+}
+
+async function syncDiaryToServer(userId: string, diary: DiaryEntry) {
+  const payload = await resolveServerDiaryPayload(diary);
   request('/api/v1/diaries', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

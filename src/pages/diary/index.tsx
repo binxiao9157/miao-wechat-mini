@@ -57,16 +57,28 @@ export default function Diary() {
 
   // 加载媒体文件
   const loadMediaForDiary = async <T extends DiaryEntry>(diary: T): Promise<T & { mediaUrl?: string }> => {
-    if (!diary.media || !diary.media.startsWith('miao_media:')) {
-      return { ...diary, mediaUrl: diary.media };
+    if (!diary.media) {
+      return { ...diary, mediaUrl: '' };
     }
+
     try {
-      const mediaId = diary.media.replace('miao_media:', '');
-      const mediaData = await mediaStorage.getMedia(mediaId);
-      return { ...diary, mediaUrl: mediaData || '' };
+      if (diary.media.startsWith('miao_media:')) {
+        const mediaId = diary.media.replace('miao_media:', '');
+        const mediaData = await mediaStorage.getMedia(mediaId);
+        return { ...diary, mediaUrl: mediaData || '' };
+      }
+
+      if (diary.media.startsWith('data:')) {
+        const cacheId = `remote_${diary.id}`;
+        await mediaStorage.saveMedia(cacheId, diary.media);
+        const mediaData = await mediaStorage.getMedia(cacheId);
+        return { ...diary, mediaUrl: mediaData || diary.media };
+      }
+
+      return { ...diary, mediaUrl: diary.media };
     } catch (e) {
       console.error('加载媒体失败:', e);
-      return { ...diary, mediaUrl: '' };
+      return { ...diary, mediaUrl: diary.media || '' };
     }
   };
 
@@ -82,6 +94,9 @@ export default function Diary() {
     setCatList(catList);
 
     const list = storage.getDiaries();
+    if (list.some(d => d.media?.startsWith('miao_media:'))) {
+      storage.saveDiaries(list);
+    }
 
     // 按当前活跃猫咪过滤日记
     const filteredList = activeCatId ? list.filter(d => d.catId === activeCatId) : list;

@@ -6,11 +6,18 @@ import { storage } from '../../services/storage';
 
 export default function Welcome() {
   useEffect(() => {
-    // 检查是否已登录
-    const user = storage.getUserInfo();
-    const hasCat = storage.getCatList().length > 0;
+    const bootstrap = async () => {
+      // 检查是否已登录
+      const user = storage.getUserInfo();
+      if (user) {
+        try {
+          await storage.syncFromServer(user.username);
+        } catch (error) {
+          console.warn('[Welcome] sync failed:', error);
+        }
+      }
 
-    setTimeout(() => {
+      const hasCat = storage.getCatList().length > 0;
       if (user && hasCat) {
         reLaunch({ url: '/pages/home/index' });
       } else if (user) {
@@ -18,6 +25,10 @@ export default function Welcome() {
       } else {
         reLaunch({ url: '/pages/login/index' });
       }
+    };
+
+    setTimeout(() => {
+      bootstrap();
     }, 500);
   }, []);
 

@@ -41,8 +41,18 @@ export default function Home() {
     setPoints(pointsInfo.total);
   }, []);
 
+  const refreshCatsFromCloud = useCallback(async () => {
+    try {
+      await storage.syncCatsFromServer();
+      loadCat();
+    } catch (error) {
+      console.warn('[Home] sync cats failed:', error);
+    }
+  }, [loadCat]);
+
   useEffect(() => {
     loadCat();
+    refreshCatsFromCloud();
     checkDailyLogin();
     showGreeting();
     startOnlineTimer();
@@ -59,17 +69,20 @@ export default function Home() {
       }
     };
     on('cat-updated', handler);
+    on('cat-list-synced', handler);
 
     return () => {
       off('cat-updated', handler);
+      off('cat-list-synced', handler);
       if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
       if (onlineTimerRef.current) clearInterval(onlineTimerRef.current);
       if (secretTapTimerRef.current) clearTimeout(secretTapTimerRef.current);
     };
-  }, [loadCat]);
+  }, [loadCat, refreshCatsFromCloud]);
 
   useDidShow(() => {
     loadCat();
+    refreshCatsFromCloud();
     showGreeting();
   });
 

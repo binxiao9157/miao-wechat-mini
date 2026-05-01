@@ -28,7 +28,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .then((remoteUser) => {
           if (!remoteUser) return;
           storage.saveUserInfo(remoteUser);
-          storage.syncFromServer(remoteUser.username).catch(() => {});
+          storage.syncFromServer(remoteUser.username).catch((error) => {
+            console.warn('[AuthContext] background sync failed:', error);
+          });
           setUser(remoteUser);
         })
         .catch(() => {
@@ -48,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       storage.saveUserInfo(remoteUser);
       storage.saveLoginTime(Date.now());
       storage.saveLastActiveTime(Date.now());
-      storage.syncFromServer(remoteUser.username).catch(() => {});
+      await storage.syncFromServer(remoteUser.username);
       setUser(remoteUser);
       setIsAuthenticated(true);
       return { success: true };
@@ -60,6 +62,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (userInfo: UserInfo) => {
     const remoteUser = await authService.register(userInfo);
     storage.saveUserInfo(remoteUser);
+    storage.saveLoginTime(Date.now());
+    storage.saveLastActiveTime(Date.now());
+    await storage.syncFromServer(remoteUser.username);
     setUser(remoteUser);
     setIsAuthenticated(true);
   };
@@ -70,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       storage.saveUserInfo(remoteUser);
       storage.saveLoginTime(Date.now());
       storage.saveLastActiveTime(Date.now());
-      storage.syncFromServer(remoteUser.username).catch(() => {});
+      await storage.syncFromServer(remoteUser.username);
       setUser(remoteUser);
       setIsAuthenticated(true);
       return { success: true };

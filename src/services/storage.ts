@@ -162,6 +162,7 @@ export interface CatInfo {
   placeholderImage?: string;
   anchorFrame?: string;
   isUnlocking?: boolean;
+  updatedAt?: number;
 }
 
 export interface AppSettings {
@@ -296,22 +297,22 @@ async function request(url: string, options: RequestInit = {}) {
   }
 }
 
-function syncCatToServer(userId: string, cat: CatInfo) {
-  request('/api/v1/cats', {
+async function syncCatToServer(userId: string, cat: CatInfo): Promise<void> {
+  await request('/api/v1/cats', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ cat: { ...cat, placeholderImage: undefined, anchorFrame: undefined } }),
-  }).catch(() => {});
+  });
 }
 
-function deleteCatFromServer(userId: string, catId: string) {
-  request(`/api/v1/cats/${encodeURIComponent(catId)}`, {
+async function deleteCatFromServer(userId: string, catId: string): Promise<void> {
+  await request(`/api/v1/cats/${encodeURIComponent(catId)}`, {
     method: 'DELETE',
-  }).catch(() => {});
+  });
 }
 
-function deleteAllCatsFromServer(userId: string) {
-  request('/api/v1/cats', { method: 'DELETE' }).catch(() => {});
+async function deleteAllCatsFromServer(userId: string): Promise<void> {
+  await request('/api/v1/cats', { method: 'DELETE' });
 }
 
 function syncDiaryToServer(userId: string, diary: DiaryEntry) {
@@ -397,6 +398,69 @@ function cachedRead<T>(storageKey: string, defaultValue: T): T {
 
 function invalidateCache(storageKey: string) {
   memCache.delete(storageKey);
+}
+
+function stripServerCat(cat: CatInfo & { userId?: string }): CatInfo {
+  const { userId, ...rest } = cat;
+  return normalizeCatVideoUrls(rest);
+}
+
+function normalizePlayableVideoUrl(url?: string): string | undefined {
+  if (!url) return url;
+  return url.replace(/^http:\/\/localhost(?::|\/)/, (match) => match.replace('localhost', '127.0.0.1'));
+}
+
+function normalizeCatVideoUrls(cat: CatInfo): CatInfo {
+  const videoPaths = cat.videoPaths
+    ? Object.fromEntries(
+        Object.entries(cat.videoPaths).map(([action, url]) => [action, normalizePlayableVideoUrl(url)])
+      )
+    : cat.videoPaths;
+
+  return {
+    ...cat,
+    videoPath: normalizePlayableVideoUrl(cat.videoPath),
+    videoPaths,
+    remoteVideoUrl: normalizePlayableVideoUrl(cat.remoteVideoUrl),
+  };
+}
+
+function mergeCat(local?: CatInfo, remote?: CatInfo): CatInfo {
+  if (!local) return stripServerCat(remote as CatInfo);
+  if (!remote) return normalizeCatVideoUrls(local);
+
+  const normalizedLocal = normalizeCatVideoUrls(local);
+  const normalizedRemote = stripServerCat(remote);
+  const localRevision = normalizedLocal.updatedAt || normalizedLocal.createdAt || 0;
+  const remoteRevision = normalizedRemote.updatedAt || normalizedRemote.createdAt || 0;
+  const base = localRevision >= remoteRevision ? normalizedLocal : normalizedRemote;
+  const other = base === normalizedLocal ? normalizedRemote : normalizedLocal;
+
+  return {
+    ...other,
+    ...base,
+    videoPaths: {
+      ...(other.videoPaths || {}),
+      ...(base.videoPaths || {}),
+    },
+    videoPath: base.videoPath || other.videoPath,
+    remoteVideoUrl: base.remoteVideoUrl || other.remoteVideoUrl,
+    placeholderImage: base.placeholderImage || other.placeholderImage,
+    anchorFrame: base.anchorFrame || other.anchorFrame,
+    updatedAt: Math.max(localRevision, remoteRevision, normalizedLocal.updatedAt || 0, normalizedRemote.updatedAt || 0),
+  };
+}
+
+function hasMeaningfulCatDifference(a: CatInfo, b: CatInfo): boolean {
+  return JSON.stringify({
+    ...a,
+    placeholderImage: undefined,
+    anchorFrame: undefined,
+  }) !== JSON.stringify({
+    ...b,
+    placeholderImage: undefined,
+    anchorFrame: undefined,
+  });
 }
 
 const refreshUserPrefix = () => {
@@ -637,7 +701,7 @@ export const storage = {
   },
 
   getCatList: (): CatInfo[] => {
-    return cachedRead<CatInfo[]>(getUserKey(USER_DATA_KEYS.CAT_LIST), []);
+    return cachedRead<CatInfo[]>(getUserKey(USER_DATA_KEYS.CAT_LIST), []).map(normalizeCatVideoUrls);
   },
 
   getCatById: (id: string): CatInfo | null => {
@@ -651,32 +715,61 @@ export const storage = {
     invalidateCache(key);
   },
 
+  syncCatsFromServer: async (): Promise<CatInfo[]> => {
+    const username = getCurrentUsername();
+    if (!username) return storage.getCatList();
+
+    const response = await request('/api/v1/cats');
+    const serverCats: CatInfo[] = Array.isArray(response)
+      ? response.map(stripServerCat)
+      : [];
+    const localCats = storage.getCatList();
+
+    if (!serverCats.length) {
+      await Promise.all(localCats.map(cat => syncCatToServer(username, cat).catch(() => undefined)));
+      if (localCats.length > 0 && !storage.getActiveCatId()) {
+        storage.setActiveCatId(localCats[0].id);
+      }
+      trigger('cat-list-synced', { cats: localCats });
+      return localCats;
+    }
+
+    const localMap = new Map(localCats.map(c => [c.id, c]));
+    const serverMap = new Map(serverCats.map(c => [c.id, c]));
+    const allIds = new Set([...localMap.keys(), ...serverMap.keys()]);
+    const merged: CatInfo[] = [];
+    const syncBackTasks: Promise<void>[] = [];
+
+    for (const id of allIds) {
+      const local = localMap.get(id);
+      const remote = serverMap.get(id);
+      const cat = mergeCat(local, remote);
+      merged.push(cat);
+
+      if (!remote || hasMeaningfulCatDifference(cat, remote)) {
+        syncBackTasks.push(syncCatToServer(username, cat).catch(() => undefined));
+      }
+    }
+
+    merged.sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+    storage.saveCatList(merged);
+
+    const activeId = storage.getActiveCatId();
+    if (merged.length > 0 && (!activeId || !merged.some(cat => cat.id === activeId))) {
+      storage.setActiveCatId(merged[0].id);
+    }
+
+    await Promise.all(syncBackTasks);
+    trigger('cat-list-synced', { cats: merged });
+    return merged;
+  },
+
   syncFromServer: async (username: string): Promise<void> => {
     try {
-      const catResp = await request('/api/v1/cats');
-      if (catResp) {
-        const serverCats: CatInfo[] = Array.isArray(catResp) ? catResp : [];
-        if (!serverCats.length) {
-          const local = storage.getCatList();
-          for (const cat of local) syncCatToServer(username, cat);
-        } else {
-          const localCats = storage.getCatList();
-          const localMap = new Map(localCats.map(c => [c.id, c]));
-          const serverMap = new Map(serverCats.map(c => [c.id, c]));
-          const merged: CatInfo[] = [];
-          const allIds = new Set([...localMap.keys(), ...serverMap.keys()]);
-          for (const id of allIds) {
-            const l = localMap.get(id);
-            const s = serverMap.get(id);
-            if (l && s) merged.push((l.createdAt || 0) >= (s.createdAt || 0) ? l : s);
-            else if (l) { merged.push(l); syncCatToServer(username, l); }
-            else if (s) merged.push(s);
-          }
-          storage.saveCatList(merged);
-          if (merged.length > 0 && !storage.getActiveCatId()) storage.setActiveCatId(merged[0].id);
-        }
-      }
-    } catch {}
+      await storage.syncCatsFromServer();
+    } catch (error) {
+      console.warn('[storage] sync cats failed:', error);
+    }
 
     try {
       const resp = await request('/api/v1/diaries');
@@ -740,17 +833,23 @@ export const storage = {
   },
 
   saveCatInfo: (cat: CatInfo) => {
+    const nextCat = {
+      ...cat,
+      updatedAt: Date.now(),
+    };
     const list = storage.getCatList();
-    const index = list.findIndex(c => c.id === cat.id);
+    const index = list.findIndex(c => c.id === nextCat.id);
     if (index >= 0) {
-      list[index] = cat;
+      list[index] = nextCat;
     } else {
-      list.push(cat);
+      list.push(nextCat);
     }
     storage.saveCatList(list);
-    storage.setActiveCatId(cat.id);
+    storage.setActiveCatId(nextCat.id);
     const userId = getCurrentUsername();
-    if (userId) syncCatToServer(userId, cat);
+    if (userId) syncCatToServer(userId, nextCat).catch((error) => {
+      console.warn('[storage] sync cat failed:', error);
+    });
   },
 
   getActiveCatId: (): string | null => {
@@ -973,7 +1072,9 @@ export const storage = {
       }
     }
     const userId = getCurrentUsername();
-    if (userId) deleteCatFromServer(userId, id);
+    if (userId) deleteCatFromServer(userId, id).catch((error) => {
+      console.warn('[storage] delete cat failed:', error);
+    });
     return updated;
   },
 
@@ -981,7 +1082,9 @@ export const storage = {
     storage.removeItem(getUserKey(USER_DATA_KEYS.CAT_LIST));
     storage.removeItem(getUserKey(USER_DATA_KEYS.ACTIVE_CAT_ID));
     const userId = getCurrentUsername();
-    if (userId) deleteAllCatsFromServer(userId);
+    if (userId) deleteAllCatsFromServer(userId).catch((error) => {
+      console.warn('[storage] delete all cats failed:', error);
+    });
   },
 
   deleteAllDiaries: () => {

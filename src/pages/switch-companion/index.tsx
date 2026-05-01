@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import { navigateBack, navigateTo, reLaunch } from '@tarojs/taro';
+import { navigateBack, navigateTo, reLaunch, useDidShow } from '@tarojs/taro';
 import { ArrowLeft, Plus, CheckCircle, Coins, Sparkles, Trash2 } from '../../components/common/Icons';
 import { storage, CatInfo } from '../../services/storage';
 import './index.less';
@@ -17,10 +17,24 @@ export default function SwitchCompanion() {
     fetchData();
   }, []);
 
+  useDidShow(() => {
+    refreshFromCloud();
+  });
+
   const fetchData = () => {
     setCats(storage.getCatList());
     setActiveId(storage.getActiveCatId());
     setPoints(storage.getPoints().total);
+  };
+
+  const refreshFromCloud = async () => {
+    try {
+      await storage.syncCatsFromServer();
+    } catch (error) {
+      console.warn('[SwitchCompanion] sync cats failed:', error);
+    } finally {
+      fetchData();
+    }
   };
 
   const handleSwitch = (id: string) => {

@@ -4,14 +4,18 @@ import { post } from '../utils/httpAdapter';
 
 const getApiBaseURL = () => (process.env.TARO_APP_API_BASE_URL || '').replace(/\/$/, '');
 
+function normalizeLocalhostUrl(url: string): string {
+  return url.replace(/^http:\/\/localhost(?::|\/)/, (match) => match.replace('localhost', '127.0.0.1'));
+}
+
 function toPlayableVideoUrl(url: string): string {
   if (!url) return url;
   if (/^https?:\/\//.test(url) || url.startsWith('wxfile://') || url.startsWith('ttfile://')) {
-    return url;
+    return normalizeLocalhostUrl(url);
   }
   if (url.startsWith('/')) {
     const baseURL = getApiBaseURL();
-    return baseURL ? `${baseURL}${url}` : url;
+    return baseURL ? normalizeLocalhostUrl(`${baseURL}${url}`) : url;
   }
   return url;
 }
@@ -148,12 +152,6 @@ export class FileManager {
   }
 
   public static deleteVideo(catId: string) {
-    const list = storage.getCatList();
-    const updated = list.filter(c => c.id !== catId);
-    storage.saveCatList(updated);
-
-    if (storage.getActiveCatId() === catId) {
-      storage.setActiveCatId(updated[0]?.id || '');
-    }
+    storage.deleteCatById(catId);
   }
 }

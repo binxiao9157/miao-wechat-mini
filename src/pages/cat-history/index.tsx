@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import { navigateBack, navigateTo } from '@tarojs/taro';
+import { navigateBack, navigateTo, useDidShow } from '@tarojs/taro';
 import { ArrowLeft, Play, Trash2, Sparkles, Plus } from '../../components/common/Icons';
 import { storage, CatInfo } from '../../services/storage';
 import { FileManager } from '../../services/fileManager';
@@ -11,8 +11,22 @@ export default function CatHistory() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
-    setCats(FileManager.getHistory());
+    refreshFromCloud();
   }, []);
+
+  useDidShow(() => {
+    refreshFromCloud();
+  });
+
+  const refreshFromCloud = async () => {
+    try {
+      await storage.syncCatsFromServer();
+    } catch (error) {
+      console.warn('[CatHistory] sync cats failed:', error);
+    } finally {
+      setCats(FileManager.getHistory());
+    }
+  };
 
   const handleDelete = (e: any, id: string) => {
     e.stopPropagation();

@@ -5,6 +5,7 @@ import { UserInfo } from './storage';
 
 const TOKEN_KEY = 'miao_auth_token';
 const CURRENT_USER_KEY = 'miao_current_user';
+const WECHAT_DEV_OPENID_KEY = 'miao_wechat_dev_openid';
 
 function persistAuth(token: string, user: UserInfo) {
   setItem(TOKEN_KEY, token);
@@ -18,6 +19,27 @@ function normalizeUser(raw: any, fallbackPassword?: string): UserInfo {
     avatar: raw?.avatar || '',
     password: fallbackPassword,
   };
+}
+
+function getStableWechatDevOpenid(): string {
+  const cached = getItem(WECHAT_DEV_OPENID_KEY);
+  if (cached) return cached;
+
+  const currentUserRaw = getItem(CURRENT_USER_KEY);
+  if (currentUserRaw) {
+    try {
+      const currentUser = JSON.parse(currentUserRaw);
+      if (typeof currentUser?.username === 'string' && currentUser.username.startsWith('wx_dev_')) {
+        const legacyOpenid = currentUser.username.replace(/^wx_/, '');
+        setItem(WECHAT_DEV_OPENID_KEY, legacyOpenid);
+        return legacyOpenid;
+      }
+    } catch {}
+  }
+
+  const generated = `dev_mini_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  setItem(WECHAT_DEV_OPENID_KEY, generated);
+  return generated;
 }
 
 export const authService = {
@@ -81,6 +103,7 @@ export const authService = {
         code: loginRes.code,
         nickname: profile?.nickname,
         avatar: profile?.avatar,
+        devOpenid: getStableWechatDevOpenid(),
       },
       timeout: 15000,
     });

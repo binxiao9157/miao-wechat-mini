@@ -3,11 +3,13 @@ import { View, Text, Input, Button, Image } from '@tarojs/components';
 import { navigateTo, switchTab } from '@tarojs/taro';
 import { Eye, EyeOff, PawPrint } from '../../components/common/Icons';
 import { storage } from '../../services/storage';
+import { useAuthContext } from '../../context/AuthContext';
 import './index.less';
 
 const DEFAULT_CAT_IMAGE = 'https://api.dicebear.com/7.x/avataaars/svg?seed=default_cat';
 
 export default function Login() {
+  const { login, wechatLogin } = useAuthContext();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -46,9 +48,8 @@ export default function Login() {
     setError('');
 
     try {
-      const user = storage.findUser(trimmedU);
-      if (user && user.password === trimmedP) {
-        storage.saveUserInfo(user);
+      const result = await login(trimmedU, trimmedP);
+      if (result.success) {
         const hasCat = storage.getCatList().length > 0;
         if (hasCat) {
           switchTab({ url: '/pages/home/index' });
@@ -56,7 +57,7 @@ export default function Login() {
           navigateTo({ url: '/pages/empty-cat/index' });
         }
       } else {
-        setError('用户名或密码错误');
+        setError(result.error || '用户名或密码错误');
       }
     } catch (e) {
       setError('登录失败，请重试');
@@ -67,6 +68,30 @@ export default function Login() {
 
   const handleRegister = () => {
     navigateTo({ url: '/pages/register/index' });
+  };
+
+  const handleWechatLogin = async () => {
+    if (!isAgreed) {
+      setError('请先阅读并同意服务条款和隐私政策');
+      return;
+    }
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await wechatLogin();
+      if (!result.success) {
+        setError(result.error || '微信登录失败');
+        return;
+      }
+      const hasCat = storage.getCatList().length > 0;
+      if (hasCat) {
+        switchTab({ url: '/pages/home/index' });
+      } else {
+        navigateTo({ url: '/pages/empty-cat/index' });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -154,6 +179,9 @@ export default function Login() {
           <View className="buttons">
             <Button className="login-btn" onClick={handleLogin} disabled={isLoading}>
               {isLoading ? '登录中...' : '登录'}
+            </Button>
+            <Button className="login-btn" onClick={handleWechatLogin} disabled={isLoading}>
+              微信一键登录
             </Button>
             <Button className="register-btn" onClick={handleRegister}>
               注册

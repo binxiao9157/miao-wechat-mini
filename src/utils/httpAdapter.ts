@@ -4,6 +4,7 @@
  */
 
 import Taro from '@tarojs/taro';
+import { getItem, removeItem } from './storageAdapter';
 
 /**
  * 检测是否在小程序环境
@@ -44,11 +45,19 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
   } = options;
 
   const isMini = isMiniProgram();
-  // 小程序环境需要完整域名，Web 环境使用相对路径
+  // 小程序环境需要完整域名，Web/H5 环境保留调用方传入的 /api 路径。
   const baseURL = isMini 
     ? (process.env.TARO_APP_API_BASE_URL || 'https://your-server.com') 
-    : '/api';
+    : '';
   const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`;
+  const token = getItem('miao_auth_token');
+  const requestHeaders = {
+    'Content-Type': 'application/json',
+    'X-Client-Type': isMini ? 'wechat-miniprogram' : 'pwa',
+    'X-Client-Version': '1.0.0',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...headers,
+  };
 
   if (isMini) {
     try {
@@ -56,13 +65,16 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
         url: fullUrl,
         method,
         data,
-        header: headers,
+        header: requestHeaders,
         timeout,
       });
 
       if (res.statusCode < 200 || res.statusCode >= 300) {
         const errData = res.data as any;
         const msg = errData?.message || errData?.error || `HTTP ${res.statusCode}`;
+        if (res.statusCode === 401 && errData?.code === 'UNAUTHORIZED') {
+          removeItem('miao_auth_token');
+        }
         const err: any = new Error(msg);
         err.response = { status: res.statusCode, data: errData };
         throw err;
@@ -97,10 +109,7 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
 
     const response = await fetch(fullUrl, {
       method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...headers,
-      },
+      headers: requestHeaders,
       body: data ? JSON.stringify(data) : undefined,
       signal: controller.signal,
     });

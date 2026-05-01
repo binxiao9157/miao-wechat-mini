@@ -33,7 +33,7 @@
 **你的小程序配置**：
 ```
 AppID: wx2e8c9453aab1b7ef
-AppSecret: ad357cfa185299c0a8930c5b8827a4f9
+AppSecret: <your_wechat_appsecret>
 ```
 
 **用途**：
@@ -79,7 +79,7 @@ AppSecret: ad357cfa185299c0a8930c5b8827a4f9
 
 ```
 AppID: wx2e8c9453aab1b7ef
-AppSecret: ad357cfa185299c0a8930c5b8827a4f9
+AppSecret: <your_wechat_appsecret>
 ```
 
 #### 1.3 配置业务域名（可选）
@@ -104,7 +104,7 @@ cat >> /home/miao/app/.env << 'EOF'
 
 # 微信小程序配置
 WECHAT_APPID=wx2e8c9453aab1b7ef
-WECHAT_APPSECRET=ad357cfa185299c0a8930c5b8827a4f9
+WECHAT_APPSECRET=<your_wechat_appsecret>
 EOF
 
 # 重启服务
@@ -351,7 +351,7 @@ DASHSCOPE_BASE_URL=https://dashscope.aliyuncs.com/api/v1
 
 # 微信小程序
 WECHAT_APPID=wx2e8c9453aab1b7ef
-WECHAT_APPSECRET=ad357cfa185299c0a8930c5b8827a4f9
+WECHAT_APPSECRET=<your_wechat_appsecret>
 ```
 
 ### 5.3 小程序项目配置

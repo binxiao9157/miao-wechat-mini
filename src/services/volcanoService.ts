@@ -1,15 +1,19 @@
 import Taro from '@tarojs/taro';
 import { request, get } from '../utils/httpAdapter';
+import { uploadFile } from '../utils/uploadAdapter';
 
 export const VolcanoConfig = {
   get MOCK_MODE() {
     return false;
   },
+  get Provider() {
+    return "volcengine";
+  },
   get ModelId() {
-    return "wan2.2-i2v-flash";
+    return "doubao-seedance-1-5-pro-251215";
   },
   get T2IModelId() {
-    return "qwen-image-2.0";
+    return "doubao-seedream-4-5-251128";
   },
 };
 
@@ -24,10 +28,6 @@ export const IMAGE_PROMPTS = {
   anchor: (breed: string, color: string) =>
     `A ultra-realistic, high-detail portrait of a ${breed} cat with ${color} fur, sitting comfortably in a soft cat nest, cinematic lighting, 4k resolution, looking at the camera.`
 };
-
-function getBaseURL(): string {
-  return process.env.TARO_APP_API_BASE_URL || 'https://your-server.com';
-}
 
 // base64 数据 URL 写入临时文件，返回临时文件路径，避免通过 JSON 传输过大数据
 function dataUrlToTempFile(dataUrl: string): string {
@@ -44,27 +44,6 @@ function dataUrlToTempFile(dataUrl: string): string {
 function isLocalFilePath(path: string): boolean {
   if (path.startsWith('https://')) return false; // 真实 CDN URL
   return true; // wxfile://、http://tmp/ 等微信本地路径
-}
-
-// 通用文件上传函数，返回服务器响应的 JSON
-function uploadFileToServer(filePath: string, endpoint: string, formData: Record<string, string>): Promise<any> {
-  return new Promise((resolve, reject) => {
-    Taro.uploadFile({
-      url: `${getBaseURL()}${endpoint}`,
-      filePath,
-      name: 'image',
-      formData,
-      success: (res) => {
-        try {
-          resolve(JSON.parse(res.data));
-        } catch {
-          console.error('uploadFile 响应解析失败，statusCode:', res.statusCode, '原始内容:', String(res.data).substring(0, 300));
-          reject(new Error('响应解析失败: ' + String(res.data).substring(0, 100)));
-        }
-      },
-      fail: (err) => reject(new Error(err.errMsg || '文件上传失败')),
-    });
-  });
 }
 
 // 获取可上传的文件路径：
@@ -91,13 +70,20 @@ export class VolcanoService {
     // data: URL 或本地路径改用 uploadFile，避免 base64 过大触发微信数据检查上限
     const uploadPath = getUploadPath(imageBase64);
     if (uploadPath) {
-      const data = await uploadFileToServer(uploadPath, '/api/generate-video-file', {
-        model: VolcanoConfig.ModelId,
-        prompt: prompt || "A high quality video of this cat, cinematic lighting, realistic.",
-        seed: '12345',
-        resolution: '480p',
-        duration: '5',
-        audio: 'false',
+      const data = await uploadFile({
+        url: '/api/v1/ai/tasks-file',
+        filePath: uploadPath,
+        name: 'image',
+        formData: {
+          type: 'video',
+          provider: VolcanoConfig.Provider,
+          model: VolcanoConfig.ModelId,
+          prompt: prompt || "A high quality video of this cat, cinematic lighting, realistic.",
+          seed: '12345',
+          resolution: '480p',
+          duration: '5',
+          audio: 'false',
+        },
       });
       const taskId = data?.id || data?.task_id;
       if (!taskId) throw new Error("服务器返回数据格式错误，未获取到任务 ID");
@@ -108,10 +94,12 @@ export class VolcanoService {
     for (let i = 0; i <= retries; i++) {
       try {
         const response = await request({
-          url: "/api/generate-video",
+          url: "/api/v1/ai/tasks",
           method: 'POST',
           timeout: 90000,
           data: {
+            type: 'video',
+            provider: VolcanoConfig.Provider,
             model: VolcanoConfig.ModelId,
             prompt: prompt || "A high quality video of this cat, cinematic lighting, realistic.",
             image_base64: imageBase64,
@@ -120,7 +108,7 @@ export class VolcanoService {
         });
         const taskId = response?.data?.id || response?.data?.task_id;
         if (!taskId) throw new Error("服务器返回数据格式错误，未获取到任务 ID");
-        return { ...response, id: taskId };
+        return { ...response.data, id: taskId };
       } catch (error: any) {
         lastError = error;
         const isRetryable = !error.response && error.message?.includes('网络请求失败');
@@ -148,7 +136,7 @@ export class VolcanoService {
       return { status: 'running' };
     }
     try {
-      const response = await get(`/api/video-status/${taskId}`);
+      const response = await get(`/api/v1/ai/tasks/${taskId}?type=video&provider=${VolcanoConfig.Provider}`, { timeout: 60000 });
       return response.data;
     } catch (error: any) {
       if (error.message?.includes('timeout')) throw new Error("查询状态超时，请检查网络连接或稍后重试");
@@ -166,9 +154,16 @@ export class VolcanoService {
       //  URL 或本地路径改用 uploadFile，避免 base64 过大触发微信数据检查上限
       const uploadPath = imageBase64 ? getUploadPath(imageBase64) : null;
       if (uploadPath) {
-        const data = await uploadFileToServer(uploadPath, '/api/generate-image-file', {
-          prompt,
-          model: VolcanoConfig.T2IModelId,
+        const data = await uploadFile({
+          url: '/api/v1/ai/tasks-file',
+          filePath: uploadPath,
+          name: 'image',
+          formData: {
+            type: 'image',
+            provider: VolcanoConfig.Provider,
+            prompt,
+            model: VolcanoConfig.T2IModelId,
+          },
         });
         const taskId = data?.id || data?.task_id;
         if (!taskId) throw new Error("文生图任务提交失败，未获取到 ID");
@@ -176,9 +171,9 @@ export class VolcanoService {
       }
 
       const response = await request({
-        url: "/api/generate-image",
+        url: "/api/v1/ai/tasks",
         method: 'POST',
-        data: { prompt, image_base64: imageBase64, model: VolcanoConfig.T2IModelId }
+        data: { type: 'image', provider: VolcanoConfig.Provider, prompt, image_base64: imageBase64, model: VolcanoConfig.T2IModelId }
       });
       const taskId = response?.data?.id || response?.data?.task_id;
       if (!taskId) throw new Error("文生图任务提交失败，未获取到 ID");
@@ -208,7 +203,7 @@ export class VolcanoService {
 
       let result: any;
       try {
-        const response = await get(`/api/image-status/${taskId}`);
+        const response = await get(`/api/v1/ai/tasks/${taskId}?type=image&provider=${VolcanoConfig.Provider}`, { timeout: 60000 });
         result = response.data;
       } catch (error: any) {
         if (signal?.aborted) throw new Error("任务中止");

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { View, Text, Image, ScrollView } from '@tarojs/components';
+import { View, Text, Image, ScrollView, Input, Textarea } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { storage, TimeLetter, CatInfo } from '../../services/storage';
 import { Plus, Lock, Unlock, Clock, ChevronRight, Trash2, AlertCircle, ArrowLeft, Send, Calendar } from '../../components/common/Icons';
@@ -397,7 +397,7 @@ export default function TimeLettersPage() {
         {/* 信件标题 */}
         <View className="section">
           <Text className="section-label">信件标题</Text>
-          <input
+          <Input
             type="text"
             value={title}
             onInput={(e) => setTitle(e.detail.value)}
@@ -409,7 +409,7 @@ export default function TimeLettersPage() {
         {/* 信件内容 */}
         <View className="section">
           <Text className="section-label">信件内容</Text>
-          <textarea
+          <Textarea
             value={content}
             onInput={(e) => setContent(e.detail.value)}
             placeholder="写下此刻想说的话..."

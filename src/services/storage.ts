@@ -149,7 +149,7 @@ export interface CatInfo {
   source: 'created' | 'uploaded';
   createdAt?: number;
   videoPath?: string;
-  videoPaths?: {
+  videoPaths?: Record<string, string | undefined> & {
     idle?: string;
     tail?: string;
     rubbing?: string;
@@ -287,7 +287,7 @@ async function request(url: string, options: RequestInit = {}) {
   // 小程序环境：使用 Taro 文件系统
     const { method, headers, body } = options;
     const response = await taroRequest({ url, method: (method as any) || 'GET', headers: headers as Record<string, string>, data: body ? JSON.parse(body as string) : undefined });
-    return response;
+    return response.data;
   } else {
     // Web 环境使用原生 fetch
     const response = await fetch(url, options);
@@ -297,62 +297,62 @@ async function request(url: string, options: RequestInit = {}) {
 }
 
 function syncCatToServer(userId: string, cat: CatInfo) {
-  request('/api/cats', {
+  request('/api/v1/cats', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, cat: { ...cat, placeholderImage: undefined, anchorFrame: undefined } }),
+    body: JSON.stringify({ cat: { ...cat, placeholderImage: undefined, anchorFrame: undefined } }),
   }).catch(() => {});
 }
 
 function deleteCatFromServer(userId: string, catId: string) {
-  request(`/api/cats/${encodeURIComponent(userId)}/${encodeURIComponent(catId)}`, {
+  request(`/api/v1/cats/${encodeURIComponent(catId)}`, {
     method: 'DELETE',
   }).catch(() => {});
 }
 
 function deleteAllCatsFromServer(userId: string) {
-  request(`/api/cats/${encodeURIComponent(userId)}`, { method: 'DELETE' }).catch(() => {});
+  request('/api/v1/cats', { method: 'DELETE' }).catch(() => {});
 }
 
 function syncDiaryToServer(userId: string, diary: DiaryEntry) {
   const { media, ...rest } = diary;
   const payload = media?.startsWith('miao_media:') ? rest : diary;
-  request('/api/diaries', {
+  request('/api/v1/diaries', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, diary: payload }),
+    body: JSON.stringify({ diary: payload }),
   }).catch(() => {});
 }
 
 function deleteDiaryFromServer(userId: string, diaryId: string) {
-  request(`/api/diaries/${encodeURIComponent(userId)}/${encodeURIComponent(diaryId)}`, {
+  request(`/api/v1/diaries/${encodeURIComponent(diaryId)}`, {
     method: 'DELETE',
   }).catch(() => {});
 }
 
 function deleteAllDiariesFromServer(userId: string) {
-  request(`/api/diaries/${encodeURIComponent(userId)}`, { method: 'DELETE' }).catch(() => {});
+  // v1 暂未提供批量删除日记，逐条删除由调用方执行。
 }
 
 function syncLetterToServer(userId: string, letter: TimeLetter) {
-  request('/api/letters', {
+  request('/api/v1/letters', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, letter }),
+    body: JSON.stringify({ letter }),
   }).catch(() => {});
 }
 
 function deleteLetterFromServer(userId: string, letterId: string) {
-  request(`/api/letters/${encodeURIComponent(userId)}/${encodeURIComponent(letterId)}`, {
+  request(`/api/v1/letters/${encodeURIComponent(letterId)}`, {
     method: 'DELETE',
   }).catch(() => {});
 }
 
 function syncPointsToServer(userId: string, data: PointsInfo) {
-  request('/api/points', {
+  request('/api/v1/points', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, data }),
+    body: JSON.stringify({ data }),
   }).catch(() => {});
 }
 
@@ -652,9 +652,8 @@ export const storage = {
   },
 
   syncFromServer: async (username: string): Promise<void> => {
-    const enc = encodeURIComponent(username);
     try {
-      const catResp = await request(`/api/cats/${enc}`);
+      const catResp = await request('/api/v1/cats');
       if (catResp) {
         const serverCats: CatInfo[] = Array.isArray(catResp) ? catResp : [];
         if (!serverCats.length) {
@@ -680,7 +679,7 @@ export const storage = {
     } catch {}
 
     try {
-      const resp = await request(`/api/diaries/${enc}`);
+      const resp = await request('/api/v1/diaries');
       if (resp) {
         const serverDiaries: DiaryEntry[] = Array.isArray(resp) ? resp : [];
         const localDiaries = storage.getDiaries();
@@ -703,7 +702,7 @@ export const storage = {
     } catch {}
 
     try {
-      const resp = await request(`/api/letters/${enc}`);
+      const resp = await request('/api/v1/letters');
       if (resp) {
         const serverLetters: TimeLetter[] = Array.isArray(resp) ? resp : [];
         const localLetters = storage.getTimeLetters();
@@ -726,7 +725,7 @@ export const storage = {
     } catch {}
 
     try {
-      const resp = await request(`/api/points/${enc}`);
+      const resp = await request('/api/v1/points');
       if (resp) {
         const serverPoints = resp;
         if (serverPoints && (serverPoints.total || 0) > (storage.getPoints().total || 0)) {

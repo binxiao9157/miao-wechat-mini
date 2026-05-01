@@ -3,13 +3,15 @@ import { useState, useEffect } from 'react';
 import { View, Text, Image, Button, Input, Textarea, Video } from '@tarojs/components';
 import Taro, { switchTab } from '@tarojs/taro';
 import { ArrowLeft, Plus, Heart, MessageCircle, ImageIcon, Film, X, Trash2, Share2, UserPlus } from '../../components/common/Icons';
-import { storage, DiaryEntry, mediaStorage } from '../../services/storage';
+import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage } from '../../services/storage';
 import { mockFriendService } from '../../services/mockFriendService';
 import './index.less';
 
 interface DiaryWithMedia extends DiaryEntry {
   mediaUrl?: string;
 }
+
+type FriendDiaryWithMedia = FriendDiaryEntry & { mediaUrl?: string };
 
 // 微信小程序分享配置
 const shareConfig = {
@@ -43,7 +45,7 @@ export default function Diary() {
   const [commentText, setCommentText] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'mine' | 'friends'>('mine');
-  const [friendDiaries, setFriendDiaries] = useState<DiaryWithMedia[]>([]);
+  const [friendDiaries, setFriendDiaries] = useState<FriendDiaryWithMedia[]>([]);
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [activeCat, setActiveCat] = useState<{ id: string; name: string } | null>(null);
 
@@ -54,7 +56,7 @@ export default function Diary() {
   const [catList, setCatList] = useState<{ id: string; name: string; avatar: string }[]>([]);
 
   // 加载媒体文件
-  const loadMediaForDiary = async (diary: DiaryEntry): Promise<DiaryWithMedia> => {
+  const loadMediaForDiary = async <T extends DiaryEntry>(diary: T): Promise<T & { mediaUrl?: string }> => {
     if (!diary.media || !diary.media.startsWith('miao_media:')) {
       return { ...diary, mediaUrl: diary.media };
     }
@@ -344,18 +346,9 @@ export default function Diary() {
     // 微信小程序分享
     Taro.showShareMenu({
       withShareTicket: true,
-      menus: ['shareAppMessage', 'shareTimeline']
     });
 
     // 设置分享内容
-    const shareTitle = diary.content.substring(0, 30) + (diary.content.length > 30 ? '...' : '');
-    const shareImage = diary.mediaUrl || '';
-
-    // 使用微信小程序分享
-    Taro.onAppRoute((res) => {
-      console.log('页面路由变化:', res);
-    });
-
     Taro.showToast({ title: '点击右上角分享', icon: 'none' });
     setSharingId(diary.id);
   };
@@ -366,7 +359,6 @@ export default function Diary() {
       // 配置分享参数
       Taro.showShareMenu({
         withShareTicket: true,
-        menus: ['shareAppMessage', 'shareTimeline']
       });
     }
   }, [sharingId]);

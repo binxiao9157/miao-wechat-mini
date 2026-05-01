@@ -1,15 +1,11 @@
 import { storage, CatInfo } from './storage';
 import { trigger } from '../utils/eventAdapter';
+import { post } from '../utils/httpAdapter';
 
 async function persistVideoUrl(url: string, catId: string, action: string): Promise<string> {
   try {
-    const resp = await fetch('/api/persist-video', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ videoUrl: url, catId, action }),
-    });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
+    const resp = await post('/api/v1/assets/persist-video', { videoUrl: url, catId, action }, { timeout: 120000 });
+    const data = resp.data;
     return data.url || url;
   } catch {
     return url;

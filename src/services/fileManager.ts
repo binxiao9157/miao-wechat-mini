@@ -2,13 +2,39 @@ import { storage, CatInfo } from './storage';
 import { trigger } from '../utils/eventAdapter';
 import { post } from '../utils/httpAdapter';
 
+const getApiBaseURL = () => (process.env.TARO_APP_API_BASE_URL || '').replace(/\/$/, '');
+
+function toPlayableVideoUrl(url: string): string {
+  if (!url) return url;
+  if (/^https?:\/\//.test(url) || url.startsWith('wxfile://') || url.startsWith('ttfile://')) {
+    return url;
+  }
+  if (url.startsWith('/')) {
+    const baseURL = getApiBaseURL();
+    return baseURL ? `${baseURL}${url}` : url;
+  }
+  return url;
+}
+
+function isPersistedVideoUrl(url: string): boolean {
+  if (!url) return false;
+  const baseURL = getApiBaseURL();
+  return url.startsWith('/uploads/') || (!!baseURL && url.startsWith(`${baseURL}/uploads/`));
+}
+
 async function persistVideoUrl(url: string, catId: string, action: string): Promise<string> {
+  if (!url) return url;
+  if (isPersistedVideoUrl(url)) {
+    return toPlayableVideoUrl(url);
+  }
+
   try {
     const resp = await post('/api/v1/assets/persist-video', { videoUrl: url, catId, action }, { timeout: 120000 });
     const data = resp.data;
-    return data.url || url;
-  } catch {
-    return url;
+    return toPlayableVideoUrl(data.url || url);
+  } catch (error: any) {
+    console.error('[FileManager] persist video failed:', error?.message || error);
+    throw new Error('视频持久化失败，请检查服务器或视频源');
   }
 }
 

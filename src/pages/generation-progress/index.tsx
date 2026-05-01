@@ -80,12 +80,11 @@ export default function GenerationProgress() {
         }
       );
 
-      setProgress(100);
-      setStatusText('正在同步到本地猫窝...');
-      setIdleVideoUrl(videoUrl);
+      setProgress(90);
+      setStatusText('正在同步视频资源...');
 
       // 更新猫咪视频信息
-      await FileManager.downloadVideos(
+      const finalVideoPaths = await FileManager.downloadVideos(
         { idle: videoUrl },
         cat.id,
         cat.name,
@@ -98,6 +97,8 @@ export default function GenerationProgress() {
           anchorFrame: cat.avatar,
         }
       );
+      const playableIdleVideoUrl = finalVideoPaths.idle || videoUrl;
+      setIdleVideoUrl(playableIdleVideoUrl);
 
       // 确认保存成功
       const saved = storage.getCatById(cat.id);

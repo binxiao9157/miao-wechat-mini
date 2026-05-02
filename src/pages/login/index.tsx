@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Input, Button, Image } from '@tarojs/components';
 import { navigateTo } from '@tarojs/taro';
-import { Eye, EyeOff, PawPrint } from '../../components/common/Icons';
+import { Eye, EyeOff } from '../../components/common/Icons';
+import PawLogo from '../../components/common/PawLogo';
 import { storage } from '../../services/storage';
 import { useAuthContext } from '../../context/AuthContext';
 import { routeAfterCatSync } from '../../services/catLifecycle';
@@ -95,7 +96,7 @@ export default function Login() {
         {/* Logo Section */}
         <View className="logo-section">
           <View className="logo-wrapper">
-            <PawPrint size={48} className="logo-icon" />
+            <PawLogo size={48} className="logo-icon" />
           </View>
           <Text className="app-name">Miao</Text>
         </View>

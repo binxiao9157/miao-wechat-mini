@@ -1,5 +1,5 @@
-import { View, Text } from '@tarojs/components';
-import './index.less';
+import { Image } from '@tarojs/components';
+import './PawLogo.less';
 
 interface PawLogoProps {
   className?: string;
@@ -8,8 +8,11 @@ interface PawLogoProps {
 
 export default function PawLogo({ className = '', size = 48 }: PawLogoProps) {
   return (
-    <View className={`paw-logo ${className}`} style={{ width: size, height: size }}>
-      <Text style={{ fontSize: size * 0.8 }}>🐾</Text>
-    </View>
+    <Image
+      className={`paw-logo ${className}`}
+      src={require('../../assets/logo.png')}
+      mode="aspectFit"
+      style={{ width: size, height: size }}
+    />
   );
 }

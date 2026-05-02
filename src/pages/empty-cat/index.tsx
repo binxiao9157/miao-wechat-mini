@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text } from '@tarojs/components';
 import { navigateTo, reLaunch } from '@tarojs/taro';
-import { ArrowLeft, Camera, PawPrint } from '../../components/common/Icons';
+import { ArrowLeft, Camera } from '../../components/common/Icons';
+import PawLogo from '../../components/common/PawLogo';
 import { useAuthContext } from '../../context/AuthContext';
 import './index.less';
 
@@ -31,7 +32,7 @@ export default function EmptyCatPage() {
       {/* Logo */}
       <View className="logo-section">
         <View className="logo-icon-wrapper">
-          <PawPrint size={44} className="logo-icon" />
+          <PawLogo size={44} className="logo-icon" />
         </View>
         <Text className="logo-text">Miao</Text>
       </View>
@@ -61,7 +62,7 @@ export default function EmptyCatPage() {
         <View className="option-card" onClick={handleCreate}>
           <View className="card-header">
             <View className="card-icon-box">
-              <PawPrint size={28} className="card-icon" />
+              <PawLogo size={28} className="card-icon" />
             </View>
             <Text className="card-arrow">›</Text>
           </View>

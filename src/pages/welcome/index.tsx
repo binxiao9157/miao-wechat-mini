@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from '@tarojs/components';
+import { View, Text, Image } from '@tarojs/components';
 import { useEffect } from 'react';
 import { reLaunch } from '@tarojs/taro';
 import { storage } from '../../services/storage';
@@ -39,7 +39,11 @@ export default function Welcome() {
       height: '100vh',
       backgroundColor: '#FFF9F5'
     }}>
-      <Text style={{ fontSize: '48px', marginBottom: '20px' }}>🐱</Text>
+      <Image
+        src={require('../../assets/logo.png')}
+        mode="aspectFit"
+        style={{ width: '96px', height: '96px', marginBottom: '20px' }}
+      />
       <Text style={{ fontSize: '24px', fontWeight: 'bold', color: '#5D4037' }}>Miao</Text>
       <Text style={{ fontSize: '14px', color: '#999', marginTop: '10px' }}>以喵星之名，开启治愈之旅</Text>
     </View>

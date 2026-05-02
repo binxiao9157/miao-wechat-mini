@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text } from '@tarojs/components';
 import { useRouter, navigateBack } from '@tarojs/taro';
-import { ArrowLeft, PawPrint } from '../../components/common/Icons';
+import { ArrowLeft } from '../../components/common/Icons';
+import PawLogo from '../../components/common/PawLogo';
 import './index.less';
 
 export default function AccompanyMilestone() {
@@ -65,7 +66,7 @@ export default function AccompanyMilestone() {
               <View key={day} className={`calendar-cell ${isToday ? 'today' : ''} ${isAccompanied ? 'accompanied' : ''}`}>
                 {isAccompanied ? (
                   <View className="cell-paw">
-                    <PawPrint size={14} />
+                    <PawLogo size={14} />
                   </View>
                 ) : (
                   <Text className="cell-text">{day}</Text>

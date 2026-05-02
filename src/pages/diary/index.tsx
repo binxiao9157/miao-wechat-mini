@@ -2,8 +2,12 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image, Button, Input, Textarea, Video } from '@tarojs/components';
 import Taro from '@tarojs/taro';
-import { Plus, Heart, MessageCircle, ImageIcon, Film, X, Trash2, Share2, UserPlus } from '../../components/common/Icons';
+import { Plus, Heart, MessageCircle, ImageIcon, Film, X, Share2, UserPlus } from '../../components/common/Icons';
 import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage } from '../../services/storage';
+
+// Lucide-style PNG icons for delete actions
+const TRASH2_GRAY = require('../../assets/profile-icons/trash2-gray.png');
+const TRASH2_RED = require('../../assets/profile-icons/trash2-red.png');
 import { friendService } from '../../services/friendService';
 import './index.less';
 
@@ -489,7 +493,7 @@ export default function Diary() {
                     <Share2 size={18} />
                   </View>
                   <View className="action-btn delete-btn" onClick={() => setDeletingId(diary.id)}>
-                    <Trash2 size={18} />
+                    <Image className="icon-img" src={TRASH2_GRAY} mode="aspectFit" style={{ width: 18, height: 18 }} />
                   </View>
                 </View>
 
@@ -669,7 +673,7 @@ export default function Diary() {
           <View className="delete-modal-mask" onClick={() => setDeletingId(null)} />
           <View className="delete-modal-content">
             <View className="delete-icon">
-              <Trash2 size={32} />
+              <Image className="icon-img" src={TRASH2_RED} mode="aspectFit" style={{ width: 32, height: 32 }} />
             </View>
             <Text className="delete-title">确定删除吗？</Text>
             <Text className="delete-desc">确定要删除这条记录吗？删除后将无法找回。</Text>

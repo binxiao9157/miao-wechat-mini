@@ -2,8 +2,12 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, Image, ScrollView, Input, Textarea } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { storage, TimeLetter, CatInfo } from '../../services/storage';
-import { Plus, Lock, Unlock, Clock, ChevronRight, Trash2, AlertCircle, ArrowLeft, Send, Calendar } from '../../components/common/Icons';
+import { Plus, Lock, Unlock, Clock, ChevronRight, ArrowLeft, Send, Calendar } from '../../components/common/Icons';
 import './index.less';
+
+// Lucide-style PNG icons for delete actions
+const TRASH2_LIGHTGRAY = require('../../assets/profile-icons/trash2-lightgray.png');
+const ALERTCIRCLE_RED = require('../../assets/profile-icons/alertcircle-red.png');
 
 type ViewState = 'list' | 'write' | 'detail';
 
@@ -82,7 +86,7 @@ function LetterCard({ letter, targetCat, isUnlocked, onDelete, onClick }: Letter
               onDelete(e, letter);
             }}
           >
-            <Trash2 size={16} />
+            <Image className="icon-img" src={TRASH2_LIGHTGRAY} mode="aspectFit" style={{ width: 16, height: 16 }} />
           </View>
         </View>
 
@@ -334,7 +338,7 @@ export default function TimeLettersPage() {
         <View className="modal-overlay">
           <View className="confirm-modal">
             <View className="modal-icon">
-              <AlertCircle size={32} />
+              <Image className="icon-img" src={ALERTCIRCLE_RED} mode="aspectFit" style={{ width: 32, height: 32 }} />
             </View>
             <Text className="modal-title">确认删除信件</Text>
             <Text className="modal-desc">

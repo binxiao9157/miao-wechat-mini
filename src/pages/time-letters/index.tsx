@@ -2,10 +2,18 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, Image, ScrollView, Input, Textarea } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { storage, TimeLetter, CatInfo } from '../../services/storage';
-import { Plus, Lock, Unlock, Clock, ChevronRight, ArrowLeft, Send, Calendar } from '../../components/common/Icons';
 import './index.less';
 
-// Lucide-style PNG icons for delete actions
+// Lucide-style PNG icons
+const PLUS_WHITE = require('../../assets/profile-icons/plus-white.png');
+const LOCK_WHITE = require('../../assets/profile-icons/lock-white.png');
+const CHECK_WHITE = require('../../assets/profile-icons/check-white.png');
+const CLOCK_GRAY = require('../../assets/profile-icons/clock-gray.png');
+const CHEVRONRIGHT_GRAY = require('../../assets/profile-icons/chevronright-gray.png');
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+const ARROWLEFT_WHITE = require('../../assets/profile-icons/arrowleft-white.png');
+const SEND_WHITE = require('../../assets/profile-icons/send-white.png');
+const CALENDAR_GRAY = require('../../assets/profile-icons/calendar-gray.png');
 const TRASH2_LIGHTGRAY = require('../../assets/profile-icons/trash2-lightgray.png');
 const ALERTCIRCLE_RED = require('../../assets/profile-icons/alertcircle-red.png');
 
@@ -65,12 +73,12 @@ function LetterCard({ letter, targetCat, isUnlocked, onDelete, onClick }: Letter
         />
         {!isUnlocked && (
           <View className="lock-overlay">
-            <Lock size={20} />
+            <Image className="icon-img" src={LOCK_WHITE} mode="aspectFit" style={{ width: 20, height: 20 }} />
           </View>
         )}
         {isUnlocked && (
           <View className="unlock-badge">
-            <Unlock size={10} />
+            <Image className="icon-img" src={CHECK_WHITE} mode="aspectFit" style={{ width: 10, height: 10 }} />
           </View>
         )}
       </View>
@@ -109,7 +117,7 @@ function LetterCard({ letter, targetCat, isUnlocked, onDelete, onClick }: Letter
       </View>
 
       <View className="letter-arrow">
-        <ChevronRight size={16} />
+        <Image className="icon-img" src={CHEVRONRIGHT_GRAY} mode="aspectFit" style={{ width: 16, height: 16 }} />
       </View>
     </View>
   );
@@ -272,7 +280,7 @@ export default function TimeLettersPage() {
           className="add-btn"
           onClick={() => setView('write')}
         >
-          <Plus size={28} />
+          <Image className="icon-img" src={PLUS_WHITE} mode="aspectFit" style={{ width: 28, height: 28 }} />
         </View>
       </View>
 
@@ -307,7 +315,7 @@ export default function TimeLettersPage() {
         {filteredLetters.length === 0 ? (
           <View className="empty-state">
             <View className="empty-icon">
-              <Clock size={40} />
+              <Image className="icon-img" src={CLOCK_GRAY} mode="aspectFit" style={{ width: 40, height: 40 }} />
             </View>
             <Text className="empty-title">还没有信件</Text>
             <Text className="empty-desc">写一封信给未来的自己，让时光见证温暖</Text>
@@ -365,7 +373,7 @@ export default function TimeLettersPage() {
         {/* 头部导航 */}
         <View className="write-header">
           <View className="back-btn" onClick={() => setView('list')}>
-            <ArrowLeft size={24} />
+            <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
           </View>
           <View className="write-title">
             <Text className="title-main">写给未来</Text>
@@ -389,7 +397,7 @@ export default function TimeLettersPage() {
                 </View>
                 {selectedCatId === cat.id && (
                   <View className="selected-badge">
-                    <Plus size={10} className="rotate-45" />
+                    <Image className="icon-img" src={CHECK_WHITE} mode="aspectFit" style={{ width: 10, height: 10 }} />
                   </View>
                 )}
                 <Text className={`cat-name ${selectedCatId === cat.id ? 'active' : ''}`}>{cat.name}</Text>
@@ -446,7 +454,7 @@ export default function TimeLettersPage() {
           className={`save-btn ${!title.trim() || !content.trim() ? 'disabled' : ''}`}
           onClick={handleSaveLetter}
         >
-          <Send size={20} />
+          <Image className="icon-img" src={SEND_WHITE} mode="aspectFit" style={{ width: 20, height: 20 }} />
           <Text className="save-text">封存信件</Text>
         </View>
       </ScrollView>
@@ -472,7 +480,7 @@ export default function TimeLettersPage() {
         {/* 顶部导航 */}
         <View className="detail-header">
           <View className="detail-back" onClick={() => setView('list')}>
-            <ArrowLeft size={24} />
+            <Image className="icon-img" src={ARROWLEFT_WHITE} mode="aspectFit" style={{ width: 24, height: 24 }} />
           </View>
           <View className="detail-title">
             <Text className="title-main">时光回响</Text>
@@ -496,7 +504,7 @@ export default function TimeLettersPage() {
 
             {/* 日期 */}
             <View className="letter-meta">
-              <Calendar size={18} />
+              <Image className="icon-img" src={CALENDAR_GRAY} mode="aspectFit" style={{ width: 18, height: 18 }} />
               <Text className="meta-text">
                 写于 {new Date(selectedLetter?.createdAt || 0).toLocaleDateString()}
               </Text>

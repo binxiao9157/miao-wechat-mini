@@ -2,12 +2,21 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image, Button, Input, Textarea, Video } from '@tarojs/components';
 import Taro from '@tarojs/taro';
-import { Plus, Heart, MessageCircle, ImageIcon, Film, X, Share2, UserPlus } from '../../components/common/Icons';
 import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage } from '../../services/storage';
 
-// Lucide-style PNG icons for delete actions
+// Lucide-style PNG icons
+const USERPLUS_GRAY = require('../../assets/profile-icons/userplus-gray.png');
+const PLUS_WHITE = require('../../assets/profile-icons/plus-white.png');
+const HEART_GRAY = require('../../assets/profile-icons/heart-gray.png');
+const HEART_RED = require('../../assets/profile-icons/heart-red.png');
+const MESSAGE_GRAY = require('../../assets/profile-icons/message-gray.png');
+const SHARE_GRAY = require('../../assets/profile-icons/share-gray.png');
 const TRASH2_GRAY = require('../../assets/profile-icons/trash2-gray.png');
 const TRASH2_RED = require('../../assets/profile-icons/trash2-red.png');
+const X_DARK = require('../../assets/profile-icons/x-dark.png');
+const X_WHITE = require('../../assets/profile-icons/x-white.png');
+const IMAGE_GRAY = require('../../assets/profile-icons/image-gray.png');
+const FILM_GRAY = require('../../assets/profile-icons/film-gray.png');
 import { friendService } from '../../services/friendService';
 import './index.less';
 
@@ -412,10 +421,10 @@ export default function Diary() {
         </View>
         <View className="header-actions">
           <View className="friend-btn" onClick={() => setShowAddFriendMenu(true)}>
-            <UserPlus size={20} />
+            <Image className="icon-img" src={USERPLUS_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
           </View>
           <View className="add-btn" onClick={() => setShowCompose(true)}>
-            <Plus size={20} />
+            <Image className="icon-img" src={PLUS_WHITE} mode="aspectFit" style={{ width: 28, height: 28 }} />
           </View>
         </View>
       </View>
@@ -482,15 +491,15 @@ export default function Diary() {
 
                 <View className="diary-actions">
                   <View className={`action-btn ${diary.isLiked ? 'liked' : ''}`} onClick={() => handleLike(diary.id)}>
-                    <Heart size={18} />
+                    <Image className="icon-img" src={diary.isLiked ? HEART_RED : HEART_GRAY} mode="aspectFit" style={{ width: 18, height: 18 }} />
                     <Text>{diary.likes}</Text>
                   </View>
                   <View className="action-btn" onClick={() => setCommentingId(diary.id)}>
-                    <MessageCircle size={18} />
+                    <Image className="icon-img" src={MESSAGE_GRAY} mode="aspectFit" style={{ width: 18, height: 18 }} />
                     <Text>{diary.comments.length}</Text>
                   </View>
                   <View className="action-btn" onClick={() => handleShare(diary)}>
-                    <Share2 size={18} />
+                    <Image className="icon-img" src={SHARE_GRAY} mode="aspectFit" style={{ width: 18, height: 18 }} />
                   </View>
                   <View className="action-btn delete-btn" onClick={() => setDeletingId(diary.id)}>
                     <Image className="icon-img" src={TRASH2_GRAY} mode="aspectFit" style={{ width: 18, height: 18 }} />
@@ -504,7 +513,7 @@ export default function Diary() {
                       <View key={comment.id} className="comment-item">
                         <Text className="comment-content">{comment.content}</Text>
                         <View className="comment-delete" onClick={() => handleDeleteComment(diary.id, comment.id)}>
-                          <X size={12} />
+                          <Image className="icon-img" src={X_DARK} mode="aspectFit" style={{ width: 12, height: 12 }} />
                         </View>
                       </View>
                     ))}
@@ -554,15 +563,15 @@ export default function Diary() {
 
                 <View className="diary-actions">
                   <View className={`action-btn ${diary.isLiked ? 'liked' : ''}`} onClick={() => handleLike(diary.id)}>
-                    <Heart size={18} />
+                    <Image className="icon-img" src={diary.isLiked ? HEART_RED : HEART_GRAY} mode="aspectFit" style={{ width: 18, height: 18 }} />
                     <Text>{diary.likes}</Text>
                   </View>
                   <View className="action-btn" onClick={() => setCommentingId(diary.id)}>
-                    <MessageCircle size={18} />
+                    <Image className="icon-img" src={MESSAGE_GRAY} mode="aspectFit" style={{ width: 18, height: 18 }} />
                     <Text>{diary.comments.length}</Text>
                   </View>
                   <View className="action-btn" onClick={() => handleShare(diary)}>
-                    <Share2 size={18} />
+                    <Image className="icon-img" src={SHARE_GRAY} mode="aspectFit" style={{ width: 18, height: 18 }} />
                   </View>
                 </View>
 
@@ -598,7 +607,7 @@ export default function Diary() {
                 setSelectedMedia(null);
                 setNewContent('');
               }}>
-                <Text>×</Text>
+                <Image className="icon-img" src={X_DARK} mode="aspectFit" style={{ width: 16, height: 16 }} />
               </View>
             </View>
 
@@ -638,7 +647,7 @@ export default function Diary() {
                     <Image className="preview-image" src={selectedMedia.url} mode="aspectFill" />
                   )}
                   <View className="remove-media-btn" onClick={clearMedia}>
-                    <X size={14} />
+                    <Image className="icon-img" src={X_WHITE} mode="aspectFit" style={{ width: 14, height: 14 }} />
                   </View>
                 </View>
               )}
@@ -648,10 +657,10 @@ export default function Diary() {
               {/* 媒体选择按钮 */}
               <View className="media-actions">
                 <View className="media-btn" onClick={chooseImage}>
-                  <ImageIcon size={22} />
+                  <Image className="icon-img" src={IMAGE_GRAY} mode="aspectFit" style={{ width: 22, height: 22 }} />
                 </View>
                 <View className="media-btn" onClick={chooseVideo}>
-                  <Film size={22} />
+                  <Image className="icon-img" src={FILM_GRAY} mode="aspectFit" style={{ width: 22, height: 22 }} />
                 </View>
               </View>
 
@@ -703,7 +712,7 @@ export default function Diary() {
                 setCommentingId(null);
                 setCommentText('');
               }}>
-                <X size={20} />
+                <Image className="icon-img" src={X_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
               </View>
             </View>
             <Input

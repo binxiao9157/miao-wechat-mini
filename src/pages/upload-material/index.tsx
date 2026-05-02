@@ -7,6 +7,7 @@ const X_DARK = require('../../assets/profile-icons/x-dark.png');
 const UPLOAD_PRIMARY = require('../../assets/profile-icons/upload-primary.png');
 const SPARKLES_WHITE = require('../../assets/profile-icons/sparkles-white.png');
 const SPARKLES_GRAY = require('../../assets/profile-icons/sparkles-gray.png');
+const SPARKLES_PRIMARY = require('../../assets/profile-icons/sparkles-primary.png');
 import { VolcanoService, IMAGE_PROMPTS } from '../../services/volcanoService';
 import { storage } from '../../services/storage';
 import './index.less';
@@ -196,7 +197,7 @@ export default function UploadMaterial() {
             </View>
             <View className="confirm-actions">
               <View className="confirm-btn primary" onClick={handleConfirmAndGenerate}>
-                <Image className="icon-img confirm-btn-icon" src={SPARKLES_PNG} mode="aspectFit" style={{ width: 18, height: 18 }} />
+                <Image className="icon-img confirm-btn-icon" src={SPARKLES_PRIMARY} mode="aspectFit" style={{ width: 18, height: 18 }} />
                 <Text className="confirm-btn-text primary">确认并注入生命力</Text>
               </View>
               <View className="confirm-btn-row">
@@ -217,7 +218,7 @@ export default function UploadMaterial() {
           <View className="loading-spinner">
             <View className="spinner-ring" />
             <View className="spinner-icon">
-              <Image className="icon-img" src={SPARKLES_PNG} mode="aspectFit" style={{ width: 48, height: 48 }} />
+              <Image className="icon-img" src={SPARKLES_PRIMARY} mode="aspectFit" style={{ width: 48, height: 48 }} />
             </View>
           </View>
           <Text className="loading-title">正在绘制专属形象...</Text>

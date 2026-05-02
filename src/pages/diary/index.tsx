@@ -38,6 +38,7 @@ const shareConfig = {
 export default function Diary() {
   const [diaries, setDiaries] = useState<DiaryWithMedia[]>([]);
   const [showCompose, setShowCompose] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [newContent, setNewContent] = useState('');
   const [selectedMedia, setSelectedMedia] = useState<{ url: string; type: 'image' | 'video'; tempFilePath?: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -85,6 +86,23 @@ export default function Diary() {
   useEffect(() => {
     loadDiaries();
   }, []);
+
+  useEffect(() => {
+    if (!showCompose) {
+      setKeyboardHeight(0);
+      return;
+    }
+
+    const handleKeyboardHeightChange = (res: Taro.onKeyboardHeightChange.CallbackResult) => {
+      setKeyboardHeight(Math.max(0, res.height || 0));
+    };
+
+    Taro.onKeyboardHeightChange(handleKeyboardHeightChange);
+    return () => {
+      Taro.offKeyboardHeightChange(handleKeyboardHeightChange);
+      setKeyboardHeight(0);
+    };
+  }, [showCompose]);
 
   const loadDiaries = async () => {
     const activeCatId = storage.getActiveCatId();
@@ -561,8 +579,11 @@ export default function Diary() {
       </View>
 
       {showCompose && (
-        <View className="compose-modal">
-          <View className="compose-content">
+        <View className={`compose-modal ${keyboardHeight > 0 ? 'keyboard-open' : ''}`}>
+          <View
+            className="compose-content"
+            style={{ bottom: keyboardHeight > 0 ? `${keyboardHeight}px` : '0px' }}
+          >
             <View className="compose-header">
               <View className="compose-title-wrap">
                 <Text className="compose-title">记录此刻</Text>
@@ -585,6 +606,14 @@ export default function Diary() {
                 onInput={(e) => setNewContent(e.detail.value)}
                 maxlength={500}
                 focus
+                autoFocus
+                fixed
+                adjustPosition={false}
+                showConfirmBar={false}
+                cursorSpacing={24}
+                onFocus={(e) => setKeyboardHeight(Math.max(0, e.detail.height || 0))}
+                onBlur={() => setKeyboardHeight(0)}
+                onKeyboardHeightChange={(e) => setKeyboardHeight(Math.max(0, e.detail.height || 0))}
               />
 
               {/* 媒体预览区域 */}

@@ -79,15 +79,21 @@
   padding: 0 44rpx 34rpx;
   background: transparent;
   white-space: nowrap;
+  box-sizing: border-box;
 
   .filter-item {
     display: inline-flex;
     align-items: center;
-    padding: 8px 16px;
-    margin-right: 12px;
+    justify-content: center;
+    height: 64rpx;
+    min-width: 108rpx;
+    padding: 0 32rpx;
+    margin-right: 24rpx;
     background: #FEF6F0;
-    border-radius: 20px;
+    border-radius: 999rpx;
     transition: all 0.2s;
+    box-sizing: border-box;
+    vertical-align: top;
 
     &.active {
       background: #E89F71;
@@ -98,20 +104,24 @@
     }
 
     &.cat-item {
-      padding: 6px 12px 6px 6px;
+      justify-content: flex-start;
+      min-width: 132rpx;
+      padding: 0 28rpx 0 8rpx;
     }
 
     .filter-avatar {
-      width: 20px;
-      height: 20px;
+      width: 46rpx;
+      height: 46rpx;
       border-radius: 50%;
-      margin-right: 6px;
+      margin-right: 12rpx;
+      flex-shrink: 0;
     }
 
     .filter-text {
-      font-size: 12px;
+      font-size: 24rpx;
       font-weight: bold;
       color: #666;
+      line-height: 1;
     }
   }
 }
@@ -120,6 +130,7 @@
 .letters-list {
   flex: 1;
   padding: 16px 44rpx 220rpx;
+  box-sizing: border-box;
 
   .letters-container {
     display: flex;
@@ -168,6 +179,8 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
   padding: 12px;
   background: white;
   border-radius: 20px;

@@ -4,20 +4,32 @@ import Taro, { navigateTo, reLaunch } from '@tarojs/taro';
 import { storage, UserInfo, CatInfo } from '../../services/storage';
 import './index.less';
 
-type ProfileIconName =
-  | 'scan'
-  | 'bell'
-  | 'camera'
-  | 'calendar'
-  | 'image'
-  | 'heart'
-  | 'user'
-  | 'message'
-  | 'logout'
-  | 'trash';
+// Lucide-style icon images (colored PNGs matching PWA)
+const ICONS = {
+  scan: require('../../assets/profile-icons/scan-header.png'),
+  bell: require('../../assets/profile-icons/bell-header.png'),
+  camera: require('../../assets/profile-icons/camera-white.png'),
+  calendar: require('../../assets/profile-icons/calendar-stat.png'),
+  image: require('../../assets/profile-icons/image-stat.png'),
+  heart: require('../../assets/profile-icons/heart-cat.png'),
+  user: require('../../assets/profile-icons/user-blue.png'),
+  bellMenu: require('../../assets/profile-icons/bell-orange.png'),
+  message: require('../../assets/profile-icons/message-purple.png'),
+  logout: require('../../assets/profile-icons/logout-gray.png'),
+  trash: require('../../assets/profile-icons/trash-red.png'),
+};
 
-function ProfileIcon({ name, className = '' }: { name: ProfileIconName; className?: string }) {
-  return <View className={`profile-icon profile-icon-${name} ${className}`} />;
+type ProfileIconName = keyof typeof ICONS;
+
+function ProfileIcon({ name, size = 42, className = '' }: { name: ProfileIconName; size?: number; className?: string }) {
+  return (
+    <Image
+      className={`profile-icon ${className}`}
+      src={ICONS[name]}
+      mode="aspectFit"
+      style={{ width: size, height: size }}
+    />
+  );
 }
 
 function getUnreadNotificationCount() {
@@ -52,8 +64,6 @@ export default function Profile() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const adminTapCountRef = useRef(0);
   const adminTapTimerRef = useRef<any>(null);
-  const footerClickRef = useRef(0);
-  const footerTimerRef = useRef<any>(null);
 
   useEffect(() => {
     setupMiniNavSpace();
@@ -63,7 +73,6 @@ export default function Profile() {
     return () => {
       Taro.eventCenter.off('notifications-read', handleNotificationsRead);
       if (adminTapTimerRef.current) clearTimeout(adminTapTimerRef.current);
-      if (footerTimerRef.current) clearTimeout(footerTimerRef.current);
     };
   }, []);
 
@@ -144,25 +153,9 @@ export default function Profile() {
     }, 2000);
   };
 
-  const handleFooterClick = () => {
-    footerClickRef.current += 1;
-    if (footerTimerRef.current) clearTimeout(footerTimerRef.current);
-
-    if (footerClickRef.current >= 5) {
-      footerClickRef.current = 0;
-      Taro.vibrateShort({ type: 'light' }).catch(() => {});
-      navigateTo({ url: '/pages/admin-settings/index' });
-      return;
-    }
-
-    footerTimerRef.current = setTimeout(() => {
-      footerClickRef.current = 0;
-    }, 2000);
-  };
-
   const menuItems = [
     { icon: 'user' as const, label: '个人资料设置', url: '/pages/edit-profile/index', color: 'bg-blue-50' },
-    { icon: 'bell' as const, label: '通知设置', url: '/pages/notifications/index', color: 'bg-orange-50' },
+    { icon: 'bellMenu' as const, label: '通知设置', url: '/pages/notifications/index', color: 'bg-orange-50' },
     { icon: 'message' as const, label: '意见反馈', url: '/pages/feedback/index', color: 'bg-purple-50' },
   ];
 
@@ -179,7 +172,7 @@ export default function Profile() {
       {/* Header */}
       <View className="header">
         <View className="header-title">
-          <Text className="title">Miao</Text>
+          <Text className="title" onClick={handleAdminTap}>Miao</Text>
           <Text className="subtitle">MIAO SANCTUARY</Text>
         </View>
         <View className="header-actions">
@@ -199,7 +192,7 @@ export default function Profile() {
 
       <View className="profile-content">
         {/* 头像区域 */}
-        <View className="profile-header" onClick={handleAdminTap}>
+        <View className="profile-header">
           <View className="avatar-wrapper">
             <Image
               className="avatar"
@@ -279,7 +272,7 @@ export default function Profile() {
         </View>
 
         {/* Footer */}
-        <View className="footer" onClick={handleFooterClick}>
+        <View className="footer" onClick={handleAdminTap}>
           <Text className="footer-text">MIAO SANCTUARY</Text>
           <View className="footer-hearts">
             <View className="footer-dot heart-primary" />

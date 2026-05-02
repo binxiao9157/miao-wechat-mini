@@ -2,8 +2,15 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
-import { ArrowLeft, Bell, Heart, MessageCircle, UserPlus } from '../../components/common/Icons';
 import { storage } from '../../services/storage';
+
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+const HEART_GRAY = require('../../assets/profile-icons/heart-gray.png');
+const MESSAGE_GRAY = require('../../assets/profile-icons/message-gray.png');
+const USERPLUS_GRAY = require('../../assets/profile-icons/userplus-gray.png');
+const BELL_PRIMARY = require('../../assets/profile-icons/bell-primary.png');
+const BELL_GRAY = require('../../assets/profile-icons/bell-gray.png');
+
 import './index.less';
 
 interface Notification {
@@ -58,10 +65,10 @@ export default function Notifications() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'like': return <Heart size={16} />;
-      case 'comment': return <MessageCircle size={16} />;
-      case 'friend': return <UserPlus size={16} />;
-      default: return <Bell size={16} />;
+      case 'like': return <Image className="icon-img" src={HEART_GRAY} mode="aspectFit" style={{ width: 16, height: 16 }} />;
+      case 'comment': return <Image className="icon-img" src={MESSAGE_GRAY} mode="aspectFit" style={{ width: 16, height: 16 }} />;
+      case 'friend': return <Image className="icon-img" src={USERPLUS_GRAY} mode="aspectFit" style={{ width: 16, height: 16 }} />;
+      default: return <Image className="icon-img" src={BELL_PRIMARY} mode="aspectFit" style={{ width: 16, height: 16 }} />;
     }
   };
 
@@ -69,7 +76,7 @@ export default function Notifications() {
     <View className="notifications-page">
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={20} />
+          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
         </View>
         <Text className="title">消息通知</Text>
         <View className="mark-read" onClick={handleMarkAllRead}>
@@ -80,7 +87,7 @@ export default function Notifications() {
       <View className="notification-list">
         {notifications.length === 0 ? (
           <View className="empty">
-            <Bell size={48} />
+            <Image className="icon-img" src={BELL_GRAY} mode="aspectFit" style={{ width: 48, height: 48 }} />
             <Text className="empty-text">暂无通知</Text>
           </View>
         ) : (

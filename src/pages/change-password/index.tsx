@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, Input } from '@tarojs/components';
+import { View, Text, Input, Image } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
-import { ArrowLeft, Eye, EyeOff, Lock } from '../../components/common/Icons';
 import { useAuthContext } from '../../context/AuthContext';
 import { storage } from '../../services/storage';
 import { authService } from '../../services/authService';
 import './index.less';
+
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+const EYE_DARK = require('../../assets/profile-icons/eye-dark.png');
+const EYEOFF_DARK = require('../../assets/profile-icons/eyeoff-dark.png');
+const LOCK_DARK = require('../../assets/profile-icons/lock-dark.png');
 
 export default function ChangePassword() {
   const { user } = useAuthContext();
@@ -82,7 +86,7 @@ export default function ChangePassword() {
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={24} />
+          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <Text className="header-title">{pageTitle}</Text>
       </View>
@@ -90,7 +94,7 @@ export default function ChangePassword() {
       {/* 安全验证说明 */}
       <View className="intro-section">
         <View className="intro-icon-box">
-          <Lock size={32} />
+          <Image className="icon-img" src={LOCK_DARK} mode="aspectFit" style={{ width: 32, height: 32 }} />
         </View>
         <Text className="intro-title">{requiresCurrentPassword ? '安全验证' : '跨端登录'}</Text>
         <Text className="intro-desc">
@@ -108,7 +112,7 @@ export default function ChangePassword() {
             <Text className="form-label">当前密码</Text>
             <View className="input-wrapper">
               <View className="input-icon">
-                <Lock size={18} />
+                <Image className="icon-img" src={LOCK_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />
               </View>
               <Input
                 className="form-input"
@@ -119,7 +123,7 @@ export default function ChangePassword() {
                 password={!showCurrent}
               />
               <View className="input-toggle" onClick={() => setShowCurrent(!showCurrent)}>
-                {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showCurrent ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}
               </View>
             </View>
           </View>
@@ -130,7 +134,7 @@ export default function ChangePassword() {
           <Text className="form-label">新密码</Text>
           <View className="input-wrapper">
             <View className="input-icon">
-              <Lock size={18} />
+              <Image className="icon-img" src={LOCK_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />
             </View>
             <Input
               className="form-input"
@@ -141,7 +145,7 @@ export default function ChangePassword() {
               password={!showNew}
             />
             <View className="input-toggle" onClick={() => setShowNew(!showNew)}>
-              {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
+              {showNew ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}
             </View>
           </View>
         </View>
@@ -151,7 +155,7 @@ export default function ChangePassword() {
           <Text className="form-label">确认新密码</Text>
           <View className="input-wrapper">
             <View className="input-icon">
-              <Lock size={18} />
+              <Image className="icon-img" src={LOCK_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />
             </View>
             <Input
               className="form-input"
@@ -162,7 +166,7 @@ export default function ChangePassword() {
               password={!showConfirm}
             />
             <View className="input-toggle" onClick={() => setShowConfirm(!showConfirm)}>
-              {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+              {showConfirm ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}
             </View>
           </View>
         </View>

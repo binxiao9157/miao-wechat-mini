@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import { navigateBack, navigateTo, reLaunch, useDidShow } from '@tarojs/taro';
-import { ArrowLeft, Plus, CheckCircle, Coins, Sparkles, Trash2 } from '../../components/common/Icons';
+
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+const PLUS_WHITE = require('../../assets/profile-icons/plus-white.png');
+const CHECKCIRCLE_GREEN = require('../../assets/profile-icons/checkcircle-green.png');
+const COINS_PRIMARY = require('../../assets/profile-icons/coins-primary.png');
+const SPARKLES_PRIMARY = require('../../assets/profile-icons/sparkles-primary.png');
+const TRASH2_RED2 = require('../../assets/profile-icons/trash2-red2.png');
 import { storage, CatInfo } from '../../services/storage';
 import './index.less';
 
@@ -71,11 +77,11 @@ export default function SwitchCompanion() {
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={24} />
+          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <Text className="header-title">切换伙伴</Text>
         <View className="points-badge">
-          <Coins size={14} className="points-icon" />
+          <Image className="icon-img points-icon" src={COINS_PRIMARY} mode="aspectFit" style={{ width: 14, height: 14 }} />
           <Text className="points-text">{points}</Text>
         </View>
       </View>
@@ -91,14 +97,14 @@ export default function SwitchCompanion() {
             {/* 删除按钮 */}
             {cats.length > 1 && (
               <View className="delete-btn" onClick={(e) => handleDeleteCat(cat, e)}>
-                <Trash2 size={12} />
+                <Image className="icon-img" src={TRASH2_RED2} mode="aspectFit" style={{ width: 12, height: 12 }} />
               </View>
             )}
 
             {/* AI标记 */}
             {cat.source === 'uploaded' && (
               <View className="ai-badge">
-                <Sparkles size={12} />
+                <Image className="icon-img" src={SPARKLES_PRIMARY} mode="aspectFit" style={{ width: 12, height: 12 }} />
               </View>
             )}
 
@@ -113,7 +119,7 @@ export default function SwitchCompanion() {
                 <Text className="cat-name">{cat.name}</Text>
                 {activeId === cat.id && (
                   <View className="active-check">
-                    <CheckCircle size={16} />
+                    <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 16, height: 16 }} />
                   </View>
                 )}
               </View>
@@ -128,11 +134,11 @@ export default function SwitchCompanion() {
           onClick={points >= REDEEM_THRESHOLD ? handleAddNew : undefined}
         >
           <View className="add-icon-box">
-            <Plus size={24} />
+            <Image className="icon-img" src={PLUS_WHITE} mode="aspectFit" style={{ width: 24, height: 24 }} />
           </View>
           <Text className="add-text">添加新伙伴</Text>
           <View className="add-cost">
-            <Coins size={10} className="cost-icon" />
+            <Image className="icon-img cost-icon" src={COINS_PRIMARY} mode="aspectFit" style={{ width: 10, height: 10 }} />
             <Text className="cost-text">{REDEEM_THRESHOLD} 积分</Text>
           </View>
         </View>

@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text } from '@tarojs/components';
-import { ArrowLeft } from '../../components/common/Icons';
+import {  View, Text, Image } from '@tarojs/components';
+const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
 import { navigateBack } from '@tarojs/taro';
 import './index.less';
 
@@ -16,7 +16,7 @@ export default function PageHeader({ title, showBack = true, rightElement }: Pag
       <View className="header-left">
         {showBack && (
           <View className="back-btn" onClick={() => navigateBack()}>
-            <ArrowLeft size={20} />
+            <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 20, height: 20 }} />
           </View>
         )}
       </View>

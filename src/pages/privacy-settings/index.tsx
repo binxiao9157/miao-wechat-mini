@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text } from '@tarojs/components';
+import { View, Text, Image } from '@tarojs/components';
 import Taro, { navigateBack, navigateTo } from '@tarojs/taro';
-import { ArrowLeft, Trash2, ShieldCheck } from '../../components/common/Icons';
 import { storage } from '../../services/storage';
+
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+const TRASH2_RED2 = require('../../assets/profile-icons/trash2-red2.png');
+const SHIELDCHECK_PRIMARY = require('../../assets/profile-icons/shieldcheck-primary.png');
+
 import './index.less';
 
 export default function PrivacySettings() {
@@ -63,7 +67,7 @@ export default function PrivacySettings() {
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={24} />
+          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <Text className="header-title">隐私设置</Text>
       </View>
@@ -73,7 +77,7 @@ export default function PrivacySettings() {
         <View className="setting-item" onClick={handleClearCache}>
           <View className="setting-left">
             <View className="setting-icon danger">
-              <Trash2 size={20} />
+              <Image className="icon-img" src={TRASH2_RED2} mode="aspectFit" style={{ width: 20, height: 20 }} />
             </View>
             <View className="setting-info">
               <Text className="setting-name">清除缓存</Text>
@@ -89,7 +93,7 @@ export default function PrivacySettings() {
         <View className="setting-item" onClick={() => navigateTo({ url: '/pages/privacy-policy/index' })}>
           <View className="setting-left">
             <View className="setting-icon">
-              <ShieldCheck size={20} />
+              <Image className="icon-img" src={SHIELDCHECK_PRIMARY} mode="aspectFit" style={{ width: 20, height: 20 }} />
             </View>
             <View className="setting-info">
               <Text className="setting-name">隐私政策</Text>

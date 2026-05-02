@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Input, Image } from '@tarojs/components';
 import { navigateTo, navigateBack } from '@tarojs/taro';
-import { ArrowLeft, Sparkles } from '../../components/common/Icons';
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+const SPARKLES_WHITE = require('../../assets/profile-icons/sparkles-white.png');
 import { storage, PresetCat } from '../../services/storage';
 import './index.less';
 
@@ -62,7 +63,7 @@ export default function CreateCompanion() {
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={24} />
+          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <Text className="header-title">手捏小猫</Text>
       </View>
@@ -118,7 +119,7 @@ export default function CreateCompanion() {
           className={`generate-btn ${isFormComplete && !isGenerating ? 'active' : 'disabled'}`}
           onClick={isFormComplete && !isGenerating ? handleGenerate : undefined}
         >
-          <Sparkles size={22} className="btn-icon" />
+          <Image className="icon-img btn-icon" src={SPARKLES_WHITE} mode="aspectFit" style={{ width: 22, height: 22 }} />
           <Text className="btn-label">{isGenerating ? '生成中...' : '确认生成'}</Text>
         </View>
       </View>

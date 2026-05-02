@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState } from 'react';
-import { View, Input, Button } from '@tarojs/components';
-import { Send } from '../../components/common/Icons';
+import { View, Input, Button, Image } from '@tarojs/components';
+import sendPrimary from '../../assets/profile-icons/send-primary.png';
 import './index.less';
 
 interface CommentInputProps {
@@ -9,7 +9,7 @@ interface CommentInputProps {
   placeholder?: string;
 }
 
-export default function CommentInput({ onSubmit, placeholder = '说点什�?..' }: CommentInputProps) {
+export default function CommentInput({ onSubmit, placeholder = '说点什么...' }: CommentInputProps) {
   const [content, setContent] = useState('');
 
   const handleSubmit = () => {
@@ -29,7 +29,7 @@ export default function CommentInput({ onSubmit, placeholder = '说点什�?..' 
         onConfirm={handleSubmit}
       />
       <Button className="send-btn" onClick={handleSubmit} disabled={!content.trim()}>
-        <Send size={16} />
+        <Image className="icon-img" src={sendPrimary} mode="aspectFit" />
       </Button>
     </View>
   );

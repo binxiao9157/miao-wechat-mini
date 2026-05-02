@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Video } from '@tarojs/components';
+import { View, Text, Video, Image } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
-import { ArrowLeft, Play, Pause, Download, Trash2, Heart, Share2, AlertCircle } from '../../components/common/Icons';
+
+const ARROWLEFT_WHITE = require('../../assets/profile-icons/arrowleft-white.png');
+const PLAY_WHITE = require('../../assets/profile-icons/play-white.png');
+const DOWNLOAD_PRIMARY = require('../../assets/profile-icons/download-primary.png');
+const TRASH2_RED2 = require('../../assets/profile-icons/trash2-red2.png');
+const HEART_GRAY = require('../../assets/profile-icons/heart-gray.png');
+const SHARE_GRAY = require('../../assets/profile-icons/share-gray.png');
+const ALERTCIRCLE_RED2 = require('../../assets/profile-icons/alertcircle-red2.png');
 import { storage, CatInfo } from '../../services/storage';
 import { FileManager } from '../../services/fileManager';
 import { getPrimaryVideoUrl } from '../../services/catLifecycle';
@@ -136,7 +143,7 @@ export default function CatPlayer() {
         <View className="error-overlay">
           <View className="error-dialog">
             <View className="error-icon-box">
-              <AlertCircle size={32} />
+              <Image className="icon-img" src={ALERTCIRCLE_RED2} mode="aspectFit" style={{ width: 32, height: 32 }} />
             </View>
             <Text className="error-title">视频加载失败</Text>
             <Text className="error-desc">网络波动或视频文件暂时无法访问，请重试。</Text>
@@ -157,7 +164,7 @@ export default function CatPlayer() {
         <View className="delete-overlay" onClick={() => setShowDeleteConfirm(false)}>
           <View className="delete-dialog" onClick={(e) => e.stopPropagation()}>
             <View className="delete-icon-box">
-              <Trash2 size={32} />
+              <Image className="icon-img" src={TRASH2_RED2} mode="aspectFit" style={{ width: 32, height: 32 }} />
             </View>
             <Text className="delete-title">确定要删除吗？</Text>
             <Text className="delete-desc">删除后将无法找回这个猫咪视频，确定要继续吗？</Text>
@@ -176,7 +183,7 @@ export default function CatPlayer() {
       {/* 顶部导航栏 */}
       <View className="player-header">
         <View className="header-back" onClick={() => Taro.navigateBack()}>
-          <ArrowLeft size={24} />
+          <Image className="icon-img" src={ARROWLEFT_WHITE} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <View className="header-center">
           <Text className="header-name">{cat.name}</Text>
@@ -229,7 +236,7 @@ export default function CatPlayer() {
         {!isPlaying && !isLoading && (
           <View className="pause-indicator">
             <View className="pause-btn-circle">
-              <Play size={40} />
+              <Image className="icon-img" src={PLAY_WHITE} mode="aspectFit" style={{ width: 40, height: 40 }} />
             </View>
           </View>
         )}
@@ -252,13 +259,13 @@ export default function CatPlayer() {
         <View className="footer-actions-side">
           <View className="action-item" onClick={() => triggerToast('已喜欢')}>
             <View className="action-circle">
-              <Heart size={24} />
+              <Image className="icon-img" src={HEART_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
             </View>
             <Text className="action-label">喜欢</Text>
           </View>
           <View className="action-item" onClick={handleShare}>
             <View className="action-circle">
-              <Share2 size={24} />
+              <Image className="icon-img" src={SHARE_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
             </View>
             <Text className="action-label">分享</Text>
           </View>
@@ -266,11 +273,11 @@ export default function CatPlayer() {
 
         <View className="footer-btns">
           <View className="footer-btn save" onClick={handleSaveToAlbum}>
-            <Download size={18} />
+            <Image className="icon-img" src={DOWNLOAD_PRIMARY} mode="aspectFit" style={{ width: 18, height: 18 }} />
             <Text className="footer-btn-text">保存到相册</Text>
           </View>
           <View className="footer-btn delete" onClick={handleDelete}>
-            <Trash2 size={18} />
+            <Image className="icon-img" src={TRASH2_RED2} mode="aspectFit" style={{ width: 18, height: 18 }} />
             <Text className="footer-btn-text">删除记录</Text>
           </View>
         </View>

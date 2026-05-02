@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Input, Button, Image } from '@tarojs/components';
 import { navigateTo } from '@tarojs/taro';
-import { Eye, EyeOff } from '../../components/common/Icons';
 import PawLogo from '../../components/common/PawLogo';
 import { storage } from '../../services/storage';
 import { useAuthContext } from '../../context/AuthContext';
 import { routeAfterCatSync } from '../../services/catLifecycle';
 import './index.less';
+
+const EYE_DARK = require('../../assets/profile-icons/eye-dark.png');
+const EYEOFF_DARK = require('../../assets/profile-icons/eyeoff-dark.png');
 
 const DEFAULT_CAT_IMAGE = 'https://api.dicebear.com/7.x/avataaars/svg?seed=default_cat';
 
@@ -143,7 +145,7 @@ export default function Login() {
                 password={!showPassword}
               />
               <View className="eye-icon" onClick={() => setShowPassword(!showPassword)}>
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}
               </View>
             </View>
           </View>

@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text } from '@tarojs/components';
+import { View, Text, Image } from '@tarojs/components';
 import { navigateBack, navigateTo } from '@tarojs/taro';
-import { ArrowLeft, Bell, Sparkles, Coins, Heart, Settings } from '../../components/common/Icons';
 import { storage, TimeLetter, PointsInfo } from '../../services/storage';
+
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+const SETTINGS_DARK = require('../../assets/profile-icons/settings-dark.png');
+const SPARKLES_PRIMARY = require('../../assets/profile-icons/sparkles-primary.png');
+const COINS_PRIMARY = require('../../assets/profile-icons/coins-primary.png');
+const HEART_GRAY = require('../../assets/profile-icons/heart-gray.png');
+const BELL_PRIMARY = require('../../assets/profile-icons/bell-primary.png');
+const BELL_GRAY = require('../../assets/profile-icons/bell-gray.png');
+
 import './index.less';
 
 interface Notification {
@@ -109,10 +117,10 @@ export default function NotificationList() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'letter': return <Sparkles size={20} />;
-      case 'points': return <Coins size={20} />;
-      case 'greeting': return <Heart size={20} />;
-      default: return <Bell size={20} />;
+      case 'letter': return <Image className="icon-img" src={SPARKLES_PRIMARY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
+      case 'points': return <Image className="icon-img" src={COINS_PRIMARY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
+      case 'greeting': return <Image className="icon-img" src={HEART_GRAY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
+      default: return <Image className="icon-img" src={BELL_PRIMARY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
     }
   };
 
@@ -123,11 +131,11 @@ export default function NotificationList() {
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={24} />
+          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <Text className="header-title">消息中心</Text>
         <View className="settings-btn" onClick={() => navigateTo({ url: '/pages/notifications/index' })}>
-          <Settings size={22} />
+          <Image className="icon-img" src={SETTINGS_DARK} mode="aspectFit" style={{ width: 22, height: 22 }} />
         </View>
       </View>
 
@@ -168,7 +176,7 @@ export default function NotificationList() {
       ) : (
         <View className="empty-state">
           <View className="empty-icon-box">
-            <Bell size={40} />
+            <Image className="icon-img" src={BELL_GRAY} mode="aspectFit" style={{ width: 40, height: 40 }} />
           </View>
           <Text className="empty-title">暂无消息</Text>
           <Text className="empty-desc">当有新消息时，会在这里显示</Text>

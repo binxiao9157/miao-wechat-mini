@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
 import Taro, { useRouter, navigateBack } from '@tarojs/taro';
-import { ArrowLeft, Download, Share2, AlertCircle } from '../../components/common/Icons';
+const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
+const DOWNLOAD_PNG = require('../../assets/profile-icons/download-primary.png');
+const SHARE2_PNG = require('../../assets/profile-icons/share-gray.png');
+const ALERTCIRCLE_PNG = require('../../assets/profile-icons/alertcircle-primary.png');
 import { storage } from '../../services/storage';
 import { friendService, FriendInvite } from '../../services/friendService';
 import './index.less';
@@ -89,7 +92,7 @@ export default function AddFriendQR() {
     return (
       <View className="add-friend-qr-page error-page">
         <View className="error-icon">
-          <AlertCircle size={40} />
+          <Image className="icon-img" src={ALERTCIRCLE_PNG} mode="aspectFit" style={{ width: 40, height: 40 }} />
         </View>
         <Text className="error-title">缺少必要信息</Text>
         <Text className="error-desc">请先去生成或选择一只猫咪哦</Text>
@@ -105,7 +108,7 @@ export default function AddFriendQR() {
       {/* 头部 */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={20} />
+          <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 20, height: 20 }} />
         </View>
         <View className="header-title">
           <Text className="title">面对面添加</Text>
@@ -175,14 +178,14 @@ export default function AddFriendQR() {
       <View className="action-buttons">
         <View className="action-btn" onClick={handleSaveImage}>
           <View className={`action-icon ${isSaving ? 'loading' : ''}`}>
-            {isSaving ? <Text className="loading-text">...</Text> : <Download size={24} />}
+            {isSaving ? <Text className="loading-text">...</Text> : <Image className="icon-img" src={DOWNLOAD_PNG} mode="aspectFit" style={{ width: 24, height: 24 }} />}
           </View>
           <Text className="action-text">{isSaving ? '保存中...' : '保存图片'}</Text>
         </View>
 
         <View className="action-btn" onClick={handleShareLink}>
           <View className="action-icon">
-            <Share2 size={24} />
+            <Image className="icon-img" src={SHARE2_PNG} mode="aspectFit" style={{ width: 24, height: 24 }} />
           </View>
           <Text className="action-text">分享链接</Text>
         </View>

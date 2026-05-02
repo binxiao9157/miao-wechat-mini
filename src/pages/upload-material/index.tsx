@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, Image, Input } from '@tarojs/components';
 import Taro, { navigateBack, navigateTo } from '@tarojs/taro';
-import { ArrowLeft, Upload, Sparkles, X } from '../../components/common/Icons';
+
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+const X_DARK = require('../../assets/profile-icons/x-dark.png');
+const UPLOAD_PRIMARY = require('../../assets/profile-icons/upload-primary.png');
+const SPARKLES_WHITE = require('../../assets/profile-icons/sparkles-white.png');
+const SPARKLES_GRAY = require('../../assets/profile-icons/sparkles-gray.png');
 import { VolcanoService, IMAGE_PROMPTS } from '../../services/volcanoService';
 import { storage } from '../../services/storage';
 import './index.less';
@@ -126,7 +131,7 @@ export default function UploadMaterial() {
 
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={24} />
+          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <Text className="header-title">上传素材</Text>
       </View>
@@ -143,13 +148,13 @@ export default function UploadMaterial() {
             <View className="image-preview">
               <Image className="preview-img" src={selectedImage} mode="aspectFill" />
               <View className="remove-btn" onClick={handleRemoveImage}>
-                <X size={16} />
+                <Image className="icon-img" src={X_DARK} mode="aspectFit" style={{ width: 16, height: 16 }} />
               </View>
             </View>
           ) : (
             <View className="upload-placeholder" onClick={handleChooseImage}>
               <View className="upload-icon-box">
-                <Upload size={32} />
+                <Image className="icon-img" src={UPLOAD_PRIMARY} mode="aspectFit" style={{ width: 32, height: 32 }} />
               </View>
               <Text className="upload-text">点击上传照片</Text>
               <Text className="upload-hint">JPG, PNG 支持</Text>
@@ -173,7 +178,7 @@ export default function UploadMaterial() {
             className={`generate-btn ${isReady && !isDrawing ? 'active' : 'disabled'}`}
             onClick={isReady && !isDrawing ? handleGenerateImage : undefined}
           >
-            <Sparkles size={20} className="btn-icon" />
+            <Image className="icon-img btn-icon" src={SPARKLES_WHITE} mode="aspectFit" style={{ width: 20, height: 20 }} />
             <Text className="btn-label">{isDrawing ? '绘制专属形象中...' : '开始生成数字形象'}</Text>
           </View>
         </View>
@@ -191,7 +196,7 @@ export default function UploadMaterial() {
             </View>
             <View className="confirm-actions">
               <View className="confirm-btn primary" onClick={handleConfirmAndGenerate}>
-                <Sparkles size={18} className="confirm-btn-icon" />
+                <Image className="icon-img confirm-btn-icon" src={SPARKLES_PNG} mode="aspectFit" style={{ width: 18, height: 18 }} />
                 <Text className="confirm-btn-text primary">确认并注入生命力</Text>
               </View>
               <View className="confirm-btn-row">
@@ -212,7 +217,7 @@ export default function UploadMaterial() {
           <View className="loading-spinner">
             <View className="spinner-ring" />
             <View className="spinner-icon">
-              <Sparkles size={48} />
+              <Image className="icon-img" src={SPARKLES_PNG} mode="aspectFit" style={{ width: 48, height: 48 }} />
             </View>
           </View>
           <Text className="loading-title">正在绘制专属形象...</Text>

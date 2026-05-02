@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text } from '@tarojs/components';
+import {  View, Text, Image } from '@tarojs/components';
 import Taro, { useRouter, navigateTo } from '@tarojs/taro';
-import { Sparkles } from '../../components/common/Icons';
+const SPARKLES_PNG = require('../../assets/profile-icons/sparkles-primary.png');
 import { useAuthContext } from '../../context/AuthContext';
 import { friendService } from '../../services/friendService';
 import './index.less';
@@ -89,7 +89,7 @@ export default function JoinFriend() {
         {isAuthenticated ? (
           <View className="action-section">
             <View className="action-btn primary" onClick={handleAddFriend}>
-              <Sparkles size={20} className="btn-icon" />
+              <Image className="icon-img btn-icon" src={SPARKLES_PNG} mode="aspectFit" style={{ width: 20, height: 20 }} />
               <Text className="action-btn-text white">添加好友</Text>
             </View>
           </View>

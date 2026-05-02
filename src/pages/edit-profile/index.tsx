@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, Input, Image } from '@tarojs/components';
 import Taro, { navigateBack } from '@tarojs/taro';
-import { ArrowLeft, Camera, CheckCircle, ImageIcon } from '../../components/common/Icons';
+const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
+const CAMERA_PNG = require('../../assets/profile-icons/camera-primary.png');
+const CHECKCIRCLE_PNG = require('../../assets/profile-icons/checkcircle-green.png');
+const IMAGEICON_PNG = require('../../assets/profile-icons/image-primary.png');
 import { useAuthContext } from '../../context/AuthContext';
 import { storage } from '../../services/storage';
 import './index.less';
@@ -77,7 +80,7 @@ export default function EditProfile() {
       {/* 成功提示 */}
       {showSuccessToast && (
         <View className="success-toast">
-          <CheckCircle size={16} />
+          <Image className="icon-img" src={CHECKCIRCLE_PNG} mode="aspectFit" style={{ width: 16, height: 16 }} />
           <Text className="success-toast-text">修改成功！</Text>
         </View>
       )}
@@ -85,7 +88,7 @@ export default function EditProfile() {
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={24} />
+          <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <Text className="header-title">编辑个人资料</Text>
         <View className={`save-btn ${isSaving ? 'disabled' : ''}`} onClick={isSaving ? undefined : handleSave}>
@@ -104,7 +107,7 @@ export default function EditProfile() {
             />
           </View>
           <View className="avatar-camera-btn">
-            <Camera size={22} />
+            <Image className="icon-img" src={CAMERA_PNG} mode="aspectFit" style={{ width: 22, height: 22 }} />
           </View>
         </View>
         <Text className="avatar-hint">点击更换头像</Text>
@@ -154,13 +157,13 @@ export default function EditProfile() {
             <View className="actionsheet-options">
               <View className="actionsheet-option" onClick={handleChooseFromAlbum}>
                 <View className="option-icon-box blue">
-                  <ImageIcon size={28} />
+                  <Image className="icon-img" src={IMAGEICON_PNG} mode="aspectFit" style={{ width: 28, height: 28 }} />
                 </View>
                 <Text className="option-text">从相册选择</Text>
               </View>
               <View className="actionsheet-option" onClick={handleTakePhoto}>
                 <View className="option-icon-box orange">
-                  <Camera size={28} />
+                  <Image className="icon-img" src={CAMERA_PNG} mode="aspectFit" style={{ width: 28, height: 28 }} />
                 </View>
                 <Text className="option-text">拍照</Text>
               </View>

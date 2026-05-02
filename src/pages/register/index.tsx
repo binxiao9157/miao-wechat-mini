@@ -1,13 +1,19 @@
 import React from 'react';
 import { useState } from 'react';
-import { View, Text, Input, Button } from '@tarojs/components';
+import { View, Text, Input, Button, Image } from '@tarojs/components';
 import { navigateBack, navigateTo } from '@tarojs/taro';
-import { Eye, EyeOff, ArrowLeft, User, Lock, ShieldCheck } from '../../components/common/Icons';
 import PawLogo from '../../components/common/PawLogo';
 import { storage, UserInfo } from '../../services/storage';
 import { useAuthContext } from '../../context/AuthContext';
 import { routeAfterCatSync } from '../../services/catLifecycle';
 import './index.less';
+
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+const USER_DARK = require('../../assets/profile-icons/user-dark.png');
+const LOCK_DARK = require('../../assets/profile-icons/lock-dark.png');
+const EYEOFF_DARK = require('../../assets/profile-icons/eyeoff-dark.png');
+const EYE_DARK = require('../../assets/profile-icons/eye-dark.png');
+const SHIELDCHECK_DARK = require('../../assets/profile-icons/shieldcheck-dark.png');
 
 export default function Register() {
   const { register } = useAuthContext();
@@ -75,7 +81,7 @@ export default function Register() {
         {/* Header */}
         <View className="header">
           <View className="back-btn" onClick={() => navigateBack()}>
-            <ArrowLeft size={20} />
+            <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
           </View>
         </View>
 
@@ -97,7 +103,7 @@ export default function Register() {
             <Text className="input-label">用户名</Text>
             <View className="input-wrapper">
               <View className="input-icon">
-                <User size={18} />
+                <Image className="icon-img" src={USER_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />
               </View>
               <Input
                 className="miao-input with-icon"
@@ -114,7 +120,7 @@ export default function Register() {
             <Text className="input-label">设置密码</Text>
             <View className="input-wrapper">
               <View className="input-icon">
-                <Lock size={18} />
+                <Image className="icon-img" src={LOCK_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />
               </View>
               <Input
                 className="miao-input with-icon with-eye"
@@ -125,7 +131,7 @@ export default function Register() {
                 password={!showPassword}
               />
               <View className="eye-icon" onClick={() => setShowPassword(!showPassword)}>
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}
               </View>
             </View>
           </View>
@@ -135,7 +141,7 @@ export default function Register() {
             <Text className="input-label">确认密码</Text>
             <View className="input-wrapper">
               <View className="input-icon">
-                <ShieldCheck size={18} />
+                <Image className="icon-img" src={SHIELDCHECK_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />
               </View>
               <Input
                 className="miao-input with-icon with-eye"
@@ -146,7 +152,7 @@ export default function Register() {
                 password={!showConfirmPassword}
               />
               <View className="eye-icon" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showConfirmPassword ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}
               </View>
             </View>
           </View>

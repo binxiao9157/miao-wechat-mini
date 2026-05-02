@@ -1,5 +1,5 @@
-import { View, Text } from '@tarojs/components';
-import { X } from '../../components/common/Icons';
+import {  View, Text, Image } from '@tarojs/components';
+const X_PNG = require('../../assets/profile-icons/x-dark.png');
 import { shareService } from '../../services/shareService';
 import './index.less';
 
@@ -27,7 +27,7 @@ export default function ShareSheet({ visible, title = '分享', text, url, onClo
         <View className="sheet-header">
           <Text className="title">{title}</Text>
           <View className="close-btn" onClick={onClose}>
-            <X size={20} />
+            <Image className="icon-img" src={X_PNG} mode="aspectFit" style={{ width: 20, height: 20 }} />
           </View>
         </View>
 

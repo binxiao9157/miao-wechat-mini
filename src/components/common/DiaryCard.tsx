@@ -1,5 +1,7 @@
 import { View, Text, Image } from '@tarojs/components';
-import { Heart, MessageCircle, Share2 } from '../../components/common/Icons';
+const HEART_PNG = require('../../assets/profile-icons/heart-gray.png');
+const MESSAGECIRCLE_PNG = require('../../assets/profile-icons/message-gray.png');
+const SHARE2_PNG = require('../../assets/profile-icons/share-gray.png');
 import { DiaryEntry, storage } from '../../services/storage';
 import './index.less';
 
@@ -40,15 +42,15 @@ export default function DiaryCard({ diary, onLike, onComment, onShare }: DiaryCa
 
       <View className="card-actions">
         <View className={`action-btn ${diary.isLiked ? 'liked' : ''}`} onClick={() => onLike?.(diary.id)}>
-          <Heart size={18} />
+          <Image className="icon-img" src={HEART_PNG} mode="aspectFit" style={{ width: 18, height: 18 }} />
           <Text>{diary.likes}</Text>
         </View>
         <View className="action-btn" onClick={() => onComment?.(diary.id)}>
-          <MessageCircle size={18} />
+          <Image className="icon-img" src={MESSAGECIRCLE_PNG} mode="aspectFit" style={{ width: 18, height: 18 }} />
           <Text>{diary.comments.length}</Text>
         </View>
         <View className="action-btn" onClick={() => onShare?.(diary.id)}>
-          <Share2 size={18} />
+          <Image className="icon-img" src={SHARE2_PNG} mode="aspectFit" style={{ width: 18, height: 18 }} />
         </View>
       </View>
     </View>

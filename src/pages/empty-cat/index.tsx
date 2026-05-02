@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text } from '@tarojs/components';
+import { View, Text, Image } from '@tarojs/components';
 import { navigateTo, reLaunch } from '@tarojs/taro';
-import { ArrowLeft, Camera } from '../../components/common/Icons';
+
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+const CAMERA_PRIMARY = require('../../assets/profile-icons/camera-primary.png');
 import PawLogo from '../../components/common/PawLogo';
 import './index.less';
 
@@ -22,7 +24,7 @@ export default function EmptyCatPage() {
     <View className="welcome-page">
       {/* Header - Back Button */}
       <View className="back-btn" onClick={handleBack}>
-        <ArrowLeft size={20} />
+        <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
       </View>
 
       {/* Logo */}
@@ -43,7 +45,7 @@ export default function EmptyCatPage() {
         <View className="option-card" onClick={handleUpload}>
           <View className="card-header">
             <View className="card-icon-box">
-              <Camera size={28} className="card-icon" />
+              <Image className="icon-img card-icon" src={CAMERA_PRIMARY} mode="aspectFit" style={{ width: 28, height: 28 }} />
             </View>
             <Text className="card-arrow">›</Text>
           </View>

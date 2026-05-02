@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, Input } from '@tarojs/components';
+import { View, Text, Input, Image } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
-import { ArrowLeft, Eye, EyeOff, Lock } from '../../components/common/Icons';
 import { storage } from '../../services/storage';
 import './index.less';
+
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+const EYE_DARK = require('../../assets/profile-icons/eye-dark.png');
+const EYEOFF_DARK = require('../../assets/profile-icons/eyeoff-dark.png');
+const LOCK_DARK = require('../../assets/profile-icons/lock-dark.png');
 
 export default function ResetPassword() {
   const [phone, setPhone] = useState('');
@@ -89,7 +93,7 @@ export default function ResetPassword() {
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={24} />
+          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <Text className="header-title">重置密码</Text>
       </View>
@@ -135,7 +139,7 @@ export default function ResetPassword() {
           <Text className="form-label">新密码</Text>
           <View className="input-wrapper">
             <View className="input-icon">
-              <Lock size={18} />
+              <Image className="icon-img" src={LOCK_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />
             </View>
             <Input
               className="form-input-with-icon"
@@ -146,7 +150,7 @@ export default function ResetPassword() {
               password={!showPassword}
             />
             <View className="input-toggle" onClick={() => setShowPassword(!showPassword)}>
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              {showPassword ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}
             </View>
           </View>
         </View>

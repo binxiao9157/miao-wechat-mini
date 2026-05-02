@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Input, Switch, Button } from '@tarojs/components';
+import { View, Text, Input, Switch, Button, Image } from '@tarojs/components';
 import Taro, { navigateBack } from '@tarojs/taro';
-import { ArrowLeft, CheckCircle, RefreshCw, Settings } from '../../components/common/Icons';
 import { aiConfig, AIProfile, AIProvider, DEFAULT_AI_PROFILES } from '../../services/aiConfig';
+
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+const SETTINGS_DARK = require('../../assets/profile-icons/settings-dark.png');
+const REFRESHCW_PRIMARY = require('../../assets/profile-icons/refreshcw-primary.png');
+const CHECKCIRCLE_GREEN = require('../../assets/profile-icons/checkcircle-green.png');
+
 import './index.less';
 
 export default function AdminSettings() {
@@ -44,7 +49,7 @@ export default function AdminSettings() {
     <View className="admin-settings-page">
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={24} />
+          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <View className="header-title-wrap">
           <Text className="header-title">后台配置</Text>
@@ -55,7 +60,7 @@ export default function AdminSettings() {
       <View className="section">
         <View className="section-head">
           <View className="section-icon">
-            <Settings size={18} />
+            <Image className="icon-img" src={SETTINGS_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />
           </View>
           <View>
             <Text className="section-title">AI 模型配置</Text>
@@ -153,11 +158,11 @@ export default function AdminSettings() {
 
       <View className="bottom-actions">
         <Button className="reset-btn" onClick={handleReset}>
-          <RefreshCw size={16} />
+          <Image className="icon-img" src={REFRESHCW_PRIMARY} mode="aspectFit" style={{ width: 16, height: 16 }} />
           恢复默认
         </Button>
         <Button className="save-btn" onClick={handleSave}>
-          <CheckCircle size={16} />
+          <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 16, height: 16 }} />
           保存配置
         </Button>
       </View>

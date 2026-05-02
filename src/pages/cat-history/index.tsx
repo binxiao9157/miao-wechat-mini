@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import { navigateBack, navigateTo, useDidShow } from '@tarojs/taro';
-import { ArrowLeft, Play, Trash2, Sparkles, Plus } from '../../components/common/Icons';
+
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+const PLAY_WHITE = require('../../assets/profile-icons/play-white.png');
+const TRASH2_RED2 = require('../../assets/profile-icons/trash2-red2.png');
+const SPARKLES_GRAY = require('../../assets/profile-icons/sparkles-gray.png');
+const PLUS_WHITE = require('../../assets/profile-icons/plus-white.png');
 import { storage, CatInfo } from '../../services/storage';
 import { FileManager } from '../../services/fileManager';
 import './index.less';
@@ -50,7 +55,7 @@ export default function CatHistory() {
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={24} />
+          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <Text className="header-title">我的 AI 猫咪历史</Text>
       </View>
@@ -79,11 +84,11 @@ export default function CatHistory() {
                   <View className="thumb-overlay" />
                   {/* 播放按钮 */}
                   <View className="play-btn">
-                    <Play size={24} />
+                    <Image className="icon-img" src={PLAY_WHITE} mode="aspectFit" style={{ width: 24, height: 24 }} />
                   </View>
                   {/* 删除按钮 */}
                   <View className="card-delete" onClick={(e) => handleDelete(e, cat.id)}>
-                    <Trash2 size={14} />
+                    <Image className="icon-img" src={TRASH2_RED2} mode="aspectFit" style={{ width: 14, height: 14 }} />
                   </View>
                   {/* 底部信息 */}
                   <View className="card-info">
@@ -101,7 +106,7 @@ export default function CatHistory() {
             onClick={() => navigateTo({ url: '/pages/upload-material/index' })}
           >
             <View className="add-icon-box">
-              <Plus size={24} />
+              <Image className="icon-img" src={PLUS_WHITE} mode="aspectFit" style={{ width: 24, height: 24 }} />
             </View>
             <Text className="add-text">生成新猫咪</Text>
           </View>
@@ -109,7 +114,7 @@ export default function CatHistory() {
       ) : (
         <View className="empty-state">
           <View className="empty-icon-box">
-            <Sparkles size={40} />
+            <Image className="icon-img" src={SPARKLES_GRAY} mode="aspectFit" style={{ width: 40, height: 40 }} />
           </View>
           <Text className="empty-title">还没有生成记录</Text>
           <Text className="empty-desc">快去上传照片，生成您的第一个 AI 猫咪吧！</Text>
@@ -121,7 +126,7 @@ export default function CatHistory() {
         <View className="delete-overlay" onClick={() => setShowDeleteConfirm(null)}>
           <View className="delete-dialog" onClick={(e) => e.stopPropagation()}>
             <View className="delete-icon-box">
-              <Trash2 size={32} />
+              <Image className="icon-img" src={TRASH2_RED2} mode="aspectFit" style={{ width: 32, height: 32 }} />
             </View>
             <Text className="delete-title">确定要删除吗？</Text>
             <Text className="delete-desc">删除后将无法找回这条记录，确定要继续吗？</Text>

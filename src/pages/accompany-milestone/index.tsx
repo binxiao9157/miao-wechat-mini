@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text } from '@tarojs/components';
+import {  View, Text, Image } from '@tarojs/components';
 import { useRouter, navigateBack } from '@tarojs/taro';
-import { ArrowLeft } from '../../components/common/Icons';
+const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
 import PawLogo from '../../components/common/PawLogo';
 import './index.less';
 
@@ -31,7 +31,7 @@ export default function AccompanyMilestone() {
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={24} />
+          <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <Text className="header-title">陪伴里程碑</Text>
         <View className="header-placeholder" />

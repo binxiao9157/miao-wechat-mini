@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text } from '@tarojs/components';
+import { View, Text, Image } from '@tarojs/components';
 import { reLaunch } from '@tarojs/taro';
-import { ArrowLeft } from '../../components/common/Icons';
+
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 import PawLogo from '../../components/common/PawLogo';
 import { useAuthContext } from '../../context/AuthContext';
 import './index.less';
@@ -22,7 +23,7 @@ export default function CatStart() {
     <View className="cat-start-page">
       {/* Logout Button */}
       <View className="back-btn" onClick={handleLogout}>
-        <ArrowLeft size={20} />
+        <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
       </View>
 
       {/* Background Decorative Elements */}

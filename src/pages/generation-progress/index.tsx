@@ -1,12 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Video } from '@tarojs/components';
+import { View, Text, Video, Image } from '@tarojs/components';
 import { navigateTo, navigateBack, reLaunch } from '@tarojs/taro';
-import { Sparkles, CheckCircle, AlertCircle, ArrowRight } from '../../components/common/Icons';
 import { VolcanoService, ACTION_PROMPTS } from '../../services/volcanoService';
 import { FileManager } from '../../services/fileManager';
 import { storage } from '../../services/storage';
 import { isCatReady } from '../../services/catLifecycle';
 import { useAuthContext } from '../../context/AuthContext';
+
+const SPARKLES_GRAY = require('../../assets/profile-icons/sparkles-gray.png');
+const SPARKLES_PRIMARY = require('../../assets/profile-icons/sparkles-primary.png');
+const CHECKCIRCLE_GREEN = require('../../assets/profile-icons/checkcircle-green.png');
+const ALERTCIRCLE_RED2 = require('../../assets/profile-icons/alertcircle-red2.png');
+const ARROWRIGHT_PRIMARY2 = require('../../assets/profile-icons/arrowright-primary2.png');
+
 import './index.less';
 
 type Phase = 'generating' | 'confirm' | 'success' | 'error';
@@ -192,7 +198,7 @@ export default function GenerationProgress() {
           <View className="loading-spinner">
             <View className="spinner-ring" />
             <View className="spinner-icon">
-              <Sparkles size={48} />
+              <Image className="icon-img" src={SPARKLES_GRAY} mode="aspectFit" style={{ width: 48, height: 48 }} />
             </View>
           </View>
 
@@ -213,19 +219,19 @@ export default function GenerationProgress() {
           <View className="steps-list">
             <View className={`step-item ${progress >= 5 ? 'active' : ''} ${progress > 5 ? 'done' : ''}`}>
               <View className={`step-dot ${progress > 5 ? 'done' : progress >= 5 ? 'active' : ''}`}>
-                {progress > 5 ? <CheckCircle size={14} /> : <Text className="step-num">1</Text>}
+                {progress > 5 ? <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 14, height: 14 }} /> : <Text className="step-num">1</Text>}
               </View>
               <Text className="step-label">分析图片特征</Text>
             </View>
             <View className={`step-item ${progress >= 10 ? 'active' : ''} ${progress === 100 ? 'done' : ''}`}>
               <View className={`step-dot ${progress === 100 ? 'done' : progress >= 10 ? 'active' : ''}`}>
-                {progress === 100 ? <CheckCircle size={14} /> : <Text className="step-num">2</Text>}
+                {progress === 100 ? <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 14, height: 14 }} /> : <Text className="step-num">2</Text>}
               </View>
               <Text className="step-label">生成核心待机动作</Text>
             </View>
             <View className={`step-item ${progress >= 100 ? 'active done' : ''}`}>
               <View className={`step-dot ${progress >= 100 ? 'done' : ''}`}>
-                {progress >= 100 ? <CheckCircle size={14} /> : <Text className="step-num">3</Text>}
+                {progress >= 100 ? <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 14, height: 14 }} /> : <Text className="step-num">3</Text>}
               </View>
               <Text className="step-label">同步到本地猫窝</Text>
             </View>
@@ -252,7 +258,7 @@ export default function GenerationProgress() {
             />
           ) : (
             <View className="preview-placeholder">
-              <Sparkles size={64} className="placeholder-icon" />
+              <Image className="icon-img placeholder-icon" src={SPARKLES_GRAY} mode="aspectFit" style={{ width: 64, height: 64 }} />
               <Text className="placeholder-text">生成完成！</Text>
             </View>
           )}
@@ -262,7 +268,7 @@ export default function GenerationProgress() {
             <View className="confirm-dialog-overlay">
               <View className="confirm-dialog">
                 <View className="dialog-icon-box">
-                  <Sparkles size={36} />
+                  <Image className="icon-img" src={SPARKLES_PRIMARY} mode="aspectFit" style={{ width: 36, height: 36 }} />
                 </View>
                 <Text className="dialog-title">我是你的梦中情猫吗？</Text>
                 <Text className="dialog-desc">
@@ -271,7 +277,7 @@ export default function GenerationProgress() {
                 <View className="dialog-actions">
                   <View className="dialog-btn primary" onClick={handleUnlockAll}>
                     <Text className="dialog-btn-text primary-text">是，全部解锁</Text>
-                    <ArrowRight size={16} />
+                    <Image className="icon-img" src={ARROWRIGHT_PRIMARY2} mode="aspectFit" style={{ width: 16, height: 16 }} />
                   </View>
                   <View className="dialog-btn secondary" onClick={handleStayBasic}>
                     <Text className="dialog-btn-text secondary-text">否，就这样吧</Text>
@@ -287,7 +293,7 @@ export default function GenerationProgress() {
       {phase === 'success' && (
         <View className="success-view">
           <View className="success-icon">
-            <CheckCircle size={64} />
+            <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 64, height: 64 }} />
           </View>
           <Text className="success-title">生成完成！</Text>
           <Text className="success-desc">你的数字猫咪已经准备好了</Text>

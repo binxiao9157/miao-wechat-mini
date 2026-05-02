@@ -1,8 +1,9 @@
 import React from 'react';
 import { useState } from 'react';
-import { View, Text, Input, Button, Textarea } from '@tarojs/components';
+import {  View, Text, Input, Button, Textarea, Image } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
-import { ArrowLeft, Send } from '../../components/common/Icons';
+const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
+const SEND_PNG = require('../../assets/profile-icons/send-primary.png');
 import './index.less';
 
 export default function Feedback() {
@@ -20,7 +21,7 @@ export default function Feedback() {
     <View className="feedback-page">
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={20} />
+          <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 20, height: 20 }} />
         </View>
         <Text className="title">意见反馈</Text>
         <View className="placeholder" />
@@ -55,7 +56,7 @@ export default function Feedback() {
           />
 
           <Button className="submit-btn" onClick={handleSubmit}>
-            <Send size={18} />
+            <Image className="icon-img" src={SEND_PNG} mode="aspectFit" style={{ width: 18, height: 18 }} />
             提交反馈
           </Button>
         </View>

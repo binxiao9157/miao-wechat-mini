@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text } from '@tarojs/components';
+import {  View, Text, Image } from '@tarojs/components';
 import Taro, { navigateBack, navigateTo } from '@tarojs/taro';
-import { ArrowLeft, Scan } from '../../components/common/Icons';
+const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
+const SCAN_PNG = require('../../assets/profile-icons/scan-primary.png');
 import { FriendInfo } from '../../services/storage';
 import { friendService } from '../../services/friendService';
 import './index.less';
@@ -89,7 +90,7 @@ export default function ScanFriend() {
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={24} />
+          <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <Text className="header-title">扫码添加好友</Text>
         <View className="header-placeholder" />
@@ -103,7 +104,7 @@ export default function ScanFriend() {
           <View className="scan-corner bottom-left" />
           <View className="scan-corner bottom-right" />
           <View className="scan-icon-box">
-            <Scan size={48} />
+            <Image className="icon-img" src={SCAN_PNG} mode="aspectFit" style={{ width: 48, height: 48 }} />
           </View>
         </View>
         <Text className="scan-hint">将二维码放入框内扫描</Text>
@@ -113,7 +114,7 @@ export default function ScanFriend() {
       <View className="bottom-actions">
         <View className="action-item" onClick={startScan}>
           <View className="action-circle">
-            <Scan size={24} />
+            <Image className="icon-img" src={SCAN_PNG} mode="aspectFit" style={{ width: 24, height: 24 }} />
           </View>
           <Text className="action-label">再次扫码</Text>
         </View>

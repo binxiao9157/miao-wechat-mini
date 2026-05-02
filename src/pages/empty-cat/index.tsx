@@ -3,15 +3,11 @@ import { View, Text } from '@tarojs/components';
 import { navigateTo, reLaunch } from '@tarojs/taro';
 import { ArrowLeft, Camera } from '../../components/common/Icons';
 import PawLogo from '../../components/common/PawLogo';
-import { useAuthContext } from '../../context/AuthContext';
 import './index.less';
 
 export default function EmptyCatPage() {
-  const { logout } = useAuthContext();
-
-  const handleLogout = () => {
-    logout();
-    reLaunch({ url: '/pages/login/index' });
+  const handleBack = () => {
+    reLaunch({ url: '/pages/cat-start/index' });
   };
 
   const handleUpload = () => {
@@ -25,7 +21,7 @@ export default function EmptyCatPage() {
   return (
     <View className="welcome-page">
       {/* Header - Back Button */}
-      <View className="back-btn" onClick={handleLogout}>
+      <View className="back-btn" onClick={handleBack}>
         <ArrowLeft size={20} />
       </View>
 

@@ -1,8 +1,9 @@
 import React from 'react';
 import { useState } from 'react';
 import { View, Text, Input, Button } from '@tarojs/components';
-import { navigateBack } from '@tarojs/taro';
-import { Eye, EyeOff, ArrowLeft } from '../../components/common/Icons';
+import { navigateBack, navigateTo } from '@tarojs/taro';
+import { Eye, EyeOff, ArrowLeft, User, Lock, ShieldCheck } from '../../components/common/Icons';
+import PawLogo from '../../components/common/PawLogo';
 import { storage, UserInfo } from '../../services/storage';
 import { useAuthContext } from '../../context/AuthContext';
 import { routeAfterCatSync } from '../../services/catLifecycle';
@@ -66,74 +67,120 @@ export default function Register() {
 
   return (
     <View className="register-page">
-      <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
-          <ArrowLeft size={20} />
-        </View>
-        <Text className="title">注册</Text>
-      </View>
+      {/* Decorative background */}
+      <View className="bg-decoration bg-decoration-1"></View>
+      <View className="bg-decoration bg-decoration-2"></View>
 
-      <View className="form-section">
-        <Input
-          className="miao-input"
-          type="text"
-          placeholder="用户名"
-          value={username}
-          onInput={(e) => setUsername(e.detail.value)}
-        />
-
-        <View className="password-wrapper">
-          <Input
-            className="miao-input"
-            type="text"
-            placeholder="密码"
-            value={password}
-            onInput={(e) => setPassword(e.detail.value)}
-            password={!showPassword}
-          />
-          <View className="eye-icon" onClick={() => setShowPassword(!showPassword)}>
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+      <View className="content">
+        {/* Header */}
+        <View className="header">
+          <View className="back-btn" onClick={() => navigateBack()}>
+            <ArrowLeft size={20} />
           </View>
         </View>
 
-        <View className="password-wrapper">
-          <Input
-            className="miao-input"
-            type="text"
-            placeholder="确认密码"
-            value={confirmPassword}
-            onInput={(e) => setConfirmPassword(e.detail.value)}
-            password={!showConfirmPassword}
-          />
-          <View className="eye-icon" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+        {/* Logo Section */}
+        <View className="logo-section">
+          <View className="logo-wrapper">
+            <PawLogo size={56} className="logo-icon" />
           </View>
+          <Text className="app-name">加入 Miao</Text>
         </View>
 
-        {error && <Text className="error-text">{error}</Text>}
+        {/* Subtitle */}
+        <Text className="subtitle">开启您与宠物的精致陪伴之旅，记录每一个温暖瞬间。</Text>
 
-        <View className="agreement">
-          <View
-            className={`checkbox ${isAgreed ? 'checked' : ''}`}
-            onClick={() => setIsAgreed(!isAgreed)}
+        {/* Form Section */}
+        <View className="form-section">
+          {/* Username */}
+          <View className="input-group">
+            <Text className="input-label">用户名</Text>
+            <View className="input-wrapper">
+              <View className="input-icon">
+                <User size={18} />
+              </View>
+              <Input
+                className="miao-input with-icon"
+                type="text"
+                placeholder="请输入您的用户名"
+                value={username}
+                onInput={(e) => setUsername(e.detail.value)}
+              />
+            </View>
+          </View>
+
+          {/* Password */}
+          <View className="input-group">
+            <Text className="input-label">设置密码</Text>
+            <View className="input-wrapper">
+              <View className="input-icon">
+                <Lock size={18} />
+              </View>
+              <Input
+                className="miao-input with-icon with-eye"
+                type="text"
+                placeholder="请输入您的密码"
+                value={password}
+                onInput={(e) => setPassword(e.detail.value)}
+                password={!showPassword}
+              />
+              <View className="eye-icon" onClick={() => setShowPassword(!showPassword)}>
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </View>
+            </View>
+          </View>
+
+          {/* Confirm Password */}
+          <View className="input-group">
+            <Text className="input-label">确认密码</Text>
+            <View className="input-wrapper">
+              <View className="input-icon">
+                <ShieldCheck size={18} />
+              </View>
+              <Input
+                className="miao-input with-icon with-eye"
+                type="text"
+                placeholder="请再次输入您的密码"
+                value={confirmPassword}
+                onInput={(e) => setConfirmPassword(e.detail.value)}
+                password={!showConfirmPassword}
+              />
+              <View className="eye-icon" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </View>
+            </View>
+          </View>
+
+          {error && <Text className="error-text">{error}</Text>}
+
+          {/* Agreement */}
+          <View className="agreement" onClick={() => setIsAgreed(!isAgreed)}>
+            <View className={`custom-checkbox ${isAgreed ? 'checked' : ''}`}>
+              {isAgreed && <Text className="check-mark">✓</Text>}
+            </View>
+            <Text className="agreement-text">
+              我已阅读并同意
+              <Text className="link" onClick={(e) => { e.stopPropagation(); navigateTo({ url: '/pages/terms-of-service/index' }); }}>《Miao 服务条款》</Text>
+              和
+              <Text className="link" onClick={(e) => { e.stopPropagation(); navigateTo({ url: '/pages/privacy-policy/index' }); }}>《隐私政策》</Text>
+            </Text>
+          </View>
+
+          {/* Register Button */}
+          <Button
+            className="miao-btn-primary"
+            onClick={handleRegister}
+            disabled={isLoading}
           >
-            {isAgreed && <Text>✓</Text>}
-          </View>
-          <Text className="agreement-text">
-            我已阅读并同意
-            <Text className="link">《Miao 服务条款》</Text>
-            和
-            <Text className="link">《隐私政策》</Text>
-          </Text>
-        </View>
+            {isLoading ? '注册中...' : '立即注册'}
+          </Button>
 
-        <Button
-          className="miao-btn-primary"
-          onClick={handleRegister}
-          disabled={isLoading}
-        >
-          {isLoading ? '注册中...' : '注册'}
-        </Button>
+          {/* Login Link */}
+          <View className="login-link">
+            <Text className="login-link-text">已有账号？</Text>
+            <Text className="login-link-action" onClick={() => navigateBack()}>登入</Text>
+          </View>
+        </View>
       </View>
     </View>
   );

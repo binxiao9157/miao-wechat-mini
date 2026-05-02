@@ -18,7 +18,7 @@ export function routeAfterCatSync(): void {
   const cat = getActiveOrFirstCat();
 
   if (!cat) {
-    Taro.reLaunch({ url: '/pages/empty-cat/index' });
+    Taro.reLaunch({ url: '/pages/cat-start/index' });
     return;
   }
 

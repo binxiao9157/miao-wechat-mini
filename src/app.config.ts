@@ -16,6 +16,7 @@ export default defineAppConfig({
     'pages/edit-profile/index',
     'pages/change-password/index',
     'pages/empty-cat/index',
+    'pages/cat-start/index',
     'pages/welcome/index',
     'pages/upload-material/index',
     'pages/cat-player/index',

@@ -24,12 +24,13 @@
 }
 
 .back-btn {
-  width: 72rpx;
-  height: 72rpx;
+  width: 80rpx;
+  height: 80rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #5D4037;
+  margin-left: -16rpx;
 }
 
 .header-title {
@@ -42,11 +43,11 @@
 
 .points-badge {
   background: rgba(255, 157, 118, 0.1);
-  padding: 8rpx 20rpx;
-  border-radius: 24rpx;
+  padding: 8rpx 24rpx;
+  border-radius: 999rpx;
   display: flex;
   align-items: center;
-  gap: 6rpx;
+  gap: 12rpx;
 }
 
 .points-icon {
@@ -64,13 +65,13 @@
   display: flex;
   flex-wrap: wrap;
   padding: 32rpx;
-  gap: 24rpx;
+  gap: 32rpx;
 }
 
 .cat-card {
-  width: calc(50% - 12rpx);
-  padding: 24rpx;
-  border-radius: 40rpx;
+  width: calc(50% - 16rpx);
+  padding: 32rpx;
+  border-radius: 64rpx;
   border: 4rpx solid transparent;
   background: #fff;
   box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
@@ -91,8 +92,8 @@
   position: absolute;
   top: 16rpx;
   left: 16rpx;
-  width: 44rpx;
-  height: 44rpx;
+  width: 56rpx;
+  height: 56rpx;
   background: rgba(255, 77, 79, 0.8);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -108,8 +109,8 @@
   position: absolute;
   top: 16rpx;
   right: 16rpx;
-  width: 40rpx;
-  height: 40rpx;
+  width: 48rpx;
+  height: 48rpx;
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -158,8 +159,13 @@
 }
 
 .active-check {
+  width: 40rpx;
+  height: 40rpx;
   color: #FF9D76;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cat-breed {
@@ -170,9 +176,9 @@
 
 /* === 添加新伙伴 === */
 .add-card {
-  width: calc(50% - 12rpx);
-  padding: 24rpx;
-  border-radius: 40rpx;
+  width: calc(50% - 16rpx);
+  padding: 32rpx;
+  border-radius: 64rpx;
   border: 4rpx dashed;
   display: flex;
   flex-direction: column;
@@ -200,8 +206,8 @@
 }
 
 .add-icon-box {
-  width: 80rpx;
-  height: 80rpx;
+  width: 96rpx;
+  height: 96rpx;
   border-radius: 50%;
   background: currentColor;
   opacity: 0.1;
@@ -218,7 +224,7 @@
 .add-cost {
   display: flex;
   align-items: center;
-  gap: 4rpx;
+  gap: 8rpx;
   opacity: 0.8;
 }
 

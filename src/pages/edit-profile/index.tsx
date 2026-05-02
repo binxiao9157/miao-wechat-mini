@@ -5,6 +5,7 @@ const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
 const CAMERA_PNG = require('../../assets/profile-icons/camera-primary.png');
 const CHECKCIRCLE_PNG = require('../../assets/profile-icons/checkcircle-green.png');
 const IMAGEICON_PNG = require('../../assets/profile-icons/image-primary.png');
+const X_GRAY_PNG = require('../../assets/profile-icons/x-gray.png');
 import { useAuthContext } from '../../context/AuthContext';
 import { storage } from '../../services/storage';
 import './index.less';
@@ -80,7 +81,7 @@ export default function EditProfile() {
       {/* 成功提示 */}
       {showSuccessToast && (
         <View className="success-toast">
-          <Image className="icon-img" src={CHECKCIRCLE_PNG} mode="aspectFit" style={{ width: 16, height: 16 }} />
+          <Image className="icon-img" src={CHECKCIRCLE_PNG} mode="aspectFit" style={{ width: 18, height: 18 }} />
           <Text className="success-toast-text">修改成功！</Text>
         </View>
       )}
@@ -150,7 +151,7 @@ export default function EditProfile() {
             <View className="actionsheet-header">
               <Text className="actionsheet-title">更换头像</Text>
               <View className="actionsheet-close" onClick={() => setShowActionSheet(false)}>
-                <Text className="close-text">✕</Text>
+                <Image className="icon-img" src={X_GRAY_PNG} mode="aspectFit" style={{ width: 20, height: 20 }} />
               </View>
             </View>
 

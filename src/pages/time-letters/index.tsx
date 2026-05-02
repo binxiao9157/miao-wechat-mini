@@ -73,7 +73,7 @@ function LetterCard({ letter, targetCat, isUnlocked, onDelete, onClick }: Letter
         />
         {!isUnlocked && (
           <View className="lock-overlay">
-            <Image className="icon-img" src={LOCK_WHITE} mode="aspectFit" style={{ width: 20, height: 20 }} />
+            <Image className="icon-img" src={LOCK_WHITE} mode="aspectFit" style={{ width: 24, height: 24 }} />
           </View>
         )}
         {isUnlocked && (

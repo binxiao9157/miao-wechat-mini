@@ -65,10 +65,10 @@ export default function Notifications() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'like': return <Image className="icon-img" src={HEART_GRAY} mode="aspectFit" style={{ width: 16, height: 16 }} />;
-      case 'comment': return <Image className="icon-img" src={MESSAGE_GRAY} mode="aspectFit" style={{ width: 16, height: 16 }} />;
-      case 'friend': return <Image className="icon-img" src={USERPLUS_GRAY} mode="aspectFit" style={{ width: 16, height: 16 }} />;
-      default: return <Image className="icon-img" src={BELL_PRIMARY} mode="aspectFit" style={{ width: 16, height: 16 }} />;
+      case 'like': return <Image className="icon-img" src={HEART_GRAY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
+      case 'comment': return <Image className="icon-img" src={MESSAGE_GRAY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
+      case 'friend': return <Image className="icon-img" src={USERPLUS_GRAY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
+      default: return <Image className="icon-img" src={BELL_PRIMARY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
     }
   };
 

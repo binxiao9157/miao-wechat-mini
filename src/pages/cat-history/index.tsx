@@ -84,11 +84,11 @@ export default function CatHistory() {
                   <View className="thumb-overlay" />
                   {/* 播放按钮 */}
                   <View className="play-btn">
-                    <Image className="icon-img" src={PLAY_WHITE} mode="aspectFit" style={{ width: 24, height: 24 }} />
+                    <Image className="icon-img" src={PLAY_WHITE} mode="aspectFit" style={{ width: 32, height: 32 }} />
                   </View>
                   {/* 删除按钮 */}
                   <View className="card-delete" onClick={(e) => handleDelete(e, cat.id)}>
-                    <Image className="icon-img" src={TRASH2_RED2} mode="aspectFit" style={{ width: 14, height: 14 }} />
+                    <Image className="icon-img" src={TRASH2_RED2} mode="aspectFit" style={{ width: 12, height: 12 }} />
                   </View>
                   {/* 底部信息 */}
                   <View className="card-info">

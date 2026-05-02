@@ -217,7 +217,7 @@ export default function Points() {
             <View className="modal-header">
               <Text className="modal-title">积分明细</Text>
               <View className="modal-close" onClick={() => setShowHistory(false)}>
-                <Image className="icon-img" src={X_GRAY} mode="aspectFit" style={{ width: 20, height: 20 }} />
+                <Image className="icon-img" src={X_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
               </View>
             </View>
 

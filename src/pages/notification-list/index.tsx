@@ -117,10 +117,10 @@ export default function NotificationList() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'letter': return <Image className="icon-img" src={SPARKLES_PRIMARY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
-      case 'points': return <Image className="icon-img" src={COINS_PRIMARY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
-      case 'greeting': return <Image className="icon-img" src={HEART_GRAY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
-      default: return <Image className="icon-img" src={BELL_PRIMARY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
+      case 'letter': return <Image className="icon-img" src={SPARKLES_PRIMARY} mode="aspectFit" style={{ width: 22, height: 22 }} />;
+      case 'points': return <Image className="icon-img" src={COINS_PRIMARY} mode="aspectFit" style={{ width: 22, height: 22 }} />;
+      case 'greeting': return <Image className="icon-img" src={HEART_GRAY} mode="aspectFit" style={{ width: 22, height: 22 }} />;
+      default: return <Image className="icon-img" src={BELL_PRIMARY} mode="aspectFit" style={{ width: 22, height: 22 }} />;
     }
   };
 
@@ -176,7 +176,7 @@ export default function NotificationList() {
       ) : (
         <View className="empty-state">
           <View className="empty-icon-box">
-            <Image className="icon-img" src={BELL_GRAY} mode="aspectFit" style={{ width: 40, height: 40 }} />
+            <Image className="icon-img" src={BELL_GRAY} mode="aspectFit" style={{ width: 22, height: 22 }} />
           </View>
           <Text className="empty-title">暂无消息</Text>
           <Text className="empty-desc">当有新消息时，会在这里显示</Text>

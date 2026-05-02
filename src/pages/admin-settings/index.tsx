@@ -60,7 +60,7 @@ export default function AdminSettings() {
       <View className="section">
         <View className="section-head">
           <View className="section-icon">
-            <Image className="icon-img" src={SETTINGS_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />
+            <Image className="icon-img" src={SETTINGS_DARK} mode="aspectFit" style={{ width: 22, height: 22 }} />
           </View>
           <View>
             <Text className="section-title">AI 模型配置</Text>
@@ -158,11 +158,11 @@ export default function AdminSettings() {
 
       <View className="bottom-actions">
         <Button className="reset-btn" onClick={handleReset}>
-          <Image className="icon-img" src={REFRESHCW_PRIMARY} mode="aspectFit" style={{ width: 16, height: 16 }} />
+          <Image className="icon-img" src={REFRESHCW_PRIMARY} mode="aspectFit" style={{ width: 20, height: 20 }} />
           恢复默认
         </Button>
         <Button className="save-btn" onClick={handleSave}>
-          <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 16, height: 16 }} />
+          <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 20, height: 20 }} />
           保存配置
         </Button>
       </View>

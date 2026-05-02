@@ -236,7 +236,7 @@ export default function CatPlayer() {
         {!isPlaying && !isLoading && (
           <View className="pause-indicator">
             <View className="pause-btn-circle">
-              <Image className="icon-img" src={PLAY_WHITE} mode="aspectFit" style={{ width: 40, height: 40 }} />
+              <Image className="icon-img" src={PLAY_WHITE} mode="aspectFit" style={{ width: 32, height: 32 }} />
             </View>
           </View>
         )}

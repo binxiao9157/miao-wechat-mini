@@ -29,7 +29,7 @@ export default function CommentInput({ onSubmit, placeholder = '说点什么...'
         onConfirm={handleSubmit}
       />
       <Button className="send-btn" onClick={handleSubmit} disabled={!content.trim()}>
-        <Image className="icon-img" src={sendPrimary} mode="aspectFit" />
+        <Image className="icon-img" src={sendPrimary} mode="aspectFit" style={{ width: 18, height: 18 }} />
       </Button>
     </View>
   );

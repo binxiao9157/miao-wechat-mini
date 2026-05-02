@@ -42,15 +42,15 @@ export default function DiaryCard({ diary, onLike, onComment, onShare }: DiaryCa
 
       <View className="card-actions">
         <View className={`action-btn ${diary.isLiked ? 'liked' : ''}`} onClick={() => onLike?.(diary.id)}>
-          <Image className="icon-img" src={HEART_PNG} mode="aspectFit" style={{ width: 18, height: 18 }} />
+          <Image className="icon-img" src={HEART_PNG} mode="aspectFit" style={{ width: 24, height: 24 }} />
           <Text>{diary.likes}</Text>
         </View>
         <View className="action-btn" onClick={() => onComment?.(diary.id)}>
-          <Image className="icon-img" src={MESSAGECIRCLE_PNG} mode="aspectFit" style={{ width: 18, height: 18 }} />
+          <Image className="icon-img" src={MESSAGECIRCLE_PNG} mode="aspectFit" style={{ width: 24, height: 24 }} />
           <Text>{diary.comments.length}</Text>
         </View>
         <View className="action-btn" onClick={() => onShare?.(diary.id)}>
-          <Image className="icon-img" src={SHARE2_PNG} mode="aspectFit" style={{ width: 18, height: 18 }} />
+          <Image className="icon-img" src={SHARE2_PNG} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
       </View>
     </View>

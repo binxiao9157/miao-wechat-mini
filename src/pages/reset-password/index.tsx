@@ -93,7 +93,7 @@ export default function ResetPassword() {
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
+          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
         </View>
         <Text className="header-title">重置密码</Text>
       </View>

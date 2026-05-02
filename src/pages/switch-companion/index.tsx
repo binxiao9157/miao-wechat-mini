@@ -119,7 +119,7 @@ export default function SwitchCompanion() {
                 <Text className="cat-name">{cat.name}</Text>
                 {activeId === cat.id && (
                   <View className="active-check">
-                    <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 16, height: 16 }} />
+                    <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 12, height: 12 }} />
                   </View>
                 )}
               </View>

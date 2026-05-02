@@ -21,13 +21,13 @@ const ICONS = {
 
 type ProfileIconName = keyof typeof ICONS;
 
-function ProfileIcon({ name, size = 42, className = '' }: { name: ProfileIconName; size?: number; className?: string }) {
+function ProfileIcon({ name, size, className = '' }: { name: ProfileIconName; size?: number; className?: string }) {
   return (
     <Image
       className={`profile-icon ${className}`}
       src={ICONS[name]}
       mode="aspectFit"
-      style={{ width: size, height: size }}
+      style={size ? { width: `${size}px`, height: `${size}px` } : undefined}
     />
   );
 }
@@ -177,10 +177,10 @@ export default function Profile() {
         </View>
         <View className="header-actions">
           <View className="header-btn" onClick={handleScanClick}>
-            <ProfileIcon name="scan" />
+            <ProfileIcon name="scan" size={24} />
           </View>
           <View className="header-btn" onClick={handleNotificationClick}>
-            <ProfileIcon name="bell" />
+            <ProfileIcon name="bell" size={24} />
             {unreadCount > 0 && (
               <View className="unread-badge">
                 <Text className="unread-text">{unreadCount > 99 ? '99+' : unreadCount}</Text>
@@ -200,7 +200,7 @@ export default function Profile() {
               mode="aspectFill"
             />
             <View className="avatar-edit-btn" onClick={(e) => { e.stopPropagation(); navigateTo({ url: '/pages/edit-profile/index' }); }}>
-              <ProfileIcon name="camera" />
+              <ProfileIcon name="camera" size={14} />
             </View>
           </View>
           <Text className="nickname">{user?.nickname || '未登录'}</Text>
@@ -209,12 +209,12 @@ export default function Profile() {
           {/* 统计卡片 - 可点击 */}
           <View className="stats-row">
             <View className="stat-card" onClick={() => navigateTo({ url: '/pages/accompany-milestone/index' })}>
-              <ProfileIcon name="calendar" className="stat-icon" />
+              <ProfileIcon name="calendar" size={16} className="stat-icon" />
               <Text className="stat-value">{stats.days}</Text>
               <Text className="stat-label">陪伴天数</Text>
             </View>
             <View className="stat-card" onClick={() => navigateTo({ url: '/pages/diary/index' })}>
-              <ProfileIcon name="image" className="stat-icon" />
+              <ProfileIcon name="image" size={16} className="stat-icon" />
               <Text className="stat-value">{stats.entries}</Text>
               <Text className="stat-label">记录瞬间</Text>
             </View>
@@ -223,7 +223,7 @@ export default function Profile() {
           {/* 当前猫咪入口 */}
           <View className="cat-entry" onClick={() => navigateTo({ url: '/pages/switch-companion/index' })}>
             <View className="cat-entry-icon">
-              <ProfileIcon name="heart" />
+              <ProfileIcon name="heart" size={20} />
             </View>
             <View className="cat-entry-text">
               <Text className="cat-entry-label">我的伙伴</Text>
@@ -243,7 +243,7 @@ export default function Profile() {
               onClick={() => item.url && navigateTo({ url: item.url })}
             >
               <View className={`menu-icon ${item.color}`}>
-                <ProfileIcon name={item.icon} />
+                <ProfileIcon name={item.icon} size={20} />
               </View>
               <Text className="menu-label">{item.label}</Text>
               <Text className="menu-arrow">›</Text>
@@ -255,7 +255,7 @@ export default function Profile() {
             className="menu-item"
             onClick={() => setShowLogoutConfirm(true)}
           >
-            <View className="menu-icon bg-gray-50"><ProfileIcon name="logout" /></View>
+            <View className="menu-icon bg-gray-50"><ProfileIcon name="logout" size={20} /></View>
             <Text className="menu-label">退出登录</Text>
             <Text className="menu-arrow">›</Text>
           </View>
@@ -265,7 +265,7 @@ export default function Profile() {
             className="menu-item danger"
             onClick={() => setShowClearConfirm(true)}
           >
-            <View className="menu-icon bg-red-50"><ProfileIcon name="trash" /></View>
+            <View className="menu-icon bg-red-50"><ProfileIcon name="trash" size={20} /></View>
             <Text className="menu-label danger-text">注销账户</Text>
             <Text className="menu-arrow danger">›</Text>
           </View>
@@ -288,7 +288,7 @@ export default function Profile() {
         <View className="modal-mask" onClick={() => setShowLogoutConfirm(false)}>
           <View className="modal-content" onClick={(e) => e.stopPropagation()}>
             <View className="modal-icon logout">
-              <ProfileIcon name="logout" />
+              <ProfileIcon name="logout" size={32} />
             </View>
             <Text className="modal-title">退出登录？</Text>
             <Text className="modal-desc">确定要退出登录吗？</Text>
@@ -305,7 +305,7 @@ export default function Profile() {
         <View className="modal-mask" onClick={() => setShowClearConfirm(false)}>
           <View className="modal-content" onClick={(e) => e.stopPropagation()}>
             <View className="modal-icon delete">
-              <ProfileIcon name="trash" />
+              <ProfileIcon name="trash" size={32} />
             </View>
             <Text className="modal-title danger">注销账户？</Text>
             <Text className="modal-desc">注销账户将永久删除您的所有数据（包括猫咪、日记、信件），此操作不可撤销。确定继续吗？</Text>

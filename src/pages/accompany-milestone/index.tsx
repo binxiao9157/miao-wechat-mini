@@ -31,7 +31,7 @@ export default function AccompanyMilestone() {
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 24, height: 24 }} />
+          <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 20, height: 20 }} />
         </View>
         <Text className="header-title">陪伴里程碑</Text>
         <View className="header-placeholder" />

@@ -1,6 +1,6 @@
 .login-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: linear-gradient(180deg, #FFF9F5 0%, #FFF9F5 78%, #FFFBF8 100%);
   position: relative;
   overflow: hidden;
   width: 100%;
@@ -31,7 +31,7 @@
 
 .content {
   width: 100%;
-  padding: 0 48rpx;
+  padding: calc(env(safe-area-inset-top) + 56rpx) 48rpx 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -61,11 +61,9 @@
   }
 
   .app-name {
-    font-size: 72rpx;
+    font-size: 56rpx;
     font-weight: 900;
-    background: linear-gradient(135deg, #5D4037 0%, #E89F71 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #633E1D;
     margin-left: -16rpx;
   }
 }
@@ -78,13 +76,13 @@
     display: block;
     font-size: 44rpx;
     font-weight: 900;
-    color: #333;
+    color: #633E1D;
     margin-bottom: 8rpx;
   }
 
   .subtitle {
     font-size: 26rpx;
-    color: rgba(102, 102, 102, 0.8);
+    color: #8E8E8E;
     font-weight: 500;
   }
 }
@@ -104,7 +102,7 @@
   height: 100%;
   background: #FEF6F0;
   border-radius: 96rpx;
-  box-shadow: 0 20rpx 60rpx rgba(232, 159, 113, 0.1);
+  box-shadow: 0 20rpx 60rpx rgba(99, 62, 29, 0.08);
 }
 
 .cat-inner {
@@ -133,10 +131,10 @@
   width: 100%;
   height: 96rpx;
   padding: 0 32rpx;
-  border: 2rpx solid #e0e0e0;
-  border-radius: 24rpx;
+  border: 2rpx solid #F2E6DD;
+  border-radius: 48rpx;
   font-size: 28rpx;
-  background: #fafafa;
+  background: #FEF6F0;
   box-sizing: border-box;
 
   &:focus {
@@ -231,7 +229,7 @@
 .login-btn {
   width: 100%;
   height: 96rpx;
-  background: linear-gradient(135deg, #ff9a5a 0%, #ff6b3d 100%);
+  background: #E89F71;
   color: #fff;
   border: none;
   border-radius: 48rpx;
@@ -252,14 +250,14 @@
   width: 100%;
   height: 96rpx;
   background: #fff;
-  color: #E89F71;
-  border: 2rpx solid #E89F71;
+  color: #633E1D;
+  border: 2rpx solid #F2E6DD;
   border-radius: 48rpx;
   font-size: 32rpx;
   font-weight: 600;
 
   &:active {
-    background: #FFF5F0;
+    background: #FEF6F0;
   }
 }
 

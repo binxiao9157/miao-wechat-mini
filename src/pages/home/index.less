@@ -131,10 +131,10 @@
   display: flex;
   align-items: center;
   gap: 8rpx;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
-  border: 1rpx solid rgba(255, 255, 255, 0.25);
-  padding: 12rpx 24rpx;
+  background: rgba(255, 249, 245, 0.36);
+  backdrop-filter: blur(18rpx);
+  border: 1rpx solid rgba(255, 255, 255, 0.34);
+  padding: 12rpx 26rpx;
   border-radius: 999rpx;
 }
 
@@ -151,25 +151,27 @@
 /* 气泡提示 */
 .bubble-container {
   position: fixed;
-  top: 22%;
-  left: 32rpx;
+  top: 25%;
+  left: 58rpx;
   z-index: 100;
 }
 
 .bubble {
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(16px);
-  border: 1rpx solid rgba(255, 255, 255, 0.3);
-  border-radius: 32rpx;
-  padding: 20rpx 32rpx;
+  min-width: 360rpx;
+  text-align: center;
+  background: rgba(255, 249, 245, 0.48);
+  backdrop-filter: blur(22rpx);
+  border: 2rpx solid rgba(255, 255, 255, 0.36);
+  border-radius: 52rpx;
+  padding: 30rpx 42rpx;
   box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
   animation: bubbleIn 0.3s ease-out;
 }
 
 .bubble-text {
-  font-size: 26rpx;
-  color: #fff;
-  font-weight: 600;
+  font-size: 32rpx;
+  color: #633E1D;
+  font-weight: 900;
 }
 
 @keyframes bubbleIn {
@@ -180,19 +182,19 @@
 /* 积分奖励提示 */
 .point-toast {
   position: fixed;
-  top: 200rpx;
+  top: calc(env(safe-area-inset-top) + 156rpx);
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
   background: #FF9D76;
-  padding: 16rpx 40rpx;
-  border-radius: 40rpx;
+  padding: 24rpx 58rpx;
+  border-radius: 64rpx;
   animation: bubbleIn 0.3s ease-out;
   white-space: nowrap;
 }
 
 .point-toast-text {
-  font-size: 26rpx;
+  font-size: 34rpx;
   color: #fff;
   font-weight: 600;
 }
@@ -218,7 +220,7 @@
 /* 猫咪名字 - 底部浮层（tabBar 高度约 100rpx，留足间距）*/
 .cat-name-overlay {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom) + 200rpx);
+  bottom: calc(env(safe-area-inset-bottom) + 214rpx);
   left: 48rpx;
   z-index: 100;
 }
@@ -241,7 +243,7 @@
 /* 手势提示 - 底部居中（tabBar 上方）*/
 .gesture-hints {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom) + 140rpx);
+  bottom: calc(env(safe-area-inset-bottom) + 166rpx);
   left: 0;
   right: 0;
   text-align: center;

@@ -1,15 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
 import Taro, { switchTab, navigateTo } from '@tarojs/taro';
-import { ArrowLeft, Coins, TrendingUp, Calendar, Gift, CheckCircle, ArrowRight, Lock, X } from '../../components/common/Icons';
+import { Coins, CheckCircle, ArrowRight, Lock, X } from '../../components/common/Icons';
 import { storage, PointsInfo, PointTransaction } from '../../services/storage';
 import './index.less';
-
-type PointsIconName = 'star' | 'check' | 'lock' | 'close';
-
-function PointsIcon({ name, className = '' }: { name: PointsIconName; className?: string }) {
-  return <View className={`points-icon points-icon-${name} ${className}`} />;
-}
 
 export default function Points() {
   const [pointsInfo, setPointsInfo] = useState<PointsInfo>({
@@ -109,10 +103,10 @@ export default function Points() {
     <View className="points-page">
       {/* Header */}
       <View className="header">
-        <View className="back-btn" onClick={() => switchTab({ url: '/pages/home/index' })}>
-          <ArrowLeft size={20} />
+        <View className="header-title" onClick={handleDebugTap}>
+          <Text className="title">积分中心</Text>
+          <Text className="subtitle">POINTS CENTER</Text>
         </View>
-        <Text className="title">积分中心</Text>
         <View className="placeholder" />
       </View>
 

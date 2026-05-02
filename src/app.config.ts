@@ -37,8 +37,10 @@ export default defineAppConfig({
     navigationBarTitleText: 'Miao',
     navigationBarTextStyle: 'black',
     backgroundColor: '#FFF9F5',
+    navigationStyle: 'custom',
   },
   tabBar: {
+    custom: true,
     color: '#8E8E8E',
     selectedColor: '#E89F71',
     backgroundColor: '#FFFFFF',

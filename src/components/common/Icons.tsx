@@ -165,6 +165,11 @@ export const Unlock = createTextIcon('🔓');
 // 邮件图标
 export const Mail = createTextIcon('✉️');
 
+export const BookOpen = createTextIcon('▱');
+export const HomeIcon = createTextIcon('⌂');
+export const StarOutline = createTextIcon('☆');
+export const UserOutline = createSymbolIcon(() => '♙');
+
 // 上传图标
 export const Upload = createTextIcon('📤');
 
@@ -222,6 +227,10 @@ export default {
   Lock,
   Unlock,
   Mail,
+  BookOpen,
+  HomeIcon,
+  StarOutline,
+  UserOutline,
   Upload,
   AlertCircle,
   ArrowRight,

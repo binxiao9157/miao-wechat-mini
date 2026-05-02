@@ -1,8 +1,8 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image, Button, Input, Textarea, Video } from '@tarojs/components';
-import Taro, { switchTab } from '@tarojs/taro';
-import { ArrowLeft, Plus, Heart, MessageCircle, ImageIcon, Film, X, Trash2, Share2, UserPlus } from '../../components/common/Icons';
+import Taro from '@tarojs/taro';
+import { Plus, Heart, MessageCircle, ImageIcon, Film, X, Trash2, Share2, UserPlus } from '../../components/common/Icons';
 import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage } from '../../services/storage';
 import { friendService } from '../../services/friendService';
 import './index.less';
@@ -384,10 +384,10 @@ export default function Diary() {
   return (
     <View className="diary-page">
       <View className="header">
-        <View className="back-btn" onClick={() => switchTab({ url: '/pages/home/index' })}>
-          <ArrowLeft size={20} />
+        <View className="header-title">
+          <Text className="title">日常记录</Text>
+          <Text className="subtitle">DAILY MOMENTS</Text>
         </View>
-        <Text className="title">日记</Text>
         <View className="header-actions">
           <View className="friend-btn" onClick={() => setShowAddFriendMenu(true)}>
             <UserPlus size={20} />

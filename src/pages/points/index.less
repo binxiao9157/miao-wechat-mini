@@ -1,6 +1,6 @@
 .points-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #FFF9F5 0%, #FFE8D6 100%);
+  background: linear-gradient(180deg, #FFF9F5 0%, #FFF9F5 82%, #FEF6F0 100%);
   display: flex;
   flex-direction: column;
 }
@@ -8,28 +8,31 @@
 /* Header */
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  padding: 20rpx 32rpx;
-  padding-top: calc(env(safe-area-inset-top) + 20rpx);
+  padding: calc(env(safe-area-inset-top) + 76rpx) 44rpx 34rpx;
   background: transparent;
 
-  .back-btn {
-    width: 80rpx;
-    height: 80rpx;
-    border-radius: 24rpx;
-    background: #fff;
+  .header-title {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #5D4037;
-    box-shadow: 0 8rpx 24rpx rgba(93, 64, 55, 0.1);
+    flex-direction: column;
   }
 
   .title {
-    font-size: 36rpx;
-    font-weight: 700;
-    color: #5D4037;
+    display: block;
+    font-size: 64rpx;
+    line-height: 1.06;
+    font-weight: 900;
+    color: #633E1D;
+  }
+
+  .subtitle {
+    display: block;
+    margin-top: 14rpx;
+    font-size: 23rpx;
+    font-weight: 800;
+    color: #8E8E8E;
+    letter-spacing: 8rpx;
   }
 
   .placeholder {
@@ -39,22 +42,23 @@
 
 /* Content */
 .points-content {
-  padding: 0 32rpx 120rpx;
+  padding: 0 44rpx 220rpx;
   flex: 1;
 }
 
 /* Points Card */
 .points-card {
-  background: linear-gradient(135deg, #FF9D76 0%, #FF6B3D 100%);
-  border-radius: 32rpx;
-  padding: 40rpx;
+  background: #E0A171;
+  border-radius: 52rpx;
+  padding: 76rpx 40rpx 68rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   color: #fff;
   position: relative;
   overflow: hidden;
-  margin-bottom: 40rpx;
+  margin-bottom: 58rpx;
+  box-shadow: 0 12rpx 34rpx rgba(99, 62, 29, 0.12);
 }
 
 .points-card-glow {
@@ -88,7 +92,7 @@
   display: flex;
   align-items: center;
   gap: 4rpx;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.22);
   padding: 8rpx 16rpx;
   border-radius: 20rpx;
 }
@@ -111,8 +115,9 @@
 }
 
 .points-value {
-  font-size: 80rpx;
-  font-weight: 700;
+  font-size: 112rpx;
+  line-height: 1;
+  font-weight: 900;
 }
 
 /* Tasks Section */
@@ -128,33 +133,33 @@
 }
 
 .tasks-title {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #1C1B1F;
+  font-size: 48rpx;
+  font-weight: 900;
+  color: #633E1D;
 }
 
 .tasks-tag {
   font-size: 20rpx;
   font-weight: 600;
   color: #FF9D76;
-  background: rgba(255, 157, 118, 0.1);
-  padding: 8rpx 16rpx;
-  border-radius: 16rpx;
+  background: #FDF2E9;
+  padding: 14rpx 24rpx;
+  border-radius: 999rpx;
 }
 
 .tasks-list {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: 28rpx;
 }
 
 .task-item {
   display: flex;
   align-items: center;
   background: #fff;
-  border-radius: 24rpx;
-  padding: 24rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  border-radius: 44rpx;
+  padding: 32rpx;
+  box-shadow: 0 12rpx 34rpx rgba(99, 62, 29, 0.08);
 }
 
 .task-item.clickable:active {
@@ -183,9 +188,9 @@
 }
 
 .task-title {
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 700;
-  color: #1C1B1F;
+  color: #633E1D;
   margin-bottom: 4rpx;
 }
 
@@ -227,26 +232,26 @@
 }
 
 .redeem-title {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #1C1B1F;
+  font-size: 44rpx;
+  font-weight: 900;
+  color: #633E1D;
   margin-bottom: 24rpx;
 }
 
 .redeem-card {
   background: #fff;
-  border-radius: 24rpx;
+  border-radius: 44rpx;
   padding: 32rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
-  border: 4rpx dashed rgba(93, 64, 55, 0.1);
+  box-shadow: 0 12rpx 34rpx rgba(99, 62, 29, 0.08);
+  border: 3rpx solid #F2E6DD;
 }
 
 .redeem-card.active {
   border: 4rpx solid rgba(255, 157, 118, 0.2);
-  background: rgba(255, 157, 118, 0.05);
+  background: #FFFBF8;
 }
 
 .redeem-icon {
@@ -270,7 +275,7 @@
 .redeem-subtitle {
   font-size: 28rpx;
   font-weight: 700;
-  color: #1C1B1F;
+  color: #633E1D;
   margin-bottom: 8rpx;
 }
 
@@ -303,7 +308,7 @@
 }
 
 .redeem-btn.active {
-  background: linear-gradient(135deg, #FF9D76 0%, #FF6B3D 100%);
+  background: #E89F71;
   color: #fff;
   box-shadow: 0 8rpx 24rpx rgba(255, 107, 61, 0.3);
 }

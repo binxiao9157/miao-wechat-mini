@@ -1,30 +1,33 @@
 .diary-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: linear-gradient(180deg, #FFF9F5 0%, #FFF9F5 84%, #FEF6F0 100%);
 }
 
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  padding: 20px;
-  background: #fff;
+  padding: calc(env(safe-area-inset-top) + 76rpx) 44rpx 34rpx;
+  background: transparent;
 
-  .back-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
-    background: #f5f5f5;
+  .header-title {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #666;
+    flex-direction: column;
   }
 
   .title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #333;
+    font-size: 64rpx;
+    line-height: 1.06;
+    font-weight: 900;
+    color: #633E1D;
+  }
+
+  .subtitle {
+    font-size: 23rpx;
+    color: #8E8E8E;
+    font-weight: 800;
+    letter-spacing: 8rpx;
+    margin-top: 14rpx;
   }
 
   .header-actions {
@@ -34,21 +37,22 @@
   }
 
   .friend-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
-    background: #f5f5f5;
+    width: 92rpx;
+    height: 92rpx;
+    border-radius: 28rpx;
+    background: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #666;
+    color: #8E8E8E;
+    box-shadow: 0 12rpx 34rpx rgba(99, 62, 29, 0.08);
   }
 
   .add-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
-    background: #ff8c5a;
+    width: 112rpx;
+    height: 112rpx;
+    border-radius: 32rpx;
+    background: #E89F71;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -57,42 +61,47 @@
 }
 
 .diary-list {
-  padding: 16px;
+  padding: 16px 44rpx 220rpx;
 }
 
 /* Tab 切换栏 */
 .tab-bar {
   display: flex;
-  background: #fff;
-  border-bottom: 1px solid #f0f0f0;
+  background: #FEF6F0;
+  border-radius: 44rpx;
+  margin: 0 44rpx 28rpx;
+  padding: 10rpx;
+  border-bottom: none;
 
   .tab-item {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 12px 0;
+    padding: 24rpx 0;
+    border-radius: 34rpx;
     position: relative;
 
     .tab-text {
       font-size: 14px;
-      color: #666;
+      color: #8E8E8E;
+      font-weight: 800;
     }
 
     &.active {
       .tab-text {
         color: #ff6b3d;
-        font-weight: 600;
+        font-weight: 900;
+      }
+      background: #E89F71;
+      box-shadow: 0 8rpx 20rpx rgba(232, 159, 113, 0.18);
+      .tab-text {
+        color: #fff;
       }
     }
 
     .tab-indicator {
-      position: absolute;
-      bottom: 0;
-      width: 40px;
-      height: 3px;
-      background: #ff6b3d;
-      border-radius: 2px;
+      display: none;
     }
   }
 }
@@ -105,7 +114,7 @@
 
   .empty-text {
     font-size: 16px;
-    color: #333;
+    color: #633E1D;
     margin-bottom: 8px;
   }
 
@@ -117,9 +126,10 @@
 
 .diary-item {
   background: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
+  border-radius: 36rpx;
+  padding: 42rpx;
+  margin-bottom: 28rpx;
+  box-shadow: 0 12rpx 34rpx rgba(99, 62, 29, 0.08);
 }
 
 .diary-header {
@@ -141,6 +151,7 @@
       font-size: 14px;
       font-weight: 600;
       color: #333;
+      color: #633E1D;
     }
 
     .time {
@@ -153,6 +164,7 @@
 .diary-content {
   font-size: 14px;
   color: #333;
+  color: #633E1D;
   line-height: 1.6;
   margin-bottom: 12px;
 }
@@ -172,7 +184,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    color: #999;
+    color: #8E8E8E;
     font-size: 14px;
 
     &.liked {
@@ -216,13 +228,13 @@
       .compose-title {
         font-size: 22px;
         font-weight: 700;
-        color: #1a1a1a;
+        color: #633E1D;
         display: block;
       }
 
       .compose-subtitle {
         font-size: 10px;
-        color: #999;
+        color: #8E8E8E;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 2px;
@@ -256,6 +268,7 @@
     min-height: 120px;
     padding: 16px 20px;
     background: #f5f5f5;
+    background: #FEF6F0;
     border-radius: 20px;
     font-size: 15px;
     line-height: 1.6;
@@ -340,7 +353,7 @@
     .publish-btn {
       padding: 0 28px;
       height: 48px;
-      background: #ff9d76;
+      background: #E89F71;
       color: #fff;
       border: none;
       border-radius: 24px;

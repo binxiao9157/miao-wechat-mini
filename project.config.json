@@ -1,8 +1,8 @@
 {
-  "miniprogramRoot": "./dist",
+  "miniprogramRoot": "dist/",
   "projectname": "miao-wechat-mini",
   "description": "Miao WeChat Mini Program",
-  "appid": "wx2e8c9453aab1b7ef",
+  "appid": "wx4c0c312f5b762e8e",
   "compileType": "miniprogram",
   "setting": {
     "urlCheck": false,
@@ -23,7 +23,25 @@
       "disablePlugins": [],
       "outputPath": ""
     },
-    "minifyWXML": true
+    "minifyWXML": true,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true
   },
-  "condition": {}
+  "condition": {},
+  "simulatorPluginLibVersion": {},
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "editorSetting": {}
 }

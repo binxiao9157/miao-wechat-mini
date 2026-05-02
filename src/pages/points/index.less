@@ -5,6 +5,15 @@
   flex-direction: column;
 }
 
+/* Icon base styles */
+.icon-img {
+  display: block;
+}
+
+.icon-img-sm {
+  display: block;
+}
+
 /* Header */
 .header {
   display: flex;
@@ -46,7 +55,7 @@
   flex: 1;
 }
 
-/* Points Card */
+/* Points Card - 对齐PWA: Star图标 + ChevronRight积分明细 */
 .points-card {
   background: #E0A171;
   border-radius: 52rpx;
@@ -72,10 +81,15 @@
   filter: blur(40rpx);
 }
 
-.points-card-glow:last-child {
-  left: -40rpx;
+.points-card-glow-bottom {
+  position: absolute;
   bottom: -40rpx;
-  top: auto;
+  left: -40rpx;
+  width: 160rpx;
+  height: 160rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  filter: blur(40rpx);
 }
 
 .points-card-content {
@@ -98,20 +112,22 @@
 }
 
 .points-card-header .points-card-label {
-  font-size: 22rpx;
-  font-weight: 600;
+  font-size: 20rpx;
+  font-weight: 700;
   color: #fff;
+  letter-spacing: 2rpx;
 }
 
 .points-icon-wrapper {
-  margin-bottom: 16rpx;
+  margin-bottom: 12rpx;
 }
 
 .points-card-subtitle {
-  font-size: 24rpx;
-  font-weight: 600;
+  font-size: 22rpx;
+  font-weight: 700;
   opacity: 0.8;
   margin-bottom: 8rpx;
+  letter-spacing: 4rpx;
 }
 
 .points-value {
@@ -120,7 +136,7 @@
   font-weight: 900;
 }
 
-/* Tasks Section */
+/* Tasks Section - 对齐PWA: 标题字体、标签样式、任务卡片布局 */
 .tasks-section {
   margin-bottom: 40rpx;
 }
@@ -133,143 +149,173 @@
 }
 
 .tasks-title {
-  font-size: 48rpx;
-  font-weight: 900;
+  font-size: 36rpx;
+  font-weight: 700;
   color: #633E1D;
 }
 
 .tasks-tag {
-  font-size: 20rpx;
-  font-weight: 600;
-  color: #FF9D76;
-  background: #FDF2E9;
-  padding: 14rpx 24rpx;
+  font-size: 18rpx;
+  font-weight: 700;
+  color: #E89F71;
+  background: rgba(232, 159, 113, 0.1);
+  padding: 8rpx 16rpx;
   border-radius: 999rpx;
+  letter-spacing: 2rpx;
 }
 
 .tasks-list {
   display: flex;
   flex-direction: column;
-  gap: 28rpx;
+  gap: 24rpx;
 }
 
 .task-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   background: #fff;
-  border-radius: 44rpx;
+  border-radius: 32rpx;
   padding: 32rpx;
-  box-shadow: 0 12rpx 34rpx rgba(99, 62, 29, 0.08);
+  box-shadow: 0 8rpx 24rpx rgba(99, 62, 29, 0.06);
 }
 
 .task-item.clickable:active {
   opacity: 0.9;
+  transform: scale(0.98);
+}
+
+.task-left {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  flex: 1;
+  min-width: 0;
 }
 
 .task-icon {
   width: 96rpx;
   height: 96rpx;
   border-radius: 24rpx;
-  background: rgba(255, 157, 118, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #FF9D76;
-  margin-right: 24rpx;
+  flex-shrink: 0;
+  background: rgba(232, 159, 113, 0.05);
 }
 
 .task-icon.completed {
   background: rgba(82, 196, 26, 0.1);
-  color: #52C41A;
 }
 
-.task-content {
-  flex: 1;
+.task-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .task-title {
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: 700;
   color: #633E1D;
   margin-bottom: 4rpx;
 }
 
 .task-desc {
-  font-size: 22rpx;
+  font-size: 18rpx;
   color: rgba(93, 64, 55, 0.6);
   margin-bottom: 8rpx;
 }
 
 .task-reward {
   display: inline-flex;
+  align-items: baseline;
+  gap: 2rpx;
 }
 
-.task-reward-text {
-  font-size: 20rpx;
+.task-reward-value {
+  font-size: 18rpx;
+  font-weight: 900;
+  color: #E89F71;
+}
+
+.task-reward-unit {
+  font-size: 18rpx;
+  color: rgba(93, 64, 55, 0.6);
+}
+
+/* 已完成标签 - 对齐PWA: pill badge */
+.task-badge {
+  font-size: 18rpx;
   font-weight: 700;
-  color: #FF9D76;
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  flex-shrink: 0;
 }
 
-.task-status {
-  font-size: 22rpx;
-  font-weight: 600;
-  padding: 8rpx 16rpx;
-  border-radius: 16rpx;
-}
-
-.task-status.completed {
+.task-badge.completed {
   background: rgba(82, 196, 26, 0.1);
   color: #52C41A;
 }
 
-.task-status.pending {
-  color: rgba(93, 64, 55, 0.3);
+/* 去做按钮 - 对齐PWA: circle button */
+.task-go-btn {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: rgba(232, 159, 113, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-/* Redeem Section */
+/* Redeem Section - 对齐PWA: 虚线边框(锁定) / 实线边框(解锁) */
 .redeem-section {
   margin-bottom: 40rpx;
 }
 
 .redeem-title {
-  font-size: 44rpx;
-  font-weight: 900;
+  font-size: 36rpx;
+  font-weight: 700;
   color: #633E1D;
   margin-bottom: 24rpx;
 }
 
 .redeem-card {
   background: #fff;
-  border-radius: 44rpx;
-  padding: 32rpx;
+  border-radius: 32rpx;
+  padding: 40rpx 32rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 12rpx 34rpx rgba(99, 62, 29, 0.08);
-  border: 3rpx solid #F2E6DD;
+  box-shadow: 0 8rpx 24rpx rgba(99, 62, 29, 0.06);
+  border: 3rpx dashed rgba(93, 64, 55, 0.2);
+  opacity: 0.8;
 }
 
 .redeem-card.active {
-  border: 4rpx solid rgba(255, 157, 118, 0.2);
-  background: #FFFBF8;
+  border: 3rpx solid rgba(232, 159, 113, 0.2);
+  background: rgba(232, 159, 113, 0.03);
+  opacity: 1;
 }
 
 .redeem-icon {
   width: 128rpx;
   height: 128rpx;
   border-radius: 50%;
-  background: #F5F5F5;
+  background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   color: rgba(93, 64, 55, 0.3);
   margin-bottom: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .redeem-icon.active {
-  background: #fff;
-  color: #FF9D76;
-  box-shadow: 0 8rpx 24rpx rgba(255, 157, 118, 0.2);
+  color: #E89F71;
+  box-shadow: 0 8rpx 24rpx rgba(232, 159, 113, 0.2);
 }
 
 .redeem-subtitle {
@@ -287,10 +333,11 @@
 }
 
 .redeem-hint {
-  font-size: 20rpx;
-  font-weight: 700;
-  color: #FF9D76;
+  font-size: 18rpx;
+  font-weight: 900;
+  color: #E89F71;
   margin-bottom: 16rpx;
+  letter-spacing: 2rpx;
 }
 
 .redeem-btn {
@@ -310,7 +357,7 @@
 .redeem-btn.active {
   background: #E89F71;
   color: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(255, 107, 61, 0.3);
+  box-shadow: 0 8rpx 24rpx rgba(232, 159, 113, 0.3);
 }
 
 /* Debug Entry */
@@ -324,7 +371,7 @@
   color: rgba(93, 64, 55, 0.2);
 }
 
-/* Modal */
+/* Modal - 对齐PWA: earn颜色改为primary */
 .modal-mask {
   position: fixed;
   top: 0;
@@ -372,14 +419,13 @@
 }
 
 .modal-close {
-  width: 64rpx;
-  height: 64rpx;
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 50%;
   background: #F5F5F5;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(93, 64, 55, 0.6);
 }
 
 .modal-list {
@@ -394,6 +440,18 @@
   text-align: center;
   color: rgba(93, 64, 55, 0.4);
   font-size: 28rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-empty-icon {
+  margin-bottom: 16rpx;
+}
+
+.modal-empty-text {
+  font-size: 28rpx;
+  color: rgba(93, 64, 55, 0.5);
 }
 
 .modal-item {
@@ -402,7 +460,7 @@
   align-items: center;
   padding: 24rpx;
   background: #F9FAFB;
-  border-radius: 16rpx;
+  border-radius: 24rpx;
   margin-bottom: 16rpx;
 }
 
@@ -412,23 +470,24 @@
 
 .modal-item-reason {
   font-size: 28rpx;
-  font-weight: 600;
+  font-weight: 700;
   color: #1C1B1F;
   margin-bottom: 4rpx;
 }
 
 .modal-item-time {
-  font-size: 22rpx;
+  font-size: 18rpx;
   color: rgba(93, 64, 55, 0.5);
 }
 
 .modal-item-amount {
   font-size: 32rpx;
-  font-weight: 700;
+  font-weight: 900;
 }
 
+/* 对齐PWA: earn颜色从绿色改为primary (#E89F71) */
 .modal-item-amount.earn {
-  color: #52C41A;
+  color: #E89F71;
 }
 
 .modal-item-amount.spend {

@@ -1,9 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
 import Taro, { switchTab, navigateTo } from '@tarojs/taro';
-import { Coins, CheckCircle, ArrowRight, Lock, X } from '../../components/common/Icons';
 import { storage, PointsInfo, PointTransaction } from '../../services/storage';
 import './index.less';
+
+// Lucide-style PNG icons
+const STAR_WHITE = require('../../assets/profile-icons/star-white.png');
+const STAR_PRIMARY = require('../../assets/profile-icons/star-primary.png');
+const CHECKCIRCLE2_GREEN = require('../../assets/profile-icons/checkcircle2-green.png');
+const ARROWRIGHT_WHITE = require('../../assets/profile-icons/arrowright-white.png');
+const ARROWRIGHT_PRIMARY = require('../../assets/profile-icons/arrowright-primary.png');
+const LOCK_GRAY = require('../../assets/profile-icons/lock-gray.png');
+const CHEVRONRIGHT_WHITE = require('../../assets/profile-icons/chevronright-white.png');
+const X_GRAY = require('../../assets/profile-icons/x-gray.png');
 
 export default function Points() {
   const [pointsInfo, setPointsInfo] = useState<PointsInfo>({
@@ -27,13 +36,11 @@ export default function Points() {
   useEffect(() => {
     loadPoints();
 
-    // 监听 storage 变化
     const handleStorageChange = () => {
       loadPoints();
     };
     Taro.eventCenter.on('points-updated', handleStorageChange);
 
-    // 页面可见时刷新
     const handleShow = () => loadPoints();
     Taro.eventCenter.on('pageshow', handleShow);
 
@@ -58,7 +65,6 @@ export default function Points() {
     return type === 'earn' ? '+' : '-';
   };
 
-  // 每日任务状态
   const today = new Date().toISOString().slice(0, 10);
   const loginCompleted = pointsInfo.lastLoginDate === today;
   const interactionCompleted = pointsInfo.lastInteractionDate === today && (pointsInfo.dailyInteractionPoints || 0) > 0;
@@ -72,7 +78,6 @@ export default function Points() {
 
   const handleTaskClick = (task: typeof tasks[0]) => {
     if (!task.completed && task.id === 2) {
-      // 跳转到首页触发互动
       switchTab({ url: '/pages/home/index' });
     }
   };
@@ -111,23 +116,24 @@ export default function Points() {
       </View>
 
       <View className="points-content">
-        {/* 积分卡片 - 可点击查看明细 */}
+        {/* 积分卡片 - 对齐PWA: Star图标 + 积分明细用ChevronRight */}
         <View className="points-card" onClick={() => setShowHistory(true)}>
           <View className="points-card-glow" />
+          <View className="points-card-glow-bottom" />
           <View className="points-card-content">
             <View className="points-card-header">
               <Text className="points-card-label">积分明细</Text>
-              <ArrowRight size={14} />
+              <Image className="icon-img-sm" src={CHEVRONRIGHT_WHITE} mode="aspectFit" style={{ width: 12, height: 12 }} />
             </View>
             <View className="points-icon-wrapper">
-              <Coins size={32} />
+              <Image className="icon-img" src={STAR_WHITE} mode="aspectFit" style={{ width: 32, height: 32, opacity: 0.8 }} />
             </View>
             <Text className="points-card-subtitle">当前积分余额</Text>
             <Text className="points-value">{effectivePoints.toLocaleString()}</Text>
           </View>
         </View>
 
-        {/* 今日任务 */}
+        {/* 今日任务 - 对齐PWA: 标题字体、任务卡片布局、图标 */}
         <View className="tasks-section">
           <View className="tasks-header">
             <Text className="tasks-title">今日任务</Text>
@@ -141,21 +147,28 @@ export default function Points() {
                 className={`task-item ${!task.completed && task.id === 2 ? 'clickable' : ''}`}
                 onClick={() => handleTaskClick(task)}
               >
-                <View className={`task-icon ${task.completed ? 'completed' : ''}`}>
-                  {task.completed ? <CheckCircle size={24} /> : <Coins size={24} />}
-                </View>
-                <View className="task-content">
-                  <Text className="task-title">{task.title}</Text>
-                  <Text className="task-desc">{task.description}</Text>
-                  <View className="task-reward">
-                    <Text className="task-reward-text">+{task.reward} 积分</Text>
+                <View className="task-left">
+                  <View className={`task-icon ${task.completed ? 'completed' : ''}`}>
+                    {task.completed ? (
+                      <Image className="icon-img" src={CHECKCIRCLE2_GREEN} mode="aspectFit" style={{ width: 24, height: 24 }} />
+                    ) : (
+                      <Image className="icon-img" src={STAR_PRIMARY} mode="aspectFit" style={{ width: 24, height: 24 }} />
+                    )}
+                  </View>
+                  <View className="task-info">
+                    <Text className="task-title">{task.title}</Text>
+                    <Text className="task-desc">{task.description}</Text>
+                    <View className="task-reward">
+                      <Text className="task-reward-value">+{task.reward}</Text>
+                      <Text className="task-reward-unit">积分</Text>
+                    </View>
                   </View>
                 </View>
                 {task.completed ? (
-                  <Text className="task-status completed">已完成</Text>
+                  <Text className="task-badge completed">已完成</Text>
                 ) : (
-                  <View className="task-status pending">
-                    <ArrowRight size={16} />
+                  <View className="task-go-btn">
+                    <Image className="icon-img" src={ARROWRIGHT_PRIMARY} mode="aspectFit" style={{ width: 16, height: 16 }} />
                   </View>
                 )}
               </View>
@@ -163,18 +176,22 @@ export default function Points() {
           </View>
         </View>
 
-        {/* 积分兑换 */}
+        {/* 积分兑换 - 对齐PWA: Star/Lock图标、虚线边框 */}
         <View className="redeem-section">
           <Text className="redeem-title">积分兑换</Text>
           <View className={`redeem-card ${effectivePoints >= REDEEM_THRESHOLD ? 'active' : ''}`}>
             <View className={`redeem-icon ${effectivePoints >= REDEEM_THRESHOLD ? 'active' : ''}`}>
-              {effectivePoints >= REDEEM_THRESHOLD ? <Coins size={32} /> : <Lock size={32} />}
+              {effectivePoints >= REDEEM_THRESHOLD ? (
+                <Image className="icon-img" src={STAR_PRIMARY} mode="aspectFit" style={{ width: 32, height: 32 }} />
+              ) : (
+                <Image className="icon-img" src={LOCK_GRAY} mode="aspectFit" style={{ width: 32, height: 32 }} />
+              )}
             </View>
             <Text className="redeem-subtitle">解锁第 {ownedCatsCount + 1} 位伙伴</Text>
             <Text className="redeem-desc">消耗 {REDEEM_THRESHOLD} 积分，即可生成一只全新的猫咪伙伴</Text>
 
             {effectivePoints < REDEEM_THRESHOLD && (
-              <Text className="redeem-hint">还差 {REDEEM_THRESHOLD - effectivePoints} 积分即可解锁</Text>
+              <Text className="redeem-hint">还差 {REDEEM_THRESHOLD - effectivePoints} 积分即可解锁第 {ownedCatsCount + 1} 位伙伴</Text>
             )}
 
             <Button
@@ -200,14 +217,17 @@ export default function Points() {
             <View className="modal-header">
               <Text className="modal-title">积分明细</Text>
               <View className="modal-close" onClick={() => setShowHistory(false)}>
-                <X size={20} />
+                <Image className="icon-img" src={X_GRAY} mode="aspectFit" style={{ width: 20, height: 20 }} />
               </View>
             </View>
 
             <View className="modal-list">
               {pointsInfo.history.length === 0 ? (
                 <View className="modal-empty">
-                  <Text>暂无积分记录</Text>
+                  <View className="modal-empty-icon">
+                    <Image className="icon-img" src={STAR_PRIMARY} mode="aspectFit" style={{ width: 32, height: 32, opacity: 0.5 }} />
+                  </View>
+                  <Text className="modal-empty-text">暂无积分记录</Text>
                 </View>
               ) : (
                 pointsInfo.history.map((tx) => (

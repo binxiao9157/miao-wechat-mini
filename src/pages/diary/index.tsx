@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image, Button, Input, Textarea, Video } from '@tarojs/components';
 import CatAvatar from '../../components/common/CatAvatar';
@@ -47,12 +47,26 @@ export default function Diary() {
   const [sharingDiary, setSharingDiary] = useState<DiaryWithMedia | null>(null);
   const [showShareSheet, setShowShareSheet] = useState(false);
 
+  // 用 ref 持久化分享数据，确保 useShareTimeline/useShareAppMessage 在 ShareSheet 关闭后仍能读取
+  const sharingDiaryRef = useRef<DiaryWithMedia | null>(null);
+  const activeCatRef = useRef<{ id: string; name: string; avatar?: string } | null>(null);
+
+  // 同步 activeCat 到 ref
+  useEffect(() => { activeCatRef.current = activeCat; }, [activeCat]);
+
+  // 自定义 setSharingDiary：同时更新 ref
+  const updateSharingDiary = (d: DiaryWithMedia | null) => {
+    setSharingDiary(d);
+    sharingDiaryRef.current = d;
+  };
+
   useShareAppMessage(() => {
-    if (sharingDiary) {
-      const content = sharingDiary.content.length > 30 ? sharingDiary.content.slice(0, 30) + '...' : sharingDiary.content;
+    const d = sharingDiaryRef.current;
+    if (d) {
+      const content = d.content.length > 30 ? d.content.slice(0, 30) + '...' : d.content;
       return {
-        title: `${sharingDiary.catName || '猫咪'}的日常：${content}`,
-        path: `/pages/diary/index?id=${sharingDiary.id}`,
+        title: `${d.catName || '猫咪'}的日常：${content}`,
+        path: `/pages/diary/index?id=${d.id}`,
       };
     }
     return {
@@ -62,20 +76,24 @@ export default function Diary() {
   });
 
   useShareTimeline(() => {
-    if (sharingDiary) {
-      const content = sharingDiary.content.length > 20 ? sharingDiary.content.slice(0, 20) + '...' : sharingDiary.content;
+    const d = sharingDiaryRef.current;
+    const cat = activeCatRef.current;
+    if (d) {
+      const content = d.content.length > 20 ? d.content.slice(0, 20) + '...' : d.content;
       const result: any = {
-        title: `${sharingDiary.catName || '猫咪'}的日常：${content}`,
-        query: `id=${sharingDiary.id}`,
+        title: `${d.catName || '猫咪'}的日常：${content}`,
+        query: `id=${d.id}`,
       };
-      if (sharingDiary.mediaUrl) {
-        result.imageUrl = sharingDiary.mediaUrl;
-      } else if (activeCat?.avatar) {
-        result.imageUrl = activeCat.avatar;
+      if (d.mediaUrl) {
+        result.imageUrl = d.mediaUrl;
+      } else if (cat?.avatar) {
+        result.imageUrl = cat.avatar;
       }
       return result;
     }
-    return { title: 'Miao - 记录猫咪的美好时光' };
+    const result: any = { title: cat ? `来和${cat.name}一起玩吧！` : 'Miao - 记录猫咪的美好时光' };
+    if (cat?.avatar) result.imageUrl = cat.avatar;
+    return result;
   });
 
   // 添加好友相关状态 - v2
@@ -408,7 +426,7 @@ export default function Diary() {
 
   // 分享功能
   const handleShare = (diary: DiaryWithMedia) => {
-    setSharingDiary(diary);
+    updateSharingDiary(diary);
     setShowShareSheet(true);
   };
 
@@ -812,7 +830,7 @@ export default function Diary() {
         text={sharingDiary ? sharingDiary.content : 'Miao - 日常记录'}
         url="/pages/diary/index"
         isTabPage={true}
-        onClose={() => { setShowShareSheet(false); setSharingDiary(null); }}
+        onClose={() => { setShowShareSheet(false); setTimeout(() => updateSharingDiary(null), 5000); }}
       />
     </View>
   );

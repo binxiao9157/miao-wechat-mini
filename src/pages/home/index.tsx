@@ -98,6 +98,7 @@ export default function Home() {
     refreshCatsFromCloud();
     checkDailyLogin();
     startOnlineTimer();
+    Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
 
     // 进入页面时显示时间问候
     const greeting = getGreetingText();

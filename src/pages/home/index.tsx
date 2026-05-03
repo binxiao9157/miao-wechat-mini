@@ -73,8 +73,8 @@ export default function Home() {
     }, duration);
   }, []);
 
-  const showPointsToast = useCallback((amount: number) => {
-    setPointsToast(`+${amount}`);
+  const showPointsToast = useCallback((amount: number, label?: string) => {
+    setPointsToast(label ? `+${amount} ${label}` : `+${amount}`);
     setTimeout(() => setPointsToast(''), 2000);
   }, []);
 
@@ -131,6 +131,7 @@ export default function Home() {
   useDidShow(() => {
     loadCat();
     refreshCatsFromCloud();
+    checkDailyLogin();
   });
 
   useDidHide(() => {
@@ -152,37 +153,81 @@ export default function Home() {
   }, [cat?.id]);
 
   const startOnlineTimer = () => {
-    const startTime = Date.now();
     onlineTimerRef.current = setInterval(() => {
-      const minutes = Math.floor((Date.now() - startTime) / 60000);
-      if (minutes >= 10) {
-        const today = new Date().toDateString();
-        const onlineKey = `miao_online_reward_${today}`;
-        if (!Taro.getStorageSync(onlineKey)) {
-          storage.addPoints(10, '在线时长奖励');
-          Taro.setStorageSync(onlineKey, 'true');
+      const p = storage.getPoints();
+      const now = Date.now();
+
+      // If the last update was more than 5 minutes ago, assume offline
+      if (now - p.lastOnlineUpdate > 5 * 60000) {
+        p.lastOnlineUpdate = now;
+        storage.savePoints(p);
+        return;
+      }
+
+      const diffMinutes = Math.floor((now - p.lastOnlineUpdate) / 60000);
+      if (diffMinutes >= 1) {
+        p.onlineMinutes += diffMinutes;
+        p.lastOnlineUpdate = now;
+
+        // Check if we just crossed the 10 minute threshold
+        if (p.onlineMinutes >= 10 && p.onlineMinutes - diffMinutes < 10) {
+          p.total += 10;
+          p.history.unshift({
+            id: 'tx_' + Date.now() + Math.random().toString(36).substring(2, 7),
+            type: 'earn',
+            amount: 10,
+            reason: '在线时长奖励',
+            timestamp: Date.now(),
+          });
+          if (p.history.length > 50) p.history.pop();
+          showPointsToast(10, '在线时长奖励');
         }
-        clearInterval(onlineTimerRef.current);
+        storage.savePoints(p);
       }
     }, 60000);
   };
 
   const checkDailyLogin = () => {
     const pointsInfo = storage.getPoints();
-    const today = new Date().toDateString();
+    const today = new Date().toISOString().slice(0, 10);
     if (pointsInfo.lastLoginDate !== today) {
-      storage.addPoints(10, '每日登录奖励');
+      pointsInfo.total += 10;
+      pointsInfo.history.unshift({
+        id: 'tx_' + Date.now() + Math.random().toString(36).substring(2, 7),
+        type: 'earn',
+        amount: 10,
+        reason: '每日登录奖励',
+        timestamp: Date.now(),
+      });
+      if (pointsInfo.history.length > 50) pointsInfo.history.pop();
+      pointsInfo.lastLoginDate = today;
+      pointsInfo.onlineMinutes = 0;
+      pointsInfo.lastOnlineUpdate = Date.now();
+      storage.savePoints(pointsInfo);
+      showPointsToast(10, '每日登录奖励');
     }
   };
 
   const grantInteractionPoints = () => {
-    const today = new Date().toDateString();
-    const dailyKey = `miao_daily_interaction_${today}`;
-    const dailyUsed = parseInt(Taro.getStorageSync(dailyKey) || '0');
-    if (dailyUsed < 20) {
-      storage.addPoints(5, '互动奖励');
-      Taro.setStorageSync(dailyKey, String(dailyUsed + 5));
-      showPointsToast(5);
+    const p = storage.getPoints();
+    const today = new Date().toISOString().slice(0, 10);
+    if (p.lastInteractionDate !== today) {
+      p.dailyInteractionPoints = 0;
+      p.lastInteractionDate = today;
+    }
+    if (p.dailyInteractionPoints < 20) {
+      p.dailyInteractionPoints += 5;
+      p.total += 5;
+      p.history.unshift({
+        id: 'tx_' + Date.now() + Math.random().toString(36).substring(2, 7),
+        type: 'earn',
+        amount: 5,
+        reason: '互动奖励',
+        timestamp: Date.now(),
+      });
+      if (p.history.length > 50) p.history.pop();
+      storage.savePoints(p);
+      showPointsToast(5, '互动奖励');
     }
   };
 

@@ -1,8 +1,9 @@
 import { View, Text, Image, Button } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 const X_PNG = require('../../assets/profile-icons/x-dark.png');
+const WECHAT_PNG = require('../../assets/profile-icons/wechat-green.png');
+const MOMENTS_PNG = require('../../assets/profile-icons/moments-orange.png');
 import { storage, FriendInfo } from '../../services/storage';
-import { shareService } from '../../services/shareService';
 import { request } from '../../utils/httpAdapter';
 import CatAvatar from './CatAvatar';
 import './ShareSheet.less';
@@ -23,11 +24,6 @@ export default function ShareSheet({ visible, title = '分享', text, url, isTab
   const friends: FriendInfo[] = storage.getFriends();
   const shareTitle = text || 'Miao - 猫咪陪伴';
   const sharePath = url || '/pages/home/index';
-
-  const handleCopyLink = async () => {
-    await shareService.copyToClipboard(sharePath);
-    onClose();
-  };
 
   const handleFriendShare = async (friend: FriendInfo) => {
     try {
@@ -52,7 +48,6 @@ export default function ShareSheet({ visible, title = '分享', text, url, isTab
   const handleShareToMoments = async () => {
     if (shareImagePath) {
       try {
-        // showShareImageMenu 需要本地路径，如果是网络 URL 先下载
         let localPath = shareImagePath;
         if (shareImagePath.startsWith('http://') || shareImagePath.startsWith('https://')) {
           const downloadRes = await Taro.downloadFile({ url: shareImagePath });
@@ -66,16 +61,12 @@ export default function ShareSheet({ visible, title = '分享', text, url, isTab
         onClose();
         return;
       } catch (err) {
-        console.warn('showShareImageMenu failed, fallback to guide:', err);
+        console.warn('showShareImageMenu failed:', err);
+        Taro.showToast({ title: '分享失败，请重试', icon: 'none' });
       }
+    } else {
+      Taro.showToast({ title: '分享图生成中，请稍后重试', icon: 'none' });
     }
-    // 无图片或 showShareImageMenu 失败时，引导用户使用右上角菜单
-    Taro.showModal({
-      title: '分享到朋友圈',
-      content: '点击右上角 ··· 按钮，选择「分享到朋友圈」即可发布',
-      showCancel: false,
-      confirmText: '知道了',
-    });
     onClose();
   };
 
@@ -125,7 +116,7 @@ export default function ShareSheet({ visible, title = '分享', text, url, isTab
           >
             <View className="share-option">
               <View className="option-icon wechat">
-                <Text>💬</Text>
+                <Image className="option-icon-img" src={WECHAT_PNG} mode="aspectFit" />
               </View>
               <Text className="option-label">微信好友</Text>
             </View>
@@ -133,16 +124,9 @@ export default function ShareSheet({ visible, title = '分享', text, url, isTab
 
           <View className="share-option" onClick={handleShareToMoments}>
             <View className="option-icon moments">
-              <Text>🌐</Text>
+              <Image className="option-icon-img" src={MOMENTS_PNG} mode="aspectFit" />
             </View>
-            <Text className="option-label">{shareImagePath ? '朋友圈' : '朋友圈...'}</Text>
-          </View>
-
-          <View className="share-option" onClick={handleCopyLink}>
-            <View className="option-icon link">
-              <Text>🔗</Text>
-            </View>
-            <Text className="option-label">复制链接</Text>
+            <Text className="option-label">朋友圈</Text>
           </View>
         </View>
       </View>

@@ -1,9 +1,28 @@
 /**
- * Generate a 1:1 share card image for WeChat Moments (onShareTimeline).
+ * Generate a 1:1 share card image for WeChat Moments.
  * Uses Taro Canvas 2D API to draw a branded card with cat info + diary content.
+ * Design matches Miao's warm terracotta/peach theme.
  */
 import Taro from '@tarojs/taro';
 import { drawQROnCanvas } from './qrCanvas';
+
+// Miao design tokens
+const COLORS = {
+  primary: '#E89F71',
+  primaryStrong: '#FF9D76',
+  primaryGradientStart: '#FF9D76',
+  primaryGradientEnd: '#FF6B3D',
+  background: '#FFF9F5',
+  surface: '#FFFFFF',
+  surfaceContainer: '#FEF6F0',
+  onSurface: '#633E1D',
+  onSurfaceLight: '#5D4037',
+  textPrimary: '#3C2710',
+  textSecondary: 'rgba(99, 62, 29, 0.5)',
+  textTertiary: 'rgba(99, 62, 29, 0.3)',
+  border: '#F2E6DD',
+  shadow: 'rgba(99, 62, 29, 0.08)',
+};
 
 interface ShareCardOptions {
   canvasId: string;
@@ -98,23 +117,35 @@ export async function generateShareCard(options: ShareCardOptions): Promise<stri
   canvas.height = height * dpr;
   ctx.scale(dpr, dpr);
 
-  // White background with rounded corners
-  ctx.fillStyle = '#FFFFFF';
+  // Warm cream background
+  ctx.fillStyle = COLORS.background;
   roundRect(ctx, 0, 0, width, height, 24);
   ctx.fill();
 
-  // Top accent bar
-  ctx.fillStyle = '#E89F71';
+  // Top gradient accent bar
+  const topBarGrad = ctx.createLinearGradient(0, 0, width, 0);
+  topBarGrad.addColorStop(0, COLORS.primaryGradientStart);
+  topBarGrad.addColorStop(1, COLORS.primaryGradientEnd);
+  ctx.fillStyle = topBarGrad;
   roundRect(ctx, 0, 0, width, 6, 0);
   ctx.fill();
 
-  let currentY = 40;
+  let currentY = 36;
 
-  // Cat avatar + name row
-  const avatarSize = 48;
+  // Cat avatar with subtle shadow
+  const avatarSize = 52;
   const avatarX = 28;
   const avatarY = currentY;
 
+  // Avatar shadow circle
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(avatarX + avatarSize / 2 + 1, avatarY + avatarSize / 2 + 2, avatarSize / 2 + 2, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(99, 62, 29, 0.06)';
+  ctx.fill();
+  ctx.restore();
+
+  // Avatar
   ctx.save();
   ctx.beginPath();
   ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
@@ -125,40 +156,64 @@ export async function generateShareCard(options: ShareCardOptions): Promise<stri
     if (img) {
       ctx.drawImage(img, avatarX, avatarY, avatarSize, avatarSize);
     } else {
-      ctx.fillStyle = '#FEF6F0';
+      // Fallback: gradient circle
+      const avatarGrad = ctx.createLinearGradient(avatarX, avatarY, avatarX + avatarSize, avatarY + avatarSize);
+      avatarGrad.addColorStop(0, COLORS.primaryGradientStart);
+      avatarGrad.addColorStop(1, COLORS.primaryGradientEnd);
+      ctx.fillStyle = avatarGrad;
       ctx.fill();
     }
   } else {
-    ctx.fillStyle = '#FEF6F0';
+    const avatarGrad = ctx.createLinearGradient(avatarX, avatarY, avatarX + avatarSize, avatarY + avatarSize);
+    avatarGrad.addColorStop(0, COLORS.primaryGradientStart);
+    avatarGrad.addColorStop(1, COLORS.primaryGradientEnd);
+    ctx.fillStyle = avatarGrad;
     ctx.fill();
   }
   ctx.restore();
 
+  // Avatar border ring
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
+  ctx.strokeStyle = COLORS.surface;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
+
   // Cat name
-  ctx.fillStyle = '#633E1D';
+  ctx.fillStyle = COLORS.onSurface;
   ctx.font = 'bold 18px sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText(catName, avatarX + avatarSize + 12, avatarY + 30);
+  ctx.fillText(catName, avatarX + avatarSize + 14, avatarY + 28);
 
-  // Date
-  ctx.fillStyle = 'rgba(99, 62, 29, 0.4)';
+  // Date with subtle styling
+  ctx.fillStyle = COLORS.textSecondary;
   ctx.font = '12px sans-serif';
   const dateStr = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
-  ctx.fillText(dateStr, avatarX + avatarSize + 12, avatarY + 46);
+  ctx.fillText(dateStr, avatarX + avatarSize + 14, avatarY + 46);
 
   currentY = avatarY + avatarSize + 20;
 
   // Media image (if exists)
   if (mediaUrl) {
-    const mediaX = 28;
-    const mediaW = width - 56;
+    const mediaX = 20;
+    const mediaW = width - 40;
     const mediaH = 280;
+
+    // Card shadow for media
     ctx.save();
-    roundRect(ctx, mediaX, currentY, mediaW, mediaH, 12);
+    roundRect(ctx, mediaX + 2, currentY + 2, mediaW, mediaH, 16);
+    ctx.fillStyle = COLORS.shadow;
+    ctx.fill();
+    ctx.restore();
+
+    // Media card with rounded corners
+    ctx.save();
+    roundRect(ctx, mediaX, currentY, mediaW, mediaH, 16);
     ctx.clip();
     const img = await loadImage(canvas, mediaUrl);
     if (img) {
-      // Cover fit
       const imgRatio = img.width / img.height;
       const boxRatio = mediaW / mediaH;
       let sx = 0, sy = 0, sw = img.width, sh = img.height;
@@ -171,7 +226,7 @@ export async function generateShareCard(options: ShareCardOptions): Promise<stri
       }
       ctx.drawImage(img, sx, sy, sw, sh, mediaX, currentY, mediaW, mediaH);
     } else {
-      ctx.fillStyle = '#FEF6F0';
+      ctx.fillStyle = COLORS.surfaceContainer;
       ctx.fillRect(mediaX, currentY, mediaW, mediaH);
     }
     ctx.restore();
@@ -179,7 +234,7 @@ export async function generateShareCard(options: ShareCardOptions): Promise<stri
   }
 
   // Diary content text
-  ctx.fillStyle = '#3C2710';
+  ctx.fillStyle = COLORS.textPrimary;
   ctx.font = '15px sans-serif';
   ctx.textAlign = 'left';
   const maxTextWidth = width - 56;
@@ -189,30 +244,46 @@ export async function generateShareCard(options: ShareCardOptions): Promise<stri
   lines.forEach((line, i) => {
     ctx.fillText(line, 28, currentY + i * lineHeight);
   });
-  currentY += lines.length * lineHeight + 20;
+  currentY += lines.length * lineHeight + 16;
 
-  // Bottom section: QR code + branding
-  const bottomY = height - 100;
+  // Bottom branding section
+  const bottomY = height - 88;
 
-  // Divider line
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+  // Divider line with warm color
+  const dividerGrad = ctx.createLinearGradient(28, bottomY - 12, width - 28, bottomY - 12);
+  dividerGrad.addColorStop(0, 'rgba(232, 159, 113, 0.15)');
+  dividerGrad.addColorStop(0.5, 'rgba(232, 159, 113, 0.3)');
+  dividerGrad.addColorStop(1, 'rgba(232, 159, 113, 0.15)');
+  ctx.fillStyle = dividerGrad;
   ctx.fillRect(28, bottomY - 12, width - 56, 1);
 
-  // QR code (small, left side)
-  const qrSize = 64;
+  // QR code with rounded background
+  const qrSize = 56;
   const qrX = 28;
   const qrY = bottomY;
-  drawQROnCanvas(ctx, 'miao://diary', qrX, qrY, qrSize, '#633E1D', '#FFFFFF');
+
+  // QR background card
+  ctx.save();
+  roundRect(ctx, qrX - 4, qrY - 4, qrSize + 8, qrSize + 8, 8);
+  ctx.fillStyle = COLORS.surface;
+  ctx.fill();
+  ctx.restore();
+
+  drawQROnCanvas(ctx, 'miao://diary', qrX, qrY, qrSize, COLORS.onSurface, COLORS.surface);
 
   // Branding text (right of QR)
-  ctx.fillStyle = '#633E1D';
-  ctx.font = 'bold 16px sans-serif';
+  const brandX = qrX + qrSize + 16;
+  ctx.fillStyle = COLORS.onSurfaceLight;
+  ctx.font = 'bold 17px sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText('Miao', qrX + qrSize + 16, qrY + 24);
-  ctx.fillStyle = 'rgba(99, 62, 29, 0.5)';
+  ctx.fillText('Miao', brandX, qrY + 22);
+
+  ctx.fillStyle = COLORS.textSecondary;
   ctx.font = '11px sans-serif';
-  ctx.fillText('长按识别小程序码', qrX + qrSize + 16, qrY + 44);
-  ctx.fillText('记录猫咪的美好时光', qrX + qrSize + 16, qrY + 60);
+  ctx.fillText('长按识别小程序码', brandX, qrY + 40);
+  ctx.fillStyle = COLORS.textTertiary;
+  ctx.font = '10px sans-serif';
+  ctx.fillText('记录猫咪的美好时光', brandX, qrY + 56);
 
   // Export
   return new Promise((resolve, reject) => {

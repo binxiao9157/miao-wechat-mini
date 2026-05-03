@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Input, Switch, Button, Image } from '@tarojs/components';
+import { View, Text, Input, Switch, Image } from '@tarojs/components';
 import Taro, { navigateBack } from '@tarojs/taro';
 import { aiConfig, AIProfile, AIProvider, DEFAULT_AI_PROFILES } from '../../services/aiConfig';
 import { storage, PresetCat } from '../../services/storage';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const SETTINGS_DARK = require('../../assets/profile-icons/settings-dark.png');
-const REFRESHCW_PRIMARY = require('../../assets/profile-icons/refreshcw-primary.png');
-const CHECKCIRCLE_GREEN = require('../../assets/profile-icons/checkcircle-green.png');
 const PLUS_WHITE = require('../../assets/profile-icons/plus-white.png');
 const X_GRAY = require('../../assets/profile-icons/x-gray.png');
 
@@ -33,7 +31,6 @@ export default function AdminSettings() {
       duration: prev.duration || defaults.duration,
       seed: prev.seed || defaults.seed,
       promptExtend: prev.promptExtend,
-      skipImageStage: prev.skipImageStage,
     }));
   };
 
@@ -91,10 +88,7 @@ export default function AdminSettings() {
           <View className="section-icon">
             <Image className="icon-img" src={SETTINGS_DARK} mode="aspectFit" style={{ width: 22, height: 22 }} />
           </View>
-          <View>
-            <Text className="section-title">AI 模型配置</Text>
-            <Text className="section-desc">与 PWA 后台配置策略保持一致</Text>
-          </View>
+          <Text className="section-title">AI 模型配置</Text>
         </View>
 
         <View className="provider-tabs">
@@ -104,7 +98,7 @@ export default function AdminSettings() {
               className={`provider-tab ${profile.provider === provider ? 'active' : ''}`}
               onClick={() => handleProviderChange(provider)}
             >
-              <Text className="provider-text">{provider === 'dashscope' ? '阿里百练' : '火山引擎'}</Text>
+              <Text className="provider-text">{provider === 'dashscope' ? 'DashScope' : 'Volcengine'}</Text>
             </View>
           ))}
         </View>
@@ -174,14 +168,6 @@ export default function AdminSettings() {
                 onChange={(e) => updateField('mockMode', e.detail.value)}
               />
             </View>
-            <View className="switch-item">
-              <Text className="switch-label">跳过图片阶段</Text>
-              <Switch
-                color="#ff8c5a"
-                checked={profile.skipImageStage}
-                onChange={(e) => updateField('skipImageStage', e.detail.value)}
-              />
-            </View>
           </View>
         </View>
       </View>
@@ -241,14 +227,12 @@ export default function AdminSettings() {
       </View>
 
       <View className="bottom-actions">
-        <Button className="reset-btn" onClick={handleReset}>
-          <Image className="icon-img" src={REFRESHCW_PRIMARY} mode="aspectFit" style={{ width: 20, height: 20 }} />
-          恢复默认
-        </Button>
-        <Button className="save-btn" onClick={handleSave}>
-          <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 20, height: 20 }} />
-          保存配置
-        </Button>
+        <View className="reset-btn" onClick={handleReset}>
+          <Text className="reset-btn-text">恢复默认</Text>
+        </View>
+        <View className="save-btn" onClick={handleSave}>
+          <Text className="save-btn-text">保存配置</Text>
+        </View>
       </View>
     </View>
   );

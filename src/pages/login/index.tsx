@@ -18,6 +18,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [shakeAgreement, setShakeAgreement] = useState(false);
   const [catImage, setCatImage] = useState<string>(DEFAULT_CAT_IMAGE);
   const [isAgreed, setIsAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +37,14 @@ export default function Login() {
 
   const handleLogin = async () => {
     if (!isAgreed) {
-      setError('请先阅读并同意服务条款和隐私政策');
+      setShakeAgreement(true);
+      setTimeout(() => setShakeAgreement(false), 500);
+      Taro.showModal({
+        title: '提示',
+        content: '请先阅读并同意服务条款和隐私政策',
+        showCancel: false,
+        confirmText: '我知道了',
+      });
       return;
     }
 
@@ -71,7 +79,14 @@ export default function Login() {
 
   const handleWechatLogin = async () => {
     if (!isAgreed) {
-      setError('请先阅读并同意服务条款和隐私政策');
+      setShakeAgreement(true);
+      setTimeout(() => setShakeAgreement(false), 500);
+      Taro.showModal({
+        title: '提示',
+        content: '请先阅读并同意服务条款和隐私政策',
+        showCancel: false,
+        confirmText: '我知道了',
+      });
       return;
     }
     setIsLoading(true);
@@ -158,7 +173,7 @@ export default function Login() {
 
           {error && <Text className="error-text">{error}</Text>}
 
-          <View className="agreement" onClick={() => setIsAgreed(!isAgreed)}>
+          <View className={`agreement ${shakeAgreement ? 'shake' : ''}`} onClick={() => setIsAgreed(!isAgreed)}>
             <View className={`custom-checkbox ${isAgreed ? 'checked' : ''}`}>
               {isAgreed && <Text className="check-mark">✓</Text>}
             </View>

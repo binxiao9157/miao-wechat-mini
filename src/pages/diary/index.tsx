@@ -448,7 +448,7 @@ export default function Diary() {
         </View>
       </View>
 
-      <View className="diary-list">
+      <View className={`diary-list tab-content-${activeTab}`}>
         {activeTab === 'mine' ? (
           // 我的记录
           diaries.length === 0 ? (

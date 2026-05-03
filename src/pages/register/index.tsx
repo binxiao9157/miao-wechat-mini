@@ -157,7 +157,11 @@ export default function Register() {
             </View>
           </View>
 
-          {error && <Text className="error-text">{error}</Text>}
+          {error && (
+            <View className="error-box">
+              <Text className="error-text">{error}</Text>
+            </View>
+          )}
 
           {/* Agreement */}
           <View className="agreement" onClick={() => setIsAgreed(!isAgreed)}>
@@ -186,6 +190,14 @@ export default function Register() {
             <Text className="login-link-text">已有账号？</Text>
             <Text className="login-link-action" onClick={() => navigateBack()}>登入</Text>
           </View>
+
+          {/* Bottom agreement text */}
+          <Text className="bottom-agreement">
+            注册即表示您同意
+            <Text className="link" onClick={() => navigateTo({ url: '/pages/terms-of-service/index' })}>《Miao 服务条款》</Text>
+            和
+            <Text className="link" onClick={() => navigateTo({ url: '/pages/privacy-policy/index' })}>《隐私政策》</Text>
+          </Text>
         </View>
       </View>
     </View>

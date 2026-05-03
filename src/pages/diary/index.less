@@ -116,17 +116,34 @@
   flex-direction: column;
   align-items: center;
   padding: 60px 20px;
+  animation: tabFadeIn 0.25s ease-out;
+}
 
-  .empty-text {
-    font-size: 16px;
-    color: #633E1D;
-    margin-bottom: 8px;
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-  .empty-hint {
-    font-size: 14px;
-    color: #999;
-  }
+.diary-list.tab-content-mine,
+.diary-list.tab-content-friends {
+  animation: tabFadeIn 0.25s ease-out;
+}
+
+.empty-text {
+  font-size: 16px;
+  color: #633E1D;
+  margin-bottom: 8px;
+}
+
+.empty-hint {
+  font-size: 14px;
+  color: #999;
 }
 
 .diary-item {

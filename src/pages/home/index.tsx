@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, Image, Video } from '@tarojs/components';
-import Taro, { navigateTo, useDidShow } from '@tarojs/taro';
+import Taro, { navigateTo, useDidShow, useDidHide } from '@tarojs/taro';
 import { storage, CatInfo } from '../../services/storage';
 import CatAvatar from '../../components/common/CatAvatar';
 import { getPrimaryVideoUrl } from '../../services/catLifecycle';
@@ -115,6 +115,10 @@ export default function Home() {
   useDidShow(() => {
     loadCat();
     refreshCatsFromCloud();
+  });
+
+  useDidHide(() => {
+    setVideoError(true);
   });
 
   useEffect(() => {

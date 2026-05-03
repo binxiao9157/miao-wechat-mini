@@ -137,11 +137,12 @@ page {
   background-color: var(--surface);
   font-size: 28px;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .input:focus {
   border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(232, 159, 113, 0.12);
 }
 
 .input::placeholder {

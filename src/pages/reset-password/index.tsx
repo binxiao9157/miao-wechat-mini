@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, Input, Image } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
 import { storage } from '../../services/storage';
@@ -17,6 +17,7 @@ export default function ResetPassword() {
   const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(0);
   const [showToast, setShowToast] = useState(false);
+  const codeRef = useRef('');
 
   let countdownTimer: ReturnType<typeof setInterval>;
 
@@ -26,8 +27,9 @@ export default function ResetPassword() {
       return;
     }
 
-    // Mock: 显示验证码
-    const mockCode = '123456';
+    // Mock: 生成随机6位验证码
+    const mockCode = String(Math.floor(100000 + Math.random() * 900000));
+    codeRef.current = mockCode;
     setError('');
     setCountdown(60);
     countdownTimer = setInterval(() => {
@@ -59,7 +61,7 @@ export default function ResetPassword() {
       setError('请输入验证码');
       return;
     }
-    if (code !== '123456') {
+    if (code !== codeRef.current) {
       setError('验证码错误');
       return;
     }

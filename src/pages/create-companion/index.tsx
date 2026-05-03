@@ -107,6 +107,10 @@ export default function CreateCompanion() {
                     className="breed-image"
                     src={preset.imageUrl}
                     mode="aspectFill"
+                    onError={(e) => {
+                      const target = e.detail?.target as any;
+                      if (target) target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(preset.name)}`;
+                    }}
                   />
                 </View>
                 <Text className={`breed-name ${selectedPresetId === preset.id ? 'selected' : ''}`}>

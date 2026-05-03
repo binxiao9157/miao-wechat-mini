@@ -143,12 +143,22 @@ export default function Profile() {
         if (res.confirm) {
           try {
             // 1. 清除 Storage 中的临时 key，保留核心数据
+            // 核心 key 可能带 u_xxx_ 前缀（用户级数据），所以用 includes 匹配
+            const preservePatterns = [
+              'miao_users', 'miao_current_user', 'miao_auth_token', 'miao_last_username',
+              'miao_cat_list', 'miao_active_cat_id', 'miao_friends', 'miao_diaries',
+              'miao_time_letters', 'miao_points', 'miao_settings', 'miao_ai_config',
+              'miao_friend_diaries', 'miao_has_submitted_survey', 'miao_debug_fast_forward',
+              'user_avatar_key', 'miao_login_time', 'miao_last_active_time',
+              'miao_last_cat_image', 'miao_last_cat_breed', 'app_preset_cats',
+              'miao_last_read_notifications', 'miao_read_notification_ids',
+            ];
             const info = Taro.getStorageInfoSync();
-            const preservePrefixes = ['miao_user_info', 'miao_cat_list', 'miao_active_cat_id', 'miao_auth_token', 'miao_friends', 'miao_diaries', 'miao_time_letters', 'miao_points', 'miao_settings', 'miao_ai_config', 'miao_friend_invites'];
             const allKeys = info.keys || [];
             let cleared = 0;
             allKeys.forEach((key: string) => {
-              if (!preservePrefixes.some(pk => key.startsWith(pk))) {
+              const shouldPreserve = preservePatterns.some(p => key.includes(p));
+              if (!shouldPreserve) {
                 try { Taro.removeStorageSync(key); cleared++; } catch {}
               }
             });

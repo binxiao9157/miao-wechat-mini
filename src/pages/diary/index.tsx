@@ -1,10 +1,11 @@
 import React, { useRef } from 'react';
 import { useState, useEffect } from 'react';
-import { View, Text, Image, Button, Input, Textarea, Video } from '@tarojs/components';
+import { View, Text, Image, Button, Input, Textarea, Video, Canvas } from '@tarojs/components';
 import CatAvatar from '../../components/common/CatAvatar';
 import Taro, { useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
 import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage } from '../../services/storage';
 import { useNavSpace } from '../../hooks/useNavSpace';
+import { generateShareCard } from '../../utils/shareCard';
 import ShareSheet from '../../components/common/ShareSheet';
 
 // Lucide-style PNG icons
@@ -31,6 +32,7 @@ type FriendDiaryWithMedia = FriendDiaryEntry & { mediaUrl?: string };
 
 export default function Diary() {
   const navSpace = useNavSpace();
+  const [isSinglePage, setIsSinglePage] = useState(false);
   const [diaries, setDiaries] = useState<DiaryWithMedia[]>([]);
   const [showCompose, setShowCompose] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -50,6 +52,7 @@ export default function Diary() {
   // 用 ref 持久化分享数据，确保 useShareTimeline/useShareAppMessage 在 ShareSheet 关闭后仍能读取
   const sharingDiaryRef = useRef<DiaryWithMedia | null>(null);
   const activeCatRef = useRef<{ id: string; name: string; avatar?: string } | null>(null);
+  const shareCardPathRef = useRef<string>('');
 
   // 同步 activeCat 到 ref
   useEffect(() => { activeCatRef.current = activeCat; }, [activeCat]);
@@ -58,6 +61,24 @@ export default function Diary() {
   const updateSharingDiary = (d: DiaryWithMedia | null) => {
     setSharingDiary(d);
     sharingDiaryRef.current = d;
+  };
+
+  // 生成分享卡片图片
+  const generateShareCardImage = async (diary: DiaryWithMedia): Promise<string> => {
+    try {
+      const path = await generateShareCard({
+        canvasId: 'diaryShareCard',
+        catName: activeCat?.name || '猫咪',
+        catAvatar: activeCat?.avatar,
+        content: diary.content,
+        mediaUrl: diary.mediaUrl,
+      });
+      shareCardPathRef.current = path;
+      return path;
+    } catch (err) {
+      console.error('Generate share card failed:', err);
+      return diary.mediaUrl || activeCat?.avatar || '';
+    }
   };
 
   useShareAppMessage(() => {
@@ -84,7 +105,10 @@ export default function Diary() {
         title: `${d.catName || '猫咪'}的日常：${content}`,
         query: `id=${d.id}`,
       };
-      if (d.mediaUrl) {
+      // 优先使用 Canvas 生成的分享卡片图，其次用原图
+      if (shareCardPathRef.current) {
+        result.imageUrl = shareCardPathRef.current;
+      } else if (d.mediaUrl) {
         result.imageUrl = d.mediaUrl;
       } else if (cat?.avatar) {
         result.imageUrl = cat.avatar;
@@ -132,6 +156,12 @@ export default function Diary() {
   useEffect(() => {
     loadDiaries();
     Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
+
+    // 检测单页模式（从朋友圈点击进入，scene === 1154）
+    try {
+      const launchOptions = Taro.getLaunchOptionsSync();
+      setIsSinglePage(launchOptions.scene === 1154);
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -428,6 +458,8 @@ export default function Diary() {
   const handleShare = (diary: DiaryWithMedia) => {
     updateSharingDiary(diary);
     setShowShareSheet(true);
+    // 预生成朋友圈分享卡片图
+    generateShareCardImage(diary);
   };
 
   return (
@@ -832,6 +864,20 @@ export default function Diary() {
         isTabPage={true}
         onClose={() => { setShowShareSheet(false); setTimeout(() => updateSharingDiary(null), 5000); }}
       />
+
+      {/* 分享卡片 Canvas（离屏，用于生成朋友圈分享图） */}
+      <Canvas
+        type="2d"
+        id="diaryShareCard"
+        style={{ position: 'fixed', left: '-9999px', top: '-9999px', width: '600px', height: '600px' }}
+      />
+
+      {/* 单页模式引导（从朋友圈进入） */}
+      {isSinglePage && (
+        <View className="single-page-banner" onClick={() => Taro.reLaunch({ url: '/pages/home/index' })}>
+          <Text className="single-page-text">进入 Miao 完整体验 →</Text>
+        </View>
+      )}
     </View>
   );
 }  

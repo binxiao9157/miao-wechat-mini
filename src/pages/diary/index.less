@@ -825,3 +825,25 @@
     }
   }
 }
+
+/* 单页模式引导横幅（从朋友圈进入） */
+.single-page-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: #E89F71;
+  padding: 16rpx 32rpx;
+  padding-top: calc(env(safe-area-inset-top) + 16rpx);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .single-page-text {
+    font-size: 26rpx;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 2rpx;
+  }
+}

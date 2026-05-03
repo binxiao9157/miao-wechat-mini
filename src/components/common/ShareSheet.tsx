@@ -48,6 +48,18 @@ export default function ShareSheet({ visible, title = '分享', text, url, isTab
     onClose();
   };
 
+  const handleShareToMoments = () => {
+    onClose();
+    setTimeout(() => {
+      Taro.showModal({
+        title: '分享到朋友圈',
+        content: '请点击右上角 ··· 按钮，选择「分享到朋友圈」即可发布',
+        showCancel: false,
+        confirmText: '知道了',
+      });
+    }, 300);
+  };
+
   return (
     <View className="share-sheet-overlay" onClick={onClose}>
       <View className={`share-sheet ${isTabPage ? 'tab-bar-safe' : ''}`} onClick={(e) => e.stopPropagation()}>
@@ -99,6 +111,13 @@ export default function ShareSheet({ visible, title = '分享', text, url, isTab
               <Text className="option-label">微信好友</Text>
             </View>
           </Button>
+
+          <View className="share-option" onClick={handleShareToMoments}>
+            <View className="option-icon moments">
+              <Text>🌐</Text>
+            </View>
+            <Text className="option-label">朋友圈</Text>
+          </View>
 
           <View className="share-option" onClick={handleCopyLink}>
             <View className="option-icon link">

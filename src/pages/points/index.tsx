@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
-import Taro, { switchTab, navigateTo, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
+import Taro, { switchTab, navigateTo, useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
 import { storage, PointsInfo, PointTransaction } from '../../services/storage';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { trigger } from '../../utils/eventAdapter';
@@ -54,15 +54,15 @@ export default function Points() {
     };
     Taro.eventCenter.on('points-updated', handleStorageChange);
 
-    const handleShow = () => loadPoints();
-    Taro.eventCenter.on('pageshow', handleShow);
-
     return () => {
       Taro.eventCenter.off('points-updated', handleStorageChange);
-      Taro.eventCenter.off('pageshow', handleShow);
       if (debugTimerRef.current) clearTimeout(debugTimerRef.current);
     };
   }, []);
+
+  useDidShow(() => {
+    loadPoints();
+  });
 
   const loadPoints = () => {
     const info = storage.getPoints();

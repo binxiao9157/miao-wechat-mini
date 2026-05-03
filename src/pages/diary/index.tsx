@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image, Button, Input, Textarea, Video } from '@tarojs/components';
 import CatAvatar from '../../components/common/CatAvatar';
-import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro';
+import Taro, { useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
 import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage } from '../../services/storage';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import ShareSheet from '../../components/common/ShareSheet';
@@ -52,7 +52,7 @@ export default function Diary() {
       const content = sharingDiary.content.length > 30 ? sharingDiary.content.slice(0, 30) + '...' : sharingDiary.content;
       return {
         title: `${sharingDiary.catName || '猫咪'}的日常：${content}`,
-        path: `/pages/diary/index`,
+        path: `/pages/diary/index?id=${sharingDiary.id}`,
       };
     }
     return {
@@ -64,7 +64,14 @@ export default function Diary() {
   useShareTimeline(() => {
     if (sharingDiary) {
       const content = sharingDiary.content.length > 20 ? sharingDiary.content.slice(0, 20) + '...' : sharingDiary.content;
-      return { title: `${sharingDiary.catName || '猫咪'}的日常：${content}` };
+      const result: any = {
+        title: `${sharingDiary.catName || '猫咪'}的日常：${content}`,
+        query: `id=${sharingDiary.id}`,
+      };
+      if (sharingDiary.mediaUrl) {
+        result.imageUrl = sharingDiary.mediaUrl;
+      }
+      return result;
     }
     return { title: 'Miao - 记录猫咪的美好时光' };
   });
@@ -104,6 +111,7 @@ export default function Diary() {
 
   useEffect(() => {
     loadDiaries();
+    Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
   }, []);
 
   useEffect(() => {

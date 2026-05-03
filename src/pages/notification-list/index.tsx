@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import { navigateBack, navigateTo } from '@tarojs/taro';
+import Taro, { navigateBack, navigateTo } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, TimeLetter, PointsInfo } from '../../services/storage';
 
@@ -75,6 +75,20 @@ function computeNotifications(): Notification[] {
     read: readIds.includes(`greeting_${today}`),
   });
 
+  // 自定义通知（好友分享等）
+  const customNotifications = storage.getCustomNotifications();
+  customNotifications.forEach((n: any) => {
+    notifications.push({
+      id: n.id,
+      type: n.type,
+      title: n.title,
+      content: n.content,
+      time: n.time,
+      read: readIds.includes(n.id),
+      catAvatar: n.catAvatar,
+    });
+  });
+
   // 按时间倒序排列
   notifications.sort((a, b) => b.time - a.time);
   return notifications;
@@ -98,6 +112,8 @@ export default function NotificationList() {
       navigateTo({ url: '/pages/time-letters/index' });
     } else if (notification.type === 'points') {
       navigateTo({ url: '/pages/points/index' });
+    } else if (notification.type === 'friend_share') {
+      Taro.switchTab({ url: '/pages/diary/index' });
     }
   };
 
@@ -122,6 +138,7 @@ export default function NotificationList() {
       case 'letter': return <Image className="icon-img" src={SPARKLES_PRIMARY} mode="aspectFit" style={{ width: 22, height: 22 }} />;
       case 'points': return <Image className="icon-img" src={COINS_PRIMARY} mode="aspectFit" style={{ width: 22, height: 22 }} />;
       case 'greeting': return <Image className="icon-img" src={HEART_GRAY} mode="aspectFit" style={{ width: 22, height: 22 }} />;
+      case 'friend_share': return <Image className="icon-img" src={BELL_PRIMARY} mode="aspectFit" style={{ width: 22, height: 22 }} />;
       default: return <Image className="icon-img" src={BELL_PRIMARY} mode="aspectFit" style={{ width: 22, height: 22 }} />;
     }
   };

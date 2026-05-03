@@ -11,10 +11,11 @@ interface ShareSheetProps {
   title?: string;
   text?: string;
   url?: string;
+  isTabPage?: boolean;
   onClose: () => void;
 }
 
-export default function ShareSheet({ visible, title = '分享', text, url, onClose }: ShareSheetProps) {
+export default function ShareSheet({ visible, title = '分享', text, url, isTabPage = false, onClose }: ShareSheetProps) {
   if (!visible) return null;
 
   const friends: FriendInfo[] = storage.getFriends();
@@ -27,13 +28,19 @@ export default function ShareSheet({ visible, title = '分享', text, url, onClo
   };
 
   const handleFriendShare = (friend: FriendInfo) => {
-    Taro.showToast({ title: `已分享给 ${friend.nickname}`, icon: 'none' });
+    storage.addCustomNotification({
+      type: 'friend_share',
+      title: '收到一条分享',
+      content: `${friend.nickname} 向你分享了一篇日记`,
+      catAvatar: friend.catAvatar || friend.avatar,
+    });
+    Taro.showToast({ title: `已分享给 ${friend.nickname}`, icon: 'success' });
     onClose();
   };
 
   return (
     <View className="share-sheet-overlay" onClick={onClose}>
-      <View className="share-sheet" onClick={(e) => e.stopPropagation()}>
+      <View className={`share-sheet ${isTabPage ? 'tab-bar-safe' : ''}`} onClick={(e) => e.stopPropagation()}>
         <View className="sheet-header">
           <Text className="title">{title}</Text>
           <View className="close-btn" onClick={onClose}>

@@ -801,6 +801,7 @@ export default function Diary() {
         title="分享日记"
         text={sharingDiary ? (sharingDiary.content.length > 30 ? sharingDiary.content.slice(0, 30) + '...' : sharingDiary.content) : 'Miao - 日常记录'}
         url="/pages/diary/index"
+        isTabPage={true}
         onClose={() => { setShowShareSheet(false); setSharingDiary(null); }}
       />
     </View>

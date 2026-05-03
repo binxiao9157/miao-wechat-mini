@@ -1213,4 +1213,20 @@ export const storage = {
       trigger('notifications-read', { id });
     }
   },
+
+  // 自定义通知（好友分享等）
+  getCustomNotifications: (): Array<{ id: string; type: string; title: string; content: string; time: number; read: boolean; catAvatar?: string }> => {
+    return storage.safeParse(getUserKey('miao_custom_notifications'), []);
+  },
+
+  addCustomNotification: (notification: { type: string; title: string; content: string; catAvatar?: string }) => {
+    const list = storage.getCustomNotifications();
+    const id = `${notification.type}_${Date.now()}`;
+    list.unshift({ ...notification, id, time: Date.now(), read: false });
+    // 最多保留 50 条
+    const trimmed = list.slice(0, 50);
+    storage.setItem(getUserKey('miao_custom_notifications'), JSON.stringify(trimmed));
+    trigger('notifications-read');
+    return id;
+  },
 };

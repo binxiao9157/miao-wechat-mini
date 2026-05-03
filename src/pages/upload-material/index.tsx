@@ -59,7 +59,7 @@ export default function UploadMaterial() {
     setIsDrawing(true);
     try {
       // 直接传文件路径，volcanoService 内部用 Taro.uploadFile 上传，避免 base64 过大触发微信限制
-      const prompt = IMAGE_PROMPTS.anchor(nickname, '未知');
+      const prompt = IMAGE_PROMPTS.anchor('未知', '未知');
       const task = await VolcanoService.submitImageTask(prompt, selectedImage);
       const imageUrl = await VolcanoService.pollImageResult(task.id, task.image_url);
       setFirstFrameUrl(imageUrl);

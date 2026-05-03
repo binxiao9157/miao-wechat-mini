@@ -39,7 +39,7 @@ export const ACTION_PROMPTS = {
 
 export const IMAGE_PROMPTS = {
   anchor: (breed: string, color: string) =>
-    `A ultra-realistic, high-detail portrait of a ${breed} cat with ${color} fur, sitting comfortably in a soft cat nest, cinematic lighting, 4k resolution, looking at the camera.`
+    `A ultra-realistic, high-detail portrait of a cat with ${color} fur${breed && breed !== '未知' ? `, ${breed} breed` : ''}, sitting comfortably in a soft cat nest, cinematic lighting, 4k resolution, looking at the camera. Do NOT render any text, watermark, or name on the image.`
 };
 
 // base64 数据 URL 写入临时文件，返回临时文件路径，避免通过 JSON 传输过大数据

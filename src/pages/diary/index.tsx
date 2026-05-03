@@ -807,9 +807,12 @@ export default function Diary() {
       <ShareSheet
         visible={showShareSheet}
         title="分享日记"
-        text={sharingDiary ? (sharingDiary.content.length > 30 ? sharingDiary.content.slice(0, 30) + '...' : sharingDiary.content) : 'Miao - 日常记录'}
+        text={sharingDiary ? sharingDiary.content : 'Miao - 日常记录'}
         url="/pages/diary/index"
         isTabPage={true}
+        catName={activeCat?.name || '猫咪'}
+        catAvatar={activeCat?.avatar}
+        mediaUrl={sharingDiary?.mediaUrl}
         onClose={() => { setShowShareSheet(false); setSharingDiary(null); }}
       />
     </View>

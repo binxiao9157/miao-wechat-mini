@@ -393,7 +393,8 @@ export async function generateFriendPoster(options: {
   } = options;
 
   return new Promise((resolve, reject) => {
-    const query = Taro.createSelectorQuery();
+    const instance = Taro.getCurrentInstance();
+    const query = Taro.createSelectorQuery().in(instance.page);
     query.select(`#${canvasId}`)
       .fields({ node: true, size: true })
       .exec((res) => {

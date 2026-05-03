@@ -67,7 +67,7 @@ export default function AddFriendQR() {
     // Use nextTick to ensure Canvas node is mounted in native layer
     Taro.nextTick(() => {
       setTimeout(() => {
-        const query = Taro.createSelectorQuery();
+        const query = Taro.createSelectorQuery().in(Taro.getCurrentInstance().page);
         query.select('#qrCanvas')
           .fields({ node: true, size: true })
           .exec((res) => {
@@ -122,7 +122,7 @@ export default function AddFriendQR() {
       }
 
       // Export QR canvas to image
-      const query = Taro.createSelectorQuery();
+      const query = Taro.createSelectorQuery().in(Taro.getCurrentInstance().page);
       query.select('#qrCanvas')
         .fields({ node: true })
         .exec(async (res) => {

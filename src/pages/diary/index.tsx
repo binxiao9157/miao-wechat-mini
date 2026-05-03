@@ -48,6 +48,7 @@ export default function Diary() {
   const [activeCat, setActiveCat] = useState<{ id: string; name: string; avatar?: string } | null>(null);
   const [sharingDiary, setSharingDiary] = useState<DiaryWithMedia | null>(null);
   const [showShareSheet, setShowShareSheet] = useState(false);
+  const [shareCardPath, setShareCardPath] = useState('');
 
   // 用 ref 持久化分享数据，确保 useShareTimeline/useShareAppMessage 在 ShareSheet 关闭后仍能读取
   const sharingDiaryRef = useRef<DiaryWithMedia | null>(null);
@@ -74,10 +75,14 @@ export default function Diary() {
         mediaUrl: diary.mediaUrl,
       });
       shareCardPathRef.current = path;
+      setShareCardPath(path);
       return path;
     } catch (err) {
       console.error('Generate share card failed:', err);
-      return diary.mediaUrl || activeCat?.avatar || '';
+      const fallback = diary.mediaUrl || activeCat?.avatar || '';
+      shareCardPathRef.current = fallback;
+      setShareCardPath(fallback);
+      return fallback;
     }
   };
 
@@ -862,10 +867,11 @@ export default function Diary() {
         text={sharingDiary ? sharingDiary.content : 'Miao - 日常记录'}
         url="/pages/diary/index"
         isTabPage={true}
-        onClose={() => { setShowShareSheet(false); setTimeout(() => updateSharingDiary(null), 5000); }}
+        shareImagePath={shareCardPath}
+        onClose={() => { setShowShareSheet(false); setShareCardPath(''); setTimeout(() => updateSharingDiary(null), 5000); }}
       />
 
-      {/* 分享卡片 Canvas（离屏，用于生成朋友圈分享图） */}
+      {/* 分享卡片 Canvas（不可见，用于生成朋友圈分享图） */}
       <Canvas
         type="2d"
         id="diaryShareCard"

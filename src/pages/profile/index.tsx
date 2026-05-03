@@ -82,6 +82,7 @@ export default function Profile() {
   }));
 
   useEffect(() => {
+    Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
     loadProfile();
     const handleNotificationsRead = () => setUnreadCount(getUnreadNotificationCount());
     Taro.eventCenter.on('notifications-read', handleNotificationsRead);

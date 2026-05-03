@@ -38,6 +38,7 @@ export default function CatPlayer() {
   }));
 
   useEffect(() => {
+    Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
     if (!catId) {
       Taro.navigateBack();
       return;

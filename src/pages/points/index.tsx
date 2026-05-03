@@ -47,6 +47,7 @@ export default function Points() {
   const effectivePoints = isDebugMode ? Math.max(pointsInfo.total, REDEEM_THRESHOLD) : pointsInfo.total;
 
   useEffect(() => {
+    Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
     loadPoints();
 
     const handleStorageChange = () => {

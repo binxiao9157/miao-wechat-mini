@@ -13,10 +13,11 @@ interface ShareSheetProps {
   text?: string;
   url?: string;
   isTabPage?: boolean;
+  shareImagePath?: string;
   onClose: () => void;
 }
 
-export default function ShareSheet({ visible, title = '分享', text, url, isTabPage = false, onClose }: ShareSheetProps) {
+export default function ShareSheet({ visible, title = '分享', text, url, isTabPage = false, shareImagePath, onClose }: ShareSheetProps) {
   if (!visible) return null;
 
   const friends: FriendInfo[] = storage.getFriends();
@@ -48,16 +49,34 @@ export default function ShareSheet({ visible, title = '分享', text, url, isTab
     onClose();
   };
 
-  const handleShareToMoments = () => {
+  const handleShareToMoments = async () => {
+    if (shareImagePath) {
+      try {
+        // showShareImageMenu 需要本地路径，如果是网络 URL 先下载
+        let localPath = shareImagePath;
+        if (shareImagePath.startsWith('http://') || shareImagePath.startsWith('https://')) {
+          const downloadRes = await Taro.downloadFile({ url: shareImagePath });
+          if (downloadRes.tempFilePath) {
+            localPath = downloadRes.tempFilePath;
+          } else {
+            throw new Error('download failed');
+          }
+        }
+        await Taro.showShareImageMenu({ path: localPath });
+        onClose();
+        return;
+      } catch (err) {
+        console.warn('showShareImageMenu failed, fallback to guide:', err);
+      }
+    }
+    // 无图片或 showShareImageMenu 失败时，引导用户使用右上角菜单
+    Taro.showModal({
+      title: '分享到朋友圈',
+      content: '点击右上角 ··· 按钮，选择「分享到朋友圈」即可发布',
+      showCancel: false,
+      confirmText: '知道了',
+    });
     onClose();
-    setTimeout(() => {
-      Taro.showModal({
-        title: '分享到朋友圈',
-        content: '点击右上角 ··· 按钮，选择「分享到朋友圈」即可发布',
-        showCancel: false,
-        confirmText: '知道了',
-      });
-    }, 300);
   };
 
   return (

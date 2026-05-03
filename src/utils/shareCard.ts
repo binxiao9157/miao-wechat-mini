@@ -70,7 +70,8 @@ export async function generateShareCard(options: ShareCardOptions): Promise<stri
   } = options;
 
   return new Promise((resolve, reject) => {
-    const query = Taro.createSelectorQuery();
+    const instance = Taro.getCurrentInstance();
+    const query = Taro.createSelectorQuery().in(instance.page);
     query.select(`#${canvasId}`)
       .fields({ node: true, size: true })
       .exec(async (res) => {

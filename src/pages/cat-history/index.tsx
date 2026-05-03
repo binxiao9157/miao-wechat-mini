@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import { navigateBack, navigateTo, useDidShow, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
+import Taro, { navigateBack, navigateTo, useDidShow, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import CatAvatar from '../../components/common/CatAvatar';
 
@@ -28,6 +28,7 @@ export default function CatHistory() {
   }));
 
   useEffect(() => {
+    Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
     refreshFromCloud();
   }, []);
 

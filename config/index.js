@@ -13,7 +13,7 @@ const config = {
   },
   sourceRoot: 'src',
   outputRoot: 'dist',
-  plugins: [],
+  plugins: [path.resolve(__dirname, '..', 'scripts', 'taro-plugin-share-timeline')],
   defineConstants: {
     'process.env.TARO_APP_API_BASE_URL': JSON.stringify(
       process.env.TARO_APP_API_BASE_URL || 'http://localhost:3000'

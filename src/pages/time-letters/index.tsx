@@ -199,6 +199,7 @@ export default function TimeLettersPage() {
 
   // 加载信件列表
   useEffect(() => {
+    Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
     loadLetters();
   }, []);
 

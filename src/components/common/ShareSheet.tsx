@@ -135,7 +135,7 @@ export default function ShareSheet({ visible, title = '分享', text, url, isTab
             <View className="option-icon moments">
               <Text>🌐</Text>
             </View>
-            <Text className="option-label">朋友圈</Text>
+            <Text className="option-label">{shareImagePath ? '朋友圈' : '朋友圈...'}</Text>
           </View>
 
           <View className="share-option" onClick={handleCopyLink}>

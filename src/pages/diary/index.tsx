@@ -460,11 +460,11 @@ export default function Diary() {
   };
 
   // 分享功能
-  const handleShare = (diary: DiaryWithMedia) => {
+  const handleShare = async (diary: DiaryWithMedia) => {
     updateSharingDiary(diary);
+    // 先生成分享卡片图，再打开面板，确保朋友圈按钮可用
+    await generateShareCardImage(diary);
     setShowShareSheet(true);
-    // 预生成朋友圈分享卡片图
-    generateShareCardImage(diary);
   };
 
   return (

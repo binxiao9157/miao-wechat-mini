@@ -1,11 +1,11 @@
 import React from 'react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, Image, Video } from '@tarojs/components';
-import Taro, { navigateTo, useDidShow, useDidHide } from '@tarojs/taro';
+import Taro, { navigateTo, useDidShow, useDidHide, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
 import { storage, CatInfo } from '../../services/storage';
 import CatAvatar from '../../components/common/CatAvatar';
 import { getPrimaryVideoUrl } from '../../services/catLifecycle';
-import { on, off } from '../../utils/eventAdapter';
+import { on, off, trigger } from '../../utils/eventAdapter';
 import FrostedGlassBubble from '../../components/common/FrostedGlassBubble';
 import './index.less';
 
@@ -31,6 +31,15 @@ export default function Home() {
   const [currentAction, setCurrentAction] = useState('idle');
   const [videoError, setVideoError] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
+
+  useShareAppMessage(() => ({
+    title: cat ? `来和${cat.name}一起玩吧！` : 'Miao - 你的AI猫咪伙伴',
+    path: '/pages/home/index',
+  }));
+
+  useShareTimeline(() => ({
+    title: cat ? `来和${cat.name}一起玩吧！` : 'Miao - 你的AI猫咪伙伴',
+  }));
 
   // 气泡状态
   const [bubbleText, setBubbleText] = useState('');
@@ -104,9 +113,16 @@ export default function Home() {
     on('cat-updated', handler);
     on('cat-list-synced', handler);
 
+    // 从其他页面切换回来时显示互动提示
+    const interactionHandler = () => {
+      setTimeout(() => showFloatingBubble('快来和猫咪互动吧~', 3000), 500);
+    };
+    on('home:show-interaction-hint', interactionHandler);
+
     return () => {
       off('cat-updated', handler);
       off('cat-list-synced', handler);
+      off('home:show-interaction-hint', interactionHandler);
       if (onlineTimerRef.current) clearInterval(onlineTimerRef.current);
       if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
     };
@@ -120,6 +136,14 @@ export default function Home() {
   useDidHide(() => {
     setVideoError(true);
   });
+
+  // 组件卸载时清理视频资源
+  useEffect(() => {
+    return () => {
+      setVideoError(true);
+      setCurrentAction('idle');
+    };
+  }, []);
 
   useEffect(() => {
     if (cat?.videoPaths) {

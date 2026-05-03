@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Textarea, Image } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
+import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage } from '../../services/storage';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
@@ -101,6 +102,7 @@ const SURVEY_QUESTIONS: Question[] = [
 const FEEDBACK_TYPES = ['Bug反馈', '功能建议', '界面优化', '其他'];
 
 export default function Feedback() {
+  const navSpace = useNavSpace();
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [surveyAnswers, setSurveyAnswers] = useState<Record<string, any>>({});
@@ -162,7 +164,7 @@ export default function Feedback() {
   }
 
   return (
-    <View className="feedback-page">
+    <View className="feedback-page" style={navSpace as React.CSSProperties}>
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>

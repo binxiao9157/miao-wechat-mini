@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import { reLaunch } from '@tarojs/taro';
+import { useNavSpace } from '../../hooks/useNavSpace';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 import PawLogo from '../../components/common/PawLogo';
@@ -8,6 +9,7 @@ import { useAuthContext } from '../../context/AuthContext';
 import './index.less';
 
 export default function CatStart() {
+  const navSpace = useNavSpace();
   const { logout } = useAuthContext();
 
   const handleLogout = () => {
@@ -20,7 +22,7 @@ export default function CatStart() {
   };
 
   return (
-    <View className="cat-start-page">
+    <View className="cat-start-page" style={navSpace as React.CSSProperties}>
       {/* Logout Button */}
       <View className="back-btn" onClick={handleLogout}>
         <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />

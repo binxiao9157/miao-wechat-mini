@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Image, Input } from '@tarojs/components';
 import Taro, { navigateBack, navigateTo } from '@tarojs/taro';
+import { useNavSpace } from '../../hooks/useNavSpace';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const X_DARK = require('../../assets/profile-icons/x-dark.png');
@@ -13,6 +14,7 @@ import { storage } from '../../services/storage';
 import './index.less';
 
 export default function UploadMaterial() {
+  const navSpace = useNavSpace();
   const router = Taro.getCurrentInstance().router;
   const isRedemption = router?.params?.isRedemption === '1';
   const redemptionAmount = Number(router?.params?.redemptionAmount) || 0;
@@ -128,7 +130,7 @@ export default function UploadMaterial() {
   const isReady = selectedImage && nickname.trim();
 
   return (
-    <View className="upload-material-page">
+    <View className="upload-material-page" style={navSpace as React.CSSProperties}>
       {showToast && (
         <View className="toast">
           <Text className="toast-text">{showToast}</Text>

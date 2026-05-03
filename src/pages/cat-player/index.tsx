@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Video, Image } from '@tarojs/components';
-import Taro, { useRouter } from '@tarojs/taro';
+import Taro, { useRouter, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
+import { useNavSpace } from '../../hooks/useNavSpace';
 
 const ARROWLEFT_WHITE = require('../../assets/profile-icons/arrowleft-white.png');
 const PLAY_WHITE = require('../../assets/profile-icons/play-white.png');
@@ -15,6 +16,7 @@ import { getPrimaryVideoUrl } from '../../services/catLifecycle';
 import './index.less';
 
 export default function CatPlayer() {
+  const navSpace = useNavSpace();
   const router = useRouter();
   const catId = router.params.id || '';
 
@@ -25,6 +27,15 @@ export default function CatPlayer() {
   const [showControls, setShowControls] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
+
+  useShareAppMessage(() => ({
+    title: cat ? `来看看${cat.name}的AI猫咪视频！` : 'Miao - AI猫咪视频',
+    path: catId ? `/pages/cat-player/index?id=${catId}` : '/pages/home/index',
+  }));
+
+  useShareTimeline(() => ({
+    title: cat ? `${cat.name}的AI猫咪视频` : 'Miao - AI猫咪视频',
+  }));
 
   useEffect(() => {
     if (!catId) {
@@ -88,9 +99,7 @@ export default function CatPlayer() {
   };
 
   const handleShare = () => {
-    Taro.showShareMenu({
-      withShareTicket: true,
-    });
+    Taro.showToast({ title: '点击右上角「转发」分享', icon: 'none' });
   };
 
   const handleDelete = () => {
@@ -130,7 +139,7 @@ export default function CatPlayer() {
     : '';
 
   return (
-    <View className="cat-player-page">
+    <View className="cat-player-page" style={navSpace as React.CSSProperties}>
       {/* Toast */}
       {showToast && (
         <View className="toast">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {  View, Text, Image } from '@tarojs/components';
 import Taro, { navigateBack, navigateTo } from '@tarojs/taro';
+import { useNavSpace } from '../../hooks/useNavSpace';
 const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
 const SCAN_PNG = require('../../assets/profile-icons/scan-primary.png');
 import { FriendInfo } from '../../services/storage';
@@ -8,6 +9,7 @@ import { friendService } from '../../services/friendService';
 import './index.less';
 
 export default function ScanFriend() {
+  const navSpace = useNavSpace();
   const [scanning, setScanning] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
   const [friendInfo, setFriendInfo] = useState<FriendInfo | null>(null);
@@ -79,7 +81,7 @@ export default function ScanFriend() {
   };
 
   return (
-    <View className="scan-friend-page">
+    <View className="scan-friend-page" style={navSpace as React.CSSProperties}>
       {/* Toast */}
       {showToast && (
         <View className="toast">

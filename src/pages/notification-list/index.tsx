@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import { navigateBack, navigateTo } from '@tarojs/taro';
+import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, TimeLetter, PointsInfo } from '../../services/storage';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
@@ -80,6 +81,7 @@ function computeNotifications(): Notification[] {
 }
 
 export default function NotificationList() {
+  const navSpace = useNavSpace();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
@@ -127,7 +129,7 @@ export default function NotificationList() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <View className="notification-list-page">
+    <View className="notification-list-page" style={navSpace as React.CSSProperties}>
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>

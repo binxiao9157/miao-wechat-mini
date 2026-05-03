@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { View, Text, Image, ScrollView, Input, Textarea } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro';
+import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, TimeLetter, CatInfo } from '../../services/storage';
 import CatAvatar from '../../components/common/CatAvatar';
 import './index.less';
@@ -158,12 +159,22 @@ function LetterCard({ letter, targetCat, isUnlocked, fastForward, onDelete, onCl
 }
 
 export default function TimeLettersPage() {
+  const navSpace = useNavSpace();
   const [letters, setLetters] = useState<TimeLetter[]>([]);
   const [view, setView] = useState<ViewState>('list');
   const [selectedLetter, setSelectedLetter] = useState<TimeLetter | null>(null);
   const [letterToDelete, setLetterToDelete] = useState<TimeLetter | null>(null);
   const [filterCatId, setFilterCatId] = useState<string>('all');
   const [toast, setToast] = useState<string | null>(null);
+
+  useShareAppMessage(() => ({
+    title: 'Miao - 给未来的自己和猫咪写一封时光信',
+    path: '/pages/time-letters/index',
+  }));
+
+  useShareTimeline(() => ({
+    title: 'Miao - 时光信件',
+  }));
 
   // 写信页面状态
   const [title, setTitle] = useState("");
@@ -625,7 +636,7 @@ export default function TimeLettersPage() {
   };
 
   return (
-    <View className="time-letters-container">
+    <View className="time-letters-container" style={navSpace as React.CSSProperties}>
       {view === 'list' && renderList()}
       {view === 'write' && renderWrite()}
       {view === 'detail' && renderDetail()}

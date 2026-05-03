@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Image, Canvas } from '@tarojs/components';
 import Taro, { useRouter, navigateBack } from '@tarojs/taro';
+import { useNavSpace } from '../../hooks/useNavSpace';
 import CatAvatar from '../../components/common/CatAvatar';
 const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
 const DOWNLOAD_PNG = require('../../assets/profile-icons/download-primary.png');
@@ -12,6 +13,7 @@ import { drawQROnCanvas } from '../../utils/qrCanvas';
 import './index.less';
 
 export default function AddFriendQR() {
+  const navSpace = useNavSpace();
   const router = useRouter();
   const { catId } = router.params;
 
@@ -180,7 +182,7 @@ export default function AddFriendQR() {
   }
 
   return (
-    <View className="add-friend-qr-page">
+    <View className="add-friend-qr-page" style={navSpace as React.CSSProperties}>
       {/* 头部 */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>

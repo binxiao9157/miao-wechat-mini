@@ -1,5 +1,7 @@
+import React from 'react';
 import { View, Text, ScrollView, Image } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
+import { useNavSpace } from '../../hooks/useNavSpace';
 import arrowLeftDark from '../../assets/profile-icons/arrowleft-dark.png';
 import './index.less';
 
@@ -71,8 +73,9 @@ const sections = [
 ];
 
 export default function PrivacyPolicy() {
+  const navSpace = useNavSpace();
   return (
-    <View className="policy-page">
+    <View className="policy-page" style={navSpace as React.CSSProperties}>
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
           <Image className="icon-img" src={arrowLeftDark} mode="aspectFit" />

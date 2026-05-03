@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
-import Taro, { navigateTo, reLaunch } from '@tarojs/taro';
+import Taro, { navigateTo, reLaunch, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
+import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, UserInfo, CatInfo } from '../../services/storage';
 import './index.less';
 
@@ -59,14 +60,28 @@ export default function Profile() {
   const [activeCat, setActiveCat] = useState<CatInfo | null>(null);
   const [stats, setStats] = useState({ days: 0, entries: 0 });
   const [unreadCount, setUnreadCount] = useState(0);
-  const [navStyle, setNavStyle] = useState<React.CSSProperties>({});
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const adminTapCountRef = useRef(0);
   const adminTapTimerRef = useRef<any>(null);
 
+  const navSpace = useNavSpace();
+  const navStyle: React.CSSProperties = {
+    '--profile-nav-top': navSpace['--nav-top'],
+    '--profile-nav-height': navSpace['--nav-height'],
+    '--profile-page-side': navSpace['--nav-side'],
+  };
+
+  useShareAppMessage(() => ({
+    title: activeCat ? `来认识${activeCat.name}吧！` : 'Miao - 你的AI猫咪伙伴',
+    path: '/pages/home/index',
+  }));
+
+  useShareTimeline(() => ({
+    title: activeCat ? `${activeCat.name}在Miao等你` : 'Miao - 你的AI猫咪伙伴',
+  }));
+
   useEffect(() => {
-    setupMiniNavSpace();
     loadProfile();
     const handleNotificationsRead = () => setUnreadCount(getUnreadNotificationCount());
     Taro.eventCenter.on('notifications-read', handleNotificationsRead);
@@ -75,25 +90,6 @@ export default function Profile() {
       if (adminTapTimerRef.current) clearTimeout(adminTapTimerRef.current);
     };
   }, []);
-
-  const setupMiniNavSpace = () => {
-    try {
-      const systemInfo = Taro.getSystemInfoSync();
-      const capsule = Taro.getMenuButtonBoundingClientRect();
-      const windowWidth = systemInfo.windowWidth || 375;
-      const statusBarHeight = systemInfo.statusBarHeight || 0;
-      const capsuleTop = capsule?.top || statusBarHeight + 6;
-      const capsuleHeight = capsule?.height || 32;
-
-      setNavStyle({
-        '--profile-nav-top': `${capsuleTop + capsuleHeight + 18}px`,
-        '--profile-nav-height': `${capsuleHeight}px`,
-        '--profile-page-side': `${Math.max(21, windowWidth - (capsule?.right || windowWidth) + 21)}px`,
-      } as React.CSSProperties);
-    } catch {
-      setNavStyle({});
-    }
-  };
 
   const loadProfile = () => {
     const userInfo = storage.getUserInfo();
@@ -137,6 +133,37 @@ export default function Profile() {
     reLaunch({ url: '/pages/register/index' });
   };
 
+  const handleClearCache = () => {
+    Taro.showModal({
+      title: '清除缓存',
+      content: '将清除临时文件和缓存数据，不会影响您的账户和猫咪信息。确定清除吗？',
+      confirmText: '清除',
+      confirmColor: '#E89F71',
+      success: (res) => {
+        if (res.confirm) {
+          try {
+            // 清除临时文件
+            Taro.getStorageInfoSync();
+            const info = Taro.getStorageInfoSync();
+            // 保留关键用户数据，清除临时缓存
+            const preserveKeys = ['miao_user_info', 'miao_cat_list', 'miao_active_cat_id', 'miao_auth_token', 'miao_friends', 'miao_diaries', 'miao_time_letters', 'miao_points', 'miao_settings'];
+            const allKeys = info.keys || [];
+            let cleared = 0;
+            allKeys.forEach((key: string) => {
+              if (!preserveKeys.some(pk => key.startsWith(pk))) {
+                Taro.removeStorageSync(key);
+                cleared++;
+              }
+            });
+            Taro.showToast({ title: `已清除 ${cleared} 项缓存`, icon: 'success' });
+          } catch {
+            Taro.showToast({ title: '清除失败', icon: 'none' });
+          }
+        }
+      }
+    });
+  };
+
   const handleAdminTap = () => {
     adminTapCountRef.current += 1;
     if (adminTapTimerRef.current) clearTimeout(adminTapTimerRef.current);
@@ -157,6 +184,7 @@ export default function Profile() {
     { icon: 'user' as const, label: '个人资料设置', url: '/pages/edit-profile/index', color: 'bg-blue-50' },
     { icon: 'bellMenu' as const, label: '通知设置', url: '/pages/notifications/index', color: 'bg-orange-50' },
     { icon: 'message' as const, label: '意见反馈', url: '/pages/feedback/index', color: 'bg-purple-50' },
+    { icon: 'trash' as const, label: '清除缓存', url: '__clear_cache__', color: 'bg-gray-50' },
   ];
 
   const handleNotificationClick = () => {
@@ -208,12 +236,16 @@ export default function Profile() {
 
           {/* 统计卡片 - 可点击 */}
           <View className="stats-row">
-            <View className="stat-card" onClick={() => navigateTo({ url: '/pages/accompany-milestone/index' })}>
+            <View className="stat-card" onClick={() => {
+              const catName = activeCat?.name || '小猫';
+              const days = stats.days;
+              navigateTo({ url: `/pages/accompany-milestone/index?catName=${encodeURIComponent(catName)}&days=${days}` });
+            }}>
               <ProfileIcon name="calendar" size={16} className="stat-icon" />
               <Text className="stat-value">{stats.days}</Text>
               <Text className="stat-label">陪伴天数</Text>
             </View>
-            <View className="stat-card" onClick={() => navigateTo({ url: '/pages/diary/index' })}>
+            <View className="stat-card" onClick={() => Taro.switchTab({ url: '/pages/diary/index' })}>
               <ProfileIcon name="image" size={16} className="stat-icon" />
               <Text className="stat-value">{stats.entries}</Text>
               <Text className="stat-label">记录瞬间</Text>
@@ -240,7 +272,13 @@ export default function Profile() {
             <View
               key={index}
               className="menu-item"
-              onClick={() => item.url && navigateTo({ url: item.url })}
+              onClick={() => {
+                if (item.url === '__clear_cache__') {
+                  handleClearCache();
+                } else if (item.url) {
+                  navigateTo({ url: item.url });
+                }
+              }}
             >
               <View className={`menu-icon ${item.color}`}>
                 <ProfileIcon name={item.icon} size={20} />

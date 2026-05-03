@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
-import Taro, { switchTab, navigateTo } from '@tarojs/taro';
+import Taro, { switchTab, navigateTo, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
 import { storage, PointsInfo, PointTransaction } from '../../services/storage';
+import { useNavSpace } from '../../hooks/useNavSpace';
+import { trigger } from '../../utils/eventAdapter';
 import './index.less';
 
 // Lucide-style PNG icons
@@ -15,6 +17,17 @@ const CHEVRONRIGHT_WHITE = require('../../assets/profile-icons/chevronright-whit
 const X_GRAY = require('../../assets/profile-icons/x-gray.png');
 
 export default function Points() {
+  const navSpace = useNavSpace();
+
+  useShareAppMessage(() => ({
+    title: 'Miao - 积分中心',
+    path: '/pages/points/index',
+  }));
+
+  useShareTimeline(() => ({
+    title: 'Miao - 积分中心',
+  }));
+
   const [pointsInfo, setPointsInfo] = useState<PointsInfo>({
     total: 0,
     lastLoginDate: null,
@@ -78,6 +91,7 @@ export default function Points() {
 
   const handleTaskClick = (task: typeof tasks[0]) => {
     if (!task.completed && task.id === 2) {
+      trigger('home:show-interaction-hint', {});
       switchTab({ url: '/pages/home/index' });
     }
   };
@@ -105,7 +119,7 @@ export default function Points() {
   };
 
   return (
-    <View className="points-page">
+    <View className="points-page" style={navSpace as React.CSSProperties}>
       {/* Header */}
       <View className="header">
         <View className="header-title" onClick={handleDebugTap}>

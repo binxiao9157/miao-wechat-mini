@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import { navigateBack, navigateTo, useDidShow } from '@tarojs/taro';
+import { navigateBack, navigateTo, useDidShow, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
+import { useNavSpace } from '../../hooks/useNavSpace';
 import CatAvatar from '../../components/common/CatAvatar';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
@@ -13,8 +14,18 @@ import { FileManager } from '../../services/fileManager';
 import './index.less';
 
 export default function CatHistory() {
+  const navSpace = useNavSpace();
   const [cats, setCats] = useState<CatInfo[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+
+  useShareAppMessage(() => ({
+    title: 'Miao - 我的AI猫咪历史',
+    path: '/pages/cat-history/index',
+  }));
+
+  useShareTimeline(() => ({
+    title: 'Miao - 我的AI猫咪历史',
+  }));
 
   useEffect(() => {
     refreshFromCloud();
@@ -52,7 +63,7 @@ export default function CatHistory() {
   };
 
   return (
-    <View className="cat-history-page">
+    <View className="cat-history-page" style={navSpace as React.CSSProperties}>
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>

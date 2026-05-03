@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro, { navigateBack, navigateTo } from '@tarojs/taro';
+import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage } from '../../services/storage';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
@@ -10,6 +11,7 @@ const SHIELDCHECK_PRIMARY = require('../../assets/profile-icons/shieldcheck-prim
 import './index.less';
 
 export default function PrivacySettings() {
+  const navSpace = useNavSpace();
   const [cacheSize, setCacheSize] = useState('0 KB');
   const [isClearing, setIsClearing] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
@@ -56,7 +58,7 @@ export default function PrivacySettings() {
   };
 
   return (
-    <View className="privacy-settings-page">
+    <View className="privacy-settings-page" style={navSpace as React.CSSProperties}>
       {/* Toast */}
       {showToast && (
         <View className="toast">

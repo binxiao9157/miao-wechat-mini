@@ -2,8 +2,9 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image, Button, Input, Textarea, Video } from '@tarojs/components';
 import CatAvatar from '../../components/common/CatAvatar';
-import Taro from '@tarojs/taro';
+import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro';
 import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage } from '../../services/storage';
+import { useNavSpace } from '../../hooks/useNavSpace';
 
 // Lucide-style PNG icons
 const USERPLUS_GRAY = require('../../assets/profile-icons/userplus-gray.png');
@@ -27,29 +28,8 @@ interface DiaryWithMedia extends DiaryEntry {
 
 type FriendDiaryWithMedia = FriendDiaryEntry & { mediaUrl?: string };
 
-// 微信小程序分享配置
-const shareConfig = {
-  onShareAppMessage: function (res: any) {
-    if (res.from === 'button') {
-      // 来自页面内转发按钮
-      console.log(res.target);
-    }
-    return {
-      title: 'Miao - 记录猫咪的美好时光',
-      path: '/pages/diary/index',
-      imageUrl: '' // 可以设置分享图片
-    };
-  },
-  onShareTimeline: function () {
-    return {
-      title: 'Miao - 记录猫咪的美好时光',
-      query: '',
-      imageUrl: ''
-    };
-  }
-};
-
 export default function Diary() {
+  const navSpace = useNavSpace();
   const [diaries, setDiaries] = useState<DiaryWithMedia[]>([]);
   const [showCompose, setShowCompose] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -60,9 +40,18 @@ export default function Diary() {
   const [commentText, setCommentText] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'mine' | 'friends'>('mine');
+  const [tabDirection, setTabDirection] = useState<'left' | 'right'>('right');
   const [friendDiaries, setFriendDiaries] = useState<FriendDiaryWithMedia[]>([]);
-  const [sharingId, setSharingId] = useState<string | null>(null);
   const [activeCat, setActiveCat] = useState<{ id: string; name: string; avatar?: string } | null>(null);
+
+  useShareAppMessage(() => ({
+    title: 'Miao - 记录猫咪的美好时光',
+    path: '/pages/diary/index',
+  }));
+
+  useShareTimeline(() => ({
+    title: 'Miao - 记录猫咪的美好时光',
+  }));
 
   // 添加好友相关状态 - v2
   const [showAddFriendMenu, setShowAddFriendMenu] = useState<boolean>(false);
@@ -393,28 +382,11 @@ export default function Diary() {
 
   // 分享功能
   const handleShare = (diary: DiaryWithMedia) => {
-    // 微信小程序分享
-    Taro.showShareMenu({
-      withShareTicket: true,
-    });
-
-    // 设置分享内容
-    Taro.showToast({ title: '点击右上角分享', icon: 'none' });
-    setSharingId(diary.id);
+    Taro.showToast({ title: '点击右上角「转发」分享', icon: 'none' });
   };
 
-  // 使用微信小程序原生分享
-  useEffect(() => {
-    if (sharingId) {
-      // 配置分享参数
-      Taro.showShareMenu({
-        withShareTicket: true,
-      });
-    }
-  }, [sharingId]);
-
   return (
-    <View className="diary-page">
+    <View className="diary-page" style={navSpace as React.CSSProperties}>
       <View className="header">
         <View className="header-title">
           <Text className="title">日常记录</Text>
@@ -434,21 +406,21 @@ export default function Diary() {
       <View className="tab-bar">
         <View
           className={`tab-item ${activeTab === 'mine' ? 'active' : ''}`}
-          onClick={() => setActiveTab('mine')}
+          onClick={() => { setTabDirection('left'); setActiveTab('mine'); }}
         >
           <Text className="tab-text">我的记录</Text>
           {activeTab === 'mine' && <View className="tab-indicator" />}
         </View>
         <View
           className={`tab-item ${activeTab === 'friends' ? 'active' : ''}`}
-          onClick={() => setActiveTab('friends')}
+          onClick={() => { setTabDirection('right'); setActiveTab('friends'); }}
         >
           <Text className="tab-text">好友动态</Text>
           {activeTab === 'friends' && <View className="tab-indicator" />}
         </View>
       </View>
 
-      <View className={`diary-list tab-content-${activeTab}`}>
+      <View className={`diary-list tab-content-${activeTab} tab-slide-${tabDirection}`}>
         {activeTab === 'mine' ? (
           // 我的记录
           diaries.length === 0 ? (

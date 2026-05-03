@@ -24,6 +24,11 @@ page {
   --outline: #E5D5C8;
   --outline-variant: #F2E6DD;
   --soft-shadow: 0 12rpx 34rpx rgba(99, 62, 29, 0.08);
+
+  /* Navigation safe area - overridden per-page via useNavSpace hook */
+  --nav-top: calc(env(safe-area-inset-top) + 8px);
+  --nav-height: 32px;
+  --nav-side: 21px;
 }
 
 /* 通用工具类 */

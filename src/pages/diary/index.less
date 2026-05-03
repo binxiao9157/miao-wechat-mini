@@ -11,7 +11,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: calc(env(safe-area-inset-top) + 76rpx) 44rpx 34rpx;
+  padding: var(--nav-top, calc(env(safe-area-inset-top) + 76rpx)) 44rpx 34rpx;
   background: transparent;
 
   .header-title {
@@ -130,9 +130,39 @@
   }
 }
 
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .diary-list.tab-content-mine,
 .diary-list.tab-content-friends {
   animation: tabFadeIn 0.25s ease-out;
+}
+
+.diary-list.tab-slide-right {
+  animation: slideInRight 0.25s ease-out;
+}
+
+.diary-list.tab-slide-left {
+  animation: slideInLeft 0.25s ease-out;
 }
 
 .empty-text {

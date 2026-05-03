@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, Switch } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
+import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, AppSettings } from '../../services/storage';
 import Taro from '@tarojs/taro';
 
@@ -10,6 +11,7 @@ const BELL_PRIMARY = require('../../assets/profile-icons/bell-primary.png');
 import './index.less';
 
 export default function Notifications() {
+  const navSpace = useNavSpace();
   const [settings, setSettings] = useState<AppSettings>({
     pushNotifications: true,
     greetingsEnabled: true,
@@ -50,7 +52,7 @@ export default function Notifications() {
   ];
 
   return (
-    <View className="notifications-page">
+    <View className="notifications-page" style={navSpace as React.CSSProperties}>
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>
           <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />

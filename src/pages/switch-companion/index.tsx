@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import { navigateBack, navigateTo, reLaunch, useDidShow } from '@tarojs/taro';
+import { useNavSpace } from '../../hooks/useNavSpace';
 import CatAvatar from '../../components/common/CatAvatar';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
@@ -13,6 +14,7 @@ import { storage, CatInfo } from '../../services/storage';
 import './index.less';
 
 export default function SwitchCompanion() {
+  const navSpace = useNavSpace();
   const [cats, setCats] = useState<CatInfo[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [points, setPoints] = useState(0);
@@ -74,7 +76,7 @@ export default function SwitchCompanion() {
   };
 
   return (
-    <View className="switch-companion-page">
+    <View className="switch-companion-page" style={navSpace as React.CSSProperties}>
       {/* Header */}
       <View className="header">
         <View className="back-btn" onClick={() => navigateBack()}>

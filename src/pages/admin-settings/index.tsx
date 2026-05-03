@@ -2,19 +2,26 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Input, Switch, Button, Image } from '@tarojs/components';
 import Taro, { navigateBack } from '@tarojs/taro';
 import { aiConfig, AIProfile, AIProvider, DEFAULT_AI_PROFILES } from '../../services/aiConfig';
+import { storage, PresetCat } from '../../services/storage';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const SETTINGS_DARK = require('../../assets/profile-icons/settings-dark.png');
 const REFRESHCW_PRIMARY = require('../../assets/profile-icons/refreshcw-primary.png');
 const CHECKCIRCLE_GREEN = require('../../assets/profile-icons/checkcircle-green.png');
+const PLUS_WHITE = require('../../assets/profile-icons/plus-white.png');
+const X_GRAY = require('../../assets/profile-icons/x-gray.png');
 
 import './index.less';
 
 export default function AdminSettings() {
   const [profile, setProfile] = useState<AIProfile>(DEFAULT_AI_PROFILES.volcengine);
+  const [presets, setPresets] = useState<PresetCat[]>([]);
+  const [newPresetName, setNewPresetName] = useState('');
+  const [newPresetUrl, setNewPresetUrl] = useState('');
 
   useEffect(() => {
     setProfile(aiConfig.getProfile());
+    setPresets(storage.getPresetCats());
   }, []);
 
   const handleProviderChange = (provider: AIProvider) => {
@@ -26,6 +33,7 @@ export default function AdminSettings() {
       duration: prev.duration || defaults.duration,
       seed: prev.seed || defaults.seed,
       promptExtend: prev.promptExtend,
+      skipImageStage: prev.skipImageStage,
     }));
   };
 
@@ -35,6 +43,7 @@ export default function AdminSettings() {
 
   const handleSave = () => {
     aiConfig.saveProfile(profile);
+    storage.savePresetCats(presets);
     Taro.showToast({ title: '配置已保存', icon: 'success' });
   };
 
@@ -43,6 +52,26 @@ export default function AdminSettings() {
     const nextProfile = aiConfig.getProfile();
     setProfile(nextProfile);
     Taro.showToast({ title: '已恢复默认', icon: 'success' });
+  };
+
+  const handleAddPreset = () => {
+    if (!newPresetName.trim() || !newPresetUrl.trim()) {
+      Taro.showToast({ title: '请填写完整', icon: 'none' });
+      return;
+    }
+    const newPreset: PresetCat = {
+      id: 'preset_' + Date.now(),
+      name: newPresetName.trim(),
+      imageUrl: newPresetUrl.trim(),
+    };
+    const updated = [...presets, newPreset];
+    setPresets(updated);
+    setNewPresetName('');
+    setNewPresetUrl('');
+  };
+
+  const handleRemovePreset = (id: string) => {
+    setPresets(presets.filter(p => p.id !== id));
   };
 
   return (
@@ -145,6 +174,61 @@ export default function AdminSettings() {
                 onChange={(e) => updateField('mockMode', e.detail.value)}
               />
             </View>
+            <View className="switch-item">
+              <Text className="switch-label">跳过图片阶段</Text>
+              <Switch
+                color="#ff8c5a"
+                checked={profile.skipImageStage}
+                onChange={(e) => updateField('skipImageStage', e.detail.value)}
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* 预设猫咪管理 */}
+      <View className="section">
+        <View className="section-head">
+          <View className="section-icon">
+            <Image className="icon-img" src={SETTINGS_DARK} mode="aspectFit" style={{ width: 22, height: 22 }} />
+          </View>
+          <View>
+            <Text className="section-title">预设猫咪</Text>
+            <Text className="section-desc">管理"我想养猫"页面的品种预设</Text>
+          </View>
+        </View>
+
+        <View className="preset-list">
+          {presets.map((preset) => (
+            <View key={preset.id} className="preset-item">
+              <Image className="preset-avatar" src={preset.imageUrl} mode="aspectFill" />
+              <Text className="preset-name">{preset.name}</Text>
+              <View className="preset-remove" onClick={() => handleRemovePreset(preset.id)}>
+                <Image className="icon-img" src={X_GRAY} mode="aspectFit" style={{ width: 16, height: 16 }} />
+              </View>
+            </View>
+          ))}
+          {presets.length === 0 && (
+            <Text className="preset-empty">暂无预设猫咪</Text>
+          )}
+        </View>
+
+        <View className="preset-add">
+          <Input
+            className="input preset-input"
+            placeholder="品种名称"
+            value={newPresetName}
+            onInput={(e) => setNewPresetName(e.detail.value)}
+          />
+          <Input
+            className="input preset-input"
+            placeholder="图片 URL"
+            value={newPresetUrl}
+            onInput={(e) => setNewPresetUrl(e.detail.value)}
+          />
+          <View className="preset-add-btn" onClick={handleAddPreset}>
+            <Image className="icon-img" src={PLUS_WHITE} mode="aspectFit" style={{ width: 16, height: 16 }} />
+            <Text className="preset-add-text">添加</Text>
           </View>
         </View>
       </View>

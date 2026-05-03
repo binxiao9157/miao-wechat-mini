@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { View, Text, Image, ScrollView, Input, Textarea } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { storage, TimeLetter, CatInfo } from '../../services/storage';
+import CatAvatar from '../../components/common/CatAvatar';
 import './index.less';
 
 // Lucide-style PNG icons
@@ -20,9 +21,14 @@ const ALERTCIRCLE_RED = require('../../assets/profile-icons/alertcircle-red.png'
 type ViewState = 'list' | 'write' | 'detail';
 
 // 格式化倒计时
-function formatCountdown(unlockAt: number): string {
+function formatCountdown(unlockAt: number, fastForward?: boolean): string {
   const now = Date.now();
-  const remainingMs = unlockAt - now;
+  let remainingMs = unlockAt - now;
+
+  if (fastForward) {
+    // 快进模式：1秒=1分钟，即倒计时除以60
+    remainingMs = remainingMs / 60;
+  }
 
   if (remainingMs <= 0) return '已解锁';
 
@@ -40,36 +46,64 @@ interface LetterCardProps {
   letter: TimeLetter;
   targetCat?: CatInfo;
   isUnlocked: boolean;
+  fastForward?: boolean;
   onDelete: (e: any, letter: TimeLetter) => void;
   onClick: (letter: TimeLetter) => void;
+  onLongPress?: (letter: TimeLetter) => void;
 }
 
-function LetterCard({ letter, targetCat, isUnlocked, onDelete, onClick }: LetterCardProps) {
-  const [countdown, setCountdown] = useState(() => formatCountdown(letter.unlockAt));
+function LetterCard({ letter, targetCat, isUnlocked, fastForward, onDelete, onClick, onLongPress }: LetterCardProps) {
+  const [countdown, setCountdown] = useState(() => formatCountdown(letter.unlockAt, fastForward));
+
+  const longPressTimerRef = useRef<any>(null);
+  const longPressTriggeredRef = useRef(false);
+
+  const handleTouchStart = () => {
+    longPressTriggeredRef.current = false;
+    longPressTimerRef.current = setTimeout(() => {
+      longPressTriggeredRef.current = true;
+      if (!isUnlocked && onLongPress) {
+        Taro.vibrateShort({ type: 'light' });
+        onLongPress(letter);
+      }
+    }, 1000);
+  };
+
+  const handleTouchEnd = () => {
+    clearTimeout(longPressTimerRef.current);
+  };
+
+  const handleTouchMove = () => {
+    clearTimeout(longPressTimerRef.current);
+  };
 
   useEffect(() => {
     if (isUnlocked) return;
 
     const timer = setInterval(() => {
-      const next = formatCountdown(letter.unlockAt);
+      const next = formatCountdown(letter.unlockAt, fastForward);
       setCountdown(next);
       if (next === '已解锁') clearInterval(timer);
     }, 10000);
 
     return () => clearInterval(timer);
-  }, [letter.unlockAt, isUnlocked]);
+  }, [letter.unlockAt, isUnlocked, fastForward]);
 
   return (
     <View
       className={`letter-card ${!isUnlocked ? 'locked' : ''}`}
-      onClick={() => onClick(letter)}
+      onClick={() => { if (!longPressTriggeredRef.current) onClick(letter); }}
+      onLongPress={() => { if (!isUnlocked && onLongPress) onLongPress(letter); }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchMove}
     >
       {/* 猫咪头像 */}
       <View className="letter-avatar-wrap">
-        <Image
-          src={letter.catAvatar || "https://picsum.photos/seed/cat/200/200"}
+        <CatAvatar
+          src={letter.catAvatar}
+          name={targetCat?.name}
           className={`letter-avatar ${!isUnlocked ? 'blur' : ''}`}
-          mode="aspectFill"
         />
         {!isUnlocked && (
           <View className="lock-overlay">
@@ -137,6 +171,11 @@ export default function TimeLettersPage() {
   const [days, setDays] = useState(1);
   const [selectedCatId, setSelectedCatId] = useState<string>("");
 
+  // 快进模式
+  const [isFastForward, setIsFastForward] = useState(() => storage.getIsFastForward());
+  const debugTapRef = useRef(0);
+  const debugTimerRef = useRef<any>(null);
+
   const myCats = useMemo(() => storage.getCatList(), []);
   const activeCat = useMemo(() => storage.getActiveCat(), []);
 
@@ -172,8 +211,14 @@ export default function TimeLettersPage() {
 
   // 判断信件是否解锁
   const isLetterUnlocked = useCallback((letter: TimeLetter) => {
+    if (isFastForward) {
+      // 快进模式：倒计时除以60（1秒=1分钟）
+      const elapsedReal = Date.now() - letter.createdAt;
+      const totalDuration = letter.unlockAt - letter.createdAt;
+      return elapsedReal * 60 >= totalDuration;
+    }
     return Date.now() >= letter.unlockAt;
-  }, []);
+  }, [isFastForward]);
 
   // 显示提示
   const showToast = useCallback((msg: string) => {
@@ -194,6 +239,46 @@ export default function TimeLettersPage() {
       showToast(`时光正在酿造这封信，请在 ${month} 月 ${date} 日后再来开启吧～`);
     }
   }, [isLetterUnlocked, showToast]);
+
+  // 长按强制解锁
+  const handleLongPressUnlock = useCallback((letter: TimeLetter) => {
+    Taro.showModal({
+      title: '强制解锁信件',
+      content: '确定要提前解锁这封时光信件吗？时光的等待也是一种仪式感哦～',
+      confirmText: '确定解锁',
+      cancelText: '再等等',
+      confirmColor: '#D84315',
+      success: (res) => {
+        if (res.confirm) {
+          const updated = letters.map(l =>
+            l.id === letter.id ? { ...l, unlockAt: Date.now() - 1 } : l
+          );
+          setLetters(updated);
+          storage.saveTimeLetters(updated);
+          showToast('信件已提前解锁');
+        }
+      }
+    });
+  }, [letters, showToast]);
+
+  // 标题5击切换快进模式
+  const handleDebugTap = useCallback(() => {
+    debugTapRef.current += 1;
+    if (debugTimerRef.current) clearTimeout(debugTimerRef.current);
+
+    if (debugTapRef.current >= 5) {
+      debugTapRef.current = 0;
+      const next = !isFastForward;
+      setIsFastForward(next);
+      storage.setIsFastForward(next);
+      Taro.showToast({ title: next ? '快进模式已开启' : '快进模式已关闭', icon: 'none' });
+      return;
+    }
+
+    debugTimerRef.current = setTimeout(() => {
+      debugTapRef.current = 0;
+    }, 2000);
+  }, [isFastForward]);
 
   // 删除信件
   const handleDeleteClick = useCallback((e: any, letter: TimeLetter) => {
@@ -272,7 +357,7 @@ export default function TimeLettersPage() {
 
       {/* 页面头部 */}
       <View className="page-header">
-        <View className="header-title">
+        <View className="header-title" onClick={handleDebugTap}>
           <Text className="title-main">时光信件</Text>
           <Text className="title-sub">Time Capsules</Text>
         </View>
@@ -303,7 +388,7 @@ export default function TimeLettersPage() {
               className={`filter-item cat-item ${filterCatId === cat.id ? 'active' : ''}`}
               onClick={() => setFilterCatId(cat.id)}
             >
-              <Image src={cat.avatar} className="filter-avatar" mode="aspectFill" />
+              <CatAvatar src={cat.avatar} name={cat.name} className="filter-avatar" />
               <Text className="filter-text">{cat.name}</Text>
             </View>
           ))}
@@ -332,8 +417,10 @@ export default function TimeLettersPage() {
                   letter={letter}
                   targetCat={targetCat}
                   isUnlocked={isUnlocked}
+                  fastForward={isFastForward}
                   onDelete={handleDeleteClick}
                   onClick={handleLetterClick}
+                  onLongPress={handleLongPressUnlock}
                 />
               );
             })}
@@ -393,7 +480,7 @@ export default function TimeLettersPage() {
                 onClick={() => setSelectedCatId(cat.id)}
               >
                 <View className={`cat-avatar-wrap ${selectedCatId === cat.id ? 'active' : ''}`}>
-                  <Image src={cat.avatar} className="cat-avatar" mode="aspectFill" />
+                  <CatAvatar src={cat.avatar} name={cat.name} className="cat-avatar" />
                 </View>
                 {selectedCatId === cat.id && (
                   <View className="selected-badge">
@@ -469,10 +556,10 @@ export default function TimeLettersPage() {
       <View className="detail-page">
         {/* 背景层：猫咪 Banner */}
         <View className="detail-bg">
-          <Image
-            src={selectedLetter?.catAvatar || targetCat?.avatar || "https://picsum.photos/seed/cat/800/600"}
+          <CatAvatar
+            src={selectedLetter?.catAvatar || targetCat?.avatar}
+            name={targetCat?.name}
             className="detail-bg-image"
-            mode="aspectFill"
           />
           <View className="detail-bg-overlay" />
         </View>

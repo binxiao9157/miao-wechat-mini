@@ -1,31 +1,36 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, Button } from '@tarojs/components';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, Image, Canvas } from '@tarojs/components';
 import Taro, { useRouter, navigateBack } from '@tarojs/taro';
+import CatAvatar from '../../components/common/CatAvatar';
 const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
 const DOWNLOAD_PNG = require('../../assets/profile-icons/download-primary.png');
 const SHARE2_PNG = require('../../assets/profile-icons/share-gray.png');
 const ALERTCIRCLE_PNG = require('../../assets/profile-icons/alertcircle-primary.png');
 import { storage } from '../../services/storage';
 import { friendService, FriendInvite } from '../../services/friendService';
+import { drawQROnCanvas } from '../../utils/qrCanvas';
 import './index.less';
 
 export default function AddFriendQR() {
   const router = useRouter();
-  const { catId, catName, catAvatar } = router.params;
+  const { catId } = router.params;
 
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [invite, setInvite] = useState<FriendInvite | null>(null);
   const [isCreatingInvite, setIsCreatingInvite] = useState(false);
-  const [qrLoadError, setQrLoadError] = useState(false);
+  const [qrReady, setQrReady] = useState(false);
+
+  const canvasRef = useRef<any>(null);
 
   const userInfo = storage.getUserInfo();
 
-  // 获取猫咪信息
+  // 获取猫咪信息：优先按 catId 从 storage 查找，保证 avatar 等字段完整
   const getCat = () => {
-    if (catId && catName) {
-      return { id: catId, name: catName, avatar: catAvatar || '' };
+    if (catId) {
+      const found = storage.getCatById(catId);
+      if (found) return found;
     }
     const activeCat = storage.getActiveCat();
     if (activeCat) return activeCat;
@@ -35,9 +40,6 @@ export default function AddFriendQR() {
 
   const cat = getCat();
   const invitePayload = invite ? friendService.buildInvitePayload(invite.code) : '';
-  const qrImageUrl = invitePayload
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=10&format=png&data=${encodeURIComponent(invitePayload)}`
-    : '';
 
   useEffect(() => {
     if (!cat || isCreatingInvite || invite) return;
@@ -51,9 +53,44 @@ export default function AddFriendQR() {
       .finally(() => setIsCreatingInvite(false));
   }, [cat?.id]);
 
+  // Draw QR code on canvas when invite is ready
   useEffect(() => {
-    setQrLoadError(false);
+    if (!invitePayload || !invite) return;
+    drawQRToCanvas();
   }, [invite?.code]);
+
+  const drawQRToCanvas = () => {
+    if (!invitePayload) return;
+
+    // Use nextTick to ensure Canvas node is mounted in native layer
+    Taro.nextTick(() => {
+      setTimeout(() => {
+        const query = Taro.createSelectorQuery();
+        query.select('#qrCanvas')
+          .fields({ node: true, size: true })
+          .exec((res) => {
+            if (!res[0]?.node) return;
+            const canvas = res[0].node;
+            const ctx = canvas.getContext('2d');
+            const dpr = Taro.getSystemInfoSync().pixelRatio;
+            const size = 320;
+
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            ctx.scale(dpr, dpr);
+
+            // Draw white background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+
+            // Draw QR code
+            drawQROnCanvas(ctx, invitePayload, 0, 0, size, '#1C1B1F', '#ffffff');
+
+            setQrReady(true);
+          });
+      }, 100);
+    });
+  };
 
   const showToastMessage = (message: string) => {
     setToastMessage(message);
@@ -61,12 +98,51 @@ export default function AddFriendQR() {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  // 保存图片
-  const handleSaveImage = () => {
-    if (isSaving) return;
+  // 保存二维码图片
+  const handleSaveImage = async () => {
+    if (isSaving || !invitePayload || !cat) return;
     setIsSaving(true);
-    showToastMessage('请截图保存名片或复制邀请码');
-    setIsSaving(false);
+
+    try {
+      // Request photo album permission
+      const authRes = await Taro.getSetting();
+      if (!authRes.authSetting['scope.writePhotosAlbum']) {
+        try {
+          await Taro.authorize({ scope: 'scope.writePhotosAlbum' });
+        } catch {
+          await Taro.openSetting();
+          const reAuth = await Taro.getSetting();
+          if (!reAuth.authSetting['scope.writePhotosAlbum']) {
+            showToastMessage('需要相册权限才能保存');
+            return;
+          }
+        }
+      }
+
+      // Export QR canvas to image
+      const query = Taro.createSelectorQuery();
+      query.select('#qrCanvas')
+        .fields({ node: true })
+        .exec(async (res) => {
+          if (!res[0]?.node) {
+            showToastMessage('保存失败，请截图保存');
+            return;
+          }
+          try {
+            const tempRes = await Taro.canvasToTempFilePath({
+              canvas: res[0].node,
+            });
+            await Taro.saveImageToPhotosAlbum({ filePath: tempRes.tempFilePath });
+            showToastMessage('二维码已保存到相册');
+          } catch {
+            showToastMessage('保存失败，请截图保存');
+          }
+        });
+    } catch {
+      showToastMessage('保存失败，请截图保存');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // 分享链接
@@ -78,9 +154,9 @@ export default function AddFriendQR() {
       : `我是 ${userInfo.nickname}，快来 Miao 看看我的小猫 ${cat.name} 吧！一起记录萌宠瞬间～`;
 
     Taro.setClipboardData({
-      data: inviteText,
-      success: () => {
-        showToastMessage('邀请文案已复制');
+        data: inviteText,
+        success: () => {
+          showToastMessage('邀请文案已复制');
       },
       fail: () => {
         showToastMessage('复制失败，请手动复制');
@@ -96,9 +172,9 @@ export default function AddFriendQR() {
         </View>
         <Text className="error-title">缺少必要信息</Text>
         <Text className="error-desc">请先去生成或选择一只猫咪哦</Text>
-        <Button className="error-btn" onClick={() => navigateBack()}>
-          返回
-        </Button>
+        <View className="error-btn" onClick={() => navigateBack()}>
+          <Text className="error-btn-text">返回</Text>
+        </View>
       </View>
     );
   }
@@ -124,10 +200,10 @@ export default function AddFriendQR() {
 
           {/* 用户信息 */}
           <View className="user-info-row">
-            <Image
+            <CatAvatar
+              src={userInfo.avatar}
+              name={userInfo.nickname}
               className="user-avatar"
-              src={userInfo.avatar || ''}
-              mode="aspectFill"
             />
             <View className="user-text">
               <Text className="user-nickname">{userInfo.nickname}</Text>
@@ -135,23 +211,21 @@ export default function AddFriendQR() {
             </View>
           </View>
 
-          {/* 二维码区域 */}
+          {/* 二维码区域 - Canvas 生成 */}
           <View className="qr-area">
             <View className="qr-wrapper">
-              {qrImageUrl && !qrLoadError ? (
-                <Image
-                  className="qr-image"
-                  src={qrImageUrl}
-                  mode="aspectFit"
-                  showMenuByLongpress
-                  onError={() => setQrLoadError(true)}
+              {invitePayload ? (
+                <Canvas
+                  id="qrCanvas"
+                  type="2d"
+                  className="qr-canvas"
+                  style={{ width: '320rpx', height: '320rpx' }}
                 />
               ) : (
-                <View className="qr-placeholder" onClick={() => setQrLoadError(false)}>
+                <View className="qr-placeholder">
                   <Text className="qr-emoji">QR</Text>
-                  <Text className="qr-hint">{isCreatingInvite ? '正在生成二维码' : qrLoadError ? '二维码加载失败' : '好友邀请码'}</Text>
-                  <Text className="qr-code-text">{invite?.code || '请稍候'}</Text>
-                  {qrLoadError && <Text className="qr-hint">点此重试，或复制邀请码添加</Text>}
+                  <Text className="qr-hint">{isCreatingInvite ? '正在生成二维码...' : '好友邀请码'}</Text>
+                  {invite?.code && <Text className="qr-code-text">{invite.code}</Text>}
                 </View>
               )}
             </View>
@@ -159,10 +233,10 @@ export default function AddFriendQR() {
 
           {/* 猫咪信息 */}
           <View className="cat-info-bar">
-            <Image
+            <CatAvatar
+              src={cat.avatar}
+              name={cat.name}
               className="cat-avatar-small"
-              src={cat.avatar || ''}
-              mode="aspectFill"
             />
             <Text className="cat-name-text">代表猫咪：{cat.name}</Text>
           </View>

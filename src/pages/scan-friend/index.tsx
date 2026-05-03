@@ -133,7 +133,18 @@ export default function ScanFriend() {
             <Text className="confirm-title">添加好友</Text>
             <View className="friend-info">
               <View className="friend-avatar-box">
-                <Text className="friend-avatar-text">{friendInfo.nickname.charAt(0)}</Text>
+                {friendInfo.avatar ? (
+                  <Image
+                    className="friend-avatar-img"
+                    src={friendInfo.avatar}
+                    mode="aspectFill"
+                    onError={() => {
+                      // Fallback handled by CSS
+                    }}
+                  />
+                ) : (
+                  <Text className="friend-avatar-text">{friendInfo.nickname.charAt(0)}</Text>
+                )}
               </View>
               <View className="friend-detail">
                 <Text className="friend-name">{friendInfo.nickname}</Text>

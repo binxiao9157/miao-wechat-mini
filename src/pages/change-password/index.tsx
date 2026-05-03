@@ -116,11 +116,10 @@ export default function ChangePassword() {
               </View>
               <Input
                 className="form-input"
-                type="text"
+                type={showCurrent ? 'text' : 'password'}
                 value={currentPassword}
                 onInput={(e) => { setCurrentPassword(e.detail.value); if (error) setError(''); }}
                 placeholder="请输入当前使用的密码"
-                password={!showCurrent}
               />
               <View className="input-toggle" onClick={() => setShowCurrent(!showCurrent)}>
                 {showCurrent ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}
@@ -138,11 +137,10 @@ export default function ChangePassword() {
             </View>
             <Input
               className="form-input"
-              type="text"
+              type={showNew ? 'text' : 'password'}
               value={newPassword}
               onInput={(e) => { setNewPassword(e.detail.value); if (error) setError(''); }}
               placeholder="设置 6-20 位新密码"
-              password={!showNew}
             />
             <View className="input-toggle" onClick={() => setShowNew(!showNew)}>
               {showNew ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}
@@ -159,11 +157,10 @@ export default function ChangePassword() {
             </View>
             <Input
               className="form-input"
-              type="text"
+              type={showConfirm ? 'text' : 'password'}
               value={confirmPassword}
               onInput={(e) => { setConfirmPassword(e.detail.value); if (error) setError(''); }}
               placeholder="请再次输入新密码"
-              password={!showConfirm}
             />
             <View className="input-toggle" onClick={() => setShowConfirm(!showConfirm)}>
               {showConfirm ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}

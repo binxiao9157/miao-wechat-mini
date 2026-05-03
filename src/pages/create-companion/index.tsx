@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Input, Image } from '@tarojs/components';
-import { navigateTo, navigateBack } from '@tarojs/taro';
+import Taro, { navigateTo, navigateBack } from '@tarojs/taro';
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const SPARKLES_WHITE = require('../../assets/profile-icons/sparkles-white.png');
 import { storage, PresetCat } from '../../services/storage';
 import './index.less';
 
 export default function CreateCompanion() {
+  const router = Taro.getCurrentInstance().router;
+  const isRedemption = router?.params?.isRedemption === '1';
+  const redemptionAmount = Number(router?.params?.redemptionAmount) || 0;
+
   const [presets, setPresets] = useState<PresetCat[]>([]);
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -46,7 +50,8 @@ export default function CreateCompanion() {
     storage.saveCatInfo(newCat);
 
     // 跳转到生成进度页
-    navigateTo({ url: '/pages/generation-progress/index' });
+    const redemptionParams = isRedemption ? `&isRedemption=1&redemptionAmount=${redemptionAmount}` : '';
+    navigateTo({ url: `/pages/generation-progress/index?source=created${redemptionParams}` });
   };
 
   const isFormComplete = catName.trim().length > 0 && selectedPresetId !== null;

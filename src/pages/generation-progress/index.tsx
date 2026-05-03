@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Video, Image } from '@tarojs/components';
-import { navigateTo, navigateBack, reLaunch } from '@tarojs/taro';
+import Taro, { navigateTo, navigateBack, reLaunch } from '@tarojs/taro';
 import { VolcanoService, ACTION_PROMPTS } from '../../services/volcanoService';
 import { FileManager } from '../../services/fileManager';
 import { storage } from '../../services/storage';
@@ -17,8 +17,20 @@ import './index.less';
 
 type Phase = 'generating' | 'confirm' | 'success' | 'error';
 
+// 沉浸式状态文案轮播
+const getImmersiveStatus = (p: number): string => {
+  if (p < 20) return ['正在感知猫咪的灵魂印记...', '正在编织柔软的毛发肌理...'][Math.floor(p / 10) % 2];
+  if (p < 50) return ['正在为你的专属伙伴注入生命力...', '正在捕捉最灵动的眼神...'][Math.floor((p - 20) / 15) % 2];
+  if (p < 85) return ['正在教它如何撒娇和呼噜...', '正在为它布置舒适的数字猫窝...'][Math.floor((p - 50) / 17) % 2];
+  return ['正在进行最后的魔法同步...', '嘘，它即将苏醒...'][Math.floor((p - 85) / 7) % 2];
+};
+
 export default function GenerationProgress() {
   const { refreshCatStatus } = useAuthContext();
+
+  const router = Taro.getCurrentInstance().router;
+  const isRedemption = router?.params?.isRedemption === '1';
+  const redemptionAmount = Number(router?.params?.redemptionAmount) || 0;
 
   const [phase, setPhase] = useState<Phase>('generating');
   const [progress, setProgress] = useState(0);
@@ -35,7 +47,6 @@ export default function GenerationProgress() {
   useEffect(() => {
     const activeCat = storage.getActiveCat();
     if (!activeCat) {
-      // 没有猫咪数据，返回创建页
       navigateBack();
       return;
     }
@@ -56,35 +67,53 @@ export default function GenerationProgress() {
     startGeneration(activeCat);
   }, []);
 
+  // 沉浸式状态文字自动轮播
+  useEffect(() => {
+    if (phase !== 'generating' || progress <= 0 || progress >= 100) return;
+    const immersive = getImmersiveStatus(progress);
+    if (statusText !== immersive && !statusText.includes('错误') && !statusText.includes('积分不足')) {
+      setStatusText(immersive);
+    }
+  }, [progress, phase]);
+
   const startGeneration = async (cat: NonNullable<typeof catRef.current>) => {
+    let pointsDeducted = 0;
     try {
+      // 积分兑换时，在生成前扣除积分
+      if (isRedemption && redemptionAmount > 0) {
+        const success = storage.deductPoints(redemptionAmount, '解锁新伙伴');
+        if (!success) {
+          const currentPoints = storage.getPoints();
+          throw new Error(`积分不足，需要 ${redemptionAmount} 积分，当前仅有 ${currentPoints.total} 积分`);
+        }
+        pointsDeducted = redemptionAmount;
+      }
+
       setPhase('generating');
       setProgress(5);
-      setStatusText('正在分析图片特征...');
+      setStatusText('正在注入生命力...');
 
-      // 使用猫咪头像作为生成输入
       const imageUrl = cat.avatar;
 
       setProgress(10);
-      setStatusText('正在生成核心待机视频...');
+      setStatusText('正在编织它的动作姿态...');
 
       // 提交视频生成任务
       const task = await VolcanoService.submitTask(imageUrl, ACTION_PROMPTS.idle);
 
       setProgress(30);
-      setStatusText('正在生成待机视频 (已提交)...');
+      setStatusText(getImmersiveStatus(30));
 
       // 轮询任务结果
       const videoUrl = await VolcanoService.pollTaskResult(
         task.id,
         (s) => {
           const statusMap: Record<string, string> = {
-            'running': '正在生成待机视频...',
-            'processing': '正在处理视频...',
+            'running': getImmersiveStatus(50),
+            'processing': getImmersiveStatus(60),
             'queued': '排队等待中...',
           };
-          setStatusText(statusMap[s] || `正在生成待机视频 (${s})...`);
-          // 根据状态更新进度
+          setStatusText(statusMap[s] || getImmersiveStatus(50));
           if (s === 'running' || s === 'processing') {
             setProgress(prev => Math.min(prev + 5, 85));
           }
@@ -92,7 +121,7 @@ export default function GenerationProgress() {
       );
 
       setProgress(90);
-      setStatusText('正在同步视频资源...');
+      setStatusText('正在开启次元通道...');
 
       // 更新猫咪视频信息
       const finalVideoPaths = await FileManager.downloadVideos(
@@ -127,6 +156,10 @@ export default function GenerationProgress() {
       }, 1500);
 
     } catch (err: any) {
+      // 生成失败时退还积分
+      if (pointsDeducted > 0) {
+        storage.addPoints(pointsDeducted, '生成失败退还');
+      }
       console.error('生成过程出错:', err);
       setPhase('error');
       setErrorMsg(err.message || '生成失败，请重试');
@@ -152,7 +185,6 @@ export default function GenerationProgress() {
           const task = await VolcanoService.submitTask(anchorFrame, ACTION_PROMPTS[action]);
           const videoUrl = await VolcanoService.pollTaskResult(task.id);
           await FileManager.updateCatVideos(cat.id, { [action]: videoUrl }, true);
-          // 提交下一个任务前等待 3 秒，避免限流
           await new Promise(resolve => setTimeout(resolve, 3000));
         } catch (e) {
           console.error(`动作 ${action} 生成失败:`, e);
@@ -185,7 +217,6 @@ export default function GenerationProgress() {
   };
 
   const handleGoBack = () => {
-    // 如果正在生成，返回创建页
     navigateTo({ url: '/pages/create-companion/index' });
   };
 
@@ -202,6 +233,7 @@ export default function GenerationProgress() {
             </View>
           </View>
 
+          <Text className="status-subtitle">AWAKENING DIGITAL LIFE</Text>
           <Text className="status-title">{statusText}</Text>
 
           {/* 进度条 */}
@@ -217,23 +249,23 @@ export default function GenerationProgress() {
 
           {/* 步骤列表 */}
           <View className="steps-list">
-            <View className={`step-item ${progress >= 5 ? 'active' : ''} ${progress > 5 ? 'done' : ''}`}>
-              <View className={`step-dot ${progress > 5 ? 'done' : progress >= 5 ? 'active' : ''}`}>
-                {progress > 5 ? <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 14, height: 14 }} /> : <Text className="step-num">1</Text>}
+            <View className={`step-item ${progress >= 5 ? 'active' : ''} ${progress > 30 ? 'done' : ''}`}>
+              <View className={`step-dot ${progress > 30 ? 'done' : progress >= 5 ? 'active' : ''}`}>
+                {progress > 30 ? <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 14, height: 14 }} /> : <Text className="step-num">1</Text>}
               </View>
-              <Text className="step-label">分析图片特征</Text>
+              <Text className="step-label">构筑灵魂基石</Text>
             </View>
-            <View className={`step-item ${progress >= 10 ? 'active' : ''} ${progress === 100 ? 'done' : ''}`}>
-              <View className={`step-dot ${progress === 100 ? 'done' : progress >= 10 ? 'active' : ''}`}>
-                {progress === 100 ? <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 14, height: 14 }} /> : <Text className="step-num">2</Text>}
+            <View className={`step-item ${progress >= 30 ? 'active' : ''} ${progress >= 90 ? 'done' : ''}`}>
+              <View className={`step-dot ${progress >= 90 ? 'done' : progress >= 30 ? 'active' : ''}`}>
+                {progress >= 90 ? <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 14, height: 14 }} /> : <Text className="step-num">2</Text>}
               </View>
-              <Text className="step-label">生成核心待机动作</Text>
+              <Text className="step-label">注入生命律动</Text>
             </View>
             <View className={`step-item ${progress >= 100 ? 'active done' : ''}`}>
               <View className={`step-dot ${progress >= 100 ? 'done' : ''}`}>
                 {progress >= 100 ? <Image className="icon-img" src={CHECKCIRCLE_GREEN} mode="aspectFit" style={{ width: 14, height: 14 }} /> : <Text className="step-num">3</Text>}
               </View>
-              <Text className="step-label">同步到本地猫窝</Text>
+              <Text className="step-label">魔法连接完成</Text>
             </View>
           </View>
         </View>
@@ -307,7 +339,7 @@ export default function GenerationProgress() {
       {phase === 'error' && (
         <View className="error-view">
           <View className="error-icon">
-            <AlertCircle size={48} />
+            <Image className="icon-img" src={ALERTCIRCLE_RED2} mode="aspectFit" style={{ width: 48, height: 48 }} />
           </View>
           <Text className="error-title">生成遇到问题</Text>
           <Text className="error-desc">{errorMsg}</Text>

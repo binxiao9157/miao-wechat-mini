@@ -1,6 +1,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { View, Text, Image, Button, Input, Textarea, Video } from '@tarojs/components';
+import CatAvatar from '../../components/common/CatAvatar';
 import Taro from '@tarojs/taro';
 import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage } from '../../services/storage';
 
@@ -61,7 +62,7 @@ export default function Diary() {
   const [activeTab, setActiveTab] = useState<'mine' | 'friends'>('mine');
   const [friendDiaries, setFriendDiaries] = useState<FriendDiaryWithMedia[]>([]);
   const [sharingId, setSharingId] = useState<string | null>(null);
-  const [activeCat, setActiveCat] = useState<{ id: string; name: string } | null>(null);
+  const [activeCat, setActiveCat] = useState<{ id: string; name: string; avatar?: string } | null>(null);
 
   // 添加好友相关状态 - v2
   const [showAddFriendMenu, setShowAddFriendMenu] = useState<boolean>(false);
@@ -121,7 +122,7 @@ export default function Diary() {
     const activeCatId = storage.getActiveCatId();
     const catList = storage.getCatList();
     const currentCat = catList.find(c => c.id === activeCatId);
-    setActiveCat(currentCat || null);
+    setActiveCat(currentCat ? { id: currentCat.id, name: currentCat.name, avatar: currentCat.avatar } : null);
     setCatList(catList);
 
     const list = storage.getDiaries();
@@ -475,7 +476,7 @@ export default function Diary() {
                     <Video
                       className="diary-media"
                       src={diary.mediaUrl}
-                      poster={diary.mediaUrl}
+                      poster={activeCat?.avatar || diary.mediaUrl}
                       controls
                       showPlayBtn
                       objectFit="cover"
@@ -547,7 +548,7 @@ export default function Diary() {
                     <Video
                       className="diary-media"
                       src={diary.mediaUrl}
-                      poster={diary.mediaUrl}
+                      poster={activeCat?.avatar || diary.mediaUrl}
                       controls
                       showPlayBtn
                       objectFit="cover"
@@ -766,7 +767,7 @@ export default function Diary() {
                           setAddFriendStep(2);
                         }}
                       >
-                        <Image className="cat-avatar" src={cat.avatar} mode="aspectFill" />
+                        <CatAvatar src={cat.avatar} name={cat.name} className="cat-avatar" />
                         <Text className="cat-name">{cat.name}</Text>
                       </View>
                     ))
@@ -786,7 +787,7 @@ export default function Diary() {
                       setShowAddFriendMenu(false);
                       setAddFriendStep(1);
                       Taro.navigateTo({
-                        url: `/pages/add-friend-qr/index?catId=${selectedCatForQR?.id}&catName=${selectedCatForQR?.name}&catAvatar=${selectedCatForQR?.avatar}`
+                        url: `/pages/add-friend-qr/index?catId=${selectedCatForQR?.id}`
                       });
                     }}
                   >

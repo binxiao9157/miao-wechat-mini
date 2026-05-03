@@ -143,11 +143,10 @@ export default function ResetPassword() {
             </View>
             <Input
               className="form-input-with-icon"
-              type="text"
+              type={showPassword ? 'text' : 'password'}
               value={newPassword}
               onInput={(e) => { setNewPassword(e.detail.value); if (error) setError(''); }}
               placeholder="设置 6-20 位新密码"
-              password={!showPassword}
             />
             <View className="input-toggle" onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}

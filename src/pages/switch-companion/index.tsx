@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import { navigateBack, navigateTo, reLaunch, useDidShow } from '@tarojs/taro';
+import CatAvatar from '../../components/common/CatAvatar';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const PLUS_WHITE = require('../../assets/profile-icons/plus-white.png');
@@ -110,7 +111,7 @@ export default function SwitchCompanion() {
 
             {/* 头像 */}
             <View className="cat-avatar-box">
-              <Image className="cat-avatar" src={cat.avatar} mode="aspectFill" />
+              <CatAvatar src={cat.avatar} name={cat.name} className="cat-avatar" />
             </View>
 
             {/* 信息 */}

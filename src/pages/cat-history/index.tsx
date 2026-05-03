@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import { navigateBack, navigateTo, useDidShow } from '@tarojs/taro';
+import CatAvatar from '../../components/common/CatAvatar';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const PLAY_WHITE = require('../../assets/profile-icons/play-white.png');
@@ -76,9 +77,9 @@ export default function CatHistory() {
                 {/* 缩略图 */}
                 <View className="card-thumb">
                   {cat.videoPath || cat.remoteVideoUrl ? (
-                    <Image className="thumb-image" src={cat.avatar} mode="aspectFill" />
+                    <CatAvatar src={cat.avatar} name={cat.name} className="thumb-image" />
                   ) : (
-                    <Image className="thumb-image" src={cat.avatar} mode="aspectFill" />
+                    <CatAvatar src={cat.avatar} name={cat.name} className="thumb-image" />
                   )}
                   {/* 渐变遮罩 */}
                   <View className="thumb-overlay" />

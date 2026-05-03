@@ -109,3 +109,46 @@
   color: #fff;
   font-weight: 600;
 }
+
+/* ─── 积分 Toast ─── */
+.points-toast {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  background: rgba(232, 159, 113, 0.9);
+  backdrop-filter: blur(8px);
+  padding: 12rpx 32rpx;
+  border-radius: 999rpx;
+  animation: pointsToastIn 0.3s ease forwards, pointsToastOut 0.3s ease 1.5s forwards;
+  pointer-events: none;
+}
+
+.points-toast-text {
+  font-size: 28rpx;
+  font-weight: 800;
+  color: #fff;
+}
+
+@keyframes pointsToastIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20rpx) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes pointsToastOut {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20rpx) scale(0.9);
+  }
+}

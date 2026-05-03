@@ -3,15 +3,42 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, Image, Video } from '@tarojs/components';
 import Taro, { navigateTo, useDidShow } from '@tarojs/taro';
 import { storage, CatInfo } from '../../services/storage';
+import CatAvatar from '../../components/common/CatAvatar';
 import { getPrimaryVideoUrl } from '../../services/catLifecycle';
 import { on, off } from '../../utils/eventAdapter';
+import FrostedGlassBubble from '../../components/common/FrostedGlassBubble';
 import './index.less';
+
+const INTERACTION_TEXTS: Record<string, string> = {
+  idle: '蹭蹭你~',
+  tail: '摸摸头，真乖~',
+  rubbing: '踩奶中，好舒服~',
+  blink: '小羽毛，抓不到~',
+};
+
+const GREETING_MORNING = '早上好~';
+const GREETING_NIGHT = '该休息啦~';
+
+function getGreetingText(): string | null {
+  const hour = new Date().getHours();
+  if (hour >= 7 && hour < 10) return GREETING_MORNING;
+  if (hour >= 22 || hour < 1) return GREETING_NIGHT;
+  return null;
+}
 
 export default function Home() {
   const [cat, setCat] = useState<CatInfo | null>(null);
   const [currentAction, setCurrentAction] = useState('idle');
   const [videoError, setVideoError] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
+
+  // 气泡状态
+  const [bubbleText, setBubbleText] = useState('');
+  const [bubbleVisible, setBubbleVisible] = useState(false);
+  const [bubbleExiting, setBubbleExiting] = useState(false);
+  const [bubbleId, setBubbleId] = useState(0);
+  const [pointsToast, setPointsToast] = useState('');
+  const bubbleTimerRef = useRef<any>(null);
 
   // 手势状态
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
@@ -20,6 +47,27 @@ export default function Home() {
   const longPressTriggeredRef = useRef(false);
   const onlineTimerRef = useRef<any>(null);
   const prevVideoCountRef = useRef(0);
+
+  const showFloatingBubble = useCallback((text: string, duration = 3000) => {
+    if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
+    setBubbleExiting(false);
+    setBubbleText(text);
+    setBubbleVisible(true);
+    setBubbleId(prev => prev + 1);
+
+    bubbleTimerRef.current = setTimeout(() => {
+      setBubbleExiting(true);
+      setTimeout(() => {
+        setBubbleVisible(false);
+        setBubbleExiting(false);
+      }, 300);
+    }, duration);
+  }, []);
+
+  const showPointsToast = useCallback((amount: number) => {
+    setPointsToast(`+${amount}`);
+    setTimeout(() => setPointsToast(''), 2000);
+  }, []);
 
   const loadCat = useCallback(() => {
     const activeCat = storage.getActiveCat();
@@ -41,6 +89,12 @@ export default function Home() {
     checkDailyLogin();
     startOnlineTimer();
 
+    // 进入页面时显示时间问候
+    const greeting = getGreetingText();
+    if (greeting) {
+      setTimeout(() => showFloatingBubble(greeting, 4000), 1000);
+    }
+
     const handler = (data?: any) => {
       const updatedCat = storage.getActiveCat();
       if (updatedCat) {
@@ -54,8 +108,9 @@ export default function Home() {
       off('cat-updated', handler);
       off('cat-list-synced', handler);
       if (onlineTimerRef.current) clearInterval(onlineTimerRef.current);
+      if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
     };
-  }, [loadCat, refreshCatsFromCloud]);
+  }, [loadCat, refreshCatsFromCloud, showFloatingBubble]);
 
   useDidShow(() => {
     loadCat();
@@ -99,6 +154,7 @@ export default function Home() {
     if (dailyUsed < 20) {
       storage.addPoints(5, '互动奖励');
       Taro.setStorageSync(dailyKey, String(dailyUsed + 5));
+      showPointsToast(5);
     }
   };
 
@@ -110,6 +166,12 @@ export default function Home() {
     setVideoError(false);
     setIsVideoReady(false);
     grantInteractionPoints();
+
+    // 显示互动气泡
+    const bubbleText = INTERACTION_TEXTS[action];
+    if (bubbleText) {
+      showFloatingBubble(bubbleText, 2500);
+    }
   };
 
   const handleTouchStart = (e: any) => {
@@ -175,10 +237,10 @@ export default function Home() {
           onTouchMove={handleTouchMove}
         >
           {(cat.placeholderImage || cat.avatar) && (
-            <Image
+            <CatAvatar
               className="placeholder-img"
-              src={cat.placeholderImage || cat.avatar || ''}
-              mode="aspectFill"
+              src={cat.placeholderImage || cat.avatar}
+              name={cat.name}
             />
           )}
 
@@ -199,7 +261,7 @@ export default function Home() {
             />
           )}
 
-          {/* 视频错误状态 - 保留功能性UI */}
+          {/* 视频错误状态 */}
           {videoError && (
             <View className="video-error-overlay">
               <Text className="video-error-title">视频暂时无法播放</Text>
@@ -209,10 +271,25 @@ export default function Home() {
               </View>
             </View>
           )}
+
+          {/* 互动气泡 */}
+          <FrostedGlassBubble
+            text={bubbleText}
+            bubbleId={bubbleId}
+            visible={bubbleVisible}
+            exiting={bubbleExiting}
+          />
+
+          {/* 积分 Toast */}
+          {pointsToast && (
+            <View className="points-toast">
+              <Text className="points-toast-text">{pointsToast}</Text>
+            </View>
+          )}
         </View>
       )}
 
-      {/* 无猫咪状态 - 保留功能性UI */}
+      {/* 无猫咪状态 */}
       {!cat && (
         <View className="no-cat-screen">
           <Text className="no-cat-text">还没有猫咪</Text>

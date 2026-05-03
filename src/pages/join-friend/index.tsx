@@ -4,13 +4,16 @@ import Taro, { useRouter, navigateTo } from '@tarojs/taro';
 const SPARKLES_PNG = require('../../assets/profile-icons/sparkles-primary.png');
 import { useAuthContext } from '../../context/AuthContext';
 import { friendService } from '../../services/friendService';
+import CatAvatar from '../../components/common/CatAvatar';
 import './index.less';
 
 export default function JoinFriend() {
   const router = useRouter();
   const { isAuthenticated } = useAuthContext();
   const [inviterName, setInviterName] = useState('');
+  const [inviterAvatar, setInviterAvatar] = useState('');
   const [catName, setCatName] = useState('');
+  const [catAvatar, setCatAvatar] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -22,7 +25,9 @@ export default function JoinFriend() {
     friendService.getInvite(code)
       .then((invite) => {
         setInviterName(invite.inviter?.nickname || invite.ownerId);
+        setInviterAvatar(invite.inviter?.avatar || '');
         setCatName(invite.catName || '小猫');
+        setCatAvatar(invite.catAvatar || '');
       })
       .catch(() => {
         setInviterName('');
@@ -78,11 +83,20 @@ export default function JoinFriend() {
         {/* 邀请者信息 */}
         <View className="inviter-section">
           <View className="inviter-avatar">
-            <Text className="inviter-avatar-text">{inviterName.charAt(0)}</Text>
+            {inviterAvatar ? (
+              <Image className="inviter-avatar-img" src={inviterAvatar} mode="aspectFill" onError={() => {}} />
+            ) : (
+              <Text className="inviter-avatar-text">{inviterName.charAt(0)}</Text>
+            )}
           </View>
           <Text className="inviter-name">{inviterName}</Text>
           <Text className="inviter-desc">邀请你成为 Miao 好友</Text>
-          {catName && <Text className="inviter-cat">🐾 {catName}</Text>}
+          {catName && (
+            <View className="inviter-cat-row">
+              <CatAvatar src={catAvatar} name={catName} className="inviter-cat-avatar" />
+              <Text className="inviter-cat">{catName}</Text>
+            </View>
+          )}
         </View>
 
         {/* 操作按钮 */}

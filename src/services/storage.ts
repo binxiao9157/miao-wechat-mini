@@ -296,28 +296,21 @@ function getCurrentUsername(): string | null {
   } catch { return null; }
 }
 
-// 使用 taroRequest 替代 fetch
-async function request(url: string, options: RequestInit = {}) {
-  const isMini = Taro.getEnv() === Taro.ENV_TYPE.WEAPP;
-  
-  if (isMini) {
-  // 小程序环境：使用 Taro 文件系统
-    const { method, headers, body } = options;
-    const response = await taroRequest({ url, method: (method as any) || 'GET', headers: headers as Record<string, string>, data: body ? JSON.parse(body as string) : undefined });
-    return response.data;
-  } else {
-    // Web 环境使用原生 fetch
-    const response = await fetch(url, options);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-  }
+// 复用 httpAdapter（自动注入 auth token、base URL、client-type）
+async function request(url: string, options: { method?: string; data?: any; headers?: Record<string, string> } = {}): Promise<any> {
+  const res = await taroRequest({
+    url,
+    method: (options.method as any) || 'GET',
+    data: options.data,
+    headers: options.headers,
+  });
+  return res.data;
 }
 
 async function syncCatToServer(userId: string, cat: CatInfo): Promise<void> {
   await request('/api/v1/cats', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ cat: { ...cat, placeholderImage: undefined, anchorFrame: undefined } }),
+    data: { cat: { ...cat, placeholderImage: undefined, anchorFrame: undefined } },
   });
 }
 
@@ -347,8 +340,7 @@ async function syncDiaryToServer(userId: string, diary: DiaryEntry) {
   const payload = await resolveServerDiaryPayload(diary);
   request('/api/v1/diaries', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ diary: payload }),
+    data: { diary: payload },
   }).catch((error) => {
     console.warn('[storage] sync diary failed:', error);
   });
@@ -369,8 +361,7 @@ function deleteAllDiariesFromServer(userId: string) {
 function syncLetterToServer(userId: string, letter: TimeLetter) {
   request('/api/v1/letters', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ letter }),
+    data: { letter },
   }).catch((error) => {
     console.warn('[storage] sync letter failed:', error);
   });
@@ -387,8 +378,7 @@ function deleteLetterFromServer(userId: string, letterId: string) {
 function syncPointsToServer(userId: string, data: PointsInfo) {
   request('/api/v1/points', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ data }),
+    data: { data },
   }).catch((error) => {
     console.warn('[storage] sync points failed:', error);
   });

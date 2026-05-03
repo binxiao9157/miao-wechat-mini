@@ -84,7 +84,7 @@ export default function Points() {
 
   const handleRedeem = () => {
     if (effectivePoints >= REDEEM_THRESHOLD) {
-      navigateTo({ url: '/pages/welcome/index' });
+      navigateTo({ url: `/pages/empty-cat/index?isRedemption=1&redemptionAmount=${REDEEM_THRESHOLD}` });
     }
   };
 

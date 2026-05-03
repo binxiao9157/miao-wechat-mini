@@ -1,29 +1,78 @@
 .frosted-glass-bubble {
-  position: fixed;
-  top: 120px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  padding: 12px 24px;
-  border-radius: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  animation: fadeInUp 0.3s ease;
-
-  .bubble-text {
-    font-size: 14px;
-    color: #333;
-  }
+  position: absolute;
+  top: 22%;
+  left: 32rpx;
+  z-index: 40;
+  pointer-events: none;
 }
 
-@keyframes fadeInUp {
+.bubble-glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(255, 255, 255, 0.05);
+  filter: blur(40rpx);
+  border-radius: 999rpx;
+  transform: scale(1.5);
+  opacity: 0.5;
+}
+
+.bubble-body {
+  position: relative;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.3);
+  padding: 24rpx 48rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 20rpx 50rpx rgba(0, 0, 0, 0.1);
+  min-width: 200rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bubble-text {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #4A2E1B;
+  letter-spacing: 2rpx;
+  text-align: center;
+}
+
+.bubble-border-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+}
+
+.bubble-enter {
+  animation: bubbleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.bubble-exit {
+  animation: bubbleOut 0.3s ease forwards;
+}
+
+@keyframes bubbleIn {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(10px);
+    transform: translateX(-80rpx) scale(0.8);
   }
   to {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes bubbleOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-40rpx) scale(0.9);
   }
 }

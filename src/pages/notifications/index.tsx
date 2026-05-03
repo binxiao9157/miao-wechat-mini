@@ -1,76 +1,53 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
-import { View, Text, Image } from '@tarojs/components';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, Switch } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
-import { storage } from '../../services/storage';
+import { storage, AppSettings } from '../../services/storage';
+import Taro from '@tarojs/taro';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
-const HEART_GRAY = require('../../assets/profile-icons/heart-gray.png');
-const MESSAGE_GRAY = require('../../assets/profile-icons/message-gray.png');
-const USERPLUS_GRAY = require('../../assets/profile-icons/userplus-gray.png');
 const BELL_PRIMARY = require('../../assets/profile-icons/bell-primary.png');
-const BELL_GRAY = require('../../assets/profile-icons/bell-gray.png');
 
 import './index.less';
 
-interface Notification {
-  id: string;
-  type: 'like' | 'comment' | 'friend';
-  fromUser: { nickname: string; avatar: string };
-  content: string;
-  createdAt: number;
-  isRead: boolean;
-}
-
 export default function Notifications() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [settings, setSettings] = useState<AppSettings>({
+    pushNotifications: true,
+    greetingsEnabled: true,
+    timeLetterReminder: true,
+  });
 
   useEffect(() => {
-    loadNotifications();
+    const saved = storage.getSettings();
+    setSettings(saved);
   }, []);
 
-  const loadNotifications = () => {
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'like',
-        fromUser: { nickname: '林深时见鹿', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix' },
-        content: '赞了你的日记',
-        createdAt: Date.now() - 3600000,
-        isRead: false
-      },
-      {
-        id: '2',
-        type: 'friend',
-        fromUser: { nickname: '夏天的风', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Summer' },
-        content: '通过了您的好友申请',
-        createdAt: Date.now() - 86400000,
-        isRead: true
-      }
-    ];
-    setNotifications(mockNotifications);
+  const updateSetting = (key: keyof AppSettings, value: boolean) => {
+    const updated = { ...settings, [key]: value };
+    setSettings(updated);
+    storage.saveSettings(updated);
+    Taro.showToast({ title: value ? '已开启' : '已关闭', icon: 'none', duration: 1000 });
   };
 
-  const handleMarkAllRead = () => {
-    storage.markNotificationsAsRead();
-    setNotifications(notifications.map(n => ({ ...n, isRead: true })));
-  };
-
-  const formatTime = (timestamp: number) => {
-    const diff = Date.now() - timestamp;
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`;
-    return `${Math.floor(diff / 86400000)}天前`;
-  };
-
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'like': return <Image className="icon-img" src={HEART_GRAY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
-      case 'comment': return <Image className="icon-img" src={MESSAGE_GRAY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
-      case 'friend': return <Image className="icon-img" src={USERPLUS_GRAY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
-      default: return <Image className="icon-img" src={BELL_PRIMARY} mode="aspectFit" style={{ width: 20, height: 20 }} />;
-    }
-  };
+  const settingItems = [
+    {
+      key: 'pushNotifications' as const,
+      title: '推送通知',
+      desc: '接收好友互动、系统消息等推送提醒',
+      icon: BELL_PRIMARY,
+    },
+    {
+      key: 'greetingsEnabled' as const,
+      title: '每日问候',
+      desc: '每天早上和晚上收到猫咪的温暖问候',
+      icon: BELL_PRIMARY,
+    },
+    {
+      key: 'timeLetterReminder' as const,
+      title: '时光信件提醒',
+      desc: '有新的时光信件到达时提醒你',
+      icon: BELL_PRIMARY,
+    },
+  ];
 
   return (
     <View className="notifications-page">
@@ -78,31 +55,43 @@ export default function Notifications() {
         <View className="back-btn" onClick={() => navigateBack()}>
           <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
         </View>
-        <Text className="title">消息通知</Text>
-        <View className="mark-read" onClick={handleMarkAllRead}>
-          <Text>全部已读</Text>
-        </View>
+        <Text className="title">通知设置</Text>
+        <View className="placeholder" />
       </View>
 
-      <View className="notification-list">
-        {notifications.length === 0 ? (
-          <View className="empty">
-            <Image className="icon-img" src={BELL_GRAY} mode="aspectFit" style={{ width: 48, height: 48 }} />
-            <Text className="empty-text">暂无通知</Text>
-          </View>
-        ) : (
-          notifications.map((notification) => (
-            <View key={notification.id} className={`notification-item ${!notification.isRead ? 'unread' : ''}`}>
-              <Image className="avatar" src={notification.fromUser.avatar} mode="aspectFill" />
-              <View className="content">
-                <Text className="nickname">{notification.fromUser.nickname}</Text>
-                <Text className="text">{notification.content}</Text>
-                <Text className="time">{formatTime(notification.createdAt)}</Text>
+      <View className="settings-hero">
+        <View className="hero-icon-wrap">
+          <Text className="hero-icon-text">🔔</Text>
+        </View>
+        <Text className="hero-title">通知与提醒</Text>
+        <Text className="hero-subtitle">NOTIFICATION SETTINGS</Text>
+      </View>
+
+      <View className="settings-card">
+        {settingItems.map((item, idx) => (
+          <View key={item.key} className={`setting-item ${idx < settingItems.length - 1 ? 'setting-item-border' : ''}`}>
+            <View className="setting-left">
+              <View className="setting-icon-box">
+                <Image className="icon-img" src={item.icon} mode="aspectFit" style={{ width: 22, height: 22 }} />
               </View>
-              <View className="icon">{getIcon(notification.type)}</View>
+              <View className="setting-info">
+                <Text className="setting-title">{item.title}</Text>
+                <Text className="setting-desc">{item.desc}</Text>
+              </View>
             </View>
-          ))
-        )}
+            <Switch
+              checked={settings[item.key]}
+              color="#E89F71"
+              onChange={(e) => updateSetting(item.key, e.detail.value)}
+            />
+          </View>
+        ))}
+      </View>
+
+      <View className="settings-footer">
+        <Text className="footer-text">
+          关闭推送通知后，你仍可在应用内查看消息。每日问候和时光信件提醒仅在应用打开时生效。
+        </Text>
       </View>
     </View>
   );

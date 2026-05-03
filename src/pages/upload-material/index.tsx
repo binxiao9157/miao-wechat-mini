@@ -13,6 +13,10 @@ import { storage } from '../../services/storage';
 import './index.less';
 
 export default function UploadMaterial() {
+  const router = Taro.getCurrentInstance().router;
+  const isRedemption = router?.params?.isRedemption === '1';
+  const redemptionAmount = Number(router?.params?.redemptionAmount) || 0;
+
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [nickname, setNickname] = useState('');
   const [showToast, setShowToast] = useState<string | null>(null);
@@ -85,7 +89,8 @@ export default function UploadMaterial() {
     };
     storage.saveCatInfo(newCat);
 
-    navigateTo({ url: '/pages/generation-progress/index' });
+    const redemptionParams = isRedemption ? `&isRedemption=1&redemptionAmount=${redemptionAmount}` : '';
+    navigateTo({ url: `/pages/generation-progress/index?source=uploaded${redemptionParams}` });
   };
 
   const handleRegenerate = () => {

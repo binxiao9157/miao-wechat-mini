@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import { navigateTo, reLaunch } from '@tarojs/taro';
+import Taro, { navigateTo, reLaunch } from '@tarojs/taro';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const CAMERA_PRIMARY = require('../../assets/profile-icons/camera-primary.png');
@@ -8,16 +8,21 @@ import PawLogo from '../../components/common/PawLogo';
 import './index.less';
 
 export default function EmptyCatPage() {
+  const router = Taro.getCurrentInstance().router;
+  const isRedemption = router?.params?.isRedemption === '1';
+  const redemptionAmount = Number(router?.params?.redemptionAmount) || 0;
+  const redemptionParams = isRedemption ? `&isRedemption=1&redemptionAmount=${redemptionAmount}` : '';
+
   const handleBack = () => {
     reLaunch({ url: '/pages/cat-start/index' });
   };
 
   const handleUpload = () => {
-    navigateTo({ url: '/pages/upload-material/index' });
+    navigateTo({ url: `/pages/upload-material/index?${redemptionParams.slice(1)}` });
   };
 
   const handleCreate = () => {
-    navigateTo({ url: '/pages/create-companion/index' });
+    navigateTo({ url: `/pages/create-companion/index?${redemptionParams.slice(1)}` });
   };
 
   return (

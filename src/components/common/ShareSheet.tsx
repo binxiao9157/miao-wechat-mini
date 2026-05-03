@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro';
 const X_PNG = require('../../assets/profile-icons/x-dark.png');
 import { storage, FriendInfo } from '../../services/storage';
 import { shareService } from '../../services/shareService';
+import { request } from '../../utils/httpAdapter';
 import CatAvatar from './CatAvatar';
 import './ShareSheet.less';
 
@@ -27,14 +28,23 @@ export default function ShareSheet({ visible, title = '分享', text, url, isTab
     onClose();
   };
 
-  const handleFriendShare = (friend: FriendInfo) => {
-    storage.addCustomNotification({
-      type: 'friend_share',
-      title: '收到一条分享',
-      content: `${friend.nickname} 向你分享了一篇日记`,
-      catAvatar: friend.catAvatar || friend.avatar,
-    });
-    Taro.showToast({ title: `已分享给 ${friend.nickname}`, icon: 'success' });
+  const handleFriendShare = async (friend: FriendInfo) => {
+    try {
+      await request({
+        url: '/api/v1/notifications',
+        method: 'POST',
+        data: {
+          recipientId: friend.id,
+          type: 'friend_share',
+          title: '收到一条分享',
+          content: `${friend.nickname} 向你分享了一篇日记`,
+          catAvatar: friend.catAvatar || friend.avatar,
+        },
+      });
+      Taro.showToast({ title: `已分享给 ${friend.nickname}`, icon: 'success' });
+    } catch {
+      Taro.showToast({ title: '分享失败，请重试', icon: 'none' });
+    }
     onClose();
   };
 

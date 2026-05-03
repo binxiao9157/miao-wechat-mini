@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import Taro, { navigateBack, navigateTo } from '@tarojs/taro';
+import Taro, { navigateBack, navigateTo, useDidShow } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, TimeLetter, PointsInfo } from '../../services/storage';
+import { request } from '../../utils/httpAdapter';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const SETTINGS_DARK = require('../../assets/profile-icons/settings-dark.png');
@@ -16,15 +17,16 @@ import './index.less';
 
 interface Notification {
   id: string;
-  type: 'letter' | 'points' | 'greeting';
+  type: string;
   title: string;
   content: string;
   time: number;
   read: boolean;
   catAvatar?: string;
+  source?: 'local' | 'server';
 }
 
-function computeNotifications(): Notification[] {
+function computeLocalNotifications(): Notification[] {
   const notifications: Notification[] = [];
   const readIds = storage.getReadNotificationIds();
   const isFastForward = storage.getIsFastForward();
@@ -42,6 +44,7 @@ function computeNotifications(): Notification[] {
         time: letter.unlockAt,
         read: readIds.includes(`letter_${letter.id}`),
         catAvatar: letter.catAvatar,
+        source: 'local',
       });
     }
   });
@@ -58,6 +61,7 @@ function computeNotifications(): Notification[] {
         content: `${tx.reason}：${tx.type === 'earn' ? '+' : '-'}${tx.amount} 积分`,
         time: tx.timestamp,
         read: readIds.includes(`points_${tx.id}`),
+        source: 'local',
       });
     });
   }
@@ -73,38 +77,59 @@ function computeNotifications(): Notification[] {
     content: '今天也要和猫咪一起度过美好的一天哦！',
     time: new Date().setHours(8, 0, 0, 0),
     read: readIds.includes(`greeting_${today}`),
+    source: 'local',
   });
 
-  // 自定义通知（好友分享等）
-  const customNotifications = storage.getCustomNotifications();
-  customNotifications.forEach((n: any) => {
-    notifications.push({
+  return notifications;
+}
+
+async function fetchServerNotifications(): Promise<Notification[]> {
+  try {
+    const res = await request({ url: '/api/v1/notifications', method: 'GET' });
+    const list = res.data || [];
+    return list.map((n: any) => ({
       id: n.id,
-      type: n.type,
+      type: n.type || 'friend_share',
       title: n.title,
       content: n.content,
-      time: n.time,
-      read: readIds.includes(n.id),
+      time: n.createdAt || Date.now(),
+      read: n.read || false,
       catAvatar: n.catAvatar,
-    });
-  });
-
-  // 按时间倒序排列
-  notifications.sort((a, b) => b.time - a.time);
-  return notifications;
+      source: 'server' as const,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export default function NotificationList() {
   const navSpace = useNavSpace();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  useEffect(() => {
-    setNotifications(computeNotifications());
+  const loadNotifications = useCallback(async () => {
+    const local = computeLocalNotifications();
+    const server = await fetchServerNotifications();
+    const all = [...server, ...local];
+    all.sort((a, b) => b.time - a.time);
+    setNotifications(all);
   }, []);
 
-  const handleNotificationClick = (notification: Notification) => {
+  useEffect(() => {
+    loadNotifications();
+  }, [loadNotifications]);
+
+  useDidShow(() => {
+    loadNotifications();
+  });
+
+  const handleNotificationClick = async (notification: Notification) => {
     // 标记已读
     storage.markNotificationAsRead(notification.id);
+    if (notification.source === 'server') {
+      try {
+        await request({ url: `/api/v1/notifications/${notification.id}/read`, method: 'PUT' });
+      } catch {}
+    }
     setNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, read: true } : n));
 
     // 跳转到对应页面
@@ -117,10 +142,13 @@ export default function NotificationList() {
     }
   };
 
-  const handleMarkAllRead = () => {
+  const handleMarkAllRead = async () => {
     notifications.forEach(n => {
       if (!n.read) storage.markNotificationAsRead(n.id);
     });
+    try {
+      await request({ url: '/api/v1/notifications/read-all', method: 'PUT' });
+    } catch {}
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 

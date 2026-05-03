@@ -5,6 +5,7 @@ import CatAvatar from '../../components/common/CatAvatar';
 import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro';
 import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage } from '../../services/storage';
 import { useNavSpace } from '../../hooks/useNavSpace';
+import ShareSheet from '../../components/common/ShareSheet';
 
 // Lucide-style PNG icons
 const USERPLUS_GRAY = require('../../assets/profile-icons/userplus-gray.png');
@@ -43,15 +44,30 @@ export default function Diary() {
   const [tabDirection, setTabDirection] = useState<'left' | 'right'>('right');
   const [friendDiaries, setFriendDiaries] = useState<FriendDiaryWithMedia[]>([]);
   const [activeCat, setActiveCat] = useState<{ id: string; name: string; avatar?: string } | null>(null);
+  const [sharingDiary, setSharingDiary] = useState<DiaryWithMedia | null>(null);
+  const [showShareSheet, setShowShareSheet] = useState(false);
 
-  useShareAppMessage(() => ({
-    title: 'Miao - 记录猫咪的美好时光',
-    path: '/pages/diary/index',
-  }));
+  useShareAppMessage(() => {
+    if (sharingDiary) {
+      const content = sharingDiary.content.length > 30 ? sharingDiary.content.slice(0, 30) + '...' : sharingDiary.content;
+      return {
+        title: `${sharingDiary.catName || '猫咪'}的日常：${content}`,
+        path: `/pages/diary/index`,
+      };
+    }
+    return {
+      title: 'Miao - 记录猫咪的美好时光',
+      path: '/pages/diary/index',
+    };
+  });
 
-  useShareTimeline(() => ({
-    title: 'Miao - 记录猫咪的美好时光',
-  }));
+  useShareTimeline(() => {
+    if (sharingDiary) {
+      const content = sharingDiary.content.length > 20 ? sharingDiary.content.slice(0, 20) + '...' : sharingDiary.content;
+      return { title: `${sharingDiary.catName || '猫咪'}的日常：${content}` };
+    }
+    return { title: 'Miao - 记录猫咪的美好时光' };
+  });
 
   // 添加好友相关状态 - v2
   const [showAddFriendMenu, setShowAddFriendMenu] = useState<boolean>(false);
@@ -382,7 +398,8 @@ export default function Diary() {
 
   // 分享功能
   const handleShare = (diary: DiaryWithMedia) => {
-    Taro.showToast({ title: '点击右上角「转发」分享', icon: 'none' });
+    setSharingDiary(diary);
+    setShowShareSheet(true);
   };
 
   return (
@@ -777,6 +794,15 @@ export default function Diary() {
           </View>
         </View>
       )}
+
+      {/* 分享面板 */}
+      <ShareSheet
+        visible={showShareSheet}
+        title="分享日记"
+        text={sharingDiary ? (sharingDiary.content.length > 30 ? sharingDiary.content.slice(0, 30) + '...' : sharingDiary.content) : 'Miao - 日常记录'}
+        url="/pages/diary/index"
+        onClose={() => { setShowShareSheet(false); setSharingDiary(null); }}
+      />
     </View>
   );
 }  

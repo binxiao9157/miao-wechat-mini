@@ -1,8 +1,9 @@
-import { View, Text, Image } from '@tarojs/components';
+import { View, Text, Image, Button } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 const X_PNG = require('../../assets/profile-icons/x-dark.png');
 import { storage, FriendInfo } from '../../services/storage';
 import { shareService } from '../../services/shareService';
+import CatAvatar from './CatAvatar';
 import './ShareSheet.less';
 
 interface ShareSheetProps {
@@ -17,17 +18,16 @@ export default function ShareSheet({ visible, title = '分享', text, url, onClo
   if (!visible) return null;
 
   const friends: FriendInfo[] = storage.getFriends();
+  const shareTitle = text || 'Miao - 猫咪陪伴';
+  const sharePath = url || '/pages/home/index';
 
-  const handleShareWechat = () => {
-    Taro.shareAppMessage({
-      title: text || 'Miao - 猫咪陪伴',
-      path: url || '/pages/home/index',
-    });
+  const handleCopyLink = async () => {
+    await shareService.copyToClipboard(sharePath);
     onClose();
   };
 
-  const handleCopyLink = async () => {
-    await shareService.copyToClipboard(url || '');
+  const handleFriendShare = (friend: FriendInfo) => {
+    Taro.showToast({ title: `已分享给 ${friend.nickname}`, icon: 'none' });
     onClose();
   };
 
@@ -50,14 +50,12 @@ export default function ShareSheet({ visible, title = '分享', text, url, onClo
                 <View
                   key={friend.id}
                   className="friend-item"
-                  onClick={() => {
-                    Taro.showToast({ title: `已分享给 ${friend.nickname}`, icon: 'none' });
-                    onClose();
-                  }}
+                  onClick={() => handleFriendShare(friend)}
                 >
-                  <Image
+                  <CatAvatar
+                    src={friend.avatar}
+                    name={friend.nickname}
                     className="friend-avatar"
-                    src={friend.avatar || ''}
                     mode="aspectFill"
                   />
                   <Text className="friend-name">{friend.nickname}</Text>
@@ -71,12 +69,19 @@ export default function ShareSheet({ visible, title = '分享', text, url, onClo
 
         {/* 分享方式 */}
         <View className="share-options">
-          <View className="share-option" onClick={handleShareWechat}>
-            <View className="option-icon wechat">
-              <Text>💬</Text>
+          <Button
+            className="share-option-btn"
+            openType="share"
+            data-title={shareTitle}
+            data-path={sharePath}
+          >
+            <View className="share-option">
+              <View className="option-icon wechat">
+                <Text>💬</Text>
+              </View>
+              <Text className="option-label">微信好友</Text>
             </View>
-            <Text className="option-label">微信好友</Text>
-          </View>
+          </Button>
 
           <View className="share-option" onClick={handleCopyLink}>
             <View className="option-icon link">

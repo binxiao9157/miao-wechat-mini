@@ -136,25 +136,34 @@ export default function Profile() {
   const handleClearCache = () => {
     Taro.showModal({
       title: '清除缓存',
-      content: '将清除临时文件和缓存数据，不会影响您的账户和猫咪信息。确定清除吗？',
+      content: '将清除临时文件、图片缓存和过期数据，不会删除您的账户、猫咪、日记和信件。确定清除吗？',
       confirmText: '清除',
       confirmColor: '#E89F71',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
           try {
-            // 清除临时文件
-            Taro.getStorageInfoSync();
+            // 1. 清除 Storage 中的临时 key，保留核心数据
             const info = Taro.getStorageInfoSync();
-            // 保留关键用户数据，清除临时缓存
-            const preserveKeys = ['miao_user_info', 'miao_cat_list', 'miao_active_cat_id', 'miao_auth_token', 'miao_friends', 'miao_diaries', 'miao_time_letters', 'miao_points', 'miao_settings'];
+            const preservePrefixes = ['miao_user_info', 'miao_cat_list', 'miao_active_cat_id', 'miao_auth_token', 'miao_friends', 'miao_diaries', 'miao_time_letters', 'miao_points', 'miao_settings', 'miao_ai_config', 'miao_friend_invites'];
             const allKeys = info.keys || [];
             let cleared = 0;
             allKeys.forEach((key: string) => {
-              if (!preserveKeys.some(pk => key.startsWith(pk))) {
-                Taro.removeStorageSync(key);
-                cleared++;
+              if (!preservePrefixes.some(pk => key.startsWith(pk))) {
+                try { Taro.removeStorageSync(key); cleared++; } catch {}
               }
             });
+
+            // 2. 清除 USER_DATA_PATH 下的媒体缓存文件
+            try {
+              const fs = Taro.getFileSystemManager();
+              const files = fs.readdirSync(Taro.env.USER_DATA_PATH);
+              files.forEach((file: string) => {
+                if (file.startsWith('media_') || file.startsWith('tmp_')) {
+                  try { fs.unlinkSync(`${Taro.env.USER_DATA_PATH}/${file}`); cleared++; } catch {}
+                }
+              });
+            } catch {}
+
             Taro.showToast({ title: `已清除 ${cleared} 项缓存`, icon: 'success' });
           } catch {
             Taro.showToast({ title: '清除失败', icon: 'none' });

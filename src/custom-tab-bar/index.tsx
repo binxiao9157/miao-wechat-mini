@@ -55,7 +55,7 @@ export default function CustomTabBar() {
                 className="tab-icon-img"
                 src={iconSrc}
                 mode="aspectFit"
-                style={{ width: tab.center ? 34 : 30, height: tab.center ? 34 : 30 }}
+                style={{ width: tab.center ? 22 : 20, height: tab.center ? 22 : 20 }}
               />
             </View>
             <Text className="miao-tab-text">{tab.text}</Text>

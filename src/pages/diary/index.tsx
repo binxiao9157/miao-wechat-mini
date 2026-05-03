@@ -70,6 +70,8 @@ export default function Diary() {
       };
       if (sharingDiary.mediaUrl) {
         result.imageUrl = sharingDiary.mediaUrl;
+      } else if (activeCat?.avatar) {
+        result.imageUrl = activeCat.avatar;
       }
       return result;
     }
@@ -810,9 +812,6 @@ export default function Diary() {
         text={sharingDiary ? sharingDiary.content : 'Miao - 日常记录'}
         url="/pages/diary/index"
         isTabPage={true}
-        catName={activeCat?.name || '猫咪'}
-        catAvatar={activeCat?.avatar}
-        mediaUrl={sharingDiary?.mediaUrl}
         onClose={() => { setShowShareSheet(false); setSharingDiary(null); }}
       />
     </View>

@@ -39,6 +39,7 @@ export default function Home() {
 
   useShareTimeline(() => ({
     title: cat ? `来和${cat.name}一起玩吧！` : 'Miao - 你的AI猫咪伙伴',
+    imageUrl: cat?.avatar || undefined,
   }));
 
   // 气泡状态

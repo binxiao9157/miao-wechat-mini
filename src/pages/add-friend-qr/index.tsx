@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Image, Canvas } from '@tarojs/components';
-import Taro, { useRouter, navigateBack } from '@tarojs/taro';
+import { View, Text, Image, Canvas, Button } from '@tarojs/components';
+import Taro, { useRouter, navigateBack, useShareAppMessage } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import CatAvatar from '../../components/common/CatAvatar';
 const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
@@ -27,6 +27,20 @@ export default function AddFriendQR() {
   const canvasRef = useRef<any>(null);
 
   const userInfo = storage.getUserInfo();
+
+  // 微信好友分享
+  useShareAppMessage(() => {
+    if (invite && cat) {
+      return {
+        title: `我是 ${userInfo?.nickname || '猫主人'}，快来 Miao 看看我的小猫 ${cat.name} 吧！`,
+        path: `/pages/join-friend/index?invite=${invite.code}`,
+      };
+    }
+    return {
+      title: 'Miao - 邀请你成为好友，一起记录萌宠瞬间',
+      path: '/pages/home/index',
+    };
+  });
 
   // 获取猫咪信息：优先按 catId 从 storage 查找，保证 avatar 等字段完整
   const getCat = () => {
@@ -147,25 +161,6 @@ export default function AddFriendQR() {
     }
   };
 
-  // 分享链接
-  const handleShareLink = () => {
-    if (!userInfo || !cat) return;
-
-    const inviteText = invitePayload
-      ? `我是 ${userInfo.nickname}，快来 Miao 看看我的小猫 ${cat.name} 吧！${invitePayload}`
-      : `我是 ${userInfo.nickname}，快来 Miao 看看我的小猫 ${cat.name} 吧！一起记录萌宠瞬间～`;
-
-    Taro.setClipboardData({
-        data: inviteText,
-        success: () => {
-          showToastMessage('邀请文案已复制');
-      },
-      fail: () => {
-        showToastMessage('复制失败，请手动复制');
-      }
-    });
-  };
-
   if (!userInfo || !cat) {
     return (
       <View className="add-friend-qr-page error-page">
@@ -259,12 +254,12 @@ export default function AddFriendQR() {
           <Text className="action-text">{isSaving ? '保存中...' : '保存图片'}</Text>
         </View>
 
-        <View className="action-btn" onClick={handleShareLink}>
+        <Button className="action-btn" openType="share">
           <View className="action-icon">
             <Image className="icon-img" src={SHARE2_PNG} mode="aspectFit" style={{ width: 24, height: 24 }} />
           </View>
-          <Text className="action-text">分享链接</Text>
-        </View>
+          <Text className="action-text">分享给好友</Text>
+        </Button>
       </View>
 
       {/* Toast 提示 */}

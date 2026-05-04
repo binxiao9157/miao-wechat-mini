@@ -70,6 +70,7 @@ export default function Profile() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [scanConfirm, setScanConfirm] = useState<{ code: string; nickname: string; avatar: string; catName: string; catAvatar: string } | null>(null);
   const adminTapCountRef = useRef(0);
   const adminTapTimerRef = useRef<any>(null);
 
@@ -236,7 +237,41 @@ export default function Profile() {
   };
 
   const handleScanClick = () => {
-    navigateTo({ url: '/pages/scan-friend/index' });
+    Taro.scanCode({
+      onlyFromCamera: true,
+      scanType: ['qrCode'],
+      success: async (res) => {
+        try {
+          const code = friendService.extractInviteCode(res.result);
+          if (!code) {
+            Taro.showToast({ title: '无效的邀请码', icon: 'none' });
+            return;
+          }
+          const invite = await friendService.getInvite(code);
+          setScanConfirm({
+            code,
+            nickname: invite.inviter?.nickname || invite.ownerId,
+            avatar: invite.inviter?.avatar || '',
+            catName: invite.catName || '小猫',
+            catAvatar: invite.catAvatar || '',
+          });
+        } catch (error: any) {
+          Taro.showToast({ title: error?.message || '无法识别的二维码', icon: 'none' });
+        }
+      },
+      fail: () => {},
+    });
+  };
+
+  const handleConfirmAddFriend = async () => {
+    if (!scanConfirm) return;
+    try {
+      await friendService.acceptInvite(scanConfirm.code);
+      setScanConfirm(null);
+      Taro.showToast({ title: '添加好友成功！', icon: 'success' });
+    } catch (error: any) {
+      Taro.showToast({ title: error?.message || '添加好友失败', icon: 'none' });
+    }
   };
 
   return (
@@ -394,6 +429,32 @@ export default function Profile() {
             <View className="modal-actions">
               <Button className="modal-btn danger" onClick={handleClearLocalData}>确定注销</Button>
               <Button className="modal-btn cancel" onClick={() => setShowClearConfirm(false)}>再想想</Button>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* 扫码添加好友确认弹窗 */}
+      {scanConfirm && (
+        <View className="modal-mask" onClick={() => setScanConfirm(null)}>
+          <View className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <Text className="modal-title">添加好友</Text>
+            <View className="scan-confirm-info">
+              {scanConfirm.avatar ? (
+                <Image className="scan-confirm-avatar" src={scanConfirm.avatar} mode="aspectFill" />
+              ) : (
+                <View className="scan-confirm-avatar-placeholder">
+                  <Text>{scanConfirm.nickname.charAt(0)}</Text>
+                </View>
+              )}
+              <View className="scan-confirm-detail">
+                <Text className="scan-confirm-name">{scanConfirm.nickname}</Text>
+                <Text className="scan-confirm-cat">猫咪: {scanConfirm.catName}</Text>
+              </View>
+            </View>
+            <View className="modal-actions">
+              <Button className="modal-btn primary" onClick={handleConfirmAddFriend}>添加好友</Button>
+              <Button className="modal-btn cancel" onClick={() => setScanConfirm(null)}>取消</Button>
             </View>
           </View>
         </View>

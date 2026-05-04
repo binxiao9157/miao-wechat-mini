@@ -42,6 +42,7 @@ export default function Diary() {
   const [commentingId, setCommentingId] = useState<string | null>(null);
   const [commentText, setCommentText] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [commentActionSheet, setCommentActionSheet] = useState<{ diaryId: string; commentId: string; content: string } | null>(null);
   const [activeTab, setActiveTab] = useState<'mine' | 'friends'>('mine');
   const [tabDirection, setTabDirection] = useState<'left' | 'right'>('right');
   const [friendDiaries, setFriendDiaries] = useState<FriendDiaryWithMedia[]>([]);
@@ -160,6 +161,20 @@ export default function Diary() {
     }
   };
 
+  // 静默同步好友动态（交互后刷新，不阻塞 UI）
+  const syncFriendDiariesQuiet = () => {
+    friendService.syncFriendDiaries().then(() => {
+      const fresh = storage.getFriendDiaries();
+      setFriendDiaries(prev => {
+        // 合并：以服务端数据为基准，保留本地媒体加载状态
+        return fresh.map(fd => {
+          const local = prev.find(d => d.id === fd.id);
+          return local?.mediaUrl ? { ...fd, mediaUrl: local.mediaUrl } : fd;
+        });
+      });
+    }).catch(() => {});
+  };
+
   useEffect(() => {
     loadDiaries();
     Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
@@ -170,12 +185,10 @@ export default function Diary() {
       setIsSinglePage(launchOptions.scene === 1154);
     } catch {}
 
-    // 5 分钟轮询好友动态
+    // 1 分钟轮询好友动态
     const intervalId = setInterval(() => {
-      friendService.syncFriendDiaries().then(() => {
-        setFriendDiaries(storage.getFriendDiaries());
-      }).catch(() => {});
-    }, 5 * 60 * 1000);
+      syncFriendDiariesQuiet();
+    }, 60 * 1000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -343,130 +356,127 @@ export default function Diary() {
   const handleLike = async (diaryId: string) => {
     if (activeTab === 'mine') {
       // 自己的日记：乐观更新 + API 同步
-      const prev = diaries;
-      const updated = diaries.map(d => {
-        if (d.id === diaryId) {
-          return { ...d, isLiked: !d.isLiked, likes: d.isLiked ? d.likes - 1 : d.likes + 1 };
-        }
-        return d;
-      });
-      const toSave: DiaryEntry[] = updated.map(({ mediaUrl, ...rest }) => rest);
-      storage.saveDiaries(toSave);
-      setDiaries(updated);
-      try {
-        const result = await friendService.likeDiary(diaryId);
-        // 用服务端权威数据修正
-        const corrected = diaries.map(d => {
-          if (d.id === diaryId) return { ...d, isLiked: result.liked, likes: result.likes };
+      setDiaries(prev => {
+        const updated = prev.map(d => {
+          if (d.id === diaryId) {
+            return { ...d, isLiked: !d.isLiked, likes: d.isLiked ? d.likes - 1 : d.likes + 1 };
+          }
           return d;
         });
-        setDiaries(corrected);
-        const correctedSave: DiaryEntry[] = corrected.map(({ mediaUrl, ...rest }) => rest);
-        storage.saveDiaries(correctedSave);
+        const toSave: DiaryEntry[] = updated.map(({ mediaUrl, ...rest }) => rest);
+        storage.saveDiaries(toSave);
+        return updated;
+      });
+      try {
+        const result = await friendService.likeDiary(diaryId);
+        setDiaries(prev => {
+          const corrected = prev.map(d => {
+            if (d.id === diaryId) return { ...d, isLiked: result.liked, likes: result.likes };
+            return d;
+          });
+          const correctedSave: DiaryEntry[] = corrected.map(({ mediaUrl, ...rest }) => rest);
+          storage.saveDiaries(correctedSave);
+          return corrected;
+        });
       } catch {
-        // 失败回滚
-        setDiaries(prev);
-        const prevSave: DiaryEntry[] = prev.map(({ mediaUrl, ...rest }) => rest);
-        storage.saveDiaries(prevSave);
+        setDiaries(prev => {
+          const rolled = prev.map(d => {
+            if (d.id === diaryId) {
+              return { ...d, isLiked: !d.isLiked, likes: d.isLiked ? d.likes - 1 : d.likes + 1 };
+            }
+            return d;
+          });
+          const rolledSave: DiaryEntry[] = rolled.map(({ mediaUrl, ...rest }) => rest);
+          storage.saveDiaries(rolledSave);
+          return rolled;
+        });
       }
     } else {
       // 好友动态点赞：乐观更新 + API 同步
-      const prev = friendDiaries;
-      const updated = friendDiaries.map(d => {
-        if (d.id === diaryId) {
-          return { ...d, isLiked: !d.isLiked, likes: d.isLiked ? d.likes - 1 : d.likes + 1 };
-        }
-        return d;
-      });
-      storage.saveFriendDiaries(updated);
-      setFriendDiaries(updated);
-      try {
-        const result = await friendService.likeDiary(diaryId);
-        const corrected = friendDiaries.map(d => {
-          if (d.id === diaryId) return { ...d, isLiked: result.liked, likes: result.likes };
+      setFriendDiaries(prev => {
+        const updated = prev.map(d => {
+          if (d.id === diaryId) {
+            return { ...d, isLiked: !d.isLiked, likes: d.isLiked ? d.likes - 1 : d.likes + 1 };
+          }
           return d;
         });
-        setFriendDiaries(corrected);
-        storage.saveFriendDiaries(corrected);
+        storage.saveFriendDiaries(updated);
+        return updated;
+      });
+      try {
+        const result = await friendService.likeDiary(diaryId);
+        setFriendDiaries(prev => {
+          const corrected = prev.map(d => {
+            if (d.id === diaryId) return { ...d, isLiked: result.liked, likes: result.likes };
+            return d;
+          });
+          storage.saveFriendDiaries(corrected);
+          return corrected;
+        });
+        // 点赞成功后同步好友动态，获取最新互动数据
+        syncFriendDiariesQuiet();
       } catch {
-        setFriendDiaries(prev);
-        storage.saveFriendDiaries(prev);
+        setFriendDiaries(prev => {
+          const rolled = prev.map(d => {
+            if (d.id === diaryId) {
+              return { ...d, isLiked: !d.isLiked, likes: d.isLiked ? d.likes - 1 : d.likes + 1 };
+            }
+            return d;
+          });
+          storage.saveFriendDiaries(rolled);
+          return rolled;
+        });
       }
     }
   };
 
   // 添加评论
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (!commentText.trim() || !commentingId) return;
 
     const content = commentText.trim();
-
-    if (activeTab === 'mine') {
-      // 我的日记：乐观更新 + API 同步
-      const optimisticComment = { id: `comment_${Date.now()}`, content };
-      const prev = diaries;
-      const updated = diaries.map(d => {
-        if (d.id === commentingId) {
-          return { ...d, comments: [...d.comments, optimisticComment] };
-        }
-        return d;
-      });
-      const toSave: DiaryEntry[] = updated.map(({ mediaUrl, ...rest }) => rest);
-      storage.saveDiaries(toSave);
-      setDiaries(updated);
-
-      friendService.commentDiary(commentingId, content).then((serverComment) => {
-        // 用服务端返回的评论替换乐观评论
-        const final = diaries.map(d => {
-          if (d.id === commentingId) {
-            const comments = d.comments.map(c => c.id === optimisticComment.id ? { ...c, ...serverComment } : c);
-            return { ...d, comments };
-          }
-          return d;
-        });
-        setDiaries(final);
-        const finalSave: DiaryEntry[] = final.map(({ mediaUrl, ...rest }) => rest);
-        storage.saveDiaries(finalSave);
-      }).catch(() => {
-        // 失败回滚
-        setDiaries(prev);
-        const prevSave: DiaryEntry[] = prev.map(({ mediaUrl, ...rest }) => rest);
-        storage.saveDiaries(prevSave);
-        Taro.showToast({ title: '评论失败', icon: 'none' });
-      });
-    } else {
-      // 好友动态评论：乐观更新 + API 同步
-      const optimisticComment = { id: `comment_${Date.now()}`, content };
-      const prev = friendDiaries;
-      const updated = friendDiaries.map(d => {
-        if (d.id === commentingId) {
-          return { ...d, comments: [...d.comments, optimisticComment] };
-        }
-        return d;
-      });
-      storage.saveFriendDiaries(updated);
-      setFriendDiaries(updated);
-
-      friendService.commentDiary(commentingId, content).then((serverComment) => {
-        const final = friendDiaries.map(d => {
-          if (d.id === commentingId) {
-            const comments = d.comments.map(c => c.id === optimisticComment.id ? { ...c, ...serverComment } : c);
-            return { ...d, comments };
-          }
-          return d;
-        });
-        setFriendDiaries(final);
-        storage.saveFriendDiaries(final);
-      }).catch(() => {
-        setFriendDiaries(prev);
-        storage.saveFriendDiaries(prev);
-        Taro.showToast({ title: '评论失败', icon: 'none' });
-      });
-    }
-
+    const targetId = commentingId;
     setCommentText('');
     setCommentingId(null);
-    Taro.showToast({ title: '评论成功', icon: 'success' });
+
+    if (activeTab === 'mine') {
+      try {
+        const serverComment = await friendService.commentDiary(targetId, content);
+        setDiaries(prev => {
+          const updated = prev.map(d => {
+            if (d.id === targetId) {
+              return { ...d, comments: [...d.comments, serverComment || { id: `comment_${Date.now()}`, content }] };
+            }
+            return d;
+          });
+          const toSave: DiaryEntry[] = updated.map(({ mediaUrl, ...rest }) => rest);
+          storage.saveDiaries(toSave);
+          return updated;
+        });
+        Taro.showToast({ title: '评论成功', icon: 'success' });
+      } catch {
+        Taro.showToast({ title: '评论失败', icon: 'none' });
+      }
+    } else {
+      try {
+        const serverComment = await friendService.commentDiary(targetId, content);
+        setFriendDiaries(prev => {
+          const updated = prev.map(d => {
+            if (d.id === targetId) {
+              return { ...d, comments: [...d.comments, serverComment || { id: `comment_${Date.now()}`, content }] };
+            }
+            return d;
+          });
+          storage.saveFriendDiaries(updated);
+          return updated;
+        });
+        Taro.showToast({ title: '评论成功', icon: 'success' });
+        // 评论成功后同步好友动态，获取最新互动数据
+        syncFriendDiariesQuiet();
+      } catch {
+        Taro.showToast({ title: '评论失败', icon: 'none' });
+      }
+    }
   };
 
   // 删除日记
@@ -625,11 +635,12 @@ export default function Diary() {
                 {diary.comments.length > 0 && (
                   <View className="comments-section">
                     {diary.comments.map((comment) => (
-                      <View key={comment.id} className="comment-item">
+                      <View
+                        key={comment.id}
+                        className="comment-item"
+                        onLongPress={() => setCommentActionSheet({ diaryId: diary.id, commentId: comment.id, content: comment.content })}
+                      >
                         <Text className="comment-content">{comment.content}</Text>
-                        <View className="comment-delete" onClick={() => handleDeleteComment(diary.id, comment.id)}>
-                          <Image className="icon-img" src={X_DARK} mode="aspectFit" style={{ width: 16, height: 16 }} />
-                        </View>
                       </View>
                     ))}
                   </View>
@@ -822,7 +833,7 @@ export default function Diary() {
           }} />
           <View
             className="comment-modal-content"
-            style={{ paddingBottom: `calc(env(safe-area-inset-bottom) + 20px)` }}
+            style={{ paddingBottom: `calc(env(safe-area-inset-bottom) + 140rpx + 20px)` }}
           >
             <View className="comment-modal-header">
               <Text className="comment-modal-title">写评论</Text>
@@ -946,6 +957,29 @@ export default function Diary() {
       {isSinglePage && (
         <View className="single-page-banner" onClick={() => Taro.reLaunch({ url: '/pages/home/index' })}>
           <Text className="single-page-text">进入 Miao 完整体验 →</Text>
+        </View>
+      )}
+
+      {/* 评论长按操作菜单 */}
+      {commentActionSheet && (
+        <View className="comment-action-overlay" onClick={() => setCommentActionSheet(null)}>
+          <View className="comment-action-sheet" onClick={(e) => e.stopPropagation()}>
+            <View className="comment-action-item" onClick={() => {
+              Taro.setClipboardData({ data: commentActionSheet.content });
+              setCommentActionSheet(null);
+            }}>
+              <Text>复制</Text>
+            </View>
+            <View className="comment-action-item danger" onClick={() => {
+              handleDeleteComment(commentActionSheet.diaryId, commentActionSheet.commentId);
+              setCommentActionSheet(null);
+            }}>
+              <Text>删除</Text>
+            </View>
+            <View className="comment-action-item cancel" onClick={() => setCommentActionSheet(null)}>
+              <Text>取消</Text>
+            </View>
+          </View>
         </View>
       )}
     </View>

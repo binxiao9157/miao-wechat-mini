@@ -482,15 +482,49 @@
       color: #333;
       line-height: 1.5;
     }
+  }
+}
 
-    .comment-delete {
-      width: 28px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #999;
-      margin-left: 8px;
+/* 评论长按操作菜单 */
+.comment-action-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1400;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.comment-action-sheet {
+  width: 100%;
+  background: #fff;
+  border-radius: 48rpx 48rpx 0 0;
+  padding: 32rpx 40rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 32rpx);
+
+  .comment-action-item {
+    width: 100%;
+    height: 96rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #1C1B1F;
+    border-bottom: 1rpx solid #F2E6DD;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &.danger {
+      color: #EF4444;
+    }
+
+    &.cancel {
+      color: #6B7280;
+      margin-top: 16rpx;
     }
   }
 }
@@ -515,7 +549,7 @@
     background: #fff;
     border-radius: 24px 24px 0 0;
     padding: 20px;
-    padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 140rpx + 20px);
     z-index: 1;
     flex-shrink: 0;
 

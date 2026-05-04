@@ -73,6 +73,8 @@ export default function Diary() {
         catAvatar: activeCat?.avatar,
         content: diary.content,
         mediaUrl: diary.mediaUrl,
+        createdAt: diary.createdAt,
+        logoUrl: require('../../assets/logo.png'),
       });
       shareCardPathRef.current = path;
       setShareCardPath(path);
@@ -933,7 +935,7 @@ export default function Diary() {
       <Canvas
         type="2d"
         id="diaryShareCard"
-        style={{ position: 'fixed', left: '-9999px', top: '-9999px', width: '600px', height: '600px' }}
+        style={{ position: 'fixed', left: '-9999px', top: '-9999px', width: '600px', height: '1067px' }}
       />
 
       {/* 单页模式引导（从朋友圈进入） */}

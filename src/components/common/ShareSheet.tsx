@@ -1,8 +1,8 @@
 import { View, Text, Image, Button } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 const X_PNG = require('../../assets/profile-icons/x-dark.png');
-const WECHAT_PNG = require('../../assets/profile-icons/wechat-green.png');
-const MOMENTS_PNG = require('../../assets/profile-icons/moments-orange.png');
+const WECHAT_PNG = require('../../assets/profile-icons/wechat-flat.png');
+const MOMENTS_PNG = require('../../assets/profile-icons/moments-flat.png');
 import { storage, FriendInfo } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
 import CatAvatar from './CatAvatar';

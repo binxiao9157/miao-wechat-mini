@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import './index.less';
@@ -38,6 +38,20 @@ const tabs = [
 export default function CustomTabBar() {
   const pages = Taro.getCurrentPages();
   const current = pages[pages.length - 1]?.route || '';
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    const onShow = () => setHidden(true);
+    const onHide = () => setHidden(false);
+    Taro.eventCenter.on('tabbar:hide', onShow);
+    Taro.eventCenter.on('tabbar:show', onHide);
+    return () => {
+      Taro.eventCenter.off('tabbar:hide', onShow);
+      Taro.eventCenter.off('tabbar:show', onHide);
+    };
+  }, []);
+
+  if (hidden) return null;
 
   return (
     <View className={`miao-tabbar ${current === 'pages/home/index' ? 'on-home' : ''}`}>

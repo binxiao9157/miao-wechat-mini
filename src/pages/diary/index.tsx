@@ -21,6 +21,7 @@ const X_DARK = require('../../assets/profile-icons/x-dark.png');
 const X_WHITE = require('../../assets/profile-icons/x-white.png');
 const IMAGE_GRAY = require('../../assets/profile-icons/image-outlined.svg');
 const FILM_GRAY = require('../../assets/profile-icons/video-outlined.svg');
+const SEND_ICON = require('../../assets/profile-icons/send-primary.png');
 import { friendService } from '../../services/friendService';
 import { del } from '../../utils/httpAdapter';
 import './index.less';
@@ -43,7 +44,7 @@ export default function Diary() {
   const [commentingId, setCommentingId] = useState<string | null>(null);
   const [commentText, setCommentText] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [commentActionSheet, setCommentActionSheet] = useState<{ diaryId: string; commentId: string; content: string; canDelete: boolean } | null>(null);
+  const [commentActionSheet, setCommentActionSheet] = useState<{ diaryId: string; commentId: string; content: string; canDelete: boolean; top: number; left: number } | null>(null);
   const scrollViewRef = useRef<any>(null);
   const [activeTab, setActiveTab] = useState<'mine' | 'friends'>('mine');
   const [refreshing, setRefreshing] = useState(false);
@@ -212,6 +213,15 @@ export default function Diary() {
       setKeyboardHeight(0);
     };
   }, [showCompose]);
+
+  // 评论/发布弹窗打开时隐藏 TabBar，关闭时恢复
+  useEffect(() => {
+    if (commentingId || showCompose) {
+      Taro.eventCenter.trigger('tabbar:hide');
+    } else {
+      Taro.eventCenter.trigger('tabbar:show');
+    }
+  }, [commentingId, showCompose]);
 
   const loadDiaries = async () => {
     const activeCatId = storage.getActiveCatId();
@@ -590,39 +600,6 @@ export default function Diary() {
 
   return (
     <View className="diary-page" style={navSpace as React.CSSProperties}>
-      <View className="header">
-        <View className="header-title">
-          <Text className="title">日常记录</Text>
-          <Text className="subtitle">DAILY MOMENTS</Text>
-        </View>
-        <View className="header-actions">
-          <View className="friend-btn" onClick={() => setShowAddFriendMenu(true)}>
-            <Image className="icon-img" src={USERPLUS_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
-          </View>
-          <View className="add-btn" onClick={() => setShowCompose(true)}>
-            <Image className="icon-img" src={PLUS_WHITE} mode="aspectFit" style={{ width: 28, height: 28 }} />
-          </View>
-        </View>
-      </View>
-
-      {/* Tab 切换 */}
-      <View className="tab-bar">
-        <View
-          className={`tab-item ${activeTab === 'mine' ? 'active' : ''}`}
-          onClick={() => { setTabDirection('left'); setActiveTab('mine'); }}
-        >
-          <Text className="tab-text">我的记录</Text>
-          {activeTab === 'mine' && <View className="tab-indicator" />}
-        </View>
-        <View
-          className={`tab-item ${activeTab === 'friends' ? 'active' : ''}`}
-          onClick={() => { setTabDirection('right'); setActiveTab('friends'); }}
-        >
-          <Text className="tab-text">好友动态</Text>
-          {activeTab === 'friends' && <View className="tab-indicator" />}
-        </View>
-      </View>
-
       <ScrollView
         className={`diary-list tab-content-${activeTab} tab-slide-${tabDirection}`}
         scrollY
@@ -632,6 +609,39 @@ export default function Diary() {
         scrollTop={scrollTop}
         onScroll={() => { if (scrollTop !== 0) setScrollTop(0); }}
       >
+        <View className="header">
+          <View className="header-title">
+            <Text className="title">日常记录</Text>
+            <Text className="subtitle">DAILY MOMENTS</Text>
+          </View>
+          <View className="header-actions">
+            <View className="friend-btn" onClick={() => setShowAddFriendMenu(true)}>
+              <Image className="icon-img" src={USERPLUS_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
+            </View>
+            <View className="add-btn" onClick={() => setShowCompose(true)}>
+              <Image className="icon-img" src={PLUS_WHITE} mode="aspectFit" style={{ width: 28, height: 28 }} />
+            </View>
+          </View>
+        </View>
+
+        {/* Tab 切换 */}
+        <View className="tab-bar">
+          <View
+            className={`tab-item ${activeTab === 'mine' ? 'active' : ''}`}
+            onClick={() => { setTabDirection('left'); setActiveTab('mine'); }}
+          >
+            <Text className="tab-text">我的记录</Text>
+            {activeTab === 'mine' && <View className="tab-indicator" />}
+          </View>
+          <View
+            className={`tab-item ${activeTab === 'friends' ? 'active' : ''}`}
+            onClick={() => { setTabDirection('right'); setActiveTab('friends'); }}
+          >
+            <Text className="tab-text">好友动态</Text>
+            {activeTab === 'friends' && <View className="tab-indicator" />}
+          </View>
+        </View>
+
         {activeTab === 'mine' ? (
           // 我的记录
           diaries.length === 0 ? (
@@ -698,8 +708,21 @@ export default function Diary() {
                       return (
                         <View
                           key={comment.id}
+                          id={`comment-${comment.id}`}
                           className="comment-item"
-                          onLongPress={() => setCommentActionSheet({ diaryId: diary.id, commentId: comment.id, content: comment.content, canDelete: true })}
+                          onLongPress={() => {
+                            const query = Taro.createSelectorQuery();
+                            query.select(`#comment-${comment.id}`).boundingClientRect((rect: any) => {
+                              setCommentActionSheet({
+                                diaryId: diary.id,
+                                commentId: comment.id,
+                                content: comment.content,
+                                canDelete: true,
+                                top: rect.top - 50,
+                                left: rect.left + rect.width / 2,
+                              });
+                            }).exec();
+                          }}
                         >
                           <Text className="comment-author">{isOwnComment ? '我' : (comment.authorNickname || '好友')}</Text>
                           <Text className="comment-content">{comment.content}</Text>
@@ -772,8 +795,22 @@ export default function Diary() {
                       return (
                         <View
                           key={comment.id}
+                          id={`comment-${comment.id}`}
                           className="comment-item"
-                          onLongPress={() => isOwnComment && setCommentActionSheet({ diaryId: diary.id, commentId: comment.id, content: comment.content, canDelete: true })}
+                          onLongPress={() => {
+                            if (!isOwnComment) return;
+                            const query = Taro.createSelectorQuery();
+                            query.select(`#comment-${comment.id}`).boundingClientRect((rect: any) => {
+                              setCommentActionSheet({
+                                diaryId: diary.id,
+                                commentId: comment.id,
+                                content: comment.content,
+                                canDelete: true,
+                                top: rect.top - 50,
+                                left: rect.left + rect.width / 2,
+                              });
+                            }).exec();
+                          }}
                         >
                           <Text className="comment-author">{isOwnComment ? '我' : (comment.authorNickname || diary.authorNickname || '好友')}</Text>
                           <Text className="comment-content">{comment.content}</Text>
@@ -904,36 +941,28 @@ export default function Diary() {
           }} />
           <View
             className="comment-modal-content"
-            style={{ paddingBottom: `calc(env(safe-area-inset-bottom) + 140rpx + 20px)` }}
+            style={{ paddingBottom: `calc(env(safe-area-inset-bottom) + 16px)` }}
           >
-            <View className="comment-modal-header">
-              <Text className="comment-modal-title">写评论</Text>
-              <View className="comment-modal-close" onClick={() => {
-                setCommentingId(null);
-                setCommentText('');
-              }}>
-                <Image className="icon-img" src={X_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
+            <View className="comment-input-row">
+              <Input
+                className="comment-input"
+                placeholder="写下你的评论..."
+                value={commentText}
+                onInput={(e) => setCommentText(e.detail.value)}
+                onConfirm={handleAddComment}
+                confirmType="send"
+                maxlength={100}
+                focus
+                adjustPosition
+              />
+              <View
+                className={`comment-send-btn ${!commentText.trim() ? 'disabled' : ''}`}
+                onClick={() => commentText.trim() && handleAddComment()}
+              >
+                <Image className="icon-img" src={SEND_ICON} mode="aspectFit" style={{ width: 22, height: 22 }} />
               </View>
             </View>
-            <Input
-              className="comment-input"
-              placeholder="写下你的评论..."
-              value={commentText}
-              onInput={(e) => setCommentText(e.detail.value)}
-              maxlength={100}
-              focus
-              adjustPosition
-            />
-            <View className="comment-modal-footer">
-              <Text className="comment-count">{commentText.length}/100</Text>
-              <Button
-                className="comment-submit-btn"
-                onClick={handleAddComment}
-                disabled={!commentText.trim()}
-              >
-                发送
-              </Button>
-            </View>
+            <Text className="comment-count">{commentText.length}/100</Text>
           </View>
         </View>
       )}
@@ -1031,27 +1060,32 @@ export default function Diary() {
         </View>
       )}
 
-      {/* 评论长按操作菜单 */}
+      {/* 评论长按操作菜单 - 浮动气泡 */}
       {commentActionSheet && (
-        <View className="comment-action-overlay" onClick={() => setCommentActionSheet(null)}>
-          <View className="comment-action-sheet" onClick={(e) => e.stopPropagation()}>
-            <View className="comment-action-item" onClick={() => {
-              Taro.setClipboardData({ data: commentActionSheet.content });
-              setCommentActionSheet(null);
-            }}>
-              <Text>复制</Text>
-            </View>
-            {commentActionSheet.canDelete && (
-              <View className="comment-action-item danger" onClick={() => {
-                handleDeleteComment(commentActionSheet.diaryId, commentActionSheet.commentId);
+        <View className="comment-tooltip-overlay" onClick={() => setCommentActionSheet(null)}>
+          <View
+            className="comment-tooltip"
+            style={{ top: `${commentActionSheet.top}px`, left: `${commentActionSheet.left}px` }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <View className="comment-tooltip-row">
+              <View className="comment-tooltip-btn" onClick={() => {
+                Taro.setClipboardData({ data: commentActionSheet.content });
                 setCommentActionSheet(null);
               }}>
-                <Text>删除</Text>
+                <Text>复制</Text>
               </View>
-            )}
-            <View className="comment-action-item cancel" onClick={() => setCommentActionSheet(null)}>
-              <Text>取消</Text>
+              <View className="comment-tooltip-divider" />
+              {commentActionSheet.canDelete && (
+                <View className="comment-tooltip-btn danger" onClick={() => {
+                  handleDeleteComment(commentActionSheet.diaryId, commentActionSheet.commentId);
+                  setCommentActionSheet(null);
+                }}>
+                  <Text>删除</Text>
+                </View>
+              )}
             </View>
+            <View className="comment-tooltip-arrow" />
           </View>
         </View>
       )}

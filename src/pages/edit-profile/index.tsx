@@ -8,33 +8,40 @@ const IMAGEICON_PNG = require('../../assets/profile-icons/image-primary.png');
 const X_GRAY_PNG = require('../../assets/profile-icons/x-gray.png');
 import { useAuthContext } from '../../context/AuthContext';
 import { storage } from '../../services/storage';
+import { request } from '../../utils/httpAdapter';
 import './index.less';
 
 export default function EditProfile() {
-  const { user } = useAuthContext();
+  const { user, updateProfile } = useAuthContext();
   const [nickname, setNickname] = useState(user?.nickname || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [isSaving, setIsSaving] = useState(false);
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!nickname.trim()) {
       Taro.showToast({ title: '昵称不能为空', icon: 'none' });
       return;
     }
 
     setIsSaving(true);
-    setTimeout(() => {
-      const updatedUser = { ...user!, nickname, avatar };
-      storage.saveUserInfo(updatedUser);
-      setIsSaving(false);
+    try {
+      const res = await request({
+        url: '/api/v1/me',
+        method: 'PATCH',
+        data: { nickname: nickname.trim(), avatar },
+      });
+      if (res.data?.user) {
+        updateProfile({ nickname: res.data.user.nickname, avatar: res.data.user.avatar });
+      }
       setShowSuccessToast(true);
-
-      setTimeout(() => {
-        navigateBack();
-      }, 1500);
-    }, 800);
+      setTimeout(() => navigateBack(), 1500);
+    } catch (e: any) {
+      Taro.showToast({ title: e.message || '保存失败', icon: 'none' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleChooseFromAlbum = () => {
@@ -128,6 +135,15 @@ export default function EditProfile() {
             />
           </View>
         </View>
+
+        {user?.phone && (
+          <View className="form-group">
+            <Text className="form-label">手机号</Text>
+            <View className="input-wrapper">
+              <Text className="form-input phone-display">{user.phone}</Text>
+            </View>
+          </View>
+        )}
 
         <View className="form-group">
           <View className="nav-item" onClick={() => navigateTo({ url: '/pages/change-password/index' })}>

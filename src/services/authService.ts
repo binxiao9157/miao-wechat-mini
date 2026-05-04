@@ -20,6 +20,7 @@ function normalizeUser(raw: any, fallbackPassword?: string): UserInfo {
     password: fallbackPassword,
     passwordSet: !!raw?.passwordSet || !!fallbackPassword,
     openidBound: !!raw?.openidBound,
+    phone: raw?.phone,
   };
 }
 
@@ -114,6 +115,28 @@ export const authService = {
     const user = normalizeUser(res.data?.user);
     persistAuth(token, user);
     return user;
+  },
+
+  async phoneLogin(phoneCode: string): Promise<UserInfo & { isNewUser?: boolean }> {
+    // 检查 session 有效性，过期则 Taro.login() 会自动刷新
+    try {
+      await Taro.checkSession();
+    } catch {
+      // session 过期，Taro.login() 会获取新 session
+    }
+    const loginRes = await Taro.login();
+    if (!loginRes.code) throw new Error('手机号登录失败：未获取到微信 code');
+    const res = await request({
+      url: '/api/v1/auth/phone-login',
+      method: 'POST',
+      data: { phoneCode, loginCode: loginRes.code },
+      timeout: 15000,
+    });
+    const token = res.data?.token;
+    if (!token) throw new Error('手机号登录失败：服务端未返回 token');
+    const user = normalizeUser(res.data?.user);
+    persistAuth(token, user);
+    return { ...user, isNewUser: res.data?.isNewUser };
   },
 
   async setPassword(password: string, currentPassword?: string): Promise<UserInfo> {

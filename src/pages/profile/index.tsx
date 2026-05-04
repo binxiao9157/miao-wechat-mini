@@ -3,6 +3,8 @@ import { View, Text, Image, Button } from '@tarojs/components';
 import Taro, { navigateTo, reLaunch, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, UserInfo, CatInfo } from '../../services/storage';
+import { request } from '../../utils/httpAdapter';
+import { friendService } from '../../services/friendService';
 import './index.less';
 
 // Lucide-style icon images (colored PNGs matching PWA)
@@ -51,6 +53,12 @@ function getUnreadNotificationCount() {
 
   const today = new Date().toISOString().slice(0, 10);
   if (!readIds.includes(`greeting_${today}`)) count += 1;
+
+  // 服务端通知（好友分享等）
+  const serverNotifications = storage.getCustomNotifications();
+  for (const n of serverNotifications) {
+    if (!n.read) count += 1;
+  }
 
   return count;
 }
@@ -121,6 +129,22 @@ export default function Profile() {
     }
 
     setUnreadCount(getUnreadNotificationCount());
+
+    // 从服务端同步通知，合并到本地后刷新红点
+    request({ url: '/api/v1/notifications', method: 'GET' })
+      .then((res) => {
+        const serverNotifications = Array.isArray(res.data) ? res.data : [];
+        for (const n of serverNotifications) {
+          if (!n.read) {
+            const existing = storage.getCustomNotifications();
+            if (!existing.some(e => e.id === n.id)) {
+              storage.addCustomNotification({ type: n.type, title: n.title, content: n.content, catAvatar: n.catAvatar });
+            }
+          }
+        }
+        setUnreadCount(getUnreadNotificationCount());
+      })
+      .catch(() => {});
   };
 
   const handleLogout = () => {

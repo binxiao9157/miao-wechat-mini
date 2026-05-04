@@ -1,5 +1,5 @@
 import { get, post } from '../utils/httpAdapter';
-import { FriendDiaryEntry, FriendInfo, storage } from './storage';
+import { FriendDiaryEntry, FriendInfo, storage, Comment } from './storage';
 
 export interface FriendInvite {
   code: string;
@@ -14,6 +14,11 @@ export interface FriendInvite {
     nickname: string;
     avatar: string;
   };
+}
+
+export interface LikeResult {
+  liked: boolean;
+  likes: number;
 }
 
 function extractInviteCode(raw: string): string {
@@ -75,6 +80,16 @@ export const friendService = {
     const diaries: FriendDiaryEntry[] = Array.isArray(res.data) ? res.data : [];
     storage.saveFriendDiaries(diaries);
     return diaries;
+  },
+
+  async likeDiary(diaryId: string): Promise<LikeResult> {
+    const res = await post(`/api/v1/diaries/${encodeURIComponent(diaryId)}/like`);
+    return { liked: res.data?.liked, likes: res.data?.likes ?? 0 };
+  },
+
+  async commentDiary(diaryId: string, content: string): Promise<Comment> {
+    const res = await post(`/api/v1/diaries/${encodeURIComponent(diaryId)}/comments`, { content });
+    return res.data?.comment;
   },
 };
 

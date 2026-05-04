@@ -28,6 +28,7 @@ export default defineAppConfig({
     'pages/privacy-policy/index',
     'pages/terms-of-service/index',
     'pages/reset-password/index',
+    'pages/set-nickname/index',
     'pages/download/index',
     'pages/feedback/index',
     'pages/join-friend/index',

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Input, Button, Image } from '@tarojs/components';
-import { navigateTo } from '@tarojs/taro';
+import Taro, { navigateTo } from '@tarojs/taro';
 import PawLogo from '../../components/common/PawLogo';
 import { storage } from '../../services/storage';
 import { useAuthContext } from '../../context/AuthContext';
@@ -13,7 +13,7 @@ const EYEOFF_DARK = require('../../assets/profile-icons/eyeoff-dark.png');
 const DEFAULT_CAT_IMAGE = 'https://api.dicebear.com/7.x/avataaars/svg?seed=default_cat';
 
 export default function Login() {
-  const { login, wechatLogin } = useAuthContext();
+  const { login, wechatLogin, phoneLogin } = useAuthContext();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -22,6 +22,7 @@ export default function Login() {
   const [catImage, setCatImage] = useState<string>(DEFAULT_CAT_IMAGE);
   const [isAgreed, setIsAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const phoneLoginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const lastImage = storage.getLastCatImage();
@@ -98,6 +99,111 @@ export default function Login() {
         return;
       }
       routeAfterCatSync();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 点击手机号登录按钮时启动超时计时器
+  // getPhoneNumber 未开通时回调可能不触发，需要超时保护
+  const handlePhoneLoginClick = () => {
+    if (phoneLoginTimerRef.current) {
+      clearTimeout(phoneLoginTimerRef.current);
+    }
+    phoneLoginTimerRef.current = setTimeout(() => {
+      setIsLoading(false);
+      Taro.showModal({
+        title: '提示',
+        content: '获取手机号失败，请确认小程序已开通手机号登录能力，或在微信真机上重试。也可以使用其他登录方式。',
+        showCancel: false,
+        confirmText: '我知道了',
+      });
+    }, 5000);
+  };
+
+  const getPhoneLoginError = (msg: string): string => {
+    if (msg.includes('WECHAT_NOT_CONFIGURED')) return '手机号登录暂未开通，请使用其他登录方式';
+    if (msg.includes('PHONE_LOGIN_FAILED')) return '微信手机号验证失败，请重试或使用其他登录方式';
+    if (msg.includes('WECHAT_UPSTREAM_ERROR')) return '微信服务暂时不可用，请稍后重试';
+    if (msg.includes('超时') || msg.includes('timeout')) return '网络超时，请检查网络后重试';
+    if (msg.includes('no permission') || msg.includes('fail no permission')) return '小程序未开通手机号登录能力，请使用其他登录方式';
+    return msg || '手机号登录失败，请重试';
+  };
+
+  const handlePhoneLogin = async (e: any) => {
+    // 回调已触发，清除超时计时器
+    if (phoneLoginTimerRef.current) {
+      clearTimeout(phoneLoginTimerRef.current);
+      phoneLoginTimerRef.current = null;
+    }
+
+    if (!isAgreed) {
+      setShakeAgreement(true);
+      setTimeout(() => setShakeAgreement(false), 500);
+      Taro.showModal({
+        title: '提示',
+        content: '请先阅读并同意服务条款和隐私政策',
+        showCancel: false,
+        confirmText: '我知道了',
+      });
+      return;
+    }
+    // 微信 getPhoneNumber 回调：e.detail = { errMsg, code, cloudID }
+    if (e.detail?.errMsg?.includes('fail')) {
+      const errMsg = e.detail.errMsg;
+      if (errMsg.includes('no permission') || errMsg.includes('deny')) {
+        Taro.showModal({
+          title: '提示',
+          content: '小程序未开通手机号登录能力，请使用其他登录方式。',
+          showCancel: false,
+          confirmText: '我知道了',
+        });
+      }
+      return;
+    }
+    const phoneCode = e.detail?.code;
+    if (!phoneCode) {
+      // 开发者工具中 code 可能为空，使用 cloudID 或生成 mock code
+      const mockCode = e.detail?.cloudID || `dev_phone_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      if (!mockCode) {
+        setError('获取手机号授权失败');
+        return;
+      }
+      setIsLoading(true);
+      setError('');
+      try {
+        const result = await phoneLogin(mockCode);
+        if (!result.success) {
+          setError(getPhoneLoginError(result.error || ''));
+          return;
+        }
+        if (result.isNewUser || (result as any).nickname?.startsWith('喵星人_')) {
+          Taro.redirectTo({ url: '/pages/set-nickname/index' });
+        } else {
+          routeAfterCatSync();
+        }
+      } catch (e: any) {
+        setError(getPhoneLoginError(e?.message || ''));
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await phoneLogin(phoneCode);
+      if (!result.success) {
+        setError(getPhoneLoginError(result.error || ''));
+        return;
+      }
+      if (result.isNewUser || (result as any).nickname?.startsWith('喵星人_')) {
+        Taro.redirectTo({ url: '/pages/set-nickname/index' });
+      } else {
+        routeAfterCatSync();
+      }
+    } catch (e: any) {
+      setError(getPhoneLoginError(e?.message || ''));
     } finally {
       setIsLoading(false);
     }
@@ -189,6 +295,17 @@ export default function Login() {
             <Button className="login-btn" onClick={handleLogin} disabled={isLoading}>
               {isLoading ? '登录中...' : '登录'}
             </Button>
+            {process.env.TARO_ENV === 'weapp' && (
+              <Button
+                className="phone-login-btn"
+                openType="getPhoneNumber"
+                onGetPhoneNumber={handlePhoneLogin}
+                onClick={handlePhoneLoginClick}
+                disabled={isLoading}
+              >
+                手机号快捷登录
+              </Button>
+            )}
             <Button className="login-btn" onClick={handleWechatLogin} disabled={isLoading}>
               微信一键登录
             </Button>

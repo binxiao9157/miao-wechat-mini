@@ -167,6 +167,14 @@ export default function Diary() {
       const launchOptions = Taro.getLaunchOptionsSync();
       setIsSinglePage(launchOptions.scene === 1154);
     } catch {}
+
+    // 5 分钟轮询好友动态
+    const intervalId = setInterval(() => {
+      friendService.syncFriendDiaries().then(() => {
+        setFriendDiaries(storage.getFriendDiaries());
+      }).catch(() => {});
+    }, 5 * 60 * 1000);
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {
@@ -330,36 +338,58 @@ export default function Diary() {
     }
   };
 
-  const handleLike = (diaryId: string) => {
+  const handleLike = async (diaryId: string) => {
     if (activeTab === 'mine') {
+      // 自己的日记：乐观更新 + API 同步
+      const prev = diaries;
       const updated = diaries.map(d => {
         if (d.id === diaryId) {
-          return {
-            ...d,
-            isLiked: !d.isLiked,
-            likes: d.isLiked ? d.likes - 1 : d.likes + 1
-          };
+          return { ...d, isLiked: !d.isLiked, likes: d.isLiked ? d.likes - 1 : d.likes + 1 };
         }
         return d;
       });
-      // 转换为 DiaryEntry 类型保存（去掉 mediaUrl）
       const toSave: DiaryEntry[] = updated.map(({ mediaUrl, ...rest }) => rest);
       storage.saveDiaries(toSave);
       setDiaries(updated);
+      try {
+        const result = await friendService.likeDiary(diaryId);
+        // 用服务端权威数据修正
+        const corrected = diaries.map(d => {
+          if (d.id === diaryId) return { ...d, isLiked: result.liked, likes: result.likes };
+          return d;
+        });
+        setDiaries(corrected);
+        const correctedSave: DiaryEntry[] = corrected.map(({ mediaUrl, ...rest }) => rest);
+        storage.saveDiaries(correctedSave);
+      } catch {
+        // 失败回滚
+        setDiaries(prev);
+        const prevSave: DiaryEntry[] = prev.map(({ mediaUrl, ...rest }) => rest);
+        storage.saveDiaries(prevSave);
+      }
     } else {
-      // 好友动态点赞
+      // 好友动态点赞：乐观更新 + API 同步
+      const prev = friendDiaries;
       const updated = friendDiaries.map(d => {
         if (d.id === diaryId) {
-          return {
-            ...d,
-            isLiked: !d.isLiked,
-            likes: d.isLiked ? d.likes - 1 : d.likes + 1
-          };
+          return { ...d, isLiked: !d.isLiked, likes: d.isLiked ? d.likes - 1 : d.likes + 1 };
         }
         return d;
       });
       storage.saveFriendDiaries(updated);
       setFriendDiaries(updated);
+      try {
+        const result = await friendService.likeDiary(diaryId);
+        const corrected = friendDiaries.map(d => {
+          if (d.id === diaryId) return { ...d, isLiked: result.liked, likes: result.likes };
+          return d;
+        });
+        setFriendDiaries(corrected);
+        storage.saveFriendDiaries(corrected);
+      } catch {
+        setFriendDiaries(prev);
+        storage.saveFriendDiaries(prev);
+      }
     }
   };
 
@@ -367,41 +397,69 @@ export default function Diary() {
   const handleAddComment = () => {
     if (!commentText.trim() || !commentingId) return;
 
-    const newComment = {
-      id: 'comment_' + Date.now(),
-      content: commentText.trim()
-    };
+    const content = commentText.trim();
 
     if (activeTab === 'mine') {
-      // 我的记录 - 更新本地存储
+      // 我的日记：乐观更新 + API 同步
+      const optimisticComment = { id: `comment_${Date.now()}`, content };
+      const prev = diaries;
       const updated = diaries.map(d => {
         if (d.id === commentingId) {
-          return {
-            ...d,
-            comments: [...d.comments, newComment]
-          };
+          return { ...d, comments: [...d.comments, optimisticComment] };
         }
         return d;
       });
-
-      // 转换为 DiaryEntry 类型保存
       const toSave: DiaryEntry[] = updated.map(({ mediaUrl, ...rest }) => rest);
       storage.saveDiaries(toSave);
       setDiaries(updated);
+
+      friendService.commentDiary(commentingId, content).then((serverComment) => {
+        // 用服务端返回的评论替换乐观评论
+        const final = diaries.map(d => {
+          if (d.id === commentingId) {
+            const comments = d.comments.map(c => c.id === optimisticComment.id ? { ...c, ...serverComment } : c);
+            return { ...d, comments };
+          }
+          return d;
+        });
+        setDiaries(final);
+        const finalSave: DiaryEntry[] = final.map(({ mediaUrl, ...rest }) => rest);
+        storage.saveDiaries(finalSave);
+      }).catch(() => {
+        // 失败回滚
+        setDiaries(prev);
+        const prevSave: DiaryEntry[] = prev.map(({ mediaUrl, ...rest }) => rest);
+        storage.saveDiaries(prevSave);
+        Taro.showToast({ title: '评论失败', icon: 'none' });
+      });
     } else {
-      // 好友动态 - 更新好友日记存储
+      // 好友动态评论：乐观更新 + API 同步
+      const optimisticComment = { id: `comment_${Date.now()}`, content };
+      const prev = friendDiaries;
       const updated = friendDiaries.map(d => {
         if (d.id === commentingId) {
-          return {
-            ...d,
-            comments: [...d.comments, newComment]
-          };
+          return { ...d, comments: [...d.comments, optimisticComment] };
         }
         return d;
       });
-
       storage.saveFriendDiaries(updated);
       setFriendDiaries(updated);
+
+      friendService.commentDiary(commentingId, content).then((serverComment) => {
+        const final = friendDiaries.map(d => {
+          if (d.id === commentingId) {
+            const comments = d.comments.map(c => c.id === optimisticComment.id ? { ...c, ...serverComment } : c);
+            return { ...d, comments };
+          }
+          return d;
+        });
+        setFriendDiaries(final);
+        storage.saveFriendDiaries(final);
+      }).catch(() => {
+        setFriendDiaries(prev);
+        storage.saveFriendDiaries(prev);
+        Taro.showToast({ title: '评论失败', icon: 'none' });
+      });
     }
 
     setCommentText('');

@@ -3,6 +3,16 @@ import { getItem, setItem, removeItem, getAllKeys } from '../utils/storageAdapte
 import { trigger } from '../utils/eventAdapter';
 import { request as taroRequest } from '../utils/httpAdapter';
 
+// Lazy import to avoid circular dependency
+let _syncQueue: any = null;
+function getSyncQueue() {
+  if (!_syncQueue) {
+    const mod = require('./syncQueue');
+    _syncQueue = mod.syncQueue;
+  }
+  return _syncQueue;
+}
+
 // 小程序环境使用文件系统存储媒体文件
 
 const MEDIA_STORAGE_PREFIX = 'miao_media_';
@@ -153,6 +163,8 @@ export interface UserInfo {
   password?: string;
   passwordSet?: boolean;
   openidBound?: boolean;
+  phone?: string;
+  isNewUser?: boolean;
 }
 
 export interface CatInfo {
@@ -189,6 +201,9 @@ export interface AppSettings {
 export interface Comment {
   id: string;
   content: string;
+  authorId?: string;
+  authorNickname?: string;
+  createdAt?: number;
 }
 
 export interface DiaryEntry {
@@ -338,19 +353,15 @@ async function resolveServerDiaryPayload(diary: DiaryEntry): Promise<DiaryEntry>
 
 async function syncDiaryToServer(userId: string, diary: DiaryEntry) {
   const payload = await resolveServerDiaryPayload(diary);
-  request('/api/v1/diaries', {
+  return request('/api/v1/diaries', {
     method: 'POST',
     data: { diary: payload },
-  }).catch((error) => {
-    console.warn('[storage] sync diary failed:', error);
   });
 }
 
 function deleteDiaryFromServer(userId: string, diaryId: string) {
-  request(`/api/v1/diaries/${encodeURIComponent(diaryId)}`, {
+  return request(`/api/v1/diaries/${encodeURIComponent(diaryId)}`, {
     method: 'DELETE',
-  }).catch((error) => {
-    console.warn('[storage] delete diary failed:', error);
   });
 }
 
@@ -358,30 +369,50 @@ function deleteAllDiariesFromServer(userId: string) {
   // v1 暂未提供批量删除日记，逐条删除由调用方执行。
 }
 
-function syncLetterToServer(userId: string, letter: TimeLetter) {
-  request('/api/v1/letters', {
+async function syncLetterToServer(userId: string, letter: TimeLetter) {
+  return request('/api/v1/letters', {
     method: 'POST',
-    data: { letter },
-  }).catch((error) => {
-    console.warn('[storage] sync letter failed:', error);
+     data: { letter },
   });
 }
 
-function deleteLetterFromServer(userId: string, letterId: string) {
-  request(`/api/v1/letters/${encodeURIComponent(letterId)}`, {
+async function deleteLetterFromServer(userId: string, letterId: string) {
+  return request(`/api/v1/letters/${encodeURIComponent(letterId)}`, {
     method: 'DELETE',
-  }).catch((error) => {
-    console.warn('[storage] delete letter failed:', error);
   });
 }
 
-function syncPointsToServer(userId: string, data: PointsInfo) {
-  request('/api/v1/points', {
+async function syncPointsToServer(userId: string, data: PointsInfo) {
+  return request('/api/v1/points', {
     method: 'POST',
     data: { data },
-  }).catch((error) => {
-    console.warn('[storage] sync points failed:', error);
   });
+}
+
+function mergePoints(local: PointsInfo, remote: PointsInfo): PointsInfo {
+  const latest = (a: string | null, b: string | null) => {
+    if (!a) return b;
+    if (!b) return a;
+    return a >= b ? a : b;
+  };
+  const mergedHistory = (() => {
+    const map = new Map<string, PointTransaction>();
+    for (const t of [...local.history, ...remote.history]) {
+      const existing = map.get(t.id);
+      if (!existing || t.timestamp > existing.timestamp) map.set(t.id, t);
+    }
+    return Array.from(map.values()).sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
+  })();
+  return {
+    total: Math.max(local.total, remote.total),
+    lastLoginDate: latest(local.lastLoginDate, remote.lastLoginDate),
+    dailyInteractionPoints: Math.max(local.dailyInteractionPoints, remote.dailyInteractionPoints),
+    lastInteractionDate: latest(local.lastInteractionDate, remote.lastInteractionDate),
+    onlineMinutes: Math.max(local.onlineMinutes, remote.onlineMinutes),
+    lastOnlineUpdate: Math.max(local.lastOnlineUpdate, remote.lastOnlineUpdate),
+    updatedAt: Math.max(local.updatedAt || 0, remote.updatedAt || 0),
+    history: mergedHistory,
+  };
 }
 
 const MAX_DIARIES = 200;
@@ -800,78 +831,92 @@ export const storage = {
   },
 
   syncFromServer: async (username: string): Promise<void> => {
-    try {
-      await storage.syncCatsFromServer();
-    } catch (error) {
-      console.warn('[storage] sync cats failed:', error);
-    }
-
-    try {
-      const resp = await request('/api/v1/diaries');
-      if (resp) {
-        const serverDiaries: DiaryEntry[] = Array.isArray(resp) ? resp : [];
-        const localDiaries = storage.getDiaries();
-        const localMap = new Map(localDiaries.map(d => [d.id, d]));
-        const serverMap = new Map(serverDiaries.map(d => [d.id, d]));
-        const merged: DiaryEntry[] = [];
-        const allIds = new Set([...localMap.keys(), ...serverMap.keys()]);
-        for (const id of allIds) {
-          const l = localMap.get(id);
-          const s = serverMap.get(id);
-          if (l && s) merged.push((l.createdAt || 0) >= (s.createdAt || 0) ? l : s);
-          else if (l) { merged.push(l); syncDiaryToServer(username, l); }
-          else if (s) merged.push(s);
-        }
-        merged.sort((a, b) => b.createdAt - a.createdAt);
-        const key = getUserKey(USER_DATA_KEYS.DIARIES);
-        storage.setItem(key, JSON.stringify(merged.slice(0, MAX_DIARIES)));
-        invalidateCache(key);
+    const syncCats = async () => {
+      try {
+        await storage.syncCatsFromServer();
+      } catch (error) {
+        console.warn('[storage] sync cats failed:', error);
       }
-    } catch (error) {
-      console.warn('[storage] sync diaries failed:', error);
-    }
+    };
 
-    try {
-      const resp = await request('/api/v1/letters');
-      if (resp) {
-        const serverLetters: TimeLetter[] = Array.isArray(resp) ? resp : [];
-        const localLetters = storage.getTimeLetters();
-        const localMap = new Map(localLetters.map(l => [l.id, l]));
-        const serverMap = new Map(serverLetters.map(l => [l.id, l]));
-        const merged: TimeLetter[] = [];
-        const allIds = new Set([...localMap.keys(), ...serverMap.keys()]);
-        for (const id of allIds) {
-          const l = localMap.get(id);
-          const s = serverMap.get(id);
-          if (l && s) merged.push((l.createdAt || 0) >= (s.createdAt || 0) ? l : s);
-          else if (l) { merged.push(l); syncLetterToServer(username, l); }
-          else if (s) merged.push(s);
-        }
-        merged.sort((a, b) => b.createdAt - a.createdAt);
-        const key = getUserKey(USER_DATA_KEYS.TIME_LETTERS);
-        storage.setItem(key, JSON.stringify(merged.slice(0, MAX_TIME_LETTERS)));
-        invalidateCache(key);
-      }
-    } catch (error) {
-      console.warn('[storage] sync letters failed:', error);
-    }
-
-    try {
-      const resp = await request('/api/v1/points');
-      if (resp) {
-        const serverPoints = resp as PointsInfo;
-        const localPoints = storage.getPoints();
-        if ((serverPoints.updatedAt || 0) >= (localPoints.updatedAt || 0)) {
-          const key = getUserKey(USER_DATA_KEYS.POINTS);
-          storage.setItem(key, JSON.stringify(serverPoints));
+    const syncDiaries = async () => {
+      try {
+        const resp = await request('/api/v1/diaries');
+        if (resp) {
+          const serverDiaries: DiaryEntry[] = Array.isArray(resp) ? resp : [];
+          const localDiaries = storage.getDiaries();
+          const localMap = new Map(localDiaries.map(d => [d.id, d]));
+          const serverMap = new Map(serverDiaries.map(d => [d.id, d]));
+          const merged: DiaryEntry[] = [];
+          const allIds = new Set([...localMap.keys(), ...serverMap.keys()]);
+          for (const id of allIds) {
+            const l = localMap.get(id);
+            const s = serverMap.get(id);
+            if (l && s) merged.push((l.createdAt || 0) >= (s.createdAt || 0) ? l : s);
+            else if (l) { merged.push(l); syncDiaryToServer(username, l); }
+            else if (s) merged.push(s);
+          }
+          merged.sort((a, b) => b.createdAt - a.createdAt);
+          const key = getUserKey(USER_DATA_KEYS.DIARIES);
+          storage.setItem(key, JSON.stringify(merged.slice(0, MAX_DIARIES)));
           invalidateCache(key);
-        } else {
-          syncPointsToServer(username, localPoints);
         }
+      } catch (error) {
+        console.warn('[storage] sync diaries failed:', error);
       }
-    } catch (error) {
-      console.warn('[storage] sync points failed:', error);
-    }
+    };
+
+    const syncLetters = async () => {
+      try {
+        const resp = await request('/api/v1/letters');
+        if (resp) {
+          const serverLetters: TimeLetter[] = Array.isArray(resp) ? resp : [];
+          const localLetters = storage.getTimeLetters();
+          const localMap = new Map(localLetters.map(l => [l.id, l]));
+          const serverMap = new Map(serverLetters.map(l => [l.id, l]));
+          const merged: TimeLetter[] = [];
+          const allIds = new Set([...localMap.keys(), ...serverMap.keys()]);
+          for (const id of allIds) {
+            const l = localMap.get(id);
+            const s = serverMap.get(id);
+            if (l && s) merged.push((l.createdAt || 0) >= (s.createdAt || 0) ? l : s);
+            else if (l) { merged.push(l); syncLetterToServer(username, l); }
+            else if (s) merged.push(s);
+          }
+          merged.sort((a, b) => b.createdAt - a.createdAt);
+          const key = getUserKey(USER_DATA_KEYS.TIME_LETTERS);
+          storage.setItem(key, JSON.stringify(merged.slice(0, MAX_TIME_LETTERS)));
+          invalidateCache(key);
+        }
+      } catch (error) {
+        console.warn('[storage] sync letters failed:', error);
+      }
+    };
+
+    const syncPoints = async () => {
+      try {
+        const resp = await request('/api/v1/points');
+        if (resp) {
+          const serverPoints = resp as PointsInfo;
+          const localPoints = storage.getPoints();
+          if (!serverPoints || typeof serverPoints !== 'object') {
+            syncPointsToServer(username, localPoints);
+          } else {
+            const merged = mergePoints(localPoints, serverPoints);
+            const key = getUserKey(USER_DATA_KEYS.POINTS);
+            storage.setItem(key, JSON.stringify(merged));
+            invalidateCache(key);
+            if (merged.updatedAt && merged.updatedAt > (serverPoints.updatedAt || 0)) {
+              syncPointsToServer(username, merged);
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('[storage] sync points failed:', error);
+      }
+    };
+
+    await Promise.allSettled([syncCats(), syncDiaries(), syncLetters(), syncPoints()]);
   },
 
   saveCatInfo: (cat: CatInfo) => {
@@ -889,9 +934,7 @@ export const storage = {
     storage.saveCatList(list);
     storage.setActiveCatId(nextCat.id);
     const userId = getCurrentUsername();
-    if (userId) syncCatToServer(userId, nextCat).catch((error) => {
-      console.warn('[storage] sync cat failed:', error);
-    });
+    if (userId) getSyncQueue().enqueue({ type: 'cat', id: nextCat.id, action: 'upsert', payload: nextCat });
   },
 
   getActiveCatId: (): string | null => {
@@ -980,7 +1023,7 @@ export const storage = {
     storage.setItem(key, JSON.stringify(nextPoints));
     invalidateCache(key);
     const userId = getCurrentUsername();
-    if (userId) syncPointsToServer(userId, nextPoints);
+    if (userId) getSyncQueue().enqueue({ type: 'points', action: 'upsert', payload: nextPoints });
   },
 
   addPoints: (amount: number, reason: string = '系统奖励') => {
@@ -1047,7 +1090,7 @@ export const storage = {
 
     const userId = getCurrentUsername();
     if (userId) {
-      for (const d of trimmed) syncDiaryToServer(userId, d);
+      for (const d of trimmed) getSyncQueue().enqueue({ type: 'diary', id: d.id, action: 'upsert', payload: d });
     }
 
     return success;
@@ -1062,7 +1105,7 @@ export const storage = {
     const updated = diaries.filter(d => d.id !== id);
     storage.saveDiaries(updated);
     const userId = getCurrentUsername();
-    if (userId) deleteDiaryFromServer(userId, id);
+    if (userId) getSyncQueue().enqueue({ type: 'diary', id, action: 'delete' });
     return updated;
   },
 
@@ -1085,7 +1128,7 @@ export const storage = {
     storage.setItem(getUserKey(USER_DATA_KEYS.TIME_LETTERS), JSON.stringify(trimmed));
     const userId = getCurrentUsername();
     if (userId) {
-      for (const l of trimmed) syncLetterToServer(userId, l);
+      for (const l of trimmed) getSyncQueue().enqueue({ type: 'letter', id: l.id, action: 'upsert', payload: l });
     }
   },
 
@@ -1094,7 +1137,7 @@ export const storage = {
     const updated = letters.filter(l => l.id !== id);
     storage.saveTimeLetters(updated);
     const userId = getCurrentUsername();
-    if (userId) deleteLetterFromServer(userId, id);
+    if (userId) getSyncQueue().enqueue({ type: 'letter', id, action: 'delete' });
     return updated;
   },
 
@@ -1118,25 +1161,31 @@ export const storage = {
       }
     }
     const userId = getCurrentUsername();
-    if (userId) deleteCatFromServer(userId, id).catch((error) => {
-      console.warn('[storage] delete cat failed:', error);
-    });
+    if (userId) getSyncQueue().enqueue({ type: 'cat', id, action: 'delete' });
     return updated;
   },
 
   deleteCat: () => {
+    const list = storage.getCatList();
     storage.removeItem(getUserKey(USER_DATA_KEYS.CAT_LIST));
     storage.removeItem(getUserKey(USER_DATA_KEYS.ACTIVE_CAT_ID));
     const userId = getCurrentUsername();
-    if (userId) deleteAllCatsFromServer(userId).catch((error) => {
-      console.warn('[storage] delete all cats failed:', error);
-    });
+    if (userId) {
+      for (const cat of list) {
+        getSyncQueue().enqueue({ type: 'cat', id: cat.id, action: 'delete' });
+      }
+    }
   },
 
   deleteAllDiaries: () => {
+    const diaries = storage.getDiaries();
     storage.removeItem(getUserKey(USER_DATA_KEYS.DIARIES));
     const userId = getCurrentUsername();
-    if (userId) deleteAllDiariesFromServer(userId);
+    if (userId) {
+      for (const d of diaries) {
+        getSyncQueue().enqueue({ type: 'diary', id: d.id, action: 'delete' });
+      }
+    }
   },
 
   getFriends: (): FriendInfo[] => {
@@ -1229,4 +1278,13 @@ export const storage = {
     trigger('notifications-read');
     return id;
   },
+
+  // Expose internal sync functions for SyncQueue
+  _syncCatToServer: syncCatToServer,
+  _syncDiaryToServer: syncDiaryToServer,
+  _syncLetterToServer: syncLetterToServer,
+  _syncPointsToServer: syncPointsToServer,
+  _deleteCatFromServer: deleteCatFromServer,
+  _deleteDiaryFromServer: deleteDiaryFromServer,
+  _deleteLetterFromServer: deleteLetterFromServer,
 };

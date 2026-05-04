@@ -74,6 +74,8 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
         const msg = errData?.message || errData?.error || `HTTP ${res.statusCode}`;
         if (res.statusCode === 401 && errData?.code === 'UNAUTHORIZED') {
           removeItem('miao_auth_token');
+          removeItem('miao_current_user');
+          Taro.eventCenter.trigger('auth:unauthorized');
         }
         const err: any = new Error(msg);
         err.response = { status: res.statusCode, data: errData };
@@ -116,14 +118,33 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
 
     clearTimeout(timeoutId);
 
-    const responseData = await response.json();
+    let responseData: any;
+    try {
+      responseData = await response.json();
+    } catch {
+      responseData = {};
+    }
+
+    if (response.status === 401 && responseData?.code === 'UNAUTHORIZED') {
+      removeItem('miao_auth_token');
+      removeItem('miao_current_user');
+      Taro.eventCenter.trigger('auth:unauthorized');
+    }
+
+    if (response.status < 200 || response.status >= 300) {
+      const msg = responseData?.message || responseData?.error || `HTTP ${response.status}`;
+      const err: any = new Error(msg);
+      err.response = { status: response.status,  responseData };
+      throw err;
+    }
 
     return {
-      data: responseData,
+       responseData,
       status: response.status,
       headers: {},
     };
   } catch (error: any) {
+    if (error.response) throw error;
     if (error.name === 'AbortError') {
       throw new Error('请求超时');
     }

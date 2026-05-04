@@ -306,7 +306,7 @@ export default function Login() {
                 手机号快捷登录
               </Button>
             )}
-            <Button className="login-btn" onClick={handleWechatLogin} disabled={isLoading}>
+            <Button className="wechat-login-btn" onClick={handleWechatLogin} disabled={isLoading}>
               微信一键登录
             </Button>
             <Button className="register-btn" onClick={handleRegister}>

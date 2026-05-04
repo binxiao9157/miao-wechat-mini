@@ -852,7 +852,15 @@ export const storage = {
           for (const id of allIds) {
             const l = localMap.get(id);
             const s = serverMap.get(id);
-            if (l && s) merged.push((l.createdAt || 0) >= (s.createdAt || 0) ? l : s);
+            if (l && s) {
+              // 本地内容优先，但 likes/comments/isLiked 始终取服务端最新值
+              merged.push({
+                ...l,
+                likes: s.likes ?? l.likes,
+                isLiked: s.isLiked ?? l.isLiked,
+                comments: s.comments ?? l.comments,
+              });
+            }
             else if (l) { merged.push(l); syncDiaryToServer(username, l); }
             else if (s) merged.push(s);
           }
@@ -1114,7 +1122,10 @@ export const storage = {
     const diary = diaries.find(d => d.id === diaryId);
     if (diary) {
       diary.comments = diary.comments.filter(c => c.id !== commentId);
-      return storage.saveDiaries(diaries);
+      const result = storage.saveDiaries(diaries);
+      const userId = getCurrentUsername();
+      if (userId) getSyncQueue().enqueue({ type: 'diary', id: diaryId, action: 'upsert', payload: diary });
+      return result;
     }
     return diaries;
   },

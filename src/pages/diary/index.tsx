@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useState, useEffect } from 'react';
-import { View, Text, Image, Button, Input, Textarea, Video, Canvas } from '@tarojs/components';
+import { View, Text, Image, Button, Input, Textarea, Video, Canvas, ScrollView } from '@tarojs/components';
 import CatAvatar from '../../components/common/CatAvatar';
 import Taro, { useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
 import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage } from '../../services/storage';
@@ -22,6 +22,7 @@ const X_WHITE = require('../../assets/profile-icons/x-white.png');
 const IMAGE_GRAY = require('../../assets/profile-icons/image-outlined.svg');
 const FILM_GRAY = require('../../assets/profile-icons/video-outlined.svg');
 import { friendService } from '../../services/friendService';
+import { del } from '../../utils/httpAdapter';
 import './index.less';
 
 interface DiaryWithMedia extends DiaryEntry {
@@ -42,8 +43,11 @@ export default function Diary() {
   const [commentingId, setCommentingId] = useState<string | null>(null);
   const [commentText, setCommentText] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [commentActionSheet, setCommentActionSheet] = useState<{ diaryId: string; commentId: string; content: string } | null>(null);
+  const [commentActionSheet, setCommentActionSheet] = useState<{ diaryId: string; commentId: string; content: string; canDelete: boolean } | null>(null);
+  const scrollViewRef = useRef<any>(null);
   const [activeTab, setActiveTab] = useState<'mine' | 'friends'>('mine');
+  const [refreshing, setRefreshing] = useState(false);
+  const [scrollTop, setScrollTop] = useState(0);
   const [tabDirection, setTabDirection] = useState<'left' | 'right'>('right');
   const [friendDiaries, setFriendDiaries] = useState<FriendDiaryWithMedia[]>([]);
   const [activeCat, setActiveCat] = useState<{ id: string; name: string; avatar?: string } | null>(null);
@@ -229,15 +233,35 @@ export default function Diary() {
     setDiaries(diariesWithMedia);
 
     try {
+      // 同步自己的日记（获取最新 likes/comments）
+      const username = storage.getUserInfo()?.username;
+      if (username) {
+        await storage.syncFromServer(username);
+      }
       await friendService.syncFriends();
       await friendService.syncFriendDiaries();
     } catch (error) {
-      console.warn('同步好友动态失败:', error);
+      console.warn('同步数据失败:', error);
     }
+
+    // 同步后重新加载日记（likes/comments 已更新）
+    const syncedDiaries = storage.getDiaries();
+    const syncedFiltered = activeCatId ? syncedDiaries.filter(d => d.catId === activeCatId) : syncedDiaries;
+    const syncedWithMedia = await Promise.all(syncedFiltered.map(loadMediaForDiary));
+    setDiaries(syncedWithMedia);
 
     const friendsList = storage.getFriendDiaries();
     const friendsWithMedia = await Promise.all(friendsList.map(loadMediaForDiary));
     setFriendDiaries(friendsWithMedia);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await loadDiaries();
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   // 选择图片
@@ -378,6 +402,8 @@ export default function Diary() {
           storage.saveDiaries(correctedSave);
           return corrected;
         });
+        // 点赞成功后同步数据，获取好友的点赞/评论最新状态
+        syncFriendDiariesQuiet();
       } catch {
         setDiaries(prev => {
           const rolled = prev.map(d => {
@@ -438,6 +464,7 @@ export default function Diary() {
     const targetId = commentingId;
     setCommentText('');
     setCommentingId(null);
+    resetScrollView();
 
     if (activeTab === 'mine') {
       try {
@@ -454,6 +481,7 @@ export default function Diary() {
           return updated;
         });
         Taro.showToast({ title: '评论成功', icon: 'success' });
+        syncFriendDiariesQuiet();
       } catch {
         Taro.showToast({ title: '评论失败', icon: 'none' });
       }
@@ -491,6 +519,8 @@ export default function Diary() {
           setDiaries(prev => prev.filter(d => d.id !== diaryId));
           setDeletingId(null);
           Taro.showToast({ title: '已删除', icon: 'success' });
+          // 同步删除到服务端
+          del(`/api/v1/diaries/${diaryId}`).catch(() => {});
         }
       }
     });
@@ -504,20 +534,35 @@ export default function Diary() {
       confirmColor: '#ff6b3d',
       success: (res) => {
         if (res.confirm) {
-          const updated = diaries.map(d => {
-            if (d.id === diaryId) {
-              return {
-                ...d,
-                comments: d.comments.filter(c => c.id !== commentId)
-              };
-            }
-            return d;
-          });
-
-          // 转换为 DiaryEntry 类型保存
-          const toSave: DiaryEntry[] = updated.map(({ mediaUrl, ...rest }) => rest);
-          storage.saveDiaries(toSave);
-          setDiaries(updated);
+          // 判断是我的日记还是好友动态
+          if (activeTab === 'mine') {
+            setDiaries(prev => {
+              const updated = prev.map(d => {
+                if (d.id === diaryId) {
+                  return { ...d, comments: d.comments.filter(c => c.id !== commentId) };
+                }
+                return d;
+              });
+              const toSave: DiaryEntry[] = updated.map(({ mediaUrl, ...rest }) => rest);
+              storage.saveDiaries(toSave);
+              return updated;
+            });
+          } else {
+            setFriendDiaries(prev => {
+              const updated = prev.map(d => {
+                if (d.id === diaryId) {
+                  return { ...d, comments: d.comments.filter(c => c.id !== commentId) };
+                }
+                return d;
+              });
+              storage.saveFriendDiaries(updated);
+              return updated;
+            });
+          }
+          // 同步删除到服务端
+          del(`/api/v1/diaries/${diaryId}/comments/${commentId}`).catch(() => {});
+          // 删除后同步好友动态，确保对方也能看到评论更新
+          syncFriendDiariesQuiet();
           Taro.showToast({ title: '已删除', icon: 'success' });
         }
       }
@@ -527,6 +572,12 @@ export default function Diary() {
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
     return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+  };
+
+  // 评论弹窗关闭后重置 ScrollView 滚动位置，防止布局错位
+  const resetScrollView = () => {
+    setScrollTop(1);
+    setTimeout(() => setScrollTop(0), 50);
   };
 
   // 分享功能
@@ -572,7 +623,15 @@ export default function Diary() {
         </View>
       </View>
 
-      <View className={`diary-list tab-content-${activeTab} tab-slide-${tabDirection}`}>
+      <ScrollView
+        className={`diary-list tab-content-${activeTab} tab-slide-${tabDirection}`}
+        scrollY
+        refresherEnabled
+        refresherTriggered={refreshing}
+        onRefresherRefresh={onRefresh}
+        scrollTop={scrollTop}
+        onScroll={() => { if (scrollTop !== 0) setScrollTop(0); }}
+      >
         {activeTab === 'mine' ? (
           // 我的记录
           diaries.length === 0 ? (
@@ -634,15 +693,19 @@ export default function Diary() {
                 {/* 评论列表 */}
                 {diary.comments.length > 0 && (
                   <View className="comments-section">
-                    {diary.comments.map((comment) => (
-                      <View
-                        key={comment.id}
-                        className="comment-item"
-                        onLongPress={() => setCommentActionSheet({ diaryId: diary.id, commentId: comment.id, content: comment.content })}
-                      >
-                        <Text className="comment-content">{comment.content}</Text>
-                      </View>
-                    ))}
+                    {diary.comments.map((comment) => {
+                      const isOwnComment = comment.authorId === storage.getUserInfo()?.username;
+                      return (
+                        <View
+                          key={comment.id}
+                          className="comment-item"
+                          onLongPress={() => setCommentActionSheet({ diaryId: diary.id, commentId: comment.id, content: comment.content, canDelete: true })}
+                        >
+                          <Text className="comment-author">{isOwnComment ? '我' : (comment.authorNickname || '好友')}</Text>
+                          <Text className="comment-content">{comment.content}</Text>
+                        </View>
+                      );
+                    })}
                   </View>
                 )}
               </View>
@@ -704,18 +767,26 @@ export default function Diary() {
                 {/* 评论列表 */}
                 {diary.comments.length > 0 && (
                   <View className="comments-section">
-                    {diary.comments.map((comment) => (
-                      <View key={comment.id} className="comment-item">
-                        <Text className="comment-content">{comment.content}</Text>
-                      </View>
-                    ))}
+                    {diary.comments.map((comment) => {
+                      const isOwnComment = comment.authorId === storage.getUserInfo()?.username;
+                      return (
+                        <View
+                          key={comment.id}
+                          className="comment-item"
+                          onLongPress={() => isOwnComment && setCommentActionSheet({ diaryId: diary.id, commentId: comment.id, content: comment.content, canDelete: true })}
+                        >
+                          <Text className="comment-author">{isOwnComment ? '我' : (comment.authorNickname || diary.authorNickname || '好友')}</Text>
+                          <Text className="comment-content">{comment.content}</Text>
+                        </View>
+                      );
+                    })}
                   </View>
                 )}
               </View>
             ))
           )
         )}
-      </View>
+      </ScrollView>
 
       {showCompose && (
         <View className={`compose-modal ${keyboardHeight > 0 ? 'keyboard-open' : ''}`}>
@@ -970,12 +1041,14 @@ export default function Diary() {
             }}>
               <Text>复制</Text>
             </View>
-            <View className="comment-action-item danger" onClick={() => {
-              handleDeleteComment(commentActionSheet.diaryId, commentActionSheet.commentId);
-              setCommentActionSheet(null);
-            }}>
-              <Text>删除</Text>
-            </View>
+            {commentActionSheet.canDelete && (
+              <View className="comment-action-item danger" onClick={() => {
+                handleDeleteComment(commentActionSheet.diaryId, commentActionSheet.commentId);
+                setCommentActionSheet(null);
+              }}>
+                <Text>删除</Text>
+              </View>
+            )}
             <View className="comment-action-item cancel" onClick={() => setCommentActionSheet(null)}>
               <Text>取消</Text>
             </View>

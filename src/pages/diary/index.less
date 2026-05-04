@@ -1,6 +1,9 @@
 .diary-page {
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
   background: linear-gradient(180deg, #FFF9F5 0%, #FFF9F5 84%, #FEF6F0 100%);
+  overflow: hidden;
 }
 
 .icon-img {
@@ -66,7 +69,10 @@
 }
 
 .diary-list {
+  flex: 1;
+  height: 0;
   padding: 16px 44rpx 220rpx;
+  box-sizing: border-box;
 }
 
 /* Tab 切换栏 */
@@ -467,13 +473,21 @@
 
   .comment-item {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    align-items: flex-start;
     padding: 8px 0;
     border-bottom: 1px solid #eee;
 
     &:last-child {
       border-bottom: none;
+    }
+
+    .comment-author {
+      font-size: 12px;
+      font-weight: 600;
+      color: #E89F71;
+      margin-right: 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .comment-content {

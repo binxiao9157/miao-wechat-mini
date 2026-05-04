@@ -41,10 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(true);
       refreshCatStatus();
       authService.getCurrentUser()
-        .then((remoteUser) => {
+        .then(async (remoteUser) => {
           if (!remoteUser) return;
           storage.saveUserInfo(remoteUser);
-          syncManager.syncAll().catch((error) => {
+          await syncManager.syncAll().catch((error) => {
             console.warn('[AuthContext] background sync failed:', error);
           });
           setUser(remoteUser);
@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       storage.saveUserInfo(remoteUser);
       storage.saveLoginTime(Date.now());
       storage.saveLastActiveTime(Date.now());
-      syncManager.syncAll().catch((e) => { console.warn('[Auth] sync failed:', e); });
+      await syncManager.syncAll().catch((e) => { console.warn('[Auth] sync failed:', e); });
       setUser(remoteUser);
       setIsAuthenticated(true);
       refreshCatStatus();
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     storage.saveUserInfo(remoteUser);
     storage.saveLoginTime(Date.now());
     storage.saveLastActiveTime(Date.now());
-    syncManager.syncAll().catch((e) => { console.warn('[Auth] sync failed:', e); });
+    await syncManager.syncAll().catch((e) => { console.warn('[Auth] sync failed:', e); });
     setUser(remoteUser);
     setIsAuthenticated(true);
     refreshCatStatus();
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       storage.saveUserInfo(remoteUser);
       storage.saveLoginTime(Date.now());
       storage.saveLastActiveTime(Date.now());
-      syncManager.syncAll().catch((e) => { console.warn('[Auth] sync failed:', e); });
+      await syncManager.syncAll().catch((e) => { console.warn('[Auth] sync failed:', e); });
       setUser(remoteUser);
       setIsAuthenticated(true);
       refreshCatStatus();
@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       storage.saveUserInfo(result);
       storage.saveLoginTime(Date.now());
       storage.saveLastActiveTime(Date.now());
-      syncManager.syncAll().catch((e) => { console.warn('[Auth] sync failed:', e); });
+      await syncManager.syncAll().catch((e) => { console.warn('[Auth] sync failed:', e); });
       setUser(result);
       setIsAuthenticated(true);
       refreshCatStatus();

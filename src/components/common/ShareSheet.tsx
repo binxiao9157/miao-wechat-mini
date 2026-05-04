@@ -3,9 +3,6 @@ import Taro from '@tarojs/taro';
 const X_PNG = require('../../assets/profile-icons/x-dark.png');
 const WECHAT_PNG = require('../../assets/profile-icons/wechat-flat.png');
 const MOMENTS_PNG = require('../../assets/profile-icons/moments-flat.png');
-import { storage, FriendInfo } from '../../services/storage';
-import { request } from '../../utils/httpAdapter';
-import CatAvatar from './CatAvatar';
 import './ShareSheet.less';
 
 interface ShareSheetProps {
@@ -21,29 +18,8 @@ interface ShareSheetProps {
 export default function ShareSheet({ visible, title = '分享', text, url, isTabPage = false, shareImagePath, onClose }: ShareSheetProps) {
   if (!visible) return null;
 
-  const friends: FriendInfo[] = storage.getFriends();
   const shareTitle = text || 'Miao - 猫咪陪伴';
   const sharePath = url || '/pages/home/index';
-
-  const handleFriendShare = async (friend: FriendInfo) => {
-    try {
-      await request({
-        url: '/api/v1/notifications',
-        method: 'POST',
-         data: {
-          recipientId: friend.id,
-          type: 'friend_share',
-          title: '收到一条分享',
-          content: `${friend.nickname} 向你分享了一篇日记`,
-          catAvatar: friend.catAvatar || friend.avatar,
-        },
-      });
-      Taro.showToast({ title: `已分享给 ${friend.nickname}`, icon: 'success' });
-    } catch {
-      Taro.showToast({ title: '分享失败，请重试', icon: 'none' });
-    }
-    onClose();
-  };
 
   const handleShareToMoments = async () => {
     if (shareImagePath) {
@@ -80,32 +56,6 @@ export default function ShareSheet({ visible, title = '分享', text, url, isTab
           </View>
         </View>
 
-        {/* 好友列表 */}
-        {friends.length > 0 && (
-          <View className="friends-section">
-            <Text className="section-label">分享给好友</Text>
-            <View className="friends-scroll">
-              {friends.slice(0, 8).map((friend) => (
-                <View
-                  key={friend.id}
-                  className="friend-item"
-                  onClick={() => handleFriendShare(friend)}
-                >
-                  <CatAvatar
-                    src={friend.avatar}
-                    name={friend.nickname}
-                    className="friend-avatar"
-                    mode="aspectFill"
-                  />
-                  <Text className="friend-name">{friend.nickname}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        <View className="share-divider" />
-
         {/* 分享方式 */}
         <View className="share-options">
           <Button
@@ -126,7 +76,7 @@ export default function ShareSheet({ visible, title = '分享', text, url, isTab
             <View className="option-icon moments">
               <Image className="option-icon-img" src={MOMENTS_PNG} mode="aspectFit" />
             </View>
-            <Text className="option-label">朋友圈</Text>
+            <Text className="option-label">微信朋友圈</Text>
           </View>
         </View>
       </View>

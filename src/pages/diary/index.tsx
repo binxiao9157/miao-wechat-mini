@@ -19,8 +19,8 @@ const TRASH2_GRAY = require('../../assets/profile-icons/trash2-gray.png');
 const TRASH2_RED = require('../../assets/profile-icons/trash2-red.png');
 const X_DARK = require('../../assets/profile-icons/x-dark.png');
 const X_WHITE = require('../../assets/profile-icons/x-white.png');
-const IMAGE_GRAY = require('../../assets/profile-icons/image-gray.png');
-const FILM_GRAY = require('../../assets/profile-icons/film-gray.png');
+const IMAGE_GRAY = require('../../assets/profile-icons/image-outlined.svg');
+const FILM_GRAY = require('../../assets/profile-icons/video-outlined.svg');
 import { friendService } from '../../services/friendService';
 import './index.less';
 
@@ -935,7 +935,7 @@ export default function Diary() {
       <Canvas
         type="2d"
         id="diaryShareCard"
-        style={{ position: 'fixed', left: '-9999px', top: '-9999px', width: '600px', height: '1067px' }}
+        style={{ position: 'fixed', left: '-9999px', top: '-9999px', width: '600px', height: '1600px' }}
       />
 
       {/* 单页模式引导（从朋友圈进入） */}

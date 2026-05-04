@@ -28,7 +28,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 40rpx;
+    margin-bottom: 48rpx;
 
     .title {
       font-size: 36rpx;
@@ -48,63 +48,10 @@
   }
 }
 
-.friends-section {
-  margin-bottom: 32rpx;
-
-  .section-label {
-    display: block;
-    font-size: 24rpx;
-    font-weight: 700;
-    color: rgba(93, 64, 55, 0.5);
-    margin-bottom: 20rpx;
-  }
-}
-
-.friends-scroll {
-  display: flex;
-  gap: 24rpx;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 8rpx;
-}
-
-.friend-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8rpx;
-  flex-shrink: 0;
-
-  .friend-avatar {
-    width: 96rpx;
-    height: 96rpx;
-    border-radius: 32rpx;
-    background: #FEF6F0;
-  }
-
-  .friend-name {
-    font-size: 22rpx;
-    color: #5D4037;
-    font-weight: 600;
-    max-width: 96rpx;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-align: center;
-  }
-}
-
-.share-divider {
-  height: 1rpx;
-  background: rgba(0, 0, 0, 0.06);
-  margin: 24rpx 0 32rpx;
-}
-
 .share-options {
   display: flex;
-  justify-content: flex-start;
-  gap: 48rpx;
-  padding-left: 16rpx;
+  justify-content: space-around;
+  padding: 0 32rpx;
 
   .share-option-btn {
     background: none;

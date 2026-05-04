@@ -820,7 +820,10 @@ export default function Diary() {
             setCommentingId(null);
             setCommentText('');
           }} />
-          <View className="comment-modal-content">
+          <View
+            className="comment-modal-content"
+            style={{ paddingBottom: `calc(env(safe-area-inset-bottom) + 20px)` }}
+          >
             <View className="comment-modal-header">
               <Text className="comment-modal-title">写评论</Text>
               <View className="comment-modal-close" onClick={() => {
@@ -837,6 +840,7 @@ export default function Diary() {
               onInput={(e) => setCommentText(e.detail.value)}
               maxlength={100}
               focus
+              adjustPosition
             />
             <View className="comment-modal-footer">
               <Text className="comment-count">{commentText.length}/100</Text>

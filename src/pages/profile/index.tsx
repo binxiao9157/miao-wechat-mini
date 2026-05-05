@@ -154,7 +154,12 @@ export default function Profile() {
     reLaunch({ url: '/pages/login/index' });
   };
 
-  const handleClearLocalData = () => {
+  const handleClearLocalData = async () => {
+    try {
+      await request({ url: '/api/v1/me', method: 'DELETE' });
+    } catch {
+      // 服务端删除失败仍继续清理本地
+    }
     storage.clearAll();
     storage.clearCurrentUser();
     reLaunch({ url: '/pages/register/index' });

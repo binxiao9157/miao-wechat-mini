@@ -39,6 +39,7 @@ export default function JoinFriend() {
     try {
       await friendService.acceptInvite(inviteCode);
       setShowSuccess(true);
+      setTimeout(() => Taro.navigateBack(), 2000);
     } catch (error: any) {
       Taro.showToast({ title: error?.message || '添加好友失败', icon: 'none' });
     }
@@ -76,6 +77,9 @@ export default function JoinFriend() {
           </View>
           <Text className="success-title">添加成功！</Text>
           <Text className="success-desc">你们现在已经是好友了</Text>
+	          <View className="success-back-btn" onClick={() => Taro.navigateBack()}>
+	            <Text className="success-back-text">返回</Text>
+	          </View>
         </View>
       )}
 

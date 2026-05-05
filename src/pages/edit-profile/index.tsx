@@ -27,10 +27,25 @@ export default function EditProfile() {
 
     setIsSaving(true);
     try {
+      let avatarUrl = avatar;
+      if (avatar && (avatar.startsWith('wxfile://') || avatar.startsWith('http://tmp') || avatar.includes('tmp'))) {
+        try {
+          const uploadRes = await Taro.uploadFile({
+            url: (process.env.TARO_APP_API_BASE_URL || '') + '/api/v1/upload',
+            filePath: avatar,
+            name: 'file',
+            header: { Authorization: `Bearer ${storage.getToken()}` },
+          });
+          const uploadData = JSON.parse(uploadRes.data);
+          avatarUrl = uploadData.url || uploadData.data?.url || avatar;
+        } catch {
+          // upload failed, use local path as fallback
+        }
+      }
       const res = await request({
         url: '/api/v1/me',
         method: 'PATCH',
-        data: { nickname: nickname.trim(), avatar },
+        data: { nickname: nickname.trim(), avatar: avatarUrl },
       });
       if (res.data?.user) {
         updateProfile({ nickname: res.data.user.nickname, avatar: res.data.user.avatar });

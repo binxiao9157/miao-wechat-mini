@@ -1,4 +1,5 @@
 import { View, Text, Image, Button } from '@tarojs/components';
+import Taro from '@tarojs/taro';
 import PageHeader from '../../components/layout/PageHeader';
 
 const DOWNLOAD_PRIMARY = require('../../assets/profile-icons/download-primary.png');
@@ -17,7 +18,7 @@ export default function DownloadPage() {
         <View className="qr-section">
           <Image
             className="qr-code"
-            src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=miao-app-download"
+            src={DOWNLOAD_PRIMARY}
             mode="aspectFit"
           />
           <Text className="hint">扫码下载 Miao App</Text>
@@ -48,11 +49,11 @@ export default function DownloadPage() {
           </View>
         </View>
 
-        <Button className="download-btn">
+        <Button className="download-btn" onClick={() => Taro.showToast({ title: '即将上线，敬请期待', icon: 'none' })}>
           <Image className="icon-img" src={DOWNLOAD_WHITE} mode="aspectFit" style={{ width: 20, height: 20 }} />
           iOS 下载
         </Button>
-        <Button className="download-btn android">
+        <Button className="download-btn android" onClick={() => Taro.showToast({ title: '即将上线，敬请期待', icon: 'none' })}>
           <Image className="icon-img" src={DOWNLOAD_PRIMARY} mode="aspectFit" style={{ width: 20, height: 20 }} />
           Android 下载
         </Button>

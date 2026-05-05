@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, Switch } from '@tarojs/components';
 import { storage, AppSettings } from '../../services/storage';
 import Taro from '@tarojs/taro';
+import { request } from '../../utils/httpAdapter';
 import PageHeader from '../../components/layout/PageHeader';
 
 const BELL_PRIMARY = require('../../assets/profile-icons/bell-primary.png');
@@ -20,11 +21,17 @@ export default function Notifications() {
     setSettings(saved);
   }, []);
 
-  const updateSetting = (key: keyof AppSettings, value: boolean) => {
+  const updateSetting = async (key: keyof AppSettings, value: boolean) => {
     const updated = { ...settings, [key]: value };
     setSettings(updated);
     storage.saveSettings(updated);
-    Taro.showToast({ title: value ? '已开启' : '已关闭', icon: 'none', duration: 1000 });
+    try {
+      await request({ url: '/api/v1/me/settings', method: 'PUT', data: updated });
+      Taro.showToast({ title: value ? '已开启' : '已关闭', icon: 'none', duration: 1000 });
+    } catch {
+      Taro.showToast({ title: '已保存到本地', icon: 'none', duration: 1000 });
+      return;
+    }
   };
 
   const settingItems = [

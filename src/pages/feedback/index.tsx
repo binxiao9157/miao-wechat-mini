@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Textarea, Image } from '@tarojs/components';
-import { navigateBack } from '@tarojs/taro';
+import Taro, { navigateBack } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage } from '../../services/storage';
+import { request } from '../../utils/httpAdapter';
 import PageHeader from '../../components/layout/PageHeader';
 
 const CHECKCIRCLE_GREEN = require('../../assets/profile-icons/checkcircle-green.png');
@@ -122,25 +123,31 @@ export default function Feedback() {
     }
   };
 
-  const handleSurveySubmit = () => {
+  const handleSurveySubmit = async () => {
     for (const q of SURVEY_QUESTIONS.slice(0, 10)) {
       const answer = surveyAnswers[q.id];
       if (!answer || (Array.isArray(answer) && answer.length === 0)) {
         const qNum = q.question.split('.')[0];
-        wx.showToast({ title: `请完成第 ${qNum} 题`, icon: 'none' });
+        Taro.showToast({ title: `请完成第 ${qNum} 题`, icon: 'none' });
         return;
       }
     }
+    try {
+      await request({ url: '/api/v1/feedback', method: 'POST', data: { type: 'survey', answers: surveyAnswers } });
+    } catch { /* non-blocking */ }
     storage.setHasSubmittedSurvey(true);
     setIsSuccess(true);
     setTimeout(() => navigateBack(), 2000);
   };
 
-  const handleSimpleSubmit = () => {
+  const handleSimpleSubmit = async () => {
     if (feedbackText.trim().length < 10) {
-      wx.showToast({ title: '请至少输入 10 个字', icon: 'none' });
+      Taro.showToast({ title: '请至少输入 10 个字', icon: 'none' });
       return;
     }
+    try {
+      await request({ url: '/api/v1/feedback', method: 'POST', data: { type: feedbackType, content: feedbackText.trim() } });
+    } catch { /* non-blocking */ }
     setIsSuccess(true);
     setTimeout(() => {
       setFeedbackText('');

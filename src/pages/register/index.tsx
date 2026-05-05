@@ -57,7 +57,6 @@ export default function Register() {
 
       const newUser: UserInfo = {
         username: trimmedUsername,
-        password: trimmedPassword,
         nickname: trimmedUsername,
         avatar: ''
       };

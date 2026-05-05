@@ -160,7 +160,6 @@ export interface UserInfo {
   username: string;
   nickname: string;
   avatar: string;
-  password?: string;
   passwordSet?: boolean;
   openidBound?: boolean;
   phone?: string;
@@ -682,7 +681,7 @@ export const storage = {
     return safe as UserInfo;
   },
 
-  updatePassword: (username: string, _newPassword: string): boolean => {
+  updatePassword: (username: string): boolean => {
     const users = storage.getAllUsers();
     const index = users.findIndex(u => u.username === username);
     if (index >= 0) {
@@ -691,7 +690,7 @@ export const storage = {
       storage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
       const currentUser = storage.getUserInfo();
       if (currentUser && currentUser.username === username) {
-        delete currentUser.password;
+        delete (currentUser as any).password;
         currentUser.passwordSet = true;
         storage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
       }
@@ -964,6 +963,14 @@ export const storage = {
     const activeId = storage.getActiveCatId();
     const active = list.find(c => c.id === activeId) || list[0] || null;
     return active;
+  },
+
+  isCatLiked: (catId: string): boolean => {
+    try { return getItem(getUserKey(`cat_liked_${catId}`)) === '1'; } catch { return false; }
+  },
+
+  setCatLiked: (catId: string, liked: boolean) => {
+    storage.setItem(getUserKey(`cat_liked_${catId}`), liked ? '1' : '0');
   },
 
   getCatInfo: (): CatInfo | null => {

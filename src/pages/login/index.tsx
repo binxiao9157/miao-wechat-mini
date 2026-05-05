@@ -12,6 +12,20 @@ const EYEOFF_DARK = require('../../assets/profile-icons/eyeoff-dark.png');
 
 const DEFAULT_CAT_IMAGE = '';
 
+const checkAgreement = (isAgreed: boolean, onDeny: () => void): boolean => {
+  if (!isAgreed) {
+    onDeny();
+    Taro.showModal({
+      title: '提示',
+      content: '请先阅读并同意服务条款和隐私政策',
+      showCancel: false,
+      confirmText: '我知道了',
+    });
+    return false;
+  }
+  return true;
+};
+
 export default function Login() {
   const { login, wechatLogin, phoneLogin } = useAuthContext();
   const [username, setUsername] = useState('');
@@ -37,17 +51,7 @@ export default function Login() {
   }, []);
 
   const handleLogin = async () => {
-    if (!isAgreed) {
-      setShakeAgreement(true);
-      setTimeout(() => setShakeAgreement(false), 500);
-      Taro.showModal({
-        title: '提示',
-        content: '请先阅读并同意服务条款和隐私政策',
-        showCancel: false,
-        confirmText: '我知道了',
-      });
-      return;
-    }
+    if (!checkAgreement(isAgreed, () => { setShakeAgreement(true); setTimeout(() => setShakeAgreement(false), 500); })) return;
 
     const trimmedU = username.trim();
     const trimmedP = password.trim();
@@ -79,17 +83,7 @@ export default function Login() {
   };
 
   const handleWechatLogin = async () => {
-    if (!isAgreed) {
-      setShakeAgreement(true);
-      setTimeout(() => setShakeAgreement(false), 500);
-      Taro.showModal({
-        title: '提示',
-        content: '请先阅读并同意服务条款和隐私政策',
-        showCancel: false,
-        confirmText: '我知道了',
-      });
-      return;
-    }
+    if (!checkAgreement(isAgreed, () => { setShakeAgreement(true); setTimeout(() => setShakeAgreement(false), 500); })) return;
     setIsLoading(true);
     setError('');
     try {
@@ -136,17 +130,7 @@ export default function Login() {
       phoneLoginTimerRef.current = null;
     }
 
-    if (!isAgreed) {
-      setShakeAgreement(true);
-      setTimeout(() => setShakeAgreement(false), 500);
-      Taro.showModal({
-        title: '提示',
-        content: '请先阅读并同意服务条款和隐私政策',
-        showCancel: false,
-        confirmText: '我知道了',
-      });
-      return;
-    }
+    if (!checkAgreement(isAgreed, () => { setShakeAgreement(true); setTimeout(() => setShakeAgreement(false), 500); })) return;
 
     if (e.detail?.errMsg?.includes('fail')) {
       const errMsg = e.detail.errMsg;

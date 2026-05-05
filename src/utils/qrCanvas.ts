@@ -71,17 +71,21 @@ const QR_VERSIONS: QRVersion[] = [
   { version: 4, size: 33, totalCodewords: 100, ecCodewordsPerBlock: 20, numBlocks: 1, dataCodewords: 80 },
   { version: 5, size: 37, totalCodewords: 134, ecCodewordsPerBlock: 26, numBlocks: 1, dataCodewords: 108 },
   { version: 6, size: 41, totalCodewords: 172, ecCodewordsPerBlock: 18, numBlocks: 2, dataCodewords: 136 },
+  { version: 7, size: 45, totalCodewords: 196, ecCodewordsPerBlock: 20, numBlocks: 2, dataCodewords: 156 },
+  { version: 8, size: 49, totalCodewords: 242, ecCodewordsPerBlock: 24, numBlocks: 2, dataCodewords: 194 },
+  { version: 9, size: 53, totalCodewords: 292, ecCodewordsPerBlock: 30, numBlocks: 2, dataCodewords: 232 },
+  { version: 10, size: 57, totalCodewords: 346, ecCodewordsPerBlock: 18, numBlocks: 4, dataCodewords: 274 },
 ];
 
 function selectVersion(dataLen: number): QRVersion {
-  // Byte mode: 4 bits mode + 8 bits count + data + terminator + pad
   for (let i = 1; i < QR_VERSIONS.length; i++) {
     const v = QR_VERSIONS[i];
+    const charCountBits = v.version <= 9 ? 8 : 16;
     const availableBits = v.dataCodewords * 8;
-    const neededBits = 4 + 8 + dataLen * 8; // mode indicator + char count + data
+    const neededBits = 4 + charCountBits + dataLen * 8; // mode indicator + char count + data
     if (neededBits <= availableBits) return v;
   }
-  throw new Error(`QR码数据过长(${dataLen}字节)，最大支持136字节`);
+  throw new Error(`QR码数据过长(${dataLen}字节)，最大支持274字节`);
 }
 
 function encodeData(text: string, version: QRVersion): Uint8Array {
@@ -90,9 +94,10 @@ function encodeData(text: string, version: QRVersion): Uint8Array {
   let bits = 4;
   let bitBuffer = 0b0100;
 
-  // Character count (8 bits for version 1-9)
-  bitBuffer = (bitBuffer << 8) | text.length;
-  bits += 8;
+  // Character count (8 bits for version 1-9, 16 bits for version 10+)
+  const charCountBits = version.version <= 9 ? 8 : 16;
+  bitBuffer = (bitBuffer << charCountBits) | text.length;
+  bits += charCountBits;
 
   // Data
   for (let i = 0; i < text.length; i++) {

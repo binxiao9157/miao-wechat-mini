@@ -50,7 +50,7 @@ export default function ChangePassword() {
     try {
       await authService.setPassword(newPassword, requiresCurrentPassword ? currentPassword : undefined);
       if (user?.username) {
-        storage.updatePassword(user.username, '');
+        storage.updatePassword(user.username);
         const currentUser = storage.getUserInfo();
         if (currentUser) {
           storage.saveUserInfo({ ...currentUser, passwordSet: true });

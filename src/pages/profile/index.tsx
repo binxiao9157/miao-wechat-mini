@@ -4,6 +4,7 @@ import Taro, { navigateTo, reLaunch, useShareAppMessage, useShareTimeline } from
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, UserInfo, CatInfo } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
+import { DEFAULT_AVATAR } from '../../utils/constants';
 import { friendService } from '../../services/friendService';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import './index.less';
@@ -217,6 +218,7 @@ export default function Profile() {
   };
 
   const handleAdminTap = () => {
+    if (process.env.NODE_ENV !== 'development') return;
     adminTapCountRef.current += 1;
     if (adminTapTimerRef.current) clearTimeout(adminTapTimerRef.current);
 
@@ -310,7 +312,7 @@ export default function Profile() {
           <View className="avatar-wrapper">
             <Image
               className="avatar"
-              src={user?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}
+              src={user?.avatar || DEFAULT_AVATAR}
               mode="aspectFill"
             />
             <View className="avatar-edit-btn" onClick={(e) => { e.stopPropagation(); navigateTo({ url: '/pages/edit-profile/index' }); }}>

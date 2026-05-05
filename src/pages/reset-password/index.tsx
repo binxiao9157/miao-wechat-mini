@@ -87,7 +87,7 @@ export default function ResetPassword() {
     } catch (e: any) {
       // 服务端 API 未就绪时，回退到开发模式验证
       if (process.env.NODE_ENV === 'development' && codeRef.current && code === codeRef.current) {
-        storage.updatePassword(phone, newPassword);
+        storage.updatePassword(phone);
         setShowToast(true);
         setTimeout(() => {
           safeBack();

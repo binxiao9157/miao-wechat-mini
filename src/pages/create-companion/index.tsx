@@ -4,6 +4,7 @@ import Taro, { navigateTo } from '@tarojs/taro';
 import PageHeader from '../../components/layout/PageHeader';
 const SPARKLES_WHITE = require('../../assets/profile-icons/sparkles-white.png');
 import { storage, PresetCat } from '../../services/storage';
+import { DEFAULT_AVATAR } from '../../utils/constants';
 import './index.less';
 
 export default function CreateCompanion() {
@@ -104,7 +105,7 @@ export default function CreateCompanion() {
                     mode="aspectFill"
                     onError={(e) => {
                       const target = e.detail?.target as any;
-                      if (target) target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(preset.name)}`;
+                      if (target) target.src = DEFAULT_AVATAR;
                     }}
                   />
                 </View>

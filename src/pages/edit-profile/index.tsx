@@ -10,6 +10,7 @@ const X_GRAY_PNG = require('../../assets/profile-icons/x-gray.png');
 import { useAuthContext } from '../../context/AuthContext';
 import { storage } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
+import { DEFAULT_AVATAR } from '../../utils/constants';
 import './index.less';
 
 export default function EditProfile() {
@@ -125,7 +126,7 @@ export default function EditProfile() {
           <View className="avatar-box">
             <Image
               className="avatar-image"
-              src={avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=miao_default'}
+              src={avatar || DEFAULT_AVATAR}
               mode="aspectFill"
             />
           </View>

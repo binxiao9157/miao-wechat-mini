@@ -27,7 +27,7 @@ export default function CatPlayer() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const [showControls, setShowControls] = useState(true);
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(() => catId ? storage.isCatLiked(catId) : false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
 
@@ -261,7 +261,7 @@ export default function CatPlayer() {
         </View>
 
         <View className="footer-actions-side">
-          <View className="action-item" onClick={() => setLiked(!liked)}>
+          <View className="action-item" onClick={() => { const next = !liked; setLiked(next); if (catId) storage.setCatLiked(catId, next); }}>
             <View className="action-circle">
               <Image className="icon-img" src={liked ? HEART_RED : HEART_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
             </View>

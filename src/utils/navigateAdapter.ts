@@ -31,6 +31,21 @@ export const navigateBack = (delta = 1): Promise<any> => {
 };
 
 /**
+ * 安全返回：优先 navigateBack，如果导航栈为空则 reLaunch 到首页
+ */
+export const safeBack = (fallbackUrl = '/pages/home/index'): Promise<any> => {
+  if (isMiniProgram) {
+    const pages = Taro.getCurrentPages();
+    if (pages.length > 1) {
+      return Taro.navigateBack();
+    }
+    return Taro.reLaunch({ url: fallbackUrl });
+  }
+  window.history.back();
+  return Promise.resolve();
+};
+
+/**
  * 替换当前页面
  */
 export const redirectTo = (url: string): Promise<any> => {

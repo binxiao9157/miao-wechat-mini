@@ -1,7 +1,8 @@
 import React from 'react';
 import { useState } from 'react';
 import { View, Text, Input, Button, Image } from '@tarojs/components';
-import { navigateBack, navigateTo } from '@tarojs/taro';
+import { navigateTo } from '@tarojs/taro';
+import { safeBack } from '../../utils/navigateAdapter';
 import PawLogo from '../../components/common/PawLogo';
 import { storage, UserInfo } from '../../services/storage';
 import { useAuthContext } from '../../context/AuthContext';
@@ -85,7 +86,7 @@ export default function Register() {
       <View className="content">
         {/* Header */}
         <View className="header">
-          <View className="back-btn" onClick={() => navigateBack()}>
+          <View className="back-btn" onClick={() => safeBack()}>
             <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
           </View>
         </View>
@@ -193,7 +194,7 @@ export default function Register() {
           {/* Login Link */}
           <View className="login-link">
             <Text className="login-link-text">已有账号？</Text>
-            <Text className="login-link-action" onClick={() => navigateBack()}>登入</Text>
+            <Text className="login-link-action" onClick={() => safeBack()}>登入</Text>
           </View>
 
           {/* Bottom agreement text */}

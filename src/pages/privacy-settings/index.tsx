@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import Taro, { navigateBack, navigateTo } from '@tarojs/taro';
+import Taro, { navigateTo } from '@tarojs/taro';
+import { safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage } from '../../services/storage';
 
@@ -68,7 +69,7 @@ export default function PrivacySettings() {
 
       {/* Header */}
       <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
+        <View className="back-btn" onClick={() => safeBack()}>
           <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <Text className="header-title">隐私设置</Text>

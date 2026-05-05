@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Image, Canvas, Button } from '@tarojs/components';
-import Taro, { useRouter, navigateBack, useShareAppMessage } from '@tarojs/taro';
+import Taro, { useRouter, useShareAppMessage } from '@tarojs/taro';
+import { safeBack } from '../../utils/navigateAdapter';
 import CatAvatar from '../../components/common/CatAvatar';
 import PageHeader from '../../components/layout/PageHeader';
 const DOWNLOAD_PNG = require('../../assets/profile-icons/download-primary.png');
@@ -167,7 +168,7 @@ export default function AddFriendQR() {
         </View>
         <Text className="error-title">缺少必要信息</Text>
         <Text className="error-desc">请先去生成或选择一只猫咪哦</Text>
-        <View className="error-btn" onClick={() => navigateBack()}>
+        <View className="error-btn" onClick={() => safeBack()}>
           <Text className="error-btn-text">返回</Text>
         </View>
       </View>

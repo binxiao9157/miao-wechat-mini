@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Input, Switch, Image } from '@tarojs/components';
-import Taro, { navigateBack } from '@tarojs/taro';
+import Taro from '@tarojs/taro';
+import { safeBack } from '../../utils/navigateAdapter';
 import { aiConfig, AIProfile, AIProvider, DEFAULT_AI_PROFILES } from '../../services/aiConfig';
 import { storage, PresetCat } from '../../services/storage';
 
@@ -76,7 +77,7 @@ export default function AdminSettings() {
   return (
     <View className="admin-settings-page">
       <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
+        <View className="back-btn" onClick={() => safeBack()}>
           <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
         <View className="header-title-wrap">

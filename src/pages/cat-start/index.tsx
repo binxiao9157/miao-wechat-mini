@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro, { reLaunch } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
+import { safeBack } from '../../utils/navigateAdapter';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 import PawLogo from '../../components/common/PawLogo';
@@ -11,7 +12,7 @@ export default function CatStart() {
   const navSpace = useNavSpace();
 
   const handleGoBack = () => {
-    Taro.navigateBack();
+    safeBack();
   };
 
   const handleStart = () => {

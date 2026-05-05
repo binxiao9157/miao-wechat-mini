@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Input, Image } from '@tarojs/components';
-import { navigateBack } from '@tarojs/taro';
+import { safeBack } from '../../utils/navigateAdapter';
 import { useAuthContext } from '../../context/AuthContext';
 import { storage } from '../../services/storage';
 import { authService } from '../../services/authService';
@@ -58,7 +58,7 @@ export default function ChangePassword() {
       }
       setShowToast(true);
       setTimeout(() => {
-        navigateBack();
+        safeBack();
       }, 1500);
     } catch (e: any) {
       const code = e?.response?.data?.code;

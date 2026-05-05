@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {  View, Text, Image } from '@tarojs/components';
-import Taro, { useRouter, navigateTo, navigateBack } from '@tarojs/taro';
+import Taro, { useRouter, navigateTo } from '@tarojs/taro';
 const SPARKLES_PNG = require('../../assets/profile-icons/sparkles-primary.png');
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+import { safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { useAuthContext } from '../../context/AuthContext';
 import { friendService } from '../../services/friendService';
@@ -42,7 +43,7 @@ export default function JoinFriend() {
     try {
       await friendService.acceptInvite(inviteCode);
       setShowSuccess(true);
-      setTimeout(() => Taro.navigateBack(), 2000);
+      setTimeout(() => safeBack(), 2000);
     } catch (error: any) {
       Taro.showToast({ title: error?.message || '添加好友失败', icon: 'none' });
     }
@@ -60,7 +61,7 @@ export default function JoinFriend() {
     return (
       <View className="join-friend-page">
         <View className="page-header" style={navSpace as React.CSSProperties}>
-          <View className="back-btn" onClick={() => navigateBack()}>
+          <View className="back-btn" onClick={() => safeBack()}>
             <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
           </View>
         </View>
@@ -78,7 +79,7 @@ export default function JoinFriend() {
   return (
     <View className="join-friend-page">
       <View className="page-header" style={navSpace as React.CSSProperties}>
-        <View className="back-btn" onClick={() => navigateBack()}>
+        <View className="back-btn" onClick={() => safeBack()}>
           <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
         </View>
       </View>
@@ -91,7 +92,7 @@ export default function JoinFriend() {
           </View>
           <Text className="success-title">添加成功！</Text>
           <Text className="success-desc">你们现在已经是好友了</Text>
-	          <View className="success-back-btn" onClick={() => Taro.navigateBack()}>
+	          <View className="success-back-btn" onClick={() => safeBack()}>
 	            <Text className="success-back-text">返回</Text>
 	          </View>
         </View>

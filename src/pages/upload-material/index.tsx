@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Image, Input } from '@tarojs/components';
-import Taro, { navigateBack, navigateTo } from '@tarojs/taro';
+import Taro, { navigateTo } from '@tarojs/taro';
+import { safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
@@ -138,7 +139,7 @@ export default function UploadMaterial() {
       )}
 
       <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
+        <View className="back-btn" onClick={() => safeBack()}>
           <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
         </View>
         <Text className="header-title">上传素材</Text>

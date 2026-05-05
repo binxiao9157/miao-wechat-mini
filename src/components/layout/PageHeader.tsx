@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import { navigateBack } from '@tarojs/taro';
+import { safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
 const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
 import './index.less';
@@ -26,7 +26,7 @@ export default function PageHeader({
     <View className="page-header" style={navSpace as React.CSSProperties}>
       <View className="header-left">
         {showBack && (
-          <View className="back-btn" onClick={() => onBack ? onBack() : navigateBack()}>
+          <View className="back-btn" onClick={() => onBack ? onBack() : safeBack()}>
             <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 20, height: 20 }} />
           </View>
         )}

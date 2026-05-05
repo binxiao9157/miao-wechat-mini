@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Input, Button, Image } from '@tarojs/components';
-import Taro, { reLaunch } from '@tarojs/taro';
+import Taro from '@tarojs/taro';
 import { useAuthContext } from '../../context/AuthContext';
 import { request } from '../../utils/httpAdapter';
 import { routeAfterCatSync } from '../../services/catLifecycle';
 import { useNavSpace } from '../../hooks/useNavSpace';
+import { safeBack } from '../../utils/navigateAdapter';
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 import './index.less';
 
@@ -66,7 +67,7 @@ export default function SetNickname() {
   return (
     <View className="set-nickname-page">
       <View className="page-header" style={navSpace as React.CSSProperties}>
-        <View className="back-btn" onClick={() => reLaunch({ url: '/pages/home/index' })}>
+        <View className="back-btn" onClick={() => safeBack()}>
           <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
         </View>
       </View>

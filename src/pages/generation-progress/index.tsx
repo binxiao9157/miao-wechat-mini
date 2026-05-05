@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Video, Image } from '@tarojs/components';
-import Taro, { navigateTo, navigateBack, reLaunch } from '@tarojs/taro';
+import Taro, { navigateTo, reLaunch } from '@tarojs/taro';
 import { VolcanoService, ACTION_PROMPTS } from '../../services/volcanoService';
 import { FileManager } from '../../services/fileManager';
 import { storage } from '../../services/storage';
 import { isCatReady } from '../../services/catLifecycle';
 import { useAuthContext } from '../../context/AuthContext';
 import { useNavSpace } from '../../hooks/useNavSpace';
+import { safeBack } from '../../utils/navigateAdapter';
 
 const SPARKLES_GRAY = require('../../assets/profile-icons/sparkles-gray.png');
 const SPARKLES_PRIMARY = require('../../assets/profile-icons/sparkles-primary.png');
@@ -50,7 +51,7 @@ export default function GenerationProgress() {
   useEffect(() => {
     const activeCat = storage.getActiveCat();
     if (!activeCat) {
-      navigateBack();
+      safeBack();
       return;
     }
     if (isCatReady(activeCat)) {
@@ -215,7 +216,7 @@ export default function GenerationProgress() {
     if (catRef.current) {
       startGeneration(catRef.current);
     } else {
-      navigateBack();
+      safeBack();
     }
   };
 
@@ -227,7 +228,7 @@ export default function GenerationProgress() {
     <View className="generation-progress-page">
       {/* 返回按钮 */}
       {phase === 'generating' && (
-        <View className="back-btn-top" style={navSpace as React.CSSProperties} onClick={() => navigateBack()}>
+        <View className="back-btn-top" style={navSpace as React.CSSProperties} onClick={() => safeBack()}>
           <Image className="icon-img" src={ARROWLEFT_WHITE} mode="aspectFit" style={{ width: 20, height: 20 }} />
         </View>
       )}

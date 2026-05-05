@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Textarea, Image } from '@tarojs/components';
-import Taro, { navigateBack } from '@tarojs/taro';
+import Taro from '@tarojs/taro';
+import { safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
@@ -137,7 +138,7 @@ export default function Feedback() {
     } catch { /* non-blocking */ }
     storage.setHasSubmittedSurvey(true);
     setIsSuccess(true);
-    setTimeout(() => navigateBack(), 2000);
+    setTimeout(() => safeBack(), 2000);
   };
 
   const handleSimpleSubmit = async () => {
@@ -152,7 +153,7 @@ export default function Feedback() {
     setTimeout(() => {
       setFeedbackText('');
       setIsSuccess(false);
-      navigateBack();
+      safeBack();
     }, 2000);
   };
 

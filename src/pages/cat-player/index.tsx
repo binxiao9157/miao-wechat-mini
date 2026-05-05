@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Video, Image } from '@tarojs/components';
 import Taro, { useRouter, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
+import { safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import PageHeader from '../../components/layout/PageHeader';
 
@@ -42,7 +43,7 @@ export default function CatPlayer() {
   useEffect(() => {
     Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
     if (!catId) {
-      Taro.navigateBack();
+      safeBack();
       return;
     }
     const list = storage.getCatList();
@@ -113,7 +114,7 @@ export default function CatPlayer() {
     if (!catId) return;
     FileManager.deleteVideo(catId);
     setShowDeleteConfirm(false);
-    Taro.navigateBack();
+    safeBack();
   };
 
   const triggerToast = (msg: string) => {

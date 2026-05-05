@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {  View, Text, Image } from '@tarojs/components';
-import Taro, { navigateBack, navigateTo } from '@tarojs/taro';
+import Taro, { navigateTo } from '@tarojs/taro';
+import { safeBack } from '../../utils/navigateAdapter';
 import PageHeader from '../../components/layout/PageHeader';
 const SCAN_PNG = require('../../assets/profile-icons/scan-primary.png');
 import { FriendInfo } from '../../services/storage';
@@ -31,7 +32,7 @@ export default function ScanFriend() {
       fail: () => {
         setScanning(false);
         // 用户取消扫码，返回上一页
-        navigateBack();
+        safeBack();
       }
     });
   };
@@ -66,7 +67,7 @@ export default function ScanFriend() {
       setShowConfirm(false);
       triggerToast('添加好友成功！');
       setTimeout(() => {
-        navigateBack();
+        safeBack();
       }, 1500);
     } catch (error: any) {
       triggerToast(error?.message || '添加好友失败');

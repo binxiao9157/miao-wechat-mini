@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, Input, Image } from '@tarojs/components';
-import Taro, { navigateBack } from '@tarojs/taro';
+import Taro from '@tarojs/taro';
+import { safeBack } from '../../utils/navigateAdapter';
 import { storage } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
 import PageHeader from '../../components/layout/PageHeader';
@@ -81,7 +82,7 @@ export default function ResetPassword() {
       });
       setShowToast(true);
       setTimeout(() => {
-        navigateBack();
+        safeBack();
       }, 1500);
     } catch (e: any) {
       // 服务端 API 未就绪时，回退到开发模式验证
@@ -89,7 +90,7 @@ export default function ResetPassword() {
         storage.updatePassword(phone, newPassword);
         setShowToast(true);
         setTimeout(() => {
-          navigateBack();
+          safeBack();
         }, 1500);
         return;
       }

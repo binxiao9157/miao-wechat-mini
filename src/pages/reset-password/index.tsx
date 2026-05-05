@@ -2,9 +2,9 @@ import React, { useState, useRef } from 'react';
 import { View, Text, Input, Image } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
 import { storage } from '../../services/storage';
+import PageHeader from '../../components/layout/PageHeader';
 import './index.less';
 
-const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const EYE_DARK = require('../../assets/profile-icons/eye-dark.png');
 const EYEOFF_DARK = require('../../assets/profile-icons/eyeoff-dark.png');
 const LOCK_DARK = require('../../assets/profile-icons/lock-dark.png');
@@ -93,12 +93,7 @@ export default function ResetPassword() {
       )}
 
       {/* Header */}
-      <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
-        </View>
-        <Text className="header-title">重置密码</Text>
-      </View>
+      <PageHeader title="重置密码" />
 
       {/* 表单 */}
       <View className="form-section">

@@ -1,10 +1,6 @@
-.icon-img {
-  display: block;
-}
-
 .add-friend-qr-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: var(--background);
   display: flex;
   flex-direction: column;
 }
@@ -17,27 +13,27 @@
 }
 
 .error-icon {
-  color: #D99B7A;
+  color: var(--color-warm-brown-light);
   margin-bottom: 24rpx;
 }
 
 .error-title {
   font-size: 36rpx;
   font-weight: 700;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   margin-bottom: 12rpx;
 }
 
 .error-desc {
   font-size: 28rpx;
-  color: rgba(93, 64, 55, 0.6);
+  color: var(--color-warm-brown-muted);
   margin-bottom: 48rpx;
 }
 
 .error-btn {
   width: 240rpx;
   height: 88rpx;
-  background: #FF9D76;
+  background: var(--primary-strong);
   border-radius: 44rpx;
   display: flex;
   align-items: center;
@@ -46,46 +42,6 @@
   font-size: 30rpx;
   font-weight: 700;
   border: none;
-}
-
-/* 头部 */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20rpx 32rpx;
-  padding-top: var(--nav-top, calc(env(safe-area-inset-top) + 20rpx));
-}
-
-.back-btn {
-  width: 72rpx;
-  height: 72rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #5D4037;
-}
-
-.header-title {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #5D4037;
-}
-
-.subtitle {
-  font-size: 22rpx;
-  color: rgba(93, 64, 55, 0.5);
-  margin-top: 4rpx;
-}
-
-.header-placeholder {
-  width: 72rpx;
 }
 
 /* 卡片容器 */
@@ -115,7 +71,7 @@
   left: 0;
   right: 0;
   height: 10rpx;
-  background: linear-gradient(90deg, #D99B7A 0%, #F5C5A3 100%);
+  background: linear-gradient(90deg, var(--color-warm-brown-light) 0%, #F5C5A3 100%);
   opacity: 0.2;
 }
 
@@ -130,7 +86,7 @@
   width: 112rpx;
   height: 112rpx;
   border-radius: 32rpx;
-  background: #FEF6F0;
+  background: var(--color-warm-cream);
   margin-right: 24rpx;
 }
 
@@ -142,13 +98,13 @@
 .user-nickname {
   font-size: 36rpx;
   font-weight: 700;
-  color: #1C1B1F;
+  color: var(--text-primary);
   margin-bottom: 8rpx;
 }
 
 .user-subtitle {
   font-size: 24rpx;
-  color: #79747E;
+  color: var(--text-secondary);
 }
 
 /* 二维码区域 */
@@ -161,7 +117,7 @@
 .qr-wrapper {
   width: 400rpx;
   height: 400rpx;
-  background: #F5F0EB;
+  background: var(--color-warm-cream-dark);
   border-radius: 56rpx;
   display: flex;
   align-items: center;
@@ -197,7 +153,7 @@
 .qr-emoji {
   font-size: 48rpx;
   font-weight: 900;
-  color: #D99B7A;
+  color: var(--color-warm-brown-light);
   letter-spacing: 4rpx;
 }
 
@@ -211,32 +167,32 @@
   max-width: 300rpx;
   font-size: 24rpx;
   font-weight: 800;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   word-break: break-all;
 }
 
 .qr-error {
   width: 400rpx;
   height: 400rpx;
-  background: #F5F0EB;
+  background: var(--color-warm-cream-dark);
   border-radius: 56rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #D99B7A;
+  color: var(--color-warm-brown-light);
 }
 
 .qr-error-text {
   font-size: 28rpx;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   margin-top: 16rpx;
 }
 
 .qr-retry {
   margin-top: 24rpx;
   padding: 16rpx 48rpx;
-  background: #FF9D76;
+  background: var(--primary-strong);
   border-radius: 32rpx;
 }
 
@@ -261,20 +217,20 @@
   width: 56rpx;
   height: 56rpx;
   border-radius: 28rpx;
-  background: #FEF6F0;
+  background: var(--color-warm-cream);
   margin-right: 20rpx;
 }
 
 .cat-name-text {
   font-size: 28rpx;
   font-weight: 700;
-  color: #D99B7A;
+  color: var(--color-warm-brown-light);
 }
 
 /* 底部提示 */
 .footer-hint {
   font-size: 24rpx;
-  color: rgba(93, 64, 55, 0.5);
+  color: var(--text-hint);
   text-align: center;
   line-height: 1.6;
   white-space: pre-line;
@@ -312,23 +268,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
   margin-bottom: 16rpx;
 }
 
 .action-icon.loading {
-  background: #f5f5f5;
+  background: var(--surface-container);
 }
 
 .loading-text {
   font-size: 32rpx;
-  color: #5D4037;
+  color: var(--color-warm-brown);
 }
 
 .action-text {
   font-size: 26rpx;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   font-weight: 600;
 }
 
@@ -360,7 +316,7 @@
 }
 
 .toast-icon.success {
-  background: #4CAF50;
+  background: var(--color-success);
 }
 
 .toast-icon.error {

@@ -1,52 +1,12 @@
-.icon-img {
-  display: block;
-}
-
 .feedback-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: var(--background);
 }
 
 .feedback-page.success-page {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 32rpx;
-  padding-top: var(--nav-top, calc(env(safe-area-inset-top) + 20px));
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
-  background: rgba(255, 249, 245, 0.85);
-  backdrop-filter: blur(10px);
-
-  .back-btn {
-    width: 80rpx;
-    height: 80rpx;
-    border-radius: 40rpx;
-    background: #f5f5f5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .icon-img {
-      width: 40rpx;
-      height: 40rpx;
-    }
-  }
-
-  .title {
-    font-size: 36rpx;
-    font-weight: 800;
-    color: #5D4037;
-  }
-
-  .placeholder {
-    width: 80rpx;
-  }
 }
 
 .content-scroll {
@@ -79,13 +39,13 @@
 .success-title {
   font-size: 36rpx;
   font-weight: 800;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   margin-bottom: 12rpx;
 }
 
 .success-desc {
   font-size: 26rpx;
-  color: rgba(93, 64, 55, 0.6);
+  color: var(--color-warm-brown-muted);
 }
 
 /* Survey */
@@ -99,7 +59,7 @@
 
 .notice-text {
   font-size: 24rpx;
-  color: #E89F71;
+  color: var(--primary);
   font-weight: 600;
   line-height: 1.6;
 }
@@ -116,7 +76,7 @@
   display: block;
   font-size: 28rpx;
   font-weight: 700;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   line-height: 1.5;
   margin-bottom: 20rpx;
 }
@@ -135,7 +95,7 @@
   background: #fff;
 
   &.selected {
-    border-color: #E89F71;
+    border-color: var(--primary);
     background: rgba(232, 159, 113, 0.05);
   }
 }
@@ -152,7 +112,7 @@
   flex-shrink: 0;
 
   &.checked {
-    border-color: #E89F71;
+    border-color: var(--primary);
   }
 }
 
@@ -160,7 +120,7 @@
   width: 20rpx;
   height: 20rpx;
   border-radius: 10rpx;
-  background: #E89F71;
+  background: var(--primary);
 }
 
 .checkbox-box {
@@ -175,8 +135,8 @@
   flex-shrink: 0;
 
   &.checked {
-    border-color: #E89F71;
-    background: #E89F71;
+    border-color: var(--primary);
+    background: var(--primary);
   }
 }
 
@@ -188,7 +148,7 @@
 
 .option-label {
   font-size: 26rpx;
-  color: #5D4037;
+  color: var(--color-warm-brown);
 }
 
 .rating-row {
@@ -206,7 +166,7 @@
 
 .rating-label {
   font-size: 20rpx;
-  color: rgba(93, 64, 55, 0.5);
+  color: var(--text-hint);
   font-weight: 600;
 }
 
@@ -217,13 +177,13 @@
   border-radius: 20rpx;
   padding: 20rpx 24rpx;
   font-size: 26rpx;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   box-sizing: border-box;
   border: 2rpx solid rgba(0, 0, 0, 0.06);
 }
 
 .submit-btn {
-  background: #FF9D76;
+  background: var(--primary-strong);
   border-radius: 48rpx;
   padding: 28rpx;
   display: flex;
@@ -271,7 +231,7 @@
   background: #fff;
 
   &.active {
-    border-color: #E89F71;
+    border-color: var(--primary);
     background: rgba(232, 159, 113, 0.05);
   }
 }
@@ -279,10 +239,10 @@
 .type-btn-text {
   font-size: 24rpx;
   font-weight: 700;
-  color: rgba(93, 64, 55, 0.6);
+  color: var(--color-warm-brown-muted);
 
   &.active {
-    color: #E89F71;
+    color: var(--primary);
   }
 }
 
@@ -293,7 +253,7 @@
   border-radius: 20rpx;
   padding: 20rpx 24rpx;
   font-size: 26rpx;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   box-sizing: border-box;
   border: 2rpx solid rgba(0, 0, 0, 0.06);
 }

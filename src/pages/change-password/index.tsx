@@ -4,9 +4,9 @@ import { navigateBack } from '@tarojs/taro';
 import { useAuthContext } from '../../context/AuthContext';
 import { storage } from '../../services/storage';
 import { authService } from '../../services/authService';
+import PageHeader from '../../components/layout/PageHeader';
 import './index.less';
 
-const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const EYE_DARK = require('../../assets/profile-icons/eye-dark.png');
 const EYEOFF_DARK = require('../../assets/profile-icons/eyeoff-dark.png');
 const LOCK_DARK = require('../../assets/profile-icons/lock-dark.png');
@@ -84,12 +84,7 @@ export default function ChangePassword() {
       )}
 
       {/* Header */}
-      <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
-        </View>
-        <Text className="header-title">{pageTitle}</Text>
-      </View>
+      <PageHeader title="修改密码" />
 
       {/* 安全验证说明 */}
       <View className="intro-section">

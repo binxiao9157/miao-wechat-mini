@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {  View, Text, Image } from '@tarojs/components';
 import Taro, { navigateBack, navigateTo } from '@tarojs/taro';
-import { useNavSpace } from '../../hooks/useNavSpace';
-const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
+import PageHeader from '../../components/layout/PageHeader';
 const SCAN_PNG = require('../../assets/profile-icons/scan-primary.png');
 import { FriendInfo } from '../../services/storage';
 import { friendService } from '../../services/friendService';
 import './index.less';
 
 export default function ScanFriend() {
-  const navSpace = useNavSpace();
   const [scanning, setScanning] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
   const [friendInfo, setFriendInfo] = useState<FriendInfo | null>(null);
@@ -81,7 +79,7 @@ export default function ScanFriend() {
   };
 
   return (
-    <View className="scan-friend-page" style={navSpace as React.CSSProperties}>
+    <View className="scan-friend-page">
       {/* Toast */}
       {showToast && (
         <View className="toast">
@@ -90,13 +88,7 @@ export default function ScanFriend() {
       )}
 
       {/* Header */}
-      <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 20, height: 20 }} />
-        </View>
-        <Text className="header-title">扫码添加好友</Text>
-        <View className="header-placeholder" />
-      </View>
+      <PageHeader title="扫码添加好友" />
 
       {/* 扫码提示区 */}
       <View className="scan-area">

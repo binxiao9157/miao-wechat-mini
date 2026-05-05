@@ -1,11 +1,9 @@
-.icon-img {
-  display: block;
-}
+@import '../../styles/mixins.less';
 
 .share-sheet-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--color-overlay);
   z-index: 1000;
   display: flex;
   align-items: flex-end;
@@ -13,6 +11,7 @@
 }
 
 .share-sheet {
+  .bottom-sheet();
   width: 100%;
   background: #fff;
   border-radius: 48rpx 48rpx 0 0;
@@ -33,14 +32,14 @@
     .title {
       font-size: 36rpx;
       font-weight: 800;
-      color: #5D4037;
+      color: var(--color-warm-brown);
     }
 
     .close-btn {
       width: 64rpx;
       height: 64rpx;
       border-radius: 32rpx;
-      background: #f5f5f5;
+      background: var(--surface-container);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -96,7 +95,7 @@
 
     .option-label {
       font-size: 24rpx;
-      color: #5D4037;
+      color: var(--color-warm-brown);
       font-weight: 600;
     }
   }

@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import Taro, { navigateBack, navigateTo, useDidShow } from '@tarojs/taro';
-import { useNavSpace } from '../../hooks/useNavSpace';
+import Taro, { navigateTo, useDidShow } from '@tarojs/taro';
+import PageHeader from '../../components/layout/PageHeader';
 import { storage, TimeLetter, PointsInfo } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
 
-const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const SETTINGS_DARK = require('../../assets/profile-icons/settings-dark.png');
 const SPARKLES_PRIMARY = require('../../assets/profile-icons/sparkles-primary.png');
 const COINS_PRIMARY = require('../../assets/profile-icons/coins-primary.png');
@@ -103,7 +102,6 @@ async function fetchServerNotifications(): Promise<Notification[]> {
 }
 
 export default function NotificationList() {
-  const navSpace = useNavSpace();
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const loadNotifications = useCallback(async () => {
@@ -174,17 +172,16 @@ export default function NotificationList() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <View className="notification-list-page" style={navSpace as React.CSSProperties}>
+    <View className="notification-list-page">
       {/* Header */}
-      <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
-        </View>
-        <Text className="header-title">消息中心</Text>
-        <View className="settings-btn" onClick={() => navigateTo({ url: '/pages/notifications/index' })}>
-          <Image className="icon-img" src={SETTINGS_DARK} mode="aspectFit" style={{ width: 22, height: 22 }} />
-        </View>
-      </View>
+      <PageHeader
+        title="通知"
+        rightElement={
+          <View className="settings-btn" onClick={() => navigateTo({ url: '/pages/notifications/index' })}>
+            <Image className="icon-img" src={SETTINGS_DARK} mode="aspectFit" style={{ width: 22, height: 22 }} />
+          </View>
+        }
+      />
 
       {/* 操作栏 */}
       {unreadCount > 0 && (

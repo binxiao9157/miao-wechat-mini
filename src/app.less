@@ -1,16 +1,6 @@
-/* 全局样式 */
+/* 全局样式 + 主题色变量 */
 page {
-  background-color: #FFF9F5;
-  color: #633E1D;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* 主题色变量 */
-:root {
+  /* 品牌色 */
   --primary: #E89F71;
   --primary-strong: #FF9D76;
   --primary-container: #FDF2E9;
@@ -25,10 +15,53 @@ page {
   --outline-variant: #F2E6DD;
   --soft-shadow: 0 12rpx 34rpx rgba(99, 62, 29, 0.08);
 
-  /* Navigation safe area - overridden per-page via useNavSpace hook */
+  /* 文字色阶 */
+  --text-primary: #1C1B1F;
+  --text-secondary: #79747E;
+  --text-hint: rgba(93, 64, 55, 0.5);
+  --text-link: #E89F71;
+
+  /* 功能色 */
+  --color-danger: #FF4D4F;
+  --color-success: #4CAF50;
+  --color-warning: #FF9800;
+
+  /* 品牌辅助色 */
+  --color-warm-brown: #5D4037;
+  --color-warm-brown-light: #D99B7A;
+  --color-warm-brown-muted: rgba(93, 64, 55, 0.6);
+  --color-warm-cream: #FEF6F0;
+  --color-warm-cream-dark: #F5F0EB;
+
+  /* 遮罩色 */
+  --color-overlay: rgba(0, 0, 0, 0.5);
+  --color-overlay-dark: rgba(0, 0, 0, 0.85);
+
+  /* 圆角令牌 */
+  --radius-sm: 16rpx;
+  --radius-md: 24rpx;
+  --radius-lg: 32rpx;
+  --radius-xl: 48rpx;
+  --radius-full: 999rpx;
+
+  /* 阴影令牌 */
+  --shadow-sm: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 12rpx 34rpx rgba(99, 62, 29, 0.08);
+  --shadow-lg: 0 18rpx 48rpx rgba(99, 62, 29, 0.11);
+
+  /* Navigation safe area */
   --nav-top: calc(env(safe-area-inset-top) + 8px);
   --nav-height: 32px;
   --nav-side: 21px;
+
+  /* 全局样式 */
+  background-color: var(--background);
+  color: #633E1D;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* 通用工具类 */
@@ -164,7 +197,7 @@ page {
 
 .miao-page-shell {
   min-height: 100vh;
-  background: linear-gradient(180deg, #FFF9F5 0%, #FFF9F5 82%, #FEF6F0 100%);
+  background: linear-gradient(180deg, var(--background) 0%, var(--background) 82%, var(--color-warm-cream) 100%);
   color: var(--on-surface);
   box-sizing: border-box;
 }
@@ -220,6 +253,11 @@ page {
 
 .miao-bottom-spacer {
   height: 184rpx;
+}
+
+/* 全局图标图片基准样式 */
+.icon-img {
+  display: block;
 }
 
 /* 滚动条隐藏 */

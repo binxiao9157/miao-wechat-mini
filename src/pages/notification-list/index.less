@@ -1,43 +1,9 @@
 .notification-list-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: var(--background);
 }
 
-.icon-img {
-  display: block;
-}
-
-/* === Header === */
-.header {
-  display: flex;
-  align-items: center;
-  padding: 20rpx 32rpx;
-  padding-top: var(--nav-top, calc(env(safe-area-inset-top) + 20rpx));
-  background: rgba(255, 249, 245, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  position: sticky;
-  top: 0;
-  z-index: 30;
-}
-
-.back-btn {
-  width: 72rpx;
-  height: 72rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #5D4037;
-}
-
-.header-title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #5D4037;
-  flex: 1;
-  text-align: center;
-}
-
+/* === Settings Button (used in PageHeader rightElement) === */
 .settings-btn {
   width: 96rpx;
   height: 96rpx;
@@ -45,7 +11,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #5D4037;
+  color: var(--color-warm-brown);
 }
 
 /* === 操作栏 === */
@@ -59,7 +25,7 @@
 
 .unread-count {
   font-size: 24rpx;
-  color: rgba(93, 64, 55, 0.5);
+  color: var(--text-hint);
 }
 
 .mark-all-btn {
@@ -69,7 +35,7 @@
 .mark-all-text {
   font-size: 24rpx;
   font-weight: 700;
-  color: #FF9D76;
+  color: var(--primary-strong);
 }
 
 /* === 通知列表 === */
@@ -94,7 +60,7 @@
 
 .notification-item.unread {
   background: #fff;
-  border-left: 4rpx solid #FF9D76;
+  border-left: 4rpx solid var(--primary-strong);
 }
 
 .notification-item.read {
@@ -113,7 +79,7 @@
 
 .notification-icon.letter {
   background: rgba(255, 157, 118, 0.1);
-  color: #FF9D76;
+  color: var(--primary-strong);
 }
 
 .notification-icon.points {
@@ -123,7 +89,7 @@
 
 .notification-icon.greeting {
   background: rgba(255, 77, 79, 0.1);
-  color: #ff4d4f;
+  color: var(--color-danger);
 }
 
 .notification-content {
@@ -141,7 +107,7 @@
 .notification-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -151,13 +117,13 @@
   width: 14rpx;
   height: 14rpx;
   border-radius: 50%;
-  background: #ff4d4f;
+  background: var(--color-danger);
   flex-shrink: 0;
 }
 
 .notification-desc {
   font-size: 24rpx;
-  color: rgba(93, 64, 55, 0.5);
+  color: var(--text-hint);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -189,7 +155,7 @@
 .empty-icon-box {
   width: 256rpx;
   height: 256rpx;
-  background: #f5f5f5;
+  background: var(--surface-container);
   border-radius: 80rpx;
   display: flex;
   align-items: center;
@@ -201,7 +167,7 @@
 .empty-title {
   font-size: 32rpx;
   font-weight: 800;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   margin-bottom: 8rpx;
 }
 

@@ -1,10 +1,6 @@
-.icon-img {
-  display: block;
-}
-
 .generation-progress-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: var(--background);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -33,7 +29,7 @@
   position: absolute;
   inset: 0;
   border: 6rpx solid rgba(255, 157, 118, 0.1);
-  border-top-color: #FF9D76;
+  border-top-color: var(--primary-strong);
   border-radius: 48rpx;
   animation: spin 4s linear infinite;
 }
@@ -60,7 +56,7 @@
 .status-subtitle {
   font-size: 20rpx;
   font-weight: 700;
-  color: #FF9D76;
+  color: var(--primary-strong);
   letter-spacing: 4rpx;
   margin-bottom: 12rpx;
   text-align: center;
@@ -69,7 +65,7 @@
 .status-title {
   font-size: 36rpx;
   font-weight: 800;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   margin-bottom: 32rpx;
   text-align: center;
 }
@@ -89,7 +85,7 @@
 
 .progress-bar-fill {
   height: 100%;
-  background: #FF9D76;
+  background: var(--primary-strong);
   border-radius: 6rpx;
   transition: width 0.5s ease;
 }
@@ -137,18 +133,18 @@
 }
 
 .step-dot.active {
-  background: #FF9D76;
+  background: var(--primary-strong);
 }
 
 .step-dot.done {
-  background: #52c41a;
+  background: var(--color-success);
   color: #fff;
 }
 
 .step-num {
   font-size: 22rpx;
   font-weight: 700;
-  color: #FF9D76;
+  color: var(--primary-strong);
 }
 
 .step-dot.active .step-num {
@@ -162,11 +158,11 @@
 }
 
 .step-item.active .step-label {
-  color: #5D4037;
+  color: var(--color-warm-brown);
 }
 
 .step-item.done .step-label {
-  color: #5D4037;
+  color: var(--color-warm-brown);
 }
 
 /* === 确认状态 === */
@@ -196,7 +192,7 @@
 }
 
 .placeholder-icon {
-  color: #FF9D76;
+  color: var(--primary-strong);
 }
 
 .placeholder-text {
@@ -237,7 +233,7 @@
   align-items: center;
   justify-content: center;
   margin: 0 auto 40rpx;
-  color: #FF9D76;
+  color: var(--primary-strong);
 }
 
 .dialog-title {
@@ -279,7 +275,7 @@
 }
 
 .dialog-btn.primary {
-  background: #FF9D76;
+  background: var(--primary-strong);
   box-shadow: 0 8rpx 32rpx rgba(255, 157, 118, 0.3);
 }
 
@@ -310,27 +306,27 @@
 }
 
 .success-icon {
-  color: #52c41a;
+  color: var(--color-success);
   margin-bottom: 32rpx;
 }
 
 .success-title {
   font-size: 40rpx;
   font-weight: 800;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   margin-bottom: 16rpx;
 }
 
 .success-desc {
   font-size: 28rpx;
-  color: rgba(93, 64, 55, 0.6);
+  color: var(--color-warm-brown-muted);
   margin-bottom: 80rpx;
 }
 
 .success-btn {
   width: 400rpx;
   height: 96rpx;
-  background: linear-gradient(135deg, #FF9D76 0%, #FF6B3D 100%);
+  background: linear-gradient(135deg, var(--primary-strong) 0%, #FF6B3D 100%);
   border-radius: 48rpx;
   display: flex;
   align-items: center;
@@ -364,20 +360,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ff4d4f;
+  color: var(--color-danger);
   margin-bottom: 40rpx;
 }
 
 .error-title {
   font-size: 36rpx;
   font-weight: 800;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   margin-bottom: 20rpx;
 }
 
 .error-desc {
   font-size: 26rpx;
-  color: rgba(93, 64, 55, 0.6);
+  color: var(--color-warm-brown-muted);
   text-align: center;
   max-width: 560rpx;
   line-height: 1.6;
@@ -406,7 +402,7 @@
 }
 
 .error-btn.retry {
-  background: #FF9D76;
+  background: var(--primary-strong);
   box-shadow: 0 8rpx 32rpx rgba(255, 157, 118, 0.2);
 }
 
@@ -422,6 +418,6 @@
 }
 
 .back-text {
-  color: rgba(93, 64, 55, 0.6);
+  color: var(--color-warm-brown-muted);
   font-size: 26rpx;
 }

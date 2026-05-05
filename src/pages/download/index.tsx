@@ -1,7 +1,6 @@
 import { View, Text, Image, Button } from '@tarojs/components';
-import { navigateBack } from '@tarojs/taro';
+import PageHeader from '../../components/layout/PageHeader';
 
-const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const DOWNLOAD_PRIMARY = require('../../assets/profile-icons/download-primary.png');
 const DOWNLOAD_WHITE = require('../../assets/profile-icons/download-white.png');
 const FILM_GRAY = require('../../assets/profile-icons/film-gray.png');
@@ -12,13 +11,7 @@ import './index.less';
 export default function DownloadPage() {
   return (
     <View className="download-page">
-      <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
-        </View>
-        <Text className="title">下载 App</Text>
-        <View className="placeholder" />
-      </View>
+      <PageHeader title="下载" />
 
       <View className="content">
         <View className="qr-section">

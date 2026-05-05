@@ -1,10 +1,6 @@
-.icon-img {
-  display: block;
-}
-
 .welcome-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: var(--background);
   display: flex;
   flex-direction: column;
   padding: 0 48rpx 48rpx;
@@ -18,12 +14,12 @@
   top: 120rpx;
   width: 80rpx;
   height: 80rpx;
-  background: #F5F0EB;
+  background: var(--color-warm-cream-dark);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   z-index: 10;
 }
 
@@ -44,13 +40,13 @@
 }
 
 .logo-icon {
-  color: #E89F71;
+  color: var(--primary);
 }
 
 .logo-text {
   font-size: 48rpx;
   font-weight: 900;
-  background: linear-gradient(135deg, #5D4037 0%, #E89F71 100%);
+  background: linear-gradient(135deg, var(--color-warm-brown) 0%, var(--primary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-left: -16rpx;
@@ -60,14 +56,14 @@
 .main-title {
   font-size: 72rpx;
   font-weight: 900;
-  color: #333;
+  color: var(--text-primary);
   line-height: 1.2;
   margin-bottom: 16rpx;
 }
 
 .main-desc {
   font-size: 28rpx;
-  color: rgba(93, 64, 55, 0.6);
+  color: var(--color-warm-brown-muted);
   line-height: 1.6;
   margin-bottom: 80rpx;
 }
@@ -81,7 +77,7 @@
 }
 
 .option-card {
-  background: #F5F0EB;
+  background: var(--color-warm-cream-dark);
   border-radius: 48rpx;
   padding: 48rpx;
   position: relative;
@@ -109,7 +105,7 @@
 }
 
 .card-icon {
-  color: #E89F71;
+  color: var(--primary);
 }
 
 .card-arrow {
@@ -121,14 +117,14 @@
 .card-title {
   font-size: 36rpx;
   font-weight: 900;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 12rpx;
   display: block;
 }
 
 .card-desc {
   font-size: 24rpx;
-  color: rgba(93, 64, 55, 0.6);
+  color: var(--color-warm-brown-muted);
   line-height: 1.5;
   display: block;
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { useState } from 'react';
 import { View, Input, Button, Image, Text } from '@tarojs/components';
 import sendPrimary from '../../assets/profile-icons/send-primary.png';
-import './index.less';
+import './CommentInput.less';
 
 const MAX_LENGTH = 500;
 

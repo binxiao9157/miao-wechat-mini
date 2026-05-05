@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Input, Image } from '@tarojs/components';
-import Taro, { navigateTo, navigateBack } from '@tarojs/taro';
-const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+import Taro, { navigateTo } from '@tarojs/taro';
+import PageHeader from '../../components/layout/PageHeader';
 const SPARKLES_WHITE = require('../../assets/profile-icons/sparkles-white.png');
 import { storage, PresetCat } from '../../services/storage';
 import './index.less';
@@ -66,12 +66,7 @@ export default function CreateCompanion() {
       )}
 
       {/* Header */}
-      <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
-        </View>
-        <Text className="header-title">手捏小猫</Text>
-      </View>
+      <PageHeader title="手捏小猫" />
 
       {/* Scrollable Content */}
       <View className="scroll-content">

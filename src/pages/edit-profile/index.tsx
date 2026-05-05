@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Input, Image } from '@tarojs/components';
 import Taro, { navigateBack } from '@tarojs/taro';
-const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
+import PageHeader from '../../components/layout/PageHeader';
 const CAMERA_PNG = require('../../assets/profile-icons/camera-primary.png');
 const CHECKCIRCLE_PNG = require('../../assets/profile-icons/checkcircle-green.png');
 const IMAGEICON_PNG = require('../../assets/profile-icons/image-primary.png');
@@ -94,15 +94,14 @@ export default function EditProfile() {
       )}
 
       {/* Header */}
-      <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 24, height: 24 }} />
-        </View>
-        <Text className="header-title">编辑个人资料</Text>
-        <View className={`save-btn ${isSaving ? 'disabled' : ''}`} onClick={isSaving ? undefined : handleSave}>
-          <Text className="save-btn-text">{isSaving ? '...' : '保存'}</Text>
-        </View>
-      </View>
+      <PageHeader
+        title="编辑资料"
+        rightElement={
+          <View className={`save-btn ${isSaving ? 'disabled' : ''}`} onClick={isSaving ? undefined : handleSave}>
+            <Text className="save-btn-text">{isSaving ? '...' : '保存'}</Text>
+          </View>
+        }
+      />
 
       {/* 头像区域 */}
       <View className="avatar-section">

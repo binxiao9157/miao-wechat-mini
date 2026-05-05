@@ -4,6 +4,7 @@ import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, TimeLetter, CatInfo } from '../../services/storage';
 import CatAvatar from '../../components/common/CatAvatar';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import './index.less';
 
 // Lucide-style PNG icons
@@ -441,27 +442,21 @@ export default function TimeLettersPage() {
       </ScrollView>
 
       {/* 删除确认弹窗 */}
-      {letterToDelete && (
-        <View className="modal-overlay">
-          <View className="confirm-modal">
-            <View className="modal-icon">
-              <Image className="icon-img" src={ALERTCIRCLE_RED} mode="aspectFit" style={{ width: 32, height: 32 }} />
-            </View>
-            <Text className="modal-title">确认删除信件</Text>
-            <Text className="modal-desc">
-              您确定要永久删除这封写给 <Text className="highlight">{myCats.find(c => c.id === letterToDelete.catId)?.name || "小猫"}</Text> 的时光信件吗？此操作不可撤销。
-            </Text>
-            <View className="modal-actions">
-              <View className="btn-confirm" onClick={confirmDelete}>
-                <Text className="btn-text">确认删除</Text>
-              </View>
-              <View className="btn-cancel" onClick={() => setLetterToDelete(null)}>
-                <Text className="btn-text">取消</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      )}
+      <ConfirmModal
+        visible={!!letterToDelete}
+        title="确认删除信件"
+        confirmText="确认删除"
+        cancelText="取消"
+        confirmStyle="danger"
+        maskClosable={false}
+        icon={<Image className="icon-img" src={ALERTCIRCLE_RED} mode="aspectFit" style={{ width: 32, height: 32 }} />}
+        onConfirm={confirmDelete}
+        onCancel={() => setLetterToDelete(null)}
+      >
+        <Text className="confirm-modal-desc">
+          您确定要永久删除这封写给<Text className="highlight">{myCats.find(c => c.id === letterToDelete?.catId)?.name || "小猫"}</Text>的时光信件吗？此操作不可撤销。
+        </Text>
+      </ConfirmModal>
     </View>
   );
 

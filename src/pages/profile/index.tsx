@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Image, Button } from '@tarojs/components';
+import { View, Text, Image } from '@tarojs/components';
 import Taro, { navigateTo, reLaunch, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, UserInfo, CatInfo } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
 import { friendService } from '../../services/friendService';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import './index.less';
 
 // Lucide-style icon images (colored PNGs matching PWA)
@@ -401,64 +402,55 @@ export default function Profile() {
       </View>
 
       {/* 退出登录确认弹窗 */}
-      {showLogoutConfirm && (
-        <View className="modal-mask" onClick={() => setShowLogoutConfirm(false)}>
-          <View className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <View className="modal-icon logout">
-              <ProfileIcon name="logout" size={32} />
-            </View>
-            <Text className="modal-title">退出登录？</Text>
-            <Text className="modal-desc">确定要退出登录吗？</Text>
-            <View className="modal-actions">
-              <Button className="modal-btn confirm" onClick={handleLogout}>确定退出</Button>
-              <Button className="modal-btn cancel" onClick={() => setShowLogoutConfirm(false)}>取消</Button>
-            </View>
-          </View>
-        </View>
-      )}
+      <ConfirmModal
+        visible={showLogoutConfirm}
+        title="退出登录？"
+        description="确定要退出登录吗？"
+        confirmText="确定退出"
+        cancelText="取消"
+        confirmStyle="primary"
+        icon={<ProfileIcon name="logout" size={32} />}
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
 
       {/* 注销账户确认弹窗 */}
-      {showClearConfirm && (
-        <View className="modal-mask" onClick={() => setShowClearConfirm(false)}>
-          <View className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <View className="modal-icon delete">
-              <ProfileIcon name="trash" size={32} />
-            </View>
-            <Text className="modal-title danger">注销账户？</Text>
-            <Text className="modal-desc">注销账户将永久删除您的所有数据（包括猫咪、日记、信件），此操作不可撤销。确定继续吗？</Text>
-            <View className="modal-actions">
-              <Button className="modal-btn danger" onClick={handleClearLocalData}>确定注销</Button>
-              <Button className="modal-btn cancel" onClick={() => setShowClearConfirm(false)}>再想想</Button>
-            </View>
-          </View>
-        </View>
-      )}
+      <ConfirmModal
+        visible={showClearConfirm}
+        title="注销账户？"
+        description="注销账户将永久删除您的所有数据（包括猫咪、日记、信件），此操作不可撤销。确定继续吗？"
+        confirmText="确定注销"
+        cancelText="再想想"
+        confirmStyle="danger"
+        icon={<ProfileIcon name="trash" size={32} />}
+        onConfirm={handleClearLocalData}
+        onCancel={() => setShowClearConfirm(false)}
+      />
 
       {/* 扫码添加好友确认弹窗 */}
-      {scanConfirm && (
-        <View className="modal-mask" onClick={() => setScanConfirm(null)}>
-          <View className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <Text className="modal-title">添加好友</Text>
-            <View className="scan-confirm-info">
-              {scanConfirm.avatar ? (
-                <Image className="scan-confirm-avatar" src={scanConfirm.avatar} mode="aspectFill" />
-              ) : (
-                <View className="scan-confirm-avatar-placeholder">
-                  <Text>{scanConfirm.nickname.charAt(0)}</Text>
-                </View>
-              )}
-              <View className="scan-confirm-detail">
-                <Text className="scan-confirm-name">{scanConfirm.nickname}</Text>
-                <Text className="scan-confirm-cat">猫咪: {scanConfirm.catName}</Text>
-              </View>
+      <ConfirmModal
+        visible={!!scanConfirm}
+        title="添加好友"
+        confirmText="添加好友"
+        cancelText="取消"
+        confirmStyle="success"
+        onConfirm={handleConfirmAddFriend}
+        onCancel={() => setScanConfirm(null)}
+      >
+        <View className="scan-confirm-info">
+          {scanConfirm?.avatar ? (
+            <Image className="scan-confirm-avatar" src={scanConfirm.avatar} mode="aspectFill" />
+          ) : (
+            <View className="scan-confirm-avatar-placeholder">
+              <Text>{scanConfirm?.nickname?.charAt(0)}</Text>
             </View>
-            <View className="modal-actions">
-              <Button className="modal-btn primary" onClick={handleConfirmAddFriend}>添加好友</Button>
-              <Button className="modal-btn cancel" onClick={() => setScanConfirm(null)}>取消</Button>
-            </View>
+          )}
+          <View className="scan-confirm-detail">
+            <Text className="scan-confirm-name">{scanConfirm?.nickname}</Text>
+            <Text className="scan-confirm-cat">猫咪: {scanConfirm?.catName}</Text>
           </View>
         </View>
-      )}
+      </ConfirmModal>
     </View>
   );
 }

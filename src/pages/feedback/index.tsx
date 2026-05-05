@@ -3,8 +3,8 @@ import { View, Text, Textarea, Image } from '@tarojs/components';
 import { navigateBack } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage } from '../../services/storage';
+import PageHeader from '../../components/layout/PageHeader';
 
-const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const CHECKCIRCLE_GREEN = require('../../assets/profile-icons/checkcircle-green.png');
 const STAR_FILLED = require('../../assets/profile-icons/star-primary.png');
 const STAR_EMPTY = require('../../assets/profile-icons/star-inactive.png');
@@ -166,13 +166,7 @@ export default function Feedback() {
   return (
     <View className="feedback-page" style={navSpace as React.CSSProperties}>
       {/* Header */}
-      <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
-        </View>
-        <Text className="title">意见反馈</Text>
-        <View className="placeholder" />
-      </View>
+      <PageHeader title="反馈" />
 
       <View className="content-scroll">
         {!hasSubmitted ? (

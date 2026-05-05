@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Video, Image } from '@tarojs/components';
 import Taro, { useRouter, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
+import PageHeader from '../../components/layout/PageHeader';
 
-const ARROWLEFT_WHITE = require('../../assets/profile-icons/arrowleft-white.png');
 const PLAY_WHITE = require('../../assets/profile-icons/play-white.png');
 const DOWNLOAD_PRIMARY = require('../../assets/profile-icons/download-primary.png');
 const TRASH2_RED2 = require('../../assets/profile-icons/trash2-red2.png');
@@ -191,16 +191,7 @@ export default function CatPlayer() {
       )}
 
       {/* 顶部导航栏 */}
-      <View className="player-header">
-        <View className="header-back" onClick={() => Taro.navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_WHITE} mode="aspectFit" style={{ width: 24, height: 24 }} />
-        </View>
-        <View className="header-center">
-          <Text className="header-name">{cat.name}</Text>
-          <Text className="header-subtitle">AI 生成数字形象</Text>
-        </View>
-        <View className="header-placeholder" />
-      </View>
+      <PageHeader title="猫咪播放" />
 
       {/* 视频播放器 */}
       <View className="video-area" onClick={togglePlay}>

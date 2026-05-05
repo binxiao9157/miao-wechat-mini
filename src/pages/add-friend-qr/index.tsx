@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Image, Canvas, Button } from '@tarojs/components';
 import Taro, { useRouter, navigateBack, useShareAppMessage } from '@tarojs/taro';
-import { useNavSpace } from '../../hooks/useNavSpace';
 import CatAvatar from '../../components/common/CatAvatar';
-const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
+import PageHeader from '../../components/layout/PageHeader';
 const DOWNLOAD_PNG = require('../../assets/profile-icons/download-primary.png');
 const SHARE2_PNG = require('../../assets/profile-icons/share-gray.png');
 const ALERTCIRCLE_PNG = require('../../assets/profile-icons/alertcircle-primary.png');
@@ -13,7 +12,6 @@ import { drawQROnCanvas } from '../../utils/qrCanvas';
 import './index.less';
 
 export default function AddFriendQR() {
-  const navSpace = useNavSpace();
   const router = useRouter();
   const { catId } = router.params;
 
@@ -177,18 +175,9 @@ export default function AddFriendQR() {
   }
 
   return (
-    <View className="add-friend-qr-page" style={navSpace as React.CSSProperties}>
+    <View className="add-friend-qr-page">
       {/* 头部 */}
-      <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 20, height: 20 }} />
-        </View>
-        <View className="header-title">
-          <Text className="title">面对面添加</Text>
-          <Text className="subtitle">Face-to-Face</Text>
-        </View>
-        <View className="header-placeholder" />
-      </View>
+      <PageHeader title="面对面添加" subtitle="Face-to-Face" />
 
       {/* 名片卡片 */}
       <View className="card-container">

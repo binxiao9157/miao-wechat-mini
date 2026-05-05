@@ -1,7 +1,7 @@
 import React from 'react';
 import { Component, ReactNode } from 'react';
 import { View, Text, Button } from '@tarojs/components';
-import './index.less';
+import './ErrorBoundary.less';
 
 interface Props {
   children: ReactNode;

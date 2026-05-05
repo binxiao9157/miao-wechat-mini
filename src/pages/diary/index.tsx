@@ -7,15 +7,12 @@ import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage } from '../../servi
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { generateShareCard } from '../../utils/shareCard';
 import ShareSheet from '../../components/common/ShareSheet';
+import ConfirmModal from '../../components/common/ConfirmModal';
+import DiaryCard from '../../components/common/DiaryCard';
 
 // Lucide-style PNG icons
 const USERPLUS_GRAY = require('../../assets/profile-icons/userplus-gray.png');
 const PLUS_WHITE = require('../../assets/profile-icons/plus-white.png');
-const HEART_GRAY = require('../../assets/profile-icons/heart-gray.png');
-const HEART_RED = require('../../assets/profile-icons/heart-red.png');
-const MESSAGE_GRAY = require('../../assets/profile-icons/message-gray.png');
-const SHARE_GRAY = require('../../assets/profile-icons/share-gray.png');
-const TRASH2_GRAY = require('../../assets/profile-icons/trash2-gray.png');
 const TRASH2_RED = require('../../assets/profile-icons/trash2-red.png');
 const X_DARK = require('../../assets/profile-icons/x-dark.png');
 const X_WHITE = require('../../assets/profile-icons/x-white.png');
@@ -519,21 +516,12 @@ export default function Diary() {
 
   // 删除日记
   const handleDeleteDiary = (diaryId: string) => {
-    Taro.showModal({
-      title: '确认删除',
-      content: '确定要删除这条日记吗？删除后无法恢复。',
-      confirmColor: '#ff4d4f',
-      success: (res) => {
-        if (res.confirm) {
-          storage.deleteDiary(diaryId);
-          setDiaries(prev => prev.filter(d => d.id !== diaryId));
-          setDeletingId(null);
-          Taro.showToast({ title: '已删除', icon: 'success' });
-          // 同步删除到服务端
-          del(`/api/v1/diaries/${diaryId}`).catch(() => {});
-        }
-      }
-    });
+    storage.deleteDiary(diaryId);
+    setDiaries(prev => prev.filter(d => d.id !== diaryId));
+    setDeletingId(null);
+    Taro.showToast({ title: '已删除', icon: 'success' });
+    // 同步删除到服务端
+    del(`/api/v1/diaries/${diaryId}`).catch(() => {});
   };
 
   // 删除评论
@@ -653,85 +641,28 @@ export default function Diary() {
             </View>
           ) : (
             diaries.map((diary) => (
-              <View key={diary.id} className="diary-item">
-                <View className="diary-header">
-                  <Image className="avatar" src={storage.getUserInfo()?.avatar || ''} mode="aspectFill" />
-                  <View className="user-info">
-                    <Text className="username">{storage.getUserInfo()?.nickname || '未知'}</Text>
-                    <Text className="time">{formatTime(diary.createdAt)}</Text>
-                  </View>
-                </View>
-
-                <Text className="diary-content">{diary.content}</Text>
-
-                {diary.mediaUrl && (
-                  diary.mediaType === 'video' ? (
-                    <Video
-                      className="diary-media"
-                      src={diary.mediaUrl}
-                      poster={activeCat?.avatar || diary.mediaUrl}
-                      controls
-                      showPlayBtn
-                      objectFit="cover"
-                    />
-                  ) : (
-                    <Image
-                      className="diary-media"
-                      src={diary.mediaUrl}
-                      mode="aspectFill"
-                    />
-                  )
-                )}
-
-                <View className="diary-actions">
-                  <View className={`action-btn ${diary.isLiked ? 'liked' : ''}`} onClick={() => handleLike(diary.id)}>
-                    <Image className="icon-img" src={diary.isLiked ? HEART_RED : HEART_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
-                    <Text>{diary.likes}</Text>
-                  </View>
-                  <View className="action-btn" onClick={() => setCommentingId(diary.id)}>
-                    <Image className="icon-img" src={MESSAGE_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
-                    <Text>{diary.comments.length}</Text>
-                  </View>
-                  <View className="action-btn" onClick={() => handleShare(diary)}>
-                    <Image className="icon-img" src={SHARE_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
-                  </View>
-                  <View className="action-btn delete-btn" onClick={() => setDeletingId(diary.id)}>
-                    <Image className="icon-img" src={TRASH2_GRAY} mode="aspectFit" style={{ width: 18, height: 18 }} />
-                  </View>
-                </View>
-
-                {/* 评论列表 */}
-                {diary.comments.length > 0 && (
-                  <View className="comments-section">
-                    {diary.comments.map((comment) => {
-                      const isOwnComment = comment.authorId === storage.getUserInfo()?.username;
-                      return (
-                        <View
-                          key={comment.id}
-                          id={`comment-${comment.id}`}
-                          className="comment-item"
-                          onLongPress={() => {
-                            const query = Taro.createSelectorQuery();
-                            query.select(`#comment-${comment.id}`).boundingClientRect((rect: any) => {
-                              setCommentActionSheet({
-                                diaryId: diary.id,
-                                commentId: comment.id,
-                                content: comment.content,
-                                canDelete: true,
-                                top: rect.top - 50,
-                                left: rect.left + rect.width / 2,
-                              });
-                            }).exec();
-                          }}
-                        >
-                          <Text className="comment-author">{isOwnComment ? '我' : (comment.authorNickname || '好友')}</Text>
-                          <Text className="comment-content">{comment.content}</Text>
-                        </View>
-                      );
-                    })}
-                  </View>
-                )}
-              </View>
+              <DiaryCard
+                key={diary.id}
+                diary={{
+                  ...diary,
+                  authorAvatar: storage.getUserInfo()?.avatar || '',
+                  authorNickname: storage.getUserInfo()?.nickname || '未知',
+                  isFriendDiary: false,
+                }}
+                currentUserId={storage.getUserInfo()?.username}
+                activeCatAvatar={activeCat?.avatar}
+                onLike={handleLike}
+                onComment={setCommentingId}
+                onShare={(id) => {
+                  const d = diaries.find(d => d.id === id);
+                  if (d) handleShare(d);
+                }}
+                onDelete={setDeletingId}
+                onCommentLongPress={(diaryId, commentId, content, canDelete, top, left) => {
+                  setCommentActionSheet({ diaryId, commentId, content, canDelete, top, left });
+                }}
+                formatTime={formatTime}
+              />
             ))
           )
         ) : (
@@ -743,83 +674,25 @@ export default function Diary() {
             </View>
           ) : (
             friendDiaries.map((diary) => (
-              <View key={diary.id} className="diary-item">
-                <View className="diary-header">
-                  <Image className="avatar" src={diary.authorAvatar || ''} mode="aspectFill" />
-                  <View className="user-info">
-                    <Text className="username">{diary.authorNickname || '好友'}</Text>
-                    <Text className="time">{formatTime(diary.createdAt)}</Text>
-                  </View>
-                </View>
-
-                <Text className="diary-content">{diary.content}</Text>
-
-                {diary.mediaUrl && (
-                  diary.mediaType === 'video' ? (
-                    <Video
-                      className="diary-media"
-                      src={diary.mediaUrl}
-                      poster={activeCat?.avatar || diary.mediaUrl}
-                      controls
-                      showPlayBtn
-                      objectFit="cover"
-                    />
-                  ) : (
-                    <Image
-                      className="diary-media"
-                      src={diary.mediaUrl}
-                      mode="aspectFill"
-                    />
-                  )
-                )}
-
-                <View className="diary-actions">
-                  <View className={`action-btn ${diary.isLiked ? 'liked' : ''}`} onClick={() => handleLike(diary.id)}>
-                    <Image className="icon-img" src={diary.isLiked ? HEART_RED : HEART_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
-                    <Text>{diary.likes}</Text>
-                  </View>
-                  <View className="action-btn" onClick={() => setCommentingId(diary.id)}>
-                    <Image className="icon-img" src={MESSAGE_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
-                    <Text>{diary.comments.length}</Text>
-                  </View>
-                  <View className="action-btn" onClick={() => handleShare(diary)}>
-                    <Image className="icon-img" src={SHARE_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
-                  </View>
-                </View>
-
-                {/* 评论列表 */}
-                {diary.comments.length > 0 && (
-                  <View className="comments-section">
-                    {diary.comments.map((comment) => {
-                      const isOwnComment = comment.authorId === storage.getUserInfo()?.username;
-                      return (
-                        <View
-                          key={comment.id}
-                          id={`comment-${comment.id}`}
-                          className="comment-item"
-                          onLongPress={() => {
-                            if (!isOwnComment) return;
-                            const query = Taro.createSelectorQuery();
-                            query.select(`#comment-${comment.id}`).boundingClientRect((rect: any) => {
-                              setCommentActionSheet({
-                                diaryId: diary.id,
-                                commentId: comment.id,
-                                content: comment.content,
-                                canDelete: true,
-                                top: rect.top - 50,
-                                left: rect.left + rect.width / 2,
-                              });
-                            }).exec();
-                          }}
-                        >
-                          <Text className="comment-author">{isOwnComment ? '我' : (comment.authorNickname || diary.authorNickname || '好友')}</Text>
-                          <Text className="comment-content">{comment.content}</Text>
-                        </View>
-                      );
-                    })}
-                  </View>
-                )}
-              </View>
+              <DiaryCard
+                key={diary.id}
+                diary={{
+                  ...diary,
+                  isFriendDiary: true,
+                }}
+                currentUserId={storage.getUserInfo()?.username}
+                activeCatAvatar={activeCat?.avatar}
+                onLike={handleLike}
+                onComment={setCommentingId}
+                onShare={(id) => {
+                  const d = friendDiaries.find(d => d.id === id);
+                  if (d) handleShare(d);
+                }}
+                onCommentLongPress={(diaryId, commentId, content, canDelete, top, left) => {
+                  setCommentActionSheet({ diaryId, commentId, content, canDelete, top, left });
+                }}
+                formatTime={formatTime}
+              />
             ))
           )
         )}
@@ -911,26 +784,17 @@ export default function Diary() {
       )}
 
       {/* 删除确认弹窗 */}
-      {deletingId && (
-        <View className="delete-modal">
-          <View className="delete-modal-mask" onClick={() => setDeletingId(null)} />
-          <View className="delete-modal-content">
-            <View className="delete-icon">
-              <Image className="icon-img" src={TRASH2_RED} mode="aspectFit" style={{ width: 32, height: 32 }} />
-            </View>
-            <Text className="delete-title">确定删除吗？</Text>
-            <Text className="delete-desc">确定要删除这条记录吗？删除后将无法找回。</Text>
-            <View className="delete-actions">
-              <Button className="delete-confirm-btn" onClick={() => handleDeleteDiary(deletingId)}>
-                确定删除
-              </Button>
-              <Button className="delete-cancel-btn" onClick={() => setDeletingId(null)}>
-                取消
-              </Button>
-            </View>
-          </View>
-        </View>
-      )}
+      <ConfirmModal
+        visible={deletingId !== null}
+        title="确定删除吗？"
+        description="确定要删除这条记录吗？删除后将无法找回。"
+        confirmText="确定删除"
+        cancelText="取消"
+        confirmStyle="danger"
+        icon={<Image className="icon-img" src={TRASH2_RED} mode="aspectFit" style={{ width: 32, height: 32 }} />}
+        onConfirm={() => deletingId && handleDeleteDiary(deletingId)}
+        onCancel={() => setDeletingId(null)}
+      />
 
       {/* 评论输入弹窗 */}
       {commentingId && (

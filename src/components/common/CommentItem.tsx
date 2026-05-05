@@ -1,6 +1,6 @@
 import Taro from '@tarojs/taro';
 import { View, Text, Image } from '@tarojs/components';
-import './index.less';
+import './CommentItem.less';
 
 interface CommentItemProps {
   avatar: string;

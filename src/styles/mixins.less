@@ -1,0 +1,128 @@
+/* Miao Less Mixins — 可复用样式片段 */
+
+/* 遮罩层 */
+.backdrop-overlay() {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-overlay);
+  z-index: 1000;
+}
+
+/* 卡片容器 */
+.miao-card() {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+/* 底部弹出面板 */
+.bottom-sheet() {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: 40rpx 32rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 40rpx);
+  z-index: 1001;
+}
+
+/* 主要按钮 */
+.btn-primary() {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
+  color: #fff;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  border: none;
+}
+
+/* 危险按钮 */
+.btn-danger() {
+  background: var(--color-danger);
+  color: #fff;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  border: none;
+}
+
+/* 取消按钮 */
+.btn-cancel() {
+  background: var(--surface-container);
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  border: none;
+}
+
+/* 底部安全区 */
+.safe-bottom() {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 48rpx);
+}
+
+/* 输入框 */
+.miao-input() {
+  width: 100%;
+  padding: 24rpx 32rpx;
+  border-radius: var(--radius-full);
+  border: 2rpx solid var(--outline);
+  background: var(--surface);
+  font-size: 28rpx;
+  color: var(--color-warm-brown);
+
+  &:focus {
+    border-color: var(--primary);
+  }
+
+  &::placeholder {
+    color: var(--on-surface-variant);
+  }
+}
+
+/* 列表项 */
+.list-item() {
+  display: flex;
+  align-items: center;
+  padding: 32rpx;
+  background: var(--surface);
+  border-bottom: 1rpx solid var(--outline-variant);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+/* 页面头部 */
+.page-header-nav() {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 32rpx;
+  padding-top: var(--nav-top, calc(env(safe-area-inset-top) + 20rpx));
+}
+
+/* 返回按钮 */
+.back-btn() {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-warm-brown);
+}
+
+/* 头部标题 */
+.header-title-text() {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--color-warm-brown);
+}
+
+/* 头部副标题 */
+.header-subtitle-text() {
+  font-size: 22rpx;
+  color: var(--text-hint);
+  margin-top: 4rpx;
+}

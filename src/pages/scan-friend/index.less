@@ -1,6 +1,4 @@
-.icon-img {
-  display: block;
-}
+@import '../../styles/mixins.less';
 
 .scan-friend-page {
   min-height: 100vh;
@@ -26,24 +24,6 @@
 
 .toast-text { color: #fff; font-size: 26rpx; }
 
-/* === Header === */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20rpx 32rpx;
-  padding-top: var(--nav-top, calc(env(safe-area-inset-top) + 20rpx));
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  position: relative;
-  z-index: 10;
-}
-
-.back-btn { width: 80rpx; height: 80rpx; display: flex; align-items: center; justify-content: center; color: #fff; }
-.header-title { font-size: 36rpx; font-weight: 700; color: #fff; }
-.header-placeholder { width: 80rpx; }
-
 /* === 扫码区域 === */
 .scan-area {
   flex: 1;
@@ -68,7 +48,7 @@
   position: absolute;
   width: 48rpx;
   height: 48rpx;
-  border-color: #FF9D76;
+  border-color: var(--primary-strong);
   border-style: solid;
   border-width: 0;
 }
@@ -94,7 +74,7 @@
   gap: 80rpx;
   padding: 48rpx;
   padding-bottom: calc(env(safe-area-inset-bottom) + 48rpx);
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--color-overlay);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
@@ -122,9 +102,7 @@
 
 /* === 确认弹窗 === */
 .confirm-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  .backdrop-overlay();
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   display: flex;
@@ -146,7 +124,7 @@
 .confirm-title {
   font-size: 36rpx;
   font-weight: 800;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   display: block;
   margin-bottom: 32rpx;
 }
@@ -156,7 +134,7 @@
   align-items: center;
   gap: 24rpx;
   padding: 24rpx;
-  background: #FFF9F5;
+  background: var(--background);
   border-radius: 24rpx;
   margin-bottom: 40rpx;
 }
@@ -165,7 +143,7 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 24rpx;
-  background: #FF9D76;
+  background: var(--primary-strong);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -185,12 +163,12 @@
 }
 
 .friend-detail { flex: 1; }
-.friend-name { font-size: 28rpx; font-weight: 700; color: #5D4037; display: block; margin-bottom: 4rpx; }
-.friend-cat { font-size: 22rpx; color: rgba(93, 64, 55, 0.5); display: block; }
+.friend-name { font-size: 28rpx; font-weight: 700; color: var(--color-warm-brown); display: block; margin-bottom: 4rpx; }
+.friend-cat { font-size: 22rpx; color: var(--text-hint); display: block; }
 
 .confirm-actions { display: flex; gap: 20rpx; }
 .confirm-btn { flex: 1; height: 88rpx; border-radius: 44rpx; display: flex; align-items: center; justify-content: center; }
-.confirm-btn.cancel { background: #f5f5f5; }
-.confirm-btn.primary { background: #FF9D76; box-shadow: 0 8rpx 24rpx rgba(255, 157, 118, 0.2); }
-.confirm-btn-text { font-size: 28rpx; font-weight: 700; color: #5D4037; }
+.confirm-btn.cancel { background: var(--surface-container); }
+.confirm-btn.primary { background: var(--primary-strong); box-shadow: 0 8rpx 24rpx rgba(255, 157, 118, 0.2); }
+.confirm-btn-text { font-size: 28rpx; font-weight: 700; color: var(--color-warm-brown); }
 .confirm-btn-text.white { color: #fff; }

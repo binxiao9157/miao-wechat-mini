@@ -1,13 +1,11 @@
 import React from 'react';
-import {  View, Text, Image } from '@tarojs/components';
-import { useRouter, navigateBack } from '@tarojs/taro';
-import { useNavSpace } from '../../hooks/useNavSpace';
-const ARROWLEFT_PNG = require('../../assets/profile-icons/arrowleft-dark.png');
+import { View, Text } from '@tarojs/components';
+import { useRouter } from '@tarojs/taro';
 import PawLogo from '../../components/common/PawLogo';
+import PageHeader from '../../components/layout/PageHeader';
 import './index.less';
 
 export default function AccompanyMilestone() {
-  const navSpace = useNavSpace();
   const router = useRouter();
   const catName = router.params.catName || '小猫';
   const days = parseInt(router.params.days || '0', 10);
@@ -29,15 +27,9 @@ export default function AccompanyMilestone() {
   }
 
   return (
-    <View className="milestone-page" style={navSpace as React.CSSProperties}>
+    <View className="milestone-page">
       {/* Header */}
-      <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 20, height: 20 }} />
-        </View>
-        <Text className="header-title">陪伴里程碑</Text>
-        <View className="header-placeholder" />
-      </View>
+      <PageHeader title="陪伴里程碑" />
 
       {/* 天数卡片 */}
       <View className="days-card">

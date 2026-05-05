@@ -1,0 +1,126 @@
+.confirm-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.confirm-modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-overlay);
+}
+
+.confirm-modal-content {
+  position: relative;
+  width: 560rpx;
+  max-width: 80vw;
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  padding: 64rpx 48rpx 48rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+.confirm-modal-icon {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32rpx;
+}
+
+.confirm-modal-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--color-warm-brown);
+  margin-bottom: 16rpx;
+  text-align: center;
+}
+
+.confirm-modal-title.danger {
+  color: var(--color-danger);
+}
+
+.confirm-modal-desc {
+  display: block;
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 40rpx;
+}
+
+.confirm-modal-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.confirm-modal-btn {
+  width: 100%;
+  height: 96rpx;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.confirm-modal-btn.primary {
+  background: var(--primary);
+}
+
+.confirm-modal-btn.primary .confirm-modal-btn-text {
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.confirm-modal-btn.danger {
+  background: var(--color-danger);
+}
+
+.confirm-modal-btn.danger .confirm-modal-btn-text {
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.confirm-modal-btn.success {
+  background: var(--color-success);
+}
+
+.confirm-modal-btn.success .confirm-modal-btn-text {
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.confirm-modal-btn.cancel {
+  background: var(--surface-container);
+}
+
+.confirm-modal-btn.cancel .confirm-modal-btn-text {
+  color: var(--text-secondary);
+  font-size: 30rpx;
+  font-weight: 600;
+}

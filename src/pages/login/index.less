@@ -1,14 +1,10 @@
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #FFF9F5 0%, #FFF9F5 78%, #FFFBF8 100%);
+  background: linear-gradient(180deg, var(--background) 0%, var(--background) 78%, var(--surface-container-low) 100%);
   position: relative;
   overflow: hidden;
   width: 100%;
   box-sizing: border-box;
-}
-
-.icon-img {
-  display: block;
 }
 
 .bg-decoration {
@@ -61,13 +57,13 @@
   }
 
   .logo-icon {
-    color: #E89F71;
+    color: var(--primary);
   }
 
   .app-name {
     font-size: 56rpx;
     font-weight: 900;
-    background: linear-gradient(to right, #5D4037 0%, #E89F71 100%);
+    background: linear-gradient(to right, var(--color-warm-brown) 0%, var(--primary) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.05em;
@@ -83,13 +79,13 @@
     display: block;
     font-size: 44rpx;
     font-weight: 900;
-    color: #633E1D;
+    color: var(--on-primary-container);
     margin-bottom: 8rpx;
   }
 
   .subtitle {
     font-size: 26rpx;
-    color: #8E8E8E;
+    color: var(--on-surface-variant);
     font-weight: 500;
   }
 }
@@ -107,7 +103,7 @@
   position: relative;
   width: 100%;
   height: 100%;
-  background: #FEF6F0;
+  background: var(--color-warm-cream);
   border-radius: 96rpx;
   box-shadow: 0 20rpx 60rpx rgba(99, 62, 29, 0.08);
 }
@@ -115,8 +111,8 @@
 .cat-inner {
   position: absolute;
   inset: 24rpx;
-  background: #FEF6F0;
-  border: 24rpx solid #FEF6F0;
+  background: var(--color-warm-cream);
+  border: 24rpx solid var(--color-warm-cream);
   border-radius: 72rpx;
   overflow: hidden;
 }
@@ -138,14 +134,14 @@
   width: 100%;
   height: 96rpx;
   padding: 0 32rpx;
-  border: 2rpx solid #F2E6DD;
+  border: 2rpx solid var(--outline-variant);
   border-radius: 48rpx;
   font-size: 28rpx;
-  background: #FEF6F0;
+  background: var(--color-warm-cream);
   box-sizing: border-box;
 
   &:focus {
-    border-color: #E89F71;
+    border-color: var(--primary);
     outline: none;
   }
 }
@@ -164,7 +160,7 @@
     right: 32rpx;
     top: 50%;
     transform: translateY(-50%);
-    color: #999;
+    color: var(--on-surface-variant);
     padding: 8rpx;
     z-index: 2;
   }
@@ -176,7 +172,7 @@
 
   .forgot-text {
     font-size: 24rpx;
-    color: #E89F71;
+    color: var(--primary);
     font-weight: 500;
   }
 }
@@ -212,8 +208,8 @@
     transition: all 0.2s;
 
     &.checked {
-      background: #E89F71;
-      border-color: #E89F71;
+      background: var(--primary);
+      border-color: var(--primary);
     }
 
     .check-mark {
@@ -226,12 +222,12 @@
 
   .agreement-text {
     font-size: 24rpx;
-    color: #666;
+    color: var(--text-secondary);
     line-height: 1.5;
   }
 
   .link {
-    color: #E89F71;
+    color: var(--primary);
     margin: 0 4rpx;
   }
 }
@@ -243,7 +239,7 @@
 .login-btn {
   width: 100%;
   height: 96rpx;
-  background: #E89F71;
+  background: var(--primary);
   color: #fff;
   border: none;
   border-radius: 48rpx;
@@ -264,14 +260,14 @@
   width: 100%;
   height: 96rpx;
   background: #fff;
-  color: #633E1D;
-  border: 2rpx solid #F2E6DD;
+  color: var(--on-primary-container);
+  border: 2rpx solid var(--outline-variant);
   border-radius: 48rpx;
   font-size: 32rpx;
   font-weight: 600;
 
   &:active {
-    background: #FEF6F0;
+    background: var(--color-warm-cream);
   }
 }
 
@@ -331,7 +327,7 @@
     display: block;
     font-size: 26rpx;
     font-weight: 700;
-    color: #E89F71;
+    color: var(--primary);
     margin-bottom: 16rpx;
   }
 

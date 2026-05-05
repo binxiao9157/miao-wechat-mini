@@ -1,15 +1,13 @@
+@import '../../styles/mixins.less';
+
 .points-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #FFF9F5 0%, #FFF9F5 82%, #FEF6F0 100%);
+  background: linear-gradient(180deg, var(--background) 0%, var(--background) 82%, var(--color-warm-cream) 100%);
   display: flex;
   flex-direction: column;
 }
 
 /* Icon base styles */
-.icon-img {
-  display: block;
-}
-
 .icon-img-sm {
   display: block;
 }
@@ -32,7 +30,7 @@
     font-size: 60rpx;
     line-height: 1;
     font-weight: 900;
-    color: #633E1D;
+    color: var(--on-primary-container);
     letter-spacing: -0.025em;
   }
 
@@ -41,7 +39,7 @@
     margin-top: 16rpx;
     font-size: 20rpx;
     font-weight: 700;
-    color: #8E8E8E;
+    color: var(--on-surface-variant);
     letter-spacing: 0.1em;
     text-transform: uppercase;
   }
@@ -153,13 +151,13 @@
 .tasks-title {
   font-size: 36rpx;
   font-weight: 700;
-  color: #633E1D;
+  color: var(--on-primary-container);
 }
 
 .tasks-tag {
   font-size: 18rpx;
   font-weight: 700;
-  color: #E89F71;
+  color: var(--primary);
   background: rgba(232, 159, 113, 0.1);
   padding: 8rpx 16rpx;
   border-radius: 999rpx;
@@ -219,13 +217,13 @@
 .task-title {
   font-size: 28rpx;
   font-weight: 700;
-  color: #633E1D;
+  color: var(--on-primary-container);
   margin-bottom: 4rpx;
 }
 
 .task-desc {
   font-size: 18rpx;
-  color: rgba(93, 64, 55, 0.6);
+  color: var(--color-warm-brown-muted);
   margin-bottom: 8rpx;
 }
 
@@ -238,12 +236,12 @@
 .task-reward-value {
   font-size: 18rpx;
   font-weight: 900;
-  color: #E89F71;
+  color: var(--primary);
 }
 
 .task-reward-unit {
   font-size: 18rpx;
-  color: rgba(93, 64, 55, 0.6);
+  color: var(--color-warm-brown-muted);
 }
 
 /* 已完成标签 - 对齐PWA: pill badge */
@@ -281,7 +279,7 @@
 .redeem-title {
   font-size: 36rpx;
   font-weight: 700;
-  color: #633E1D;
+  color: var(--on-primary-container);
   margin-bottom: 32rpx;
 }
 
@@ -317,20 +315,20 @@
 }
 
 .redeem-icon.active {
-  color: #E89F71;
+  color: var(--primary);
   box-shadow: 0 8rpx 24rpx rgba(232, 159, 113, 0.2);
 }
 
 .redeem-subtitle {
   font-size: 28rpx;
   font-weight: 700;
-  color: #633E1D;
+  color: var(--on-primary-container);
   margin-bottom: 8rpx;
 }
 
 .redeem-desc {
   font-size: 22rpx;
-  color: rgba(93, 64, 55, 0.6);
+  color: var(--color-warm-brown-muted);
   text-align: center;
   margin-bottom: 16rpx;
 }
@@ -338,7 +336,7 @@
 .redeem-hint {
   font-size: 18rpx;
   font-weight: 900;
-  color: #E89F71;
+  color: var(--primary);
   margin-bottom: 16rpx;
   letter-spacing: 2rpx;
 }
@@ -347,7 +345,7 @@
   width: 100%;
   padding: 24rpx 0;
   border-radius: 32rpx;
-  background: #F5F5F5;
+  background: var(--surface-container);
   color: rgba(93, 64, 55, 0.4);
   font-size: 28rpx;
   font-weight: 700;
@@ -358,7 +356,7 @@
 }
 
 .redeem-btn.active {
-  background: #E89F71;
+  background: var(--primary);
   color: #fff;
   box-shadow: 0 8rpx 24rpx rgba(232, 159, 113, 0.3);
 }
@@ -381,7 +379,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--color-overlay);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -389,10 +387,12 @@
 }
 
 .modal-content {
+  .bottom-sheet();
   width: 100%;
   max-height: 80vh;
   background: #fff;
   border-radius: 40rpx 40rpx 0 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   animation: slideUp 0.3s ease;
@@ -418,14 +418,14 @@
 .modal-title {
   font-size: 36rpx;
   font-weight: 700;
-  color: #1C1B1F;
+  color: var(--text-primary);
 }
 
 .modal-close {
   width: 88rpx;
   height: 88rpx;
   border-radius: 50%;
-  background: #F5F5F5;
+  background: var(--surface-container);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -454,7 +454,7 @@
 
 .modal-empty-text {
   font-size: 28rpx;
-  color: rgba(93, 64, 55, 0.5);
+  color: var(--text-hint);
 }
 
 .modal-item {
@@ -474,13 +474,13 @@
 .modal-item-reason {
   font-size: 28rpx;
   font-weight: 700;
-  color: #1C1B1F;
+  color: var(--text-primary);
   margin-bottom: 4rpx;
 }
 
 .modal-item-time {
   font-size: 18rpx;
-  color: rgba(93, 64, 55, 0.5);
+  color: var(--text-hint);
 }
 
 .modal-item-amount {
@@ -488,11 +488,11 @@
   font-weight: 900;
 }
 
-/* 对齐PWA: earn颜色从绿色改为primary (#E89F71) */
+/* 对齐PWA: earn颜色从绿色改为primary (var(--primary)) */
 .modal-item-amount.earn {
-  color: #E89F71;
+  color: var(--primary);
 }
 
 .modal-item-amount.spend {
-  color: #FF4D4F;
+  color: var(--color-danger);
 }

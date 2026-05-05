@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import { navigateBack, navigateTo, reLaunch, useDidShow } from '@tarojs/taro';
-import { useNavSpace } from '../../hooks/useNavSpace';
+import { navigateTo, reLaunch, useDidShow } from '@tarojs/taro';
 import CatAvatar from '../../components/common/CatAvatar';
+import PageHeader from '../../components/layout/PageHeader';
 
-const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const PLUS_WHITE = require('../../assets/profile-icons/plus-white.png');
 const CHECKCIRCLE_GREEN = require('../../assets/profile-icons/checkcircle-green.png');
 const COINS_PRIMARY = require('../../assets/profile-icons/coins-primary.png');
@@ -14,7 +13,6 @@ import { storage, CatInfo } from '../../services/storage';
 import './index.less';
 
 export default function SwitchCompanion() {
-  const navSpace = useNavSpace();
   const [cats, setCats] = useState<CatInfo[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [points, setPoints] = useState(0);
@@ -76,18 +74,17 @@ export default function SwitchCompanion() {
   };
 
   return (
-    <View className="switch-companion-page" style={navSpace as React.CSSProperties}>
+    <View className="switch-companion-page">
       {/* Header */}
-      <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
-        </View>
-        <Text className="header-title">切换伙伴</Text>
-        <View className="points-badge">
-          <Image className="icon-img points-icon" src={COINS_PRIMARY} mode="aspectFit" style={{ width: 14, height: 14 }} />
-          <Text className="points-text">{points}</Text>
-        </View>
-      </View>
+      <PageHeader
+        title="切换猫咪"
+        rightElement={
+          <View className="points-badge">
+            <Image className="icon-img points-icon" src={COINS_PRIMARY} mode="aspectFit" style={{ width: 14, height: 14 }} />
+            <Text className="points-text">{points}</Text>
+          </View>
+        }
+      />
 
       {/* Cat Grid */}
       <View className="cat-grid">

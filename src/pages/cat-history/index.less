@@ -1,36 +1,9 @@
-.icon-img {
-  display: block;
-}
+@import '../../styles/mixins.less';
 
 .cat-history-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: var(--background);
   padding-bottom: 120rpx;
-}
-
-/* === Header === */
-.header {
-  display: flex;
-  align-items: center;
-  padding: 20rpx 32rpx;
-  padding-top: var(--nav-top, calc(env(safe-area-inset-top) + 20rpx));
-  margin-bottom: 24rpx;
-}
-
-.back-btn {
-  width: 80rpx;
-  height: 80rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #5D4037;
-}
-
-.header-title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #5D4037;
-  margin-left: 12rpx;
 }
 
 /* === Cat Grid === */
@@ -160,7 +133,7 @@
 .add-icon-box {
   width: 96rpx;
   height: 96rpx;
-  background: #f5f5f5;
+  background: var(--surface-container);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -184,7 +157,7 @@
 .empty-icon-box {
   width: 192rpx;
   height: 192rpx;
-  background: #f5f5f5;
+  background: var(--surface-container);
   border-radius: 80rpx;
   display: flex;
   align-items: center;
@@ -196,22 +169,20 @@
 .empty-title {
   font-size: 36rpx;
   font-weight: 800;
-  color: #5D4037;
+  color: var(--color-warm-brown);
   margin-bottom: 12rpx;
 }
 
 .empty-desc {
   font-size: 26rpx;
-  color: rgba(93, 64, 55, 0.5);
+  color: var(--text-hint);
   text-align: center;
   max-width: 400rpx;
 }
 
 /* === 删除确认弹窗 === */
 .delete-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  .backdrop-overlay();
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   display: flex;
@@ -239,21 +210,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ff4d4f;
+  color: var(--color-danger);
   margin: 0 auto 32rpx;
 }
 
 .delete-title {
   font-size: 36rpx;
   font-weight: 800;
-  color: #333;
+  color: var(--text-primary);
   display: block;
   margin-bottom: 12rpx;
 }
 
 .delete-desc {
   font-size: 26rpx;
-  color: rgba(93, 64, 55, 0.6);
+  color: var(--color-warm-brown-muted);
   line-height: 1.6;
   display: block;
   margin-bottom: 48rpx;
@@ -274,18 +245,18 @@
 }
 
 .delete-btn.cancel {
-  background: #f5f5f5;
+  background: var(--surface-container);
 }
 
 .delete-btn.confirm {
-  background: #ff4d4f;
+  background: var(--color-danger);
   box-shadow: 0 8rpx 24rpx rgba(255, 77, 79, 0.2);
 }
 
 .delete-btn-text {
   font-size: 28rpx;
   font-weight: 800;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .delete-btn-text.white {

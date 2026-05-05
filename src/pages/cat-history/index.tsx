@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import Taro, { navigateBack, navigateTo, useDidShow, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
-import { useNavSpace } from '../../hooks/useNavSpace';
+import Taro, { navigateTo, useDidShow, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
 import CatAvatar from '../../components/common/CatAvatar';
+import PageHeader from '../../components/layout/PageHeader';
 
-const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const PLAY_WHITE = require('../../assets/profile-icons/play-white.png');
 const TRASH2_RED2 = require('../../assets/profile-icons/trash2-red2.png');
 const SPARKLES_GRAY = require('../../assets/profile-icons/sparkles-gray.png');
@@ -14,7 +13,6 @@ import { FileManager } from '../../services/fileManager';
 import './index.less';
 
 export default function CatHistory() {
-  const navSpace = useNavSpace();
   const [cats, setCats] = useState<CatInfo[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
@@ -64,14 +62,9 @@ export default function CatHistory() {
   };
 
   return (
-    <View className="cat-history-page" style={navSpace as React.CSSProperties}>
+    <View className="cat-history-page">
       {/* Header */}
-      <View className="header">
-        <View className="back-btn" onClick={() => navigateBack()}>
-          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
-        </View>
-        <Text className="header-title">我的 AI 猫咪历史</Text>
-      </View>
+      <PageHeader title="猫咪历史" />
 
       {/* Cat Grid */}
       {cats.length > 0 ? (

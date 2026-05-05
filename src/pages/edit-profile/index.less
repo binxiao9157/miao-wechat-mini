@@ -1,12 +1,9 @@
-.icon-img {
-  display: block;
-}
+@import '../../styles/mixins.less';
 
 .edit-profile-page {
   min-height: 100vh;
-  background: #FFF9F5;
+  background: var(--background);
   padding: 0 48rpx 48rpx;
-  padding-top: calc(env(safe-area-inset-top) + 32rpx);
 }
 
 /* === 成功提示 === */
@@ -15,7 +12,7 @@
   top: 80rpx;
   left: 50%;
   transform: translateX(-50%);
-  background: #52c41a;
+  background: var(--color-success);
   color: #fff;
   padding: 16rpx 40rpx;
   border-radius: 40rpx;
@@ -32,32 +29,7 @@
   font-weight: 700;
 }
 
-/* === Header === */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 48rpx;
-}
-
-.back-btn {
-  width: 80rpx;
-  height: 80rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #5D4037;
-  margin-left: -16rpx;
-}
-
-.header-title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #5D4037;
-  flex: 1;
-  text-align: center;
-}
-
+/* === 保存按钮 === */
 .save-btn {
   padding: 12rpx 24rpx;
 }
@@ -69,7 +41,7 @@
 .save-btn-text {
   font-size: 28rpx;
   font-weight: 700;
-  color: #FF9D76;
+  color: var(--primary-strong);
 }
 
 /* === 头像区域 === */
@@ -106,14 +78,14 @@
   right: -8rpx;
   width: 96rpx;
   height: 96rpx;
-  background: #FF9D76;
+  background: var(--primary-strong);
   border-radius: 32rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   box-shadow: 0 8rpx 24rpx rgba(255, 157, 118, 0.3);
-  border: 8rpx solid #FFF9F5;
+  border: 8rpx solid var(--background);
   z-index: 20;
 }
 
@@ -137,7 +109,7 @@
 .form-label {
   font-size: 20rpx;
   font-weight: 800;
-  color: rgba(93, 64, 55, 0.6);
+  color: var(--color-warm-brown-muted);
   letter-spacing: 4rpx;
   margin-bottom: 16rpx;
   display: block;
@@ -157,12 +129,12 @@
   padding: 0 40rpx;
   font-size: 28rpx;
   font-weight: 700;
-  color: #5D4037;
+  color: var(--color-warm-brown);
 
   &.phone-display {
     display: flex;
     align-items: center;
-    color: rgba(93, 64, 55, 0.5);
+    color: var(--text-hint);
     font-weight: 500;
   }
 }
@@ -184,12 +156,12 @@
 .nav-item-text {
   font-size: 28rpx;
   font-weight: 700;
-  color: #5D4037;
+  color: var(--color-warm-brown);
 }
 
 .nav-item-arrow {
   font-size: 32rpx;
-  color: #FF9D76;
+  color: var(--primary-strong);
   opacity: 0.4;
 }
 
@@ -220,8 +192,9 @@
 }
 
 .actionsheet {
+  .bottom-sheet();
   width: 100%;
-  background: #FFF9F5;
+  background: var(--background);
   border-radius: 48rpx 48rpx 0 0;
   padding: 48rpx;
   padding-bottom: calc(env(safe-area-inset-bottom) + 48rpx);
@@ -238,7 +211,7 @@
 .actionsheet-title {
   font-size: 36rpx;
   font-weight: 800;
-  color: #5D4037;
+  color: var(--color-warm-brown);
 }
 
 .actionsheet-close {
@@ -253,7 +226,7 @@
 
 .close-text {
   font-size: 28rpx;
-  color: #999;
+  color: var(--on-surface-variant);
 }
 
 .actionsheet-options {
@@ -294,13 +267,13 @@
 
 .option-icon-box.orange {
   background: rgba(255, 157, 118, 0.1);
-  color: #FF9D76;
+  color: var(--primary-strong);
 }
 
 .option-text {
   font-size: 26rpx;
   font-weight: 700;
-  color: #5D4037;
+  color: var(--color-warm-brown);
 }
 
 .actionsheet-cancel {
@@ -316,5 +289,5 @@
 .cancel-text {
   font-size: 28rpx;
   font-weight: 700;
-  color: #999;
+  color: var(--on-surface-variant);
 }

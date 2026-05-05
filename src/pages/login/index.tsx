@@ -216,35 +216,36 @@ export default function Login() {
       <View className="bg-decoration bg-decoration-2"></View>
 
       <View className="content">
-        {/* Logo Section */}
-        <View className="logo-section">
-          <View className="logo-wrapper">
-            <PawLogo size={48} className="logo-icon" />
+        <View className="main-area">
+          {/* Logo Section */}
+          <View className="logo-section">
+            <View className="logo-wrapper">
+              <PawLogo size={48} className="logo-icon" />
+            </View>
+            <Text className="app-name">Miao</Text>
           </View>
-          <Text className="app-name">Miao</Text>
-        </View>
 
-        {/* Title Section */}
-        <View className="title-section">
-          <Text className="title">欢迎来到 Miao</Text>
-          <Text className="subtitle">以喵星之名，守护你的每一份温暖</Text>
-        </View>
+          {/* Title Section */}
+          <View className="title-section">
+            <Text className="title">欢迎来到 Miao</Text>
+            <Text className="subtitle">以喵星之名，守护你的每一份温暖</Text>
+          </View>
 
-        {/* Cat Image */}
-        <View className="cat-container">
-          <View className="cat-outer">
-            <View className="cat-inner">
-              <Image
-                src={catImage}
-                className="cat-image"
-                mode="aspectFill"
-              />
+          {/* Cat Image */}
+          <View className="cat-container">
+            <View className="cat-outer">
+              <View className="cat-inner">
+                <Image
+                  src={catImage}
+                  className="cat-image"
+                  mode="aspectFill"
+                />
+              </View>
             </View>
           </View>
-        </View>
 
-        {/* Form Section */}
-        <View className="form-section">
+          {/* Form Section */}
+          <View className="form-section">
           <View className="input-group">
             <Input
               className="miao-input"
@@ -295,6 +296,10 @@ export default function Login() {
             <Button className="login-btn" onClick={handleLogin} disabled={isLoading}>
               {isLoading ? '登录中...' : '登录'}
             </Button>
+            <View className="register-link" onClick={handleRegister}>
+              <Text className="register-link-text">还没有账号？</Text>
+              <Text className="register-link-action">立即注册</Text>
+            </View>
             {process.env.TARO_ENV === 'weapp' && (
               <Button
                 className="phone-login-btn"
@@ -309,24 +314,19 @@ export default function Login() {
             <Button className="wechat-login-btn" onClick={handleWechatLogin} disabled={isLoading}>
               微信一键登录
             </Button>
-            <Button className="register-btn" onClick={handleRegister}>
-              注册
-            </Button>
           </View>
         </View>
-      </View>
-
-      {/* Footer */}
-      <View className="footer">
-        <Text className="download-btn" onClick={() => navigateTo({ url: '/pages/download/index' })}>
-          扫码下载 App
-        </Text>
-        <View className="footer-links">
-          <Text className="footer-link" onClick={() => navigateTo({ url: '/pages/privacy-policy/index' })}>隐私政策</Text>
-          <Text className="dot">·</Text>
-          <Text className="footer-link" onClick={() => navigateTo({ url: '/pages/terms-of-service/index' })}>服务条款</Text>
         </View>
-        <Text className="copyright">© 2026 MIAO SANCTUARY</Text>
+
+        {/* Footer */}
+        <View className="footer">
+          <View className="footer-links">
+            <Text className="footer-link" onClick={() => navigateTo({ url: '/pages/privacy-policy/index' })}>隐私政策</Text>
+            <Text className="dot">·</Text>
+            <Text className="footer-link" onClick={() => navigateTo({ url: '/pages/terms-of-service/index' })}>服务条款</Text>
+          </View>
+          <Text className="copyright">© 2026 MIAO SANCTUARY</Text>
+        </View>
       </View>
     </View>
   );

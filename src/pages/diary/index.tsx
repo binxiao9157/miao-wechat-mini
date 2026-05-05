@@ -589,7 +589,7 @@ export default function Diary() {
   return (
     <View className="diary-page" style={navSpace as React.CSSProperties}>
       <ScrollView
-        className={`diary-list tab-content-${activeTab} tab-slide-${tabDirection}`}
+        className="diary-list"
         scrollY
         refresherEnabled
         refresherTriggered={refreshing}
@@ -630,6 +630,7 @@ export default function Diary() {
           </View>
         </View>
 
+        <View className={`tab-content tab-slide-${tabDirection}`}>
         {activeTab === 'mine' ? (
           // 我的记录
           diaries.length === 0 ? (
@@ -696,6 +697,7 @@ export default function Diary() {
             ))
           )
         )}
+        </View>
       </ScrollView>
 
       {showCompose && (

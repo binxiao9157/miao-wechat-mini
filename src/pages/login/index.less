@@ -1,5 +1,5 @@
 .login-page {
-  min-height: 100vh;
+  height: 100vh;
   background: linear-gradient(180deg, var(--background) 0%, var(--background) 78%, var(--surface-container-low) 100%);
   position: relative;
   overflow: hidden;
@@ -31,7 +31,8 @@
 
 .content {
   width: 100%;
-  padding: calc(env(safe-area-inset-top) + 56rpx) 48rpx 0;
+  height: 100vh;
+  padding: calc(env(safe-area-inset-top) + 24rpx) 48rpx 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -40,12 +41,21 @@
   box-sizing: border-box;
 }
 
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  width: 100%;
+}
+
 .logo-section {
   display: flex;
   align-items: center;
   gap: 0;
-  margin-top: 48rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: 8rpx;
 
   .logo-wrapper {
     transform: rotate(-12deg);
@@ -61,7 +71,7 @@
   }
 
   .app-name {
-    font-size: 56rpx;
+    font-size: 52rpx;
     font-weight: 900;
     background: linear-gradient(to right, var(--color-warm-brown) 0%, var(--primary) 100%);
     -webkit-background-clip: text;
@@ -73,30 +83,29 @@
 
 .title-section {
   text-align: center;
-  margin-bottom: 32rpx;
 
   .title {
     display: block;
-    font-size: 44rpx;
+    font-size: 40rpx;
     font-weight: 900;
     color: var(--on-primary-container);
     margin-bottom: 8rpx;
   }
 
   .subtitle {
-    font-size: 26rpx;
+    font-size: 24rpx;
     color: var(--on-surface-variant);
     font-weight: 500;
   }
 }
 
 .cat-container {
-  width: 360rpx;
-  height: 360rpx;
-  margin-bottom: 32rpx;
+  width: min(280rpx, 26vh);
+  height: min(280rpx, 26vh);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .cat-outer {
@@ -127,12 +136,12 @@
 }
 
 .input-group {
-  margin-bottom: 40rpx;
+  margin-bottom: 20rpx;
 }
 
 .miao-input {
   width: 100%;
-  height: 96rpx;
+  height: 88rpx;
   padding: 0 32rpx;
   border: 2rpx solid var(--outline-variant);
   border-radius: 48rpx;
@@ -168,7 +177,7 @@
 
 .forgot-password {
   text-align: right;
-  margin-bottom: 16rpx;
+  margin-bottom: 8rpx;
 
   .forgot-text {
     font-size: 24rpx;
@@ -181,14 +190,15 @@
   color: #f44336;
   font-size: 24rpx;
   text-align: center;
-  margin-bottom: 16rpx;
+  margin-bottom: 8rpx;
 }
 
 .agreement {
   display: flex;
   align-items: flex-start;
   gap: 16rpx;
-  margin-bottom: 32rpx;
+  margin-top: 12rpx;
+  margin-bottom: 16rpx;
 
   &.shake {
     animation: agreementShake 0.4s ease;
@@ -233,19 +243,18 @@
 }
 
 .buttons {
-  padding-top: 32rpx;
+  padding-top: 4rpx;
 }
 
 .login-btn {
   width: 100%;
-  height: 96rpx;
+  height: 88rpx;
   background: var(--primary);
   color: #fff;
   border: none;
   border-radius: 48rpx;
   font-size: 32rpx;
   font-weight: 600;
-  margin-bottom: 24rpx;
 
   &:active {
     opacity: 0.8;
@@ -256,31 +265,34 @@
   }
 }
 
-.register-btn {
-  width: 100%;
-  height: 96rpx;
-  background: #fff;
-  color: var(--on-primary-container);
-  border: 2rpx solid var(--outline-variant);
-  border-radius: 48rpx;
-  font-size: 32rpx;
-  font-weight: 600;
+.register-link {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16rpx 0 20rpx;
 
-  &:active {
-    background: var(--color-warm-cream);
+  .register-link-text {
+    font-size: 26rpx;
+    color: var(--on-surface-variant);
+  }
+
+  .register-link-action {
+    font-size: 26rpx;
+    color: var(--primary);
+    font-weight: 700;
   }
 }
 
 .phone-login-btn {
   width: 100%;
-  height: 96rpx;
+  height: 88rpx;
   background: #07C160;
   color: #fff;
   border: none;
   border-radius: 48rpx;
   font-size: 32rpx;
   font-weight: 600;
-  margin-bottom: 24rpx;
+  margin-bottom: 16rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -300,14 +312,13 @@
 
 .wechat-login-btn {
   width: 100%;
-  height: 96rpx;
+  height: 88rpx;
   background: #07C160;
   color: #fff;
   border: none;
   border-radius: 48rpx;
   font-size: 32rpx;
   font-weight: 600;
-  margin-bottom: 24rpx;
 
   &:active {
     opacity: 0.8;
@@ -319,23 +330,15 @@
 }
 
 .footer {
-  margin-top: auto;
-  padding: 48rpx 0;
   text-align: center;
-
-  .download-btn {
-    display: block;
-    font-size: 26rpx;
-    font-weight: 700;
-    color: var(--primary);
-    margin-bottom: 16rpx;
-  }
+  padding-bottom: calc(env(safe-area-inset-bottom) + 8rpx);
+  flex-shrink: 0;
 
   .footer-links {
     display: flex;
     justify-content: center;
     gap: 16rpx;
-    margin-bottom: 16rpx;
+    margin-bottom: 4rpx;
   }
 
   .footer-link {

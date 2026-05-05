@@ -15,6 +15,7 @@ class SyncQueue {
   private readonly DEBOUNCE_MS = 5000;
   private readonly MAX_RETRIES = 3;
   private flushing = false;
+  private flushResolve: (() => void) | null = null;
 
   enqueue(task: SyncTask) {
     const key = task.id ? `${task.type}:${task.id}` : task.type;
@@ -29,10 +30,7 @@ class SyncQueue {
 
   async flush() {
     if (this.flushing) {
-      // 等待当前 flush 完成
-      while (this.flushing) {
-        await new Promise(r => setTimeout(r, 100));
-      }
+      await new Promise<void>(resolve => { this.flushResolve = resolve; });
       return;
     }
     const tasks = Array.from(this.dirty.values());
@@ -43,6 +41,8 @@ class SyncQueue {
     const username = storage.getUserInfo()?.username;
     if (!username) {
       this.flushing = false;
+      this.flushResolve?.();
+      this.flushResolve = null;
       return;
     }
 
@@ -56,6 +56,8 @@ class SyncQueue {
       }
     }
     this.flushing = false;
+    this.flushResolve?.();
+    this.flushResolve = null;
 
     // 如果 flush 期间有新任务入队，再调度一次
     if (this.dirty.size > 0) {

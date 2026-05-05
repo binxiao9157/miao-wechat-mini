@@ -27,7 +27,7 @@ interface RequestOptions {
 }
 
 interface RequestResult {
-  data: any;
+   any;
   status: number;
   headers: Record<string, string>;
 }
@@ -46,8 +46,8 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
 
   const isMini = isMiniProgram();
   // 小程序环境需要完整域名，Web/H5 环境保留调用方传入的 /api 路径。
-  const baseURL = isMini 
-    ? (process.env.TARO_APP_API_BASE_URL || 'https://your-server.com') 
+  const baseURL = isMini
+    ? (process.env.TARO_APP_API_BASE_URL || 'https://your-server.com')
     : '';
   const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`;
   const token = getItem('miao_auth_token');
@@ -78,12 +78,12 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
           Taro.eventCenter.trigger('auth:unauthorized');
         }
         const err: any = new Error(msg);
-        err.response = { status: res.statusCode, data: errData };
+        err.response = { status: res.statusCode,  errData };
         throw err;
       }
 
       return {
-        data: res.data,
+         data: res.data,
         status: res.statusCode,
         headers: res.header || {},
       };
@@ -139,7 +139,7 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
     }
 
     return {
-       responseData,
+      data: responseData,
       status: response.status,
       headers: {},
     };

@@ -576,13 +576,8 @@ export const storage = {
             if (data) {
               const diaries = JSON.parse(data) as DiaryEntry[];
               if (diaries.length > 200) {
-                const old = diaries.slice(0, -200);
                 const recent = diaries.slice(-200);
-                for (const d of old) {
-                  delete (d as any).media;
-                  delete (d as any).mediaData;
-                }
-                setItem(key, JSON.stringify([...old, ...recent]));
+                setItem(key, JSON.stringify(recent));
               }
             }
           } catch (e) {}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { View, Text, Image, ScrollView, Input, Textarea } from '@tarojs/components';
-import Taro, { useShareAppMessage, useShareTimeline } from '@tarojs/taro';
+import Taro, { useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, TimeLetter, CatInfo } from '../../services/storage';
 import CatAvatar from '../../components/common/CatAvatar';
@@ -185,8 +185,6 @@ export default function TimeLettersPage() {
 
   // 快进模式
   const [isFastForward, setIsFastForward] = useState(() => storage.getIsFastForward());
-  const debugTapRef = useRef(0);
-  const debugTimerRef = useRef<any>(null);
 
   const myCats = useMemo(() => storage.getCatList(), []);
   const activeCat = useMemo(() => storage.getActiveCat(), []);
@@ -216,6 +214,11 @@ export default function TimeLettersPage() {
       Taro.eventCenter.off('timeLettersPageShow', onShow);
     };
   }, [view]);
+
+  // 从 admin-settings 返回时重新读取调试开关
+  useDidShow(() => {
+    setIsFastForward(storage.getIsFastForward());
+  });
 
   const loadLetters = () => {
     const list = storage.getTimeLetters();
@@ -273,26 +276,6 @@ export default function TimeLettersPage() {
       }
     });
   }, [letters, showToast]);
-
-  // 标题5击切换快进模式（仅开发环境）
-  const handleDebugTap = useCallback(() => {
-    if (process.env.NODE_ENV !== 'development') return;
-    debugTapRef.current += 1;
-    if (debugTimerRef.current) clearTimeout(debugTimerRef.current);
-
-    if (debugTapRef.current >= 5) {
-      debugTapRef.current = 0;
-      const next = !isFastForward;
-      setIsFastForward(next);
-      storage.setIsFastForward(next);
-      Taro.showToast({ title: next ? '快进模式已开启' : '快进模式已关闭', icon: 'none' });
-      return;
-    }
-
-    debugTimerRef.current = setTimeout(() => {
-      debugTapRef.current = 0;
-    }, 2000);
-  }, [isFastForward]);
 
   // 删除信件
   const handleDeleteClick = useCallback((e: any, letter: TimeLetter) => {
@@ -371,7 +354,7 @@ export default function TimeLettersPage() {
 
       {/* 页面头部 */}
       <View className="page-header">
-        <View className="header-title" onClick={handleDebugTap}>
+        <View className="header-title">
           <Text className="title-main">时光信件</Text>
           <Text className="title-sub">Time Capsules</Text>
         </View>

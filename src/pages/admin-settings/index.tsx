@@ -16,6 +16,8 @@ export default function AdminSettings() {
   const [presets, setPresets] = useState<PresetCat[]>([]);
   const [newPresetName, setNewPresetName] = useState('');
   const [newPresetUrl, setNewPresetUrl] = useState('');
+  const [isPointsCheat, setIsPointsCheat] = useState(() => storage.getIsPointsCheat());
+  const [isFastForward, setIsFastForward] = useState(() => storage.getIsFastForward());
 
   useEffect(() => {
     setProfile(aiConfig.getProfile());
@@ -218,6 +220,48 @@ export default function AdminSettings() {
           </View>
         </View>
       </View>
+
+      {/* 调试工具 - 仅开发环境可见 */}
+      {process.env.NODE_ENV === 'development' && (
+        <View className="section">
+          <View className="section-head">
+            <View className="section-icon">
+              <Image className="icon-img" src={SETTINGS_DARK} mode="aspectFit" style={{ width: 22, height: 22 }} />
+            </View>
+            <View>
+              <Text className="section-title">调试工具</Text>
+              <Text className="section-desc">仅开发环境可用</Text>
+            </View>
+          </View>
+
+          <View className="switch-row">
+            <View className="switch-item">
+              <Text className="switch-label">积分作弊</Text>
+              <Switch
+                color="#ff8c5a"
+                checked={isPointsCheat}
+                onChange={(e) => {
+                  const val = e.detail.value;
+                  setIsPointsCheat(val);
+                  storage.setIsPointsCheat(val);
+                }}
+              />
+            </View>
+            <View className="switch-item">
+              <Text className="switch-label">时光快进</Text>
+              <Switch
+                color="#ff8c5a"
+                checked={isFastForward}
+                onChange={(e) => {
+                  const val = e.detail.value;
+                  setIsFastForward(val);
+                  storage.setIsFastForward(val);
+                }}
+              />
+            </View>
+          </View>
+        </View>
+      )}
 
       <View className="tips">
         <Text className="tips-title">说明</Text>

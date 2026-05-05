@@ -301,6 +301,7 @@ const USER_DATA_KEYS = {
   FRIEND_DIARIES: 'miao_friend_diaries',
   HAS_SUBMITTED_SURVEY: 'miao_has_submitted_survey',
   IS_FAST_FORWARD: 'miao_debug_fast_forward',
+  IS_POINTS_CHEAT: 'miao_debug_points_cheat',
 };
 
 function getCurrentUsername(): string | null {
@@ -1249,6 +1250,14 @@ export const storage = {
 
   getIsFastForward: (): boolean => {
     return getItem(getUserKey(USER_DATA_KEYS.IS_FAST_FORWARD)) === 'true';
+  },
+
+  setIsPointsCheat: (enabled: boolean) => {
+    storage.setItem(getUserKey(USER_DATA_KEYS.IS_POINTS_CHEAT), enabled.toString());
+  },
+
+  getIsPointsCheat: (): boolean => {
+    return getItem(getUserKey(USER_DATA_KEYS.IS_POINTS_CHEAT)) === 'true';
   },
 
   getLastReadNotificationTime: (): number => {

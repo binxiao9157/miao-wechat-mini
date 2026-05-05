@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, Button } from '@tarojs/components';
 import Taro, { switchTab, navigateTo, useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
 import { storage, PointsInfo, PointTransaction } from '../../services/storage';
@@ -38,13 +38,11 @@ export default function Points() {
     history: []
   });
   const [showHistory, setShowHistory] = useState(false);
-  const [isDebugMode, setIsDebugMode] = useState(false);
-  const debugTapRef = useRef(0);
-  const debugTimerRef = useRef<any>(null);
+  const [isPointsCheat, setIsPointsCheat] = useState(() => storage.getIsPointsCheat() && process.env.NODE_ENV === 'development');
 
   const REDEEM_THRESHOLD = storage.getUnlockThreshold();
   const ownedCatsCount = storage.getCatList().length;
-  const effectivePoints = (isDebugMode && process.env.NODE_ENV === 'development') ? Math.max(pointsInfo.total, REDEEM_THRESHOLD) : pointsInfo.total;
+  const effectivePoints = isPointsCheat ? Math.max(pointsInfo.total, REDEEM_THRESHOLD) : pointsInfo.total;
 
   useEffect(() => {
     Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
@@ -57,12 +55,12 @@ export default function Points() {
 
     return () => {
       Taro.eventCenter.off('points-updated', handleStorageChange);
-      if (debugTimerRef.current) clearTimeout(debugTimerRef.current);
     };
   }, []);
 
   useDidShow(() => {
     loadPoints();
+    setIsPointsCheat(storage.getIsPointsCheat() && process.env.NODE_ENV === 'development');
   });
 
   const loadPoints = () => {
@@ -103,28 +101,11 @@ export default function Points() {
     }
   };
 
-  const handleDebugTap = () => {
-    if (process.env.NODE_ENV !== 'development') return;
-    debugTapRef.current += 1;
-    if (debugTimerRef.current) clearTimeout(debugTimerRef.current);
-
-    if (debugTapRef.current >= 5) {
-      debugTapRef.current = 0;
-      setIsDebugMode(!isDebugMode);
-      Taro.showToast({ title: isDebugMode ? '调试模式已关闭' : '调试模式已开启', icon: 'none' });
-      return;
-    }
-
-    debugTimerRef.current = setTimeout(() => {
-      debugTapRef.current = 0;
-    }, 2000);
-  };
-
   return (
     <View className="points-page" style={navSpace as React.CSSProperties}>
       {/* Header */}
       <View className="header">
-        <View className="header-title" onClick={handleDebugTap}>
+        <View className="header-title">
           <Text className="title">积分中心</Text>
           <Text className="subtitle">POINTS CENTER</Text>
         </View>
@@ -219,13 +200,6 @@ export default function Points() {
             </Button>
           </View>
         </View>
-
-        {/* 调试入口 - 仅开发环境可见 */}
-        {process.env.NODE_ENV === 'development' && (
-          <View className="debug-entry" onClick={handleDebugTap}>
-            <Text className="debug-text">调试模式点击入口</Text>
-          </View>
-        )}
       </View>
 
       {/* 积分明细弹窗 */}

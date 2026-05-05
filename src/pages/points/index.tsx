@@ -38,7 +38,7 @@ export default function Points() {
     history: []
   });
   const [showHistory, setShowHistory] = useState(false);
-  const [isPointsCheat, setIsPointsCheat] = useState(() => storage.getIsPointsCheat() && process.env.NODE_ENV === 'development');
+  const [isPointsCheat, setIsPointsCheat] = useState(() => storage.getIsPointsCheat());
 
   const REDEEM_THRESHOLD = storage.getUnlockThreshold();
   const ownedCatsCount = storage.getCatList().length;
@@ -60,7 +60,7 @@ export default function Points() {
 
   useDidShow(() => {
     loadPoints();
-    setIsPointsCheat(storage.getIsPointsCheat() && process.env.NODE_ENV === 'development');
+    setIsPointsCheat(storage.getIsPointsCheat());
   });
 
   const loadPoints = () => {

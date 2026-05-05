@@ -44,7 +44,7 @@ export default function Points() {
 
   const REDEEM_THRESHOLD = storage.getUnlockThreshold();
   const ownedCatsCount = storage.getCatList().length;
-  const effectivePoints = isDebugMode ? Math.max(pointsInfo.total, REDEEM_THRESHOLD) : pointsInfo.total;
+  const effectivePoints = (isDebugMode && process.env.NODE_ENV === 'development') ? Math.max(pointsInfo.total, REDEEM_THRESHOLD) : pointsInfo.total;
 
   useEffect(() => {
     Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
@@ -104,6 +104,7 @@ export default function Points() {
   };
 
   const handleDebugTap = () => {
+    if (process.env.NODE_ENV !== 'development') return;
     debugTapRef.current += 1;
     if (debugTimerRef.current) clearTimeout(debugTimerRef.current);
 
@@ -219,10 +220,12 @@ export default function Points() {
           </View>
         </View>
 
-        {/* 调试入口 */}
-        <View className="debug-entry" onClick={handleDebugTap}>
-          <Text className="debug-text">调试模式点击入口</Text>
-        </View>
+        {/* 调试入口 - 仅开发环境可见 */}
+        {process.env.NODE_ENV === 'development' && (
+          <View className="debug-entry" onClick={handleDebugTap}>
+            <Text className="debug-text">调试模式点击入口</Text>
+          </View>
+        )}
       </View>
 
       {/* 积分明细弹窗 */}

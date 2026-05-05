@@ -63,6 +63,11 @@ export default function Register() {
       };
 
       await register(newUser);
+      // 注册成功后，清除本地存储中的明文密码
+      const savedUser = storage.findUser(trimmedUsername);
+      if (savedUser) {
+        storage.saveUserInfo({ ...savedUser, passwordSet: true });
+      }
       routeAfterCatSync();
     } catch (e: any) {
       setError(e.message || '注册失败，请重试');

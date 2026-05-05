@@ -17,7 +17,6 @@ function normalizeUser(raw: any, fallbackPassword?: string): UserInfo {
     username: raw?.username || '',
     nickname: raw?.nickname || raw?.username || 'Miao 用户',
     avatar: raw?.avatar || '',
-    password: fallbackPassword,
     passwordSet: !!raw?.passwordSet || !!fallbackPassword,
     openidBound: !!raw?.openidBound,
     phone: raw?.phone,

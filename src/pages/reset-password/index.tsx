@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, Input, Image } from '@tarojs/components';
-import { navigateBack } from '@tarojs/taro';
+import Taro, { navigateBack } from '@tarojs/taro';
 import { storage } from '../../services/storage';
+import { request } from '../../utils/httpAdapter';
 import PageHeader from '../../components/layout/PageHeader';
 import './index.less';
 
@@ -21,16 +22,30 @@ export default function ResetPassword() {
 
   let countdownTimer: ReturnType<typeof setInterval>;
 
-  const handleSendCode = () => {
+  const handleSendCode = async () => {
     if (!phone || phone.length !== 11) {
       setError('请输入正确的手机号');
       return;
     }
 
-    // Mock: 生成随机6位验证码
-    const mockCode = String(Math.floor(100000 + Math.random() * 900000));
-    codeRef.current = mockCode;
     setError('');
+    try {
+      const reqData = { phone };
+      await request({ url: '/api/v1/auth/send-reset-code', method: 'POST',  reqData });
+      Taro.showToast({ title: '验证码已发送', icon: 'none' });
+    } catch {
+      // 服务端 API 未就绪时，回退到开发模式
+      if (process.env.NODE_ENV === 'development') {
+        const mockCode = String(Math.floor(100000 + Math.random() * 900000));
+        codeRef.current = mockCode;
+        console.log('[Dev] 重置密码验证码:', mockCode);
+        Taro.showToast({ title: '验证码已发送（开发模式）', icon: 'none' });
+      } else {
+        setError('验证码发送失败，请稍后重试');
+        return;
+      }
+    }
+
     setCountdown(60);
     countdownTimer = setInterval(() => {
       setCountdown(prev => {
@@ -41,18 +56,9 @@ export default function ResetPassword() {
         return prev - 1;
       });
     }, 1000);
-
-    // 提示用户验证码（Mock）
-    import('@tarojs/taro').then(Taro => {
-      Taro.showModal({
-        title: '验证码（测试）',
-        content: `您的验证码是：${mockCode}（测试环境，正式环境将通过短信发送）`,
-        showCancel: false,
-      });
-    });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!phone || phone.length !== 11) {
       setError('请输入正确的手机号');
       return;
@@ -61,26 +67,34 @@ export default function ResetPassword() {
       setError('请输入验证码');
       return;
     }
-    if (code !== codeRef.current) {
-      setError('验证码错误');
-      return;
-    }
     if (!newPassword || newPassword.length < 6) {
       setError('新密码长度不能少于6位');
       return;
     }
 
-    const user = storage.findUser(phone);
-    if (!user) {
-      setError('该手机号未注册');
-      return;
+    try {
+      const resetData = { phone, code, newPassword };
+      await request({
+        url: '/api/v1/auth/reset-password',
+        method: 'POST',
+         resetData,
+      });
+      setShowToast(true);
+      setTimeout(() => {
+        navigateBack();
+      }, 1500);
+    } catch (e: any) {
+      // 服务端 API 未就绪时，回退到开发模式验证
+      if (process.env.NODE_ENV === 'development' && codeRef.current && code === codeRef.current) {
+        storage.updatePassword(phone, newPassword);
+        setShowToast(true);
+        setTimeout(() => {
+          navigateBack();
+        }, 1500);
+        return;
+      }
+      setError(e?.message || '重置密码失败，请重试');
     }
-
-    storage.updatePassword(phone, newPassword);
-    setShowToast(true);
-    setTimeout(() => {
-      navigateBack();
-    }, 1500);
   };
 
   return (

@@ -274,8 +274,9 @@ export default function TimeLettersPage() {
     });
   }, [letters, showToast]);
 
-  // 标题5击切换快进模式
+  // 标题5击切换快进模式（仅开发环境）
   const handleDebugTap = useCallback(() => {
+    if (process.env.NODE_ENV !== 'development') return;
     debugTapRef.current += 1;
     if (debugTimerRef.current) clearTimeout(debugTimerRef.current);
 

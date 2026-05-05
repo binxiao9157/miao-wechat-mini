@@ -680,18 +680,23 @@ export const storage = {
 
   findUser: (username: string): UserInfo | null => {
     const users = storage.getAllUsers();
-    return users.find(u => u.username === username) || null;
+    const user = users.find(u => u.username === username);
+    if (!user) return null;
+    const { password, ...safe } = user;
+    return safe as UserInfo;
   },
 
-  updatePassword: (username: string, newPassword: string): boolean => {
+  updatePassword: (username: string, _newPassword: string): boolean => {
     const users = storage.getAllUsers();
     const index = users.findIndex(u => u.username === username);
     if (index >= 0) {
-      users[index].password = newPassword;
+      delete users[index].password;
+      users[index].passwordSet = true;
       storage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
       const currentUser = storage.getUserInfo();
       if (currentUser && currentUser.username === username) {
-        currentUser.password = newPassword;
+        delete currentUser.password;
+        currentUser.passwordSet = true;
         storage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
       }
       return true;

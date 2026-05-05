@@ -23,7 +23,7 @@ export default function ChangePassword() {
   const [showToast, setShowToast] = useState(false);
 
   const localUser = user?.username ? storage.findUser(user.username) : null;
-  const requiresCurrentPassword = !!(user?.passwordSet || localUser?.password);
+  const requiresCurrentPassword = !!(user?.passwordSet || localUser?.passwordSet);
   const pageTitle = requiresCurrentPassword ? '修改登录密码' : '设置 PWA 登录密码';
 
   const handleSave = async () => {
@@ -32,8 +32,8 @@ export default function ChangePassword() {
       return;
     }
 
-    if (requiresCurrentPassword && localUser?.password && currentPassword !== localUser.password) {
-      setError('当前密码错误');
+    if (requiresCurrentPassword && !currentPassword) {
+      setError('请输入当前密码');
       return;
     }
 
@@ -50,10 +50,10 @@ export default function ChangePassword() {
     try {
       await authService.setPassword(newPassword, requiresCurrentPassword ? currentPassword : undefined);
       if (user?.username) {
-        storage.updatePassword(user.username, newPassword);
+        storage.updatePassword(user.username, '');
         const currentUser = storage.getUserInfo();
         if (currentUser) {
-          storage.saveUserInfo({ ...currentUser, password: newPassword, passwordSet: true });
+          storage.saveUserInfo({ ...currentUser, passwordSet: true });
         }
       }
       setShowToast(true);

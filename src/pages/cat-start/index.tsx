@@ -23,7 +23,7 @@ export default function CatStart() {
     <View className="cat-start-page" style={navSpace as React.CSSProperties}>
       {/* Logout Button */}
       <View className="back-btn" onClick={handleGoBack}>
-        <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
+        <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
       </View>
 
       {/* Background Decorative Elements */}

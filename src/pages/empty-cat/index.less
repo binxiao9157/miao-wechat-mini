@@ -11,16 +11,17 @@
 .back-btn {
   position: absolute;
   left: 36rpx;
-  top: 120rpx;
+  top: var(--nav-top, calc(env(safe-area-inset-top) + 36rpx));
   width: 80rpx;
   height: 80rpx;
-  background: var(--color-warm-cream-dark);
+  background: #FFFFFF;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--color-warm-brown);
   z-index: 10;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
 
 .back-btn:active {

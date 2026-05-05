@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import Taro, { navigateTo, reLaunch } from '@tarojs/taro';
+import Taro, { navigateTo } from '@tarojs/taro';
+import { safeBack } from '../../utils/navigateAdapter';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const CAMERA_PRIMARY = require('../../assets/profile-icons/camera-primary.png');
@@ -14,7 +15,7 @@ export default function EmptyCatPage() {
   const redemptionParams = isRedemption ? `&isRedemption=1&redemptionAmount=${redemptionAmount}` : '';
 
   const handleBack = () => {
-    reLaunch({ url: '/pages/cat-start/index' });
+    safeBack('/pages/cat-start/index');
   };
 
   const handleUpload = () => {
@@ -29,7 +30,7 @@ export default function EmptyCatPage() {
     <View className="welcome-page">
       {/* Header - Back Button */}
       <View className="back-btn" onClick={handleBack}>
-        <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
+        <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
       </View>
 
       {/* Logo */}

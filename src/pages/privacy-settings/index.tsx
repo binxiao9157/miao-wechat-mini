@@ -3,9 +3,9 @@ import { View, Text, Image } from '@tarojs/components';
 import Taro, { navigateTo } from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
+import PageHeader from '../../components/layout/PageHeader';
 import { storage } from '../../services/storage';
 
-const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const TRASH2_RED2 = require('../../assets/profile-icons/trash2-red2.png');
 const SHIELDCHECK_PRIMARY = require('../../assets/profile-icons/shieldcheck-primary.png');
 
@@ -68,12 +68,7 @@ export default function PrivacySettings() {
       )}
 
       {/* Header */}
-      <View className="header">
-        <View className="back-btn" onClick={() => safeBack()}>
-          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
-        </View>
-        <Text className="header-title">隐私设置</Text>
-      </View>
+      <PageHeader title="隐私设置" onBack={() => safeBack()} />
 
       {/* 清除缓存 */}
       <View className="settings-section">

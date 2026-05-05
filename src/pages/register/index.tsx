@@ -4,12 +4,11 @@ import { View, Text, Input, Button, Image } from '@tarojs/components';
 import { navigateTo } from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
 import PawLogo from '../../components/common/PawLogo';
+import PageHeader from '../../components/layout/PageHeader';
 import { storage, UserInfo } from '../../services/storage';
 import { useAuthContext } from '../../context/AuthContext';
 import { routeAfterCatSync } from '../../services/catLifecycle';
 import './index.less';
-
-const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const USER_DARK = require('../../assets/profile-icons/user-dark.png');
 const LOCK_DARK = require('../../assets/profile-icons/lock-dark.png');
 const EYEOFF_DARK = require('../../assets/profile-icons/eyeoff-dark.png');
@@ -85,11 +84,7 @@ export default function Register() {
 
       <View className="content">
         {/* Header */}
-        <View className="header">
-          <View className="back-btn" onClick={() => safeBack()}>
-            <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
-          </View>
-        </View>
+        <PageHeader title="加入 Miao" onBack={() => safeBack()} />
 
         {/* Logo Section */}
         <View className="logo-section">

@@ -27,7 +27,7 @@ export default function PageHeader({
       <View className="header-left">
         {showBack && (
           <View className="back-btn" onClick={() => onBack ? onBack() : safeBack()}>
-            <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 20, height: 20 }} />
+            <Image className="icon-img" src={ARROWLEFT_PNG} mode="aspectFit" style={{ width: 24, height: 24 }} />
           </View>
         )}
       </View>

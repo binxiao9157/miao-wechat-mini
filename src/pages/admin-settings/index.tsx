@@ -4,8 +4,8 @@ import Taro from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
 import { aiConfig, AIProfile, AIProvider, DEFAULT_AI_PROFILES } from '../../services/aiConfig';
 import { storage, PresetCat } from '../../services/storage';
+import PageHeader from '../../components/layout/PageHeader';
 
-const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const SETTINGS_DARK = require('../../assets/profile-icons/settings-dark.png');
 const PLUS_WHITE = require('../../assets/profile-icons/plus-white.png');
 const X_GRAY = require('../../assets/profile-icons/x-gray.png');
@@ -76,15 +76,7 @@ export default function AdminSettings() {
 
   return (
     <View className="admin-settings-page">
-      <View className="header">
-        <View className="back-btn" onClick={() => safeBack()}>
-          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
-        </View>
-        <View className="header-title-wrap">
-          <Text className="header-title">后台配置</Text>
-          <Text className="header-subtitle">AI Provider Profile</Text>
-        </View>
-      </View>
+      <PageHeader title="后台配置" subtitle="AI Provider Profile" onBack={() => safeBack()} />
 
       <View className="section">
         <View className="section-head">

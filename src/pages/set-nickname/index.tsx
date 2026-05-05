@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Input, Button } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import { View, Text, Input, Button, Image } from '@tarojs/components';
+import Taro, { reLaunch } from '@tarojs/taro';
 import { useAuthContext } from '../../context/AuthContext';
 import { request } from '../../utils/httpAdapter';
 import { routeAfterCatSync } from '../../services/catLifecycle';
+import { useNavSpace } from '../../hooks/useNavSpace';
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 import './index.less';
 
 // 覆盖常见 emoji 范围，包括 Emoji 12.0-15.0 新增
@@ -15,6 +17,7 @@ function filterEmoji(text: string): string {
 
 export default function SetNickname() {
   const { isAuthenticated, user, updateProfile } = useAuthContext();
+  const navSpace = useNavSpace();
   const defaultNickname = user?.nickname || '';
   const [nickname, setNickname] = useState(defaultNickname);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,6 +65,11 @@ export default function SetNickname() {
 
   return (
     <View className="set-nickname-page">
+      <View className="page-header" style={navSpace as React.CSSProperties}>
+        <View className="back-btn" onClick={() => reLaunch({ url: '/pages/home/index' })}>
+          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
+        </View>
+      </View>
       <View className="bg-decoration bg-decoration-1"></View>
       <View className="bg-decoration bg-decoration-2"></View>
 

@@ -6,12 +6,14 @@ import { FileManager } from '../../services/fileManager';
 import { storage } from '../../services/storage';
 import { isCatReady } from '../../services/catLifecycle';
 import { useAuthContext } from '../../context/AuthContext';
+import { useNavSpace } from '../../hooks/useNavSpace';
 
 const SPARKLES_GRAY = require('../../assets/profile-icons/sparkles-gray.png');
 const SPARKLES_PRIMARY = require('../../assets/profile-icons/sparkles-primary.png');
 const CHECKCIRCLE_GREEN = require('../../assets/profile-icons/checkcircle-green.png');
 const ALERTCIRCLE_RED2 = require('../../assets/profile-icons/alertcircle-red2.png');
 const ARROWRIGHT_PRIMARY2 = require('../../assets/profile-icons/arrowright-primary2.png');
+const ARROWLEFT_WHITE = require('../../assets/profile-icons/arrowleft-white.png');
 
 import './index.less';
 
@@ -27,6 +29,7 @@ const getImmersiveStatus = (p: number): string => {
 
 export default function GenerationProgress() {
   const { refreshCatStatus } = useAuthContext();
+  const navSpace = useNavSpace();
 
   const router = Taro.getCurrentInstance().router;
   const isRedemption = router?.params?.isRedemption === '1';
@@ -222,6 +225,13 @@ export default function GenerationProgress() {
 
   return (
     <View className="generation-progress-page">
+      {/* 返回按钮 */}
+      {phase === 'generating' && (
+        <View className="back-btn-top" style={navSpace as React.CSSProperties} onClick={() => navigateBack()}>
+          <Image className="icon-img" src={ARROWLEFT_WHITE} mode="aspectFit" style={{ width: 20, height: 20 }} />
+        </View>
+      )}
+
       {/* 生成中状态 */}
       {phase === 'generating' && (
         <View className="generating-view">

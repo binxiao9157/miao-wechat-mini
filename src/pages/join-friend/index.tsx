@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {  View, Text, Image } from '@tarojs/components';
-import Taro, { useRouter, navigateTo } from '@tarojs/taro';
+import Taro, { useRouter, navigateTo, navigateBack } from '@tarojs/taro';
 const SPARKLES_PNG = require('../../assets/profile-icons/sparkles-primary.png');
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
+import { useNavSpace } from '../../hooks/useNavSpace';
 import { useAuthContext } from '../../context/AuthContext';
 import { friendService } from '../../services/friendService';
 import CatAvatar from '../../components/common/CatAvatar';
@@ -10,6 +12,7 @@ import './index.less';
 export default function JoinFriend() {
   const router = useRouter();
   const { isAuthenticated } = useAuthContext();
+  const navSpace = useNavSpace();
   const [inviterName, setInviterName] = useState('');
   const [inviterAvatar, setInviterAvatar] = useState('');
   const [catName, setCatName] = useState('');
@@ -56,6 +59,11 @@ export default function JoinFriend() {
   if (!inviterName) {
     return (
       <View className="join-friend-page">
+        <View className="page-header" style={navSpace as React.CSSProperties}>
+          <View className="back-btn" onClick={() => navigateBack()}>
+            <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
+          </View>
+        </View>
         <View className="error-state">
           <View className="error-icon-box">
             <Text className="error-emoji">😿</Text>
@@ -69,6 +77,12 @@ export default function JoinFriend() {
 
   return (
     <View className="join-friend-page">
+      <View className="page-header" style={navSpace as React.CSSProperties}>
+        <View className="back-btn" onClick={() => navigateBack()}>
+          <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
+        </View>
+      </View>
+
       {/* 成功动画 */}
       {showSuccess && (
         <View className="success-overlay">

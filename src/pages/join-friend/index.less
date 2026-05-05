@@ -1,6 +1,9 @@
-.join-friend-page { min-height: 100vh; background: var(--background); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48rpx; }
+.join-friend-page { min-height: 100vh; background: var(--background); display: flex; flex-direction: column; align-items: center; padding: 0 48rpx 48rpx; box-sizing: border-box; }
 
-.error-state, .content { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.page-header { width: 100%; display: flex; align-items: center; padding: 0 0 24rpx; }
+.back-btn { width: 64rpx; height: 64rpx; display: flex; align-items: center; justify-content: center; border-radius: 32rpx; background: var(--surface-container); }
+
+.error-state, .content { display: flex; flex-direction: column; align-items: center; width: 100%; flex: 1; justify-content: center; }
 .error-icon-box, .inviter-section { display: flex; flex-direction: column; align-items: center; }
 .error-emoji, .inviter-avatar-text { font-size: 64rpx; }
 .error-icon-box { width: 140rpx; height: 140rpx; background: var(--surface-container); border-radius: 48rpx; display: flex; align-items: center; justify-content: center; margin-bottom: 24rpx; }

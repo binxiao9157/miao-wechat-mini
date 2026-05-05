@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro, { navigateTo } from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
+import { useNavSpace } from '../../hooks/useNavSpace';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const CAMERA_PRIMARY = require('../../assets/profile-icons/camera-primary.png');
@@ -10,6 +11,7 @@ import './index.less';
 
 export default function EmptyCatPage() {
   const router = Taro.getCurrentInstance().router;
+  const navSpace = useNavSpace();
   const isRedemption = router?.params?.isRedemption === '1';
   const redemptionAmount = Number(router?.params?.redemptionAmount) || 0;
   const redemptionParams = isRedemption ? `&isRedemption=1&redemptionAmount=${redemptionAmount}` : '';
@@ -27,7 +29,7 @@ export default function EmptyCatPage() {
   };
 
   return (
-    <View className="welcome-page">
+    <View className="welcome-page" style={navSpace as React.CSSProperties}>
       {/* Header - Back Button */}
       <View className="back-btn" onClick={handleBack}>
         <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />

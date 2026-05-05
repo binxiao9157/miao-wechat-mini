@@ -12,7 +12,7 @@
 
 .back-btn-top {
   position: absolute;
-  top: 0;
+  top: var(--nav-top, calc(env(safe-area-inset-top) + 20rpx));
   left: 24rpx;
   width: 64rpx;
   height: 64rpx;

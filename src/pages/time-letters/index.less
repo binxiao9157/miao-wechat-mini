@@ -354,7 +354,7 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 32px;
-      padding-top: 16px;
+      padding-top: var(--nav-top, calc(env(safe-area-inset-top) + 20rpx));
 
       .back-btn {
         width: 48px;
@@ -617,7 +617,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 48px 24px 16px;
+    padding: var(--nav-top, calc(env(safe-area-inset-top) + 20rpx)) 24px 16px;
 
     .detail-back {
       width: 48px;

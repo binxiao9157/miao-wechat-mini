@@ -31,7 +31,7 @@ export default function ResetPassword() {
     setError('');
     try {
       const reqData = { phone };
-      await request({ url: '/api/v1/auth/send-reset-code', method: 'POST',  reqData });
+      await request({ url: '/api/v1/auth/send-reset-code', method: 'POST', data: reqData });
       Taro.showToast({ title: '验证码已发送', icon: 'none' });
     } catch {
       // 服务端 API 未就绪时，回退到开发模式

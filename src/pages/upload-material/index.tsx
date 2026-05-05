@@ -3,8 +3,8 @@ import { View, Text, Image, Input } from '@tarojs/components';
 import Taro, { navigateTo } from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
-import PageHeader from '../../components/layout/PageHeader';
 
+const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const X_DARK = require('../../assets/profile-icons/x-dark.png');
 const UPLOAD_PRIMARY = require('../../assets/profile-icons/upload-primary.png');
 const SPARKLES_WHITE = require('../../assets/profile-icons/sparkles-white.png');
@@ -138,7 +138,10 @@ export default function UploadMaterial() {
         </View>
       )}
 
-      <PageHeader title="上传素材" onBack={() => safeBack()} />
+      {/* Back Button */}
+      <View className="back-btn" onClick={() => safeBack()}>
+        <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
+      </View>
 
       <View className="content">
         <View className="title-section">

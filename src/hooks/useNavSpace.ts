@@ -5,6 +5,7 @@ export interface NavSpaceStyle {
   '--nav-top': string;
   '--nav-height': string;
   '--nav-side': string;
+  '--nav-capsule-top': string;
   [key: string]: string;
 }
 
@@ -13,6 +14,7 @@ export function useNavSpace(): NavSpaceStyle {
     '--nav-top': '0px',
     '--nav-height': '32px',
     '--nav-side': '21px',
+    '--nav-capsule-top': '0px',
   });
 
   useEffect(() => {
@@ -28,6 +30,7 @@ export function useNavSpace(): NavSpaceStyle {
         '--nav-top': `${capsuleTop + capsuleHeight + 8}px`,
         '--nav-height': `${capsuleHeight}px`,
         '--nav-side': `${Math.max(21, windowWidth - (capsule?.right || windowWidth) + 21)}px`,
+        '--nav-capsule-top': `${capsuleTop}px`,
       });
     } catch {
       // fallback defaults already set

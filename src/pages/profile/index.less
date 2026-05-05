@@ -3,9 +3,6 @@
   background: linear-gradient(180deg, var(--background) 0%, var(--background) 82%, var(--color-warm-cream) 100%);
   display: flex;
   flex-direction: column;
-  --profile-nav-top: calc(env(safe-area-inset-top) + 20rpx);
-  --profile-nav-height: 64rpx;
-  --profile-page-side: 42rpx;
 }
 
 .profile-icon {
@@ -16,11 +13,9 @@
 /* Header */
 .header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  padding: 0 var(--profile-page-side) 18rpx var(--profile-page-side);
-  padding-top: var(--profile-nav-top);
-  min-height: var(--profile-nav-height);
+  padding: var(--nav-top, calc(env(safe-area-inset-top) + 76rpx)) var(--nav-side, 42rpx) 18rpx var(--nav-side, 42rpx);
   background: transparent;
   column-gap: 24rpx;
 }
@@ -57,7 +52,6 @@
   display: flex;
   gap: 16rpx;
   flex-shrink: 0;
-  padding-top: 2rpx;
 }
 
 .header-btn {

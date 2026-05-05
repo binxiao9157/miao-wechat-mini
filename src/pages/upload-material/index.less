@@ -3,6 +3,29 @@
   background: var(--background);
   display: flex;
   flex-direction: column;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* === Back Button === */
+.back-btn {
+  position: absolute;
+  left: 36rpx;
+  top: var(--nav-top, calc(env(safe-area-inset-top) + 36rpx));
+  width: 80rpx;
+  height: 80rpx;
+  background: #FFFFFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-warm-brown);
+  z-index: 10;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+.back-btn:active {
+  transform: scale(0.9);
 }
 
 /* === Toast === */
@@ -28,18 +51,10 @@
   font-size: 26rpx;
 }
 
-/* === Header === */
-.header-title {
-  font-size: 36rpx;
-  font-weight: 800;
-  color: var(--color-warm-brown);
-  margin-left: 12rpx;
-}
-
 /* === Content === */
 .content {
   flex: 1;
-  padding: 0 48rpx 48rpx;
+  padding: calc(var(--nav-top, calc(env(safe-area-inset-top) + 76rpx)) + 80rpx) 48rpx 48rpx;
 }
 
 .title-section {

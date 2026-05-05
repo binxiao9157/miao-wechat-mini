@@ -77,9 +77,10 @@ export default function Profile() {
 
   const navSpace = useNavSpace();
   const navStyle: React.CSSProperties = {
-    '--profile-nav-top': navSpace['--nav-top'],
-    '--profile-nav-height': navSpace['--nav-height'],
-    '--profile-page-side': navSpace['--nav-side'],
+    '--nav-top': navSpace['--nav-top'],
+    '--nav-height': navSpace['--nav-height'],
+    '--nav-capsule-top': navSpace['--nav-capsule-top'],
+    '--nav-side': navSpace['--nav-side'],
   };
 
   useShareAppMessage(() => ({

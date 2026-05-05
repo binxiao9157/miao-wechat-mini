@@ -11,12 +11,13 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
+  retryCount: number;
 }
 
 export default class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, retryCount: 0 };
   }
 
   static getDerivedStateFromError(error: Error): State {
@@ -28,7 +29,7 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   handleRetry = () => {
-    this.setState({ hasError: false, error: undefined });
+    this.setState(prev => ({ hasError: false, error: undefined, retryCount: prev.retryCount + 1 }));
   };
 
   render() {
@@ -42,9 +43,13 @@ export default class ErrorBoundary extends Component<Props, State> {
           <Text className="error-icon">⚠️</Text>
           <Text className="error-title">出了点问题</Text>
           <Text className="error-message">{this.state.error?.message || '未知错误'}</Text>
-          <Button className="retry-btn" onClick={this.handleRetry}>
-            重试
-          </Button>
+          {this.state.retryCount >= 3 ? (
+            <Text className="error-message">应用出现异常，请重启后再试</Text>
+          ) : (
+            <Button className="retry-btn" onClick={this.handleRetry}>
+              重试
+            </Button>
+          )}
         </View>
       );
     }

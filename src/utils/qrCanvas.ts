@@ -81,7 +81,7 @@ function selectVersion(dataLen: number): QRVersion {
     const neededBits = 4 + 8 + dataLen * 8; // mode indicator + char count + data
     if (neededBits <= availableBits) return v;
   }
-  return QR_VERSIONS[6]; // fallback
+  throw new Error(`QR码数据过长(${dataLen}字节)，最大支持136字节`);
 }
 
 function encodeData(text: string, version: QRVersion): Uint8Array {

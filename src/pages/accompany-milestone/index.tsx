@@ -21,9 +21,11 @@ export default function AccompanyMilestone() {
 
   // 已陪伴天数（简化：从今天往前推）
   const accompaniedDays = new Set<number>();
-  for (let i = 0; i < Math.min(days, daysInMonth); i++) {
-    const d = now.getDate() - i;
-    if (d > 0) accompaniedDays.add(d);
+  for (let i = 0; i < days; i++) {
+    const d = new Date(year, month, now.getDate() - i);
+    if (d.getMonth() === month && d.getFullYear() === year) {
+      accompaniedDays.add(d.getDate());
+    }
   }
 
   return (

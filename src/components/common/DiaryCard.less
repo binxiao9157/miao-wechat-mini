@@ -18,6 +18,11 @@
     background: var(--surface-container);
     margin-right: 20rpx;
     flex-shrink: 0;
+
+    &:not([src]),
+    &[src=""] {
+      visibility: hidden;
+    }
   }
 
   .user-info {

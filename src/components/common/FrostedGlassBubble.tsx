@@ -3,7 +3,6 @@ import './FrostedGlassBubble.less';
 
 interface FrostedGlassBubbleProps {
   text: string;
-  bubbleId: number;
   visible: boolean;
   exiting?: boolean;
 }

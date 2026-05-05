@@ -46,7 +46,6 @@ export default function Home() {
   const [bubbleText, setBubbleText] = useState('');
   const [bubbleVisible, setBubbleVisible] = useState(false);
   const [bubbleExiting, setBubbleExiting] = useState(false);
-  const [bubbleId, setBubbleId] = useState(0);
   const [pointsToast, setPointsToast] = useState('');
   const bubbleTimerRef = useRef<any>(null);
 
@@ -63,7 +62,6 @@ export default function Home() {
     setBubbleExiting(false);
     setBubbleText(text);
     setBubbleVisible(true);
-    setBubbleId(prev => prev + 1);
 
     bubbleTimerRef.current = setTimeout(() => {
       setBubbleExiting(true);
@@ -131,6 +129,8 @@ export default function Home() {
   }, [loadCat, refreshCatsFromCloud, showFloatingBubble]);
 
   useDidShow(() => {
+    setVideoError(false);
+    setIsVideoReady(false);
     loadCat();
     refreshCatsFromCloud();
     checkDailyLogin();
@@ -275,11 +275,7 @@ export default function Home() {
       lastTapRef.current = 0;
     } else {
       lastTapRef.current = now;
-      setTimeout(() => {
-        if (lastTapRef.current === now) {
-          triggerInteraction('idle');
-        }
-      }, 300);
+      triggerInteraction('idle');
     }
   };
 
@@ -350,7 +346,6 @@ export default function Home() {
           {/* 互动气泡 */}
           <FrostedGlassBubble
             text={bubbleText}
-            bubbleId={bubbleId}
             visible={bubbleVisible}
             exiting={bubbleExiting}
           />

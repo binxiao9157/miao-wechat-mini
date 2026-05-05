@@ -8,6 +8,7 @@ const PLAY_WHITE = require('../../assets/profile-icons/play-white.png');
 const DOWNLOAD_PRIMARY = require('../../assets/profile-icons/download-primary.png');
 const TRASH2_RED2 = require('../../assets/profile-icons/trash2-red2.png');
 const HEART_GRAY = require('../../assets/profile-icons/heart-gray.png');
+const HEART_RED = require('../../assets/profile-icons/heart-red.png');
 const SHARE_GRAY = require('../../assets/profile-icons/share-gray.png');
 const ALERTCIRCLE_RED2 = require('../../assets/profile-icons/alertcircle-red2.png');
 import { storage, CatInfo } from '../../services/storage';
@@ -25,6 +26,7 @@ export default function CatPlayer() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const [showControls, setShowControls] = useState(true);
+  const [liked, setLiked] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
 
@@ -258,11 +260,11 @@ export default function CatPlayer() {
         </View>
 
         <View className="footer-actions-side">
-          <View className="action-item" onClick={() => triggerToast('已喜欢')}>
+          <View className="action-item" onClick={() => setLiked(!liked)}>
             <View className="action-circle">
-              <Image className="icon-img" src={HEART_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
+              <Image className="icon-img" src={liked ? HEART_RED : HEART_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
             </View>
-            <Text className="action-label">喜欢</Text>
+            <Text className="action-label">{liked ? '已喜欢' : '喜欢'}</Text>
           </View>
           <View className="action-item" onClick={handleShare}>
             <View className="action-circle">

@@ -9,7 +9,6 @@ import { Text, View } from '@tarojs/components';
 interface IconProps {
   size?: number;
   color?: string;
-  strokeWidth?: number;
   className?: string;
 }
 
@@ -182,9 +181,6 @@ export const ArrowRight = createSymbolIcon(() => '→');
 // 盾牌图标
 export const ShieldCheck = createTextIcon('🛡️');
 
-// 扫描图标
-export const Scan = createTextIcon('📷');
-
 // 导出所有图标
 export default {
   Eye,
@@ -235,5 +231,4 @@ export default {
   AlertCircle,
   ArrowRight,
   ShieldCheck,
-  Scan,
 };

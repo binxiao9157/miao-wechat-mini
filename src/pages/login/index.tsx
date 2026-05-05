@@ -10,7 +10,7 @@ import './index.less';
 const EYE_DARK = require('../../assets/profile-icons/eye-dark.png');
 const EYEOFF_DARK = require('../../assets/profile-icons/eyeoff-dark.png');
 
-const DEFAULT_CAT_IMAGE = 'https://api.dicebear.com/7.x/avataaars/svg?seed=default_cat';
+const DEFAULT_CAT_IMAGE = '';
 
 export default function Login() {
   const { login, wechatLogin, phoneLogin } = useAuthContext();
@@ -131,7 +131,6 @@ export default function Login() {
   };
 
   const handlePhoneLogin = async (e: any) => {
-    // 回调已触发，清除超时计时器
     if (phoneLoginTimerRef.current) {
       clearTimeout(phoneLoginTimerRef.current);
       phoneLoginTimerRef.current = null;
@@ -148,7 +147,7 @@ export default function Login() {
       });
       return;
     }
-    // 微信 getPhoneNumber 回调：e.detail = { errMsg, code, cloudID }
+
     if (e.detail?.errMsg?.includes('fail')) {
       const errMsg = e.detail.errMsg;
       if (errMsg.includes('no permission') || errMsg.includes('deny')) {
@@ -161,38 +160,19 @@ export default function Login() {
       }
       return;
     }
+
     const phoneCode = e.detail?.code;
-    if (!phoneCode) {
-      // 开发者工具中 code 可能为空，使用 cloudID 或生成 mock code
-      const mockCode = e.detail?.cloudID || `dev_phone_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      if (!mockCode) {
-        setError('获取手机号授权失败');
-        return;
-      }
-      setIsLoading(true);
-      setError('');
-      try {
-        const result = await phoneLogin(mockCode);
-        if (!result.success) {
-          setError(getPhoneLoginError(result.error || ''));
-          return;
-        }
-        if (result.isNewUser || (result as any).nickname?.startsWith('喵星人_')) {
-          Taro.redirectTo({ url: '/pages/set-nickname/index' });
-        } else {
-          routeAfterCatSync();
-        }
-      } catch (e: any) {
-        setError(getPhoneLoginError(e?.message || ''));
-      } finally {
-        setIsLoading(false);
-      }
+    const fallbackCode = e.detail?.cloudID || `dev_phone_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const code = phoneCode || fallbackCode;
+    if (!code) {
+      setError('获取手机号授权失败');
       return;
     }
+
     setIsLoading(true);
     setError('');
     try {
-      const result = await phoneLogin(phoneCode);
+      const result = await phoneLogin(code);
       if (!result.success) {
         setError(getPhoneLoginError(result.error || ''));
         return;

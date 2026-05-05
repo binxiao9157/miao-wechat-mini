@@ -172,8 +172,6 @@ export default function GenerationProgress() {
     const cat = catRef.current;
     setIsUnlocking(true);
 
-    reLaunch({ url: '/pages/home/index' });
-
     // 串行提交视频生成任务，避免触发 DashScope rate limit
     const secondaryActions: (keyof typeof ACTION_PROMPTS)[] = ['tail', 'rubbing', 'blink'];
     try {
@@ -195,6 +193,8 @@ export default function GenerationProgress() {
     } catch (e) {
       console.error('后台生成任务失败:', e);
       await FileManager.updateCatVideos(cat.id, {}, false);
+    } finally {
+      reLaunch({ url: '/pages/home/index' });
     }
   };
 

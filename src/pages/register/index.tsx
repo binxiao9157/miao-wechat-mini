@@ -59,7 +59,7 @@ export default function Register() {
         username: trimmedUsername,
         password: trimmedPassword,
         nickname: trimmedUsername,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${trimmedUsername}`
+        avatar: ''
       };
 
       await register(newUser);

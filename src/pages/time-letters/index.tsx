@@ -419,7 +419,7 @@ export default function TimeLettersPage() {
       )}
 
       {/* 信件列表 */}
-      <ScrollView className="letters-list" scrollY>
+      <ScrollView className="letters-list" scrollY showScrollbar={false}>
         {filteredLetters.length === 0 ? (
           <View className="empty-state">
             <View className="empty-icon">
@@ -473,7 +473,7 @@ export default function TimeLettersPage() {
   // 渲染写信页
   const renderWrite = () => (
     <View className="write-page">
-      <ScrollView className="write-scroll" scrollY>
+      <ScrollView className="write-scroll" scrollY showScrollbar={false}>
         {/* 头部导航 */}
         <View className="write-header">
           <View className="back-btn" onClick={() => setViewState('list')}>
@@ -606,7 +606,7 @@ export default function TimeLettersPage() {
         </View>
 
         {/* 信件卡片 */}
-        <ScrollView className="detail-card" scrollY>
+        <ScrollView className="detail-card" scrollY showScrollbar={false}>
           <View className="card-content">
             {/* 装饰圆 */}
             <View className="deco-circle top" />

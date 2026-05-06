@@ -77,7 +77,7 @@ export default function PrivacyPolicy() {
     <View className="policy-page" style={navSpace as React.CSSProperties}>
       <PageHeader title="隐私政策" />
 
-      <ScrollView className="content" scrollY>
+      <ScrollView className="content" scrollY showScrollbar={false}>
         <View className="policy-hero">
           <View className="hero-icon-wrap">
             <Text className="hero-icon-text">🛡️</Text>

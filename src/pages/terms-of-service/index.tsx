@@ -81,7 +81,7 @@ export default function TermsOfService() {
     <View className="terms-page" style={navSpace as React.CSSProperties}>
       <PageHeader title="服务条款" />
 
-      <ScrollView className="content" scrollY>
+      <ScrollView className="content" scrollY showScrollbar={false}>
         <View className="terms-hero">
           <View className="hero-icon-wrap">
             <Text className="hero-icon-text">⚖️</Text>

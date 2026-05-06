@@ -604,6 +604,7 @@ export default function Diary() {
       <ScrollView
         className="diary-list"
         scrollY
+        showScrollbar={false}
         refresherEnabled
         refresherTriggered={refreshing}
         onRefresherRefresh={onRefresh}

@@ -613,8 +613,8 @@ export default function Diary() {
       >
         <View className="header">
           <View className="header-title">
-            <Text className="title">日常记录</Text>
-            <Text className="subtitle">DAILY MOMENTS</Text>
+            <Text className="title-main">日常记录</Text>
+            <Text className="title-sub">DAILY MOMENTS</Text>
           </View>
           <View className="header-actions">
             <View className="friend-btn" onClick={() => setShowAddFriendMenu(true)}>

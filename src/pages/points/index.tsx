@@ -124,10 +124,12 @@ export default function Points() {
       {/* Header */}
       <View className="header">
         <View className="header-title">
-          <Text className="title">积分中心</Text>
-          <Text className="subtitle">POINTS CENTER</Text>
+          <Text className="title-main">积分中心</Text>
+          <Text className="title-sub">POINTS CENTER</Text>
         </View>
-        <View className="placeholder" />
+        <View className="header-actions">
+          <View className="action-spacer" />
+        </View>
       </View>
 
       <ScrollView className="points-scroll" scrollY showScrollbar={false}>

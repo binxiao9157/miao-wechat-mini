@@ -384,11 +384,14 @@ export default function TimeLettersPage() {
           <Text className="title-main">时光信件</Text>
           <Text className="title-sub">Time Capsules</Text>
         </View>
-        <View
-          className="add-btn"
-          onClick={() => setViewState('write')}
-        >
-          <Image className="icon-img" src={PLUS_WHITE} mode="aspectFit" style={{ width: 28, height: 28 }} />
+        <View className="header-actions">
+          <View className="action-spacer" />
+          <View
+            className="add-btn"
+            onClick={() => setViewState('write')}
+          >
+            <Image className="icon-img" src={PLUS_WHITE} mode="aspectFit" style={{ width: 28, height: 28 }} />
+          </View>
         </View>
       </View>
 

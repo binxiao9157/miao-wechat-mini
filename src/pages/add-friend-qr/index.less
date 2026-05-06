@@ -51,6 +51,17 @@
   align-items: center;
   justify-content: center;
   padding: 48rpx;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.card-hidden {
+  opacity: 0;
+  transform: translateY(24rpx);
+}
+
+.card-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* 二维码名片 */

@@ -181,7 +181,7 @@ export default function AddFriendQR() {
       <PageHeader title="面对面添加" subtitle="Face-to-Face" />
 
       {/* 名片卡片 */}
-      <View className="card-container">
+      <View className={`card-container ${qrReady ? 'card-visible' : 'card-hidden'}`}>
         <View className="qr-card">
           <View className="card-top-line" />
 
@@ -236,7 +236,7 @@ export default function AddFriendQR() {
       </View>
 
       {/* 底部按钮 */}
-      <View className="action-buttons">
+      <View className={`action-buttons ${qrReady ? 'card-visible' : 'card-hidden'}`}>
         <View className="action-btn" onClick={handleSaveImage}>
           <View className={`action-icon ${isSaving ? 'loading' : ''}`}>
             {isSaving ? <Text className="loading-text">...</Text> : <Image className="icon-img" src={DOWNLOAD_PNG} mode="aspectFit" style={{ width: 24, height: 24 }} />}

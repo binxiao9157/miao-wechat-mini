@@ -220,6 +220,18 @@ export default function TimeLettersPage() {
     setIsFastForward(storage.getIsFastForward());
   });
 
+  // 写信/详情页面时隐藏底部 TabBar
+  useEffect(() => {
+    if (view === 'write' || view === 'detail') {
+      Taro.eventCenter.trigger('tabbar:hide');
+    } else {
+      Taro.eventCenter.trigger('tabbar:show');
+    }
+    return () => {
+      Taro.eventCenter.trigger('tabbar:show');
+    };
+  }, [view]);
+
   const loadLetters = () => {
     const list = storage.getTimeLetters();
     setLetters(list);
@@ -487,25 +499,31 @@ export default function TimeLettersPage() {
         {/* 信件标题 */}
         <View className="section">
           <Text className="section-label">信件标题</Text>
-          <Input
-            type="text"
-            value={title}
-            onInput={(e) => setTitle(e.detail.value)}
-            placeholder="给未来的信起个题目吧..."
-            className="title-input"
-          />
+          <View className="input-wrapper">
+            <Input
+              type="text"
+              value={title}
+              onInput={(e) => setTitle(e.detail.value)}
+              placeholder="给未来的信起个题目吧..."
+              placeholderStyle="color: var(--on-surface-variant); opacity: 0.3; font-size: 28rpx; font-weight: 400;"
+              className="title-input"
+            />
+          </View>
         </View>
 
         {/* 信件内容 */}
         <View className="section">
           <Text className="section-label">信件内容</Text>
-          <Textarea
-            value={content}
-            onInput={(e) => setContent(e.detail.value)}
-            placeholder="写下此刻想说的话..."
-            className="content-textarea"
-            maxlength={2000}
-          />
+          <View className="input-wrapper">
+            <Textarea
+              value={content}
+              onInput={(e) => setContent(e.detail.value)}
+              placeholder="写下此刻想说的话..."
+              placeholderStyle="color: var(--on-surface-variant); opacity: 0.3; font-size: 28rpx;"
+              className="content-textarea"
+              maxlength={2000}
+            />
+          </View>
         </View>
 
         {/* 封存时长 */}

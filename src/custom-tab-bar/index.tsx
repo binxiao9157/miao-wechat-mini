@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import Taro, { useDidShow } from '@tarojs/taro';
+import Taro from '@tarojs/taro';
 import './index.less';
 
 // Lucide-style icon images for tab bar
@@ -23,7 +23,7 @@ const TAB_ICONS = {
   },
   profile: {
     active: require('../assets/profile-icons/user-active.png'),
-    inactive: require('../assets/profile-icons/user-inactive.png'),
+    inactive: require('../assets/profile-icons/user-active.png'),
   },
 };
 
@@ -35,19 +35,12 @@ const tabs = [
   { pagePath: '/pages/profile/index', text: 'MIAO', iconKey: 'profile' as const },
 ];
 
-function getCurrentPath(): string {
-  const pages = Taro.getCurrentPages();
-  return pages[pages.length - 1]?.route || '';
-}
-
 export default function CustomTabBar() {
-  const [current, setCurrent] = useState(getCurrentPath);
+  // 每次渲染直接从页面栈读取当前路径，不依赖 useState/useDidShow
+  // 微信小程序 switchTab 后会自动触发 custom-tab-bar 重新渲染
+  const pages = Taro.getCurrentPages();
+  const current = pages[pages.length - 1]?.route || '';
   const [hidden, setHidden] = useState(false);
-
-  // 每次页面显示时刷新当前路由，确保 tab 选中状态同步
-  useDidShow(() => {
-    setCurrent(getCurrentPath());
-  });
 
   useEffect(() => {
     const onShow = () => setHidden(true);
@@ -71,10 +64,7 @@ export default function CustomTabBar() {
           <View
             key={tab.pagePath}
             className={`miao-tab ${active ? 'active' : ''} ${tab.center ? 'center' : ''}`}
-            onClick={() => {
-              setCurrent(tab.pagePath.replace(/^\//, ''));
-              Taro.switchTab({ url: tab.pagePath });
-            }}
+            onClick={() => Taro.switchTab({ url: tab.pagePath })}
           >
             <View className="miao-tab-icon">
               <Image

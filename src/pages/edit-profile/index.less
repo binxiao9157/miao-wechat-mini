@@ -130,6 +130,7 @@
   font-size: 28rpx;
   font-weight: 700;
   color: var(--color-warm-brown);
+  box-sizing: border-box;
 
   &.phone-display {
     display: flex;
@@ -182,13 +183,13 @@
 /* === ActionSheet === */
 .actionsheet-overlay {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-end;
-  z-index: 200;
+  z-index: 1200;
 }
 
 .actionsheet {

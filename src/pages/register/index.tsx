@@ -109,6 +109,7 @@ export default function Register() {
                 className="miao-input with-icon"
                 type="text"
                 placeholder="请输入您的用户名"
+                placeholderStyle="color: #8E8E8E"
                 value={username}
                 onInput={(e) => setUsername(e.detail.value)}
               />
@@ -126,6 +127,7 @@ export default function Register() {
                 className="miao-input with-icon with-eye"
                 type="text"
                 placeholder="请输入您的密码"
+                placeholderStyle="color: #8E8E8E"
                 value={password}
                 onInput={(e) => setPassword(e.detail.value)}
                 password={!showPassword}
@@ -147,6 +149,7 @@ export default function Register() {
                 className="miao-input with-icon with-eye"
                 type="text"
                 placeholder="请再次输入您的密码"
+                placeholderStyle="color: #8E8E8E"
                 value={confirmPassword}
                 onInput={(e) => setConfirmPassword(e.detail.value)}
                 password={!showConfirmPassword}

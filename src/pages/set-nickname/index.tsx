@@ -85,6 +85,7 @@ export default function SetNickname() {
             className="nickname-input"
             type="text"
             placeholder="输入昵称"
+            placeholderStyle="color: #8E8E8E"
             value={nickname}
             onInput={handleInput}
             maxlength={12}

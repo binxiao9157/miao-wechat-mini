@@ -76,6 +76,16 @@ export default function Profile() {
   const adminTapCountRef = useRef(0);
   const adminTapTimerRef = useRef<any>(null);
 
+  const hasOverlay = showLogoutConfirm || showClearConfirm || scanConfirm !== null;
+  useEffect(() => {
+    if (hasOverlay) {
+      Taro.eventCenter.trigger('tabbar:hide');
+    } else {
+      Taro.eventCenter.trigger('tabbar:show');
+    }
+    return () => { Taro.eventCenter.trigger('tabbar:show'); };
+  }, [hasOverlay]);
+
   const navSpace = useNavSpace();
   const navStyle: React.CSSProperties = {
     '--nav-top': navSpace['--nav-top'],

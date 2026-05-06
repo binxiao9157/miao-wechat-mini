@@ -45,6 +45,15 @@ export default function Points() {
   const effectivePoints = isPointsCheat ? Math.max(pointsInfo.total, REDEEM_THRESHOLD) : pointsInfo.total;
 
   useEffect(() => {
+    if (showHistory) {
+      Taro.eventCenter.trigger('tabbar:hide');
+    } else {
+      Taro.eventCenter.trigger('tabbar:show');
+    }
+    return () => { Taro.eventCenter.trigger('tabbar:show'); };
+  }, [showHistory]);
+
+  useEffect(() => {
     Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
     loadPoints();
 

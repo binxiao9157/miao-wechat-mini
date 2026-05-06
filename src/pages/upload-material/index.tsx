@@ -177,6 +177,7 @@ export default function UploadMaterial() {
             onInput={(e) => setNickname(e.detail.value)}
             placeholder="给猫咪起个好听的名字"
             placeholderClass="nickname-placeholder"
+            placeholderStyle="color: #8E8E8E"
           />
         </View>
 

@@ -115,6 +115,7 @@ export default function ChangePassword() {
                 value={currentPassword}
                 onInput={(e) => { setCurrentPassword(e.detail.value); if (error) setError(''); }}
                 placeholder="请输入当前使用的密码"
+                placeholderStyle="color: #8E8E8E"
               />
               <View className="input-toggle" onClick={() => setShowCurrent(!showCurrent)}>
                 {showCurrent ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}
@@ -136,6 +137,7 @@ export default function ChangePassword() {
               value={newPassword}
               onInput={(e) => { setNewPassword(e.detail.value); if (error) setError(''); }}
               placeholder="设置 6-20 位新密码"
+              placeholderStyle="color: #8E8E8E"
             />
             <View className="input-toggle" onClick={() => setShowNew(!showNew)}>
               {showNew ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}
@@ -156,6 +158,7 @@ export default function ChangePassword() {
               value={confirmPassword}
               onInput={(e) => { setConfirmPassword(e.detail.value); if (error) setError(''); }}
               placeholder="请再次输入新密码"
+              placeholderStyle="color: #8E8E8E"
             />
             <View className="input-toggle" onClick={() => setShowConfirm(!showConfirm)}>
               {showConfirm ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}

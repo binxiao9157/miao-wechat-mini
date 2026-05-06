@@ -27,6 +27,7 @@ export default function CommentInput({ onSubmit, placeholder = '说点什么...'
           className="input"
           type="text"
           placeholder={placeholder}
+          placeholderStyle="color: #8E8E8E"
           value={content}
           maxlength={MAX_LENGTH}
           onInput={(e) => setContent(e.detail.value)}

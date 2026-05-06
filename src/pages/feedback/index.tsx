@@ -243,6 +243,7 @@ export default function Feedback() {
                   <Textarea
                     className="question-textarea"
                     placeholder="请填写您的建议..."
+                    placeholderStyle="color: #8E8E8E"
                     value={surveyAnswers[q.id] || ''}
                     onInput={(e) => setSurveyAnswers({ ...surveyAnswers, [q.id]: e.detail.value })}
                     maxlength={500}
@@ -275,6 +276,7 @@ export default function Feedback() {
               <Textarea
                 className="feedback-textarea"
                 placeholder="请详细描述您遇到的问题或建议...（至少 10 个字）"
+                placeholderStyle="color: #8E8E8E"
                 value={feedbackText}
                 onInput={(e) => setFeedbackText(e.detail.value)}
                 maxlength={500}

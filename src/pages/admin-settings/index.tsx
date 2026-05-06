@@ -198,12 +198,14 @@ export default function AdminSettings() {
           <Input
             className="input preset-input"
             placeholder="品种名称"
+            placeholderStyle="color: #8E8E8E"
             value={newPresetName}
             onInput={(e) => setNewPresetName(e.detail.value)}
           />
           <Input
             className="input preset-input"
             placeholder="图片 URL"
+            placeholderStyle="color: #8E8E8E"
             value={newPresetUrl}
             onInput={(e) => setNewPresetUrl(e.detail.value)}
           />

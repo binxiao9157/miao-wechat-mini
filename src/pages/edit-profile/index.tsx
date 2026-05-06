@@ -148,6 +148,7 @@ export default function EditProfile() {
               value={nickname}
               onInput={(e) => setNickname(e.detail.value)}
               placeholder="输入您的新昵称"
+              placeholderStyle="color: #8E8E8E"
             />
           </View>
         </View>

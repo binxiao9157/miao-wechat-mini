@@ -121,6 +121,7 @@ export default function ResetPassword() {
             value={phone}
             onInput={(e) => { setPhone(e.detail.value); if (error) setError(''); }}
             placeholder="请输入注册时的手机号"
+            placeholderStyle="color: #8E8E8E"
             maxlength={11}
           />
         </View>
@@ -135,6 +136,7 @@ export default function ResetPassword() {
               value={code}
               onInput={(e) => { setCode(e.detail.value); if (error) setError(''); }}
               placeholder="请输入验证码"
+              placeholderStyle="color: #8E8E8E"
               maxlength={6}
             />
             <View
@@ -159,6 +161,7 @@ export default function ResetPassword() {
               value={newPassword}
               onInput={(e) => { setNewPassword(e.detail.value); if (error) setError(''); }}
               placeholder="设置 6-20 位新密码"
+              placeholderStyle="color: #8E8E8E"
             />
             <View className="input-toggle" onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <Image className="icon-img" src={EYEOFF_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} /> : <Image className="icon-img" src={EYE_DARK} mode="aspectFit" style={{ width: 18, height: 18 }} />}

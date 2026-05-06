@@ -175,7 +175,7 @@
 
 .compose-modal {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: var(--color-overlay);
   z-index: 1200;
 
@@ -252,10 +252,6 @@
     color: var(--on-primary-container);
     box-sizing: border-box;
     margin-bottom: 16px;
-
-    &::placeholder {
-      color: var(--on-surface-variant);
-    }
   }
 
   /* 媒体预览区域 */
@@ -370,7 +366,7 @@
 /* 评论长按操作菜单 - 浮动气泡 */
 .comment-tooltip-overlay {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   z-index: 1400;
 }
 
@@ -419,7 +415,7 @@
 /* 评论输入弹窗 */
 .comment-modal {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   z-index: 1300;
   display: flex;
   flex-direction: column;
@@ -427,7 +423,7 @@
 
   .comment-modal-mask {
     position: absolute;
-    inset: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: var(--color-overlay);
   }
 
@@ -484,7 +480,7 @@
 /* 添加好友弹窗 */
 .add-friend-modal {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   z-index: 1200;
   display: flex;
   flex-direction: column;
@@ -492,7 +488,7 @@
 
   .add-friend-mask {
     position: absolute;
-    inset: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: var(--color-overlay);
   }
 

@@ -211,14 +211,14 @@ export default function Diary() {
     };
   }, [showCompose]);
 
-  // 评论/发布弹窗打开时隐藏 TabBar，关闭时恢复
+  // 弹窗打开时隐藏 TabBar，关闭时恢复
   useEffect(() => {
-    if (commentingId || showCompose) {
+    if (commentingId || showCompose || showShareSheet || deletingId !== null) {
       Taro.eventCenter.trigger('tabbar:hide');
     } else {
       Taro.eventCenter.trigger('tabbar:show');
     }
-  }, [commentingId, showCompose]);
+  }, [commentingId, showCompose, showShareSheet, deletingId]);
 
   const loadDiaries = async () => {
     const activeCatId = storage.getActiveCatId();
@@ -724,6 +724,7 @@ export default function Diary() {
               <Textarea
                 className="compose-input"
                 placeholder="这一刻在想什么..."
+                placeholderStyle="color: #8E8E8E"
                 value={newContent}
                 onInput={(e) => setNewContent(e.detail.value)}
                 maxlength={500}
@@ -813,6 +814,7 @@ export default function Diary() {
               <Input
                 className="comment-input"
                 placeholder="写下你的评论..."
+                placeholderStyle="color: #8E8E8E"
                 value={commentText}
                 onInput={(e) => setCommentText(e.detail.value)}
                 onConfirm={handleAddComment}

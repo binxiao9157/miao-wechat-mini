@@ -215,6 +215,7 @@ export default function Login() {
               className="miao-input"
               type="text"
               placeholder="用户名"
+              placeholderStyle="color: #8E8E8E"
               value={username}
               onInput={(e) => setUsername(e.detail.value)}
             />
@@ -226,6 +227,7 @@ export default function Login() {
                 className="miao-input password-input"
                 type="text"
                 placeholder="密码"
+                placeholderStyle="color: #8E8E8E"
                 value={password}
                 onInput={(e) => setPassword(e.detail.value)}
                 password={!showPassword}

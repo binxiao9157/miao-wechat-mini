@@ -23,7 +23,7 @@ const TAB_ICONS = {
   },
   profile: {
     active: require('../assets/profile-icons/user-active.png'),
-    inactive: require('../assets/profile-icons/user-active.png'),
+    inactive: require('../assets/profile-icons/user-inactive.png'),
   },
 };
 

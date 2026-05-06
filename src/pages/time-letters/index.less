@@ -549,9 +549,11 @@
     .days-grid {
       display: flex;
       gap: 12px;
+      padding: 4px 0;
 
       .day-option {
         flex: 1;
+        min-width: 0;
         padding: 16px 0;
         background: var(--surface-container-low);
         border-radius: 16px;
@@ -560,7 +562,6 @@
 
         &.selected {
           background: var(--primary-strong);
-          transform: scale(1.05);
           box-shadow: 0 4px 12px rgba(255, 157, 118, 0.3);
 
           .day-text {

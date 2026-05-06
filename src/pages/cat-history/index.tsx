@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image } from '@tarojs/components';
+import { View, Text, Image, ScrollView } from '@tarojs/components';
 import Taro, { navigateTo, useDidShow, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
 import CatAvatar from '../../components/common/CatAvatar';
 import PageHeader from '../../components/layout/PageHeader';
@@ -66,6 +66,7 @@ export default function CatHistory() {
       {/* Header */}
       <PageHeader title="猫咪历史" />
 
+      <ScrollView className="cat-history-scroll" scrollY showScrollbar={false}>
       {/* Cat Grid */}
       {cats.length > 0 ? (
         <View className="cat-grid">
@@ -126,6 +127,7 @@ export default function CatHistory() {
           <Text className="empty-desc">快去上传照片，生成您的第一个 AI 猫咪吧！</Text>
         </View>
       )}
+      </ScrollView>
 
       {/* 删除确认弹窗 */}
       {showDeleteConfirm && (

@@ -1,6 +1,14 @@
 .feedback-page {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: var(--background);
+}
+
+.feedback-scroll {
+  flex: 1;
+  height: 0;
+  padding: 32rpx 40rpx 80rpx;
 }
 
 .feedback-page.success-page {
@@ -10,7 +18,7 @@
 }
 
 .content-scroll {
-  padding: 32rpx 40rpx 80rpx;
+  /* styles moved to .feedback-scroll */
 }
 
 /* Success */

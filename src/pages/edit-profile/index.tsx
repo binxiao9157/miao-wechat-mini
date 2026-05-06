@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Input, Image } from '@tarojs/components';
+import { View, Text, Input, Image, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
 import PageHeader from '../../components/layout/PageHeader';
@@ -120,6 +120,7 @@ export default function EditProfile() {
         }
       />
 
+      <ScrollView className="edit-profile-scroll" scrollY showScrollbar={false}>
       {/* 头像区域 */}
       <View className="avatar-section">
         <View className="avatar-wrapper" onClick={() => setShowActionSheet(true)}>
@@ -176,6 +177,7 @@ export default function EditProfile() {
           提示：好的昵称能让您的猫咪伙伴更容易记住您哦。头像建议选择清晰的个人照片或可爱的宠物合照。
         </Text>
       </View>
+      </ScrollView>
 
       {/* ActionSheet */}
       {showActionSheet && (

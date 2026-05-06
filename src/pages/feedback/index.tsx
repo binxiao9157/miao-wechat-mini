@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Textarea, Image } from '@tarojs/components';
+import { View, Text, Textarea, Image, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
@@ -176,7 +176,7 @@ export default function Feedback() {
       {/* Header */}
       <PageHeader title="反馈" />
 
-      <View className="content-scroll">
+      <ScrollView className="feedback-scroll" scrollY showScrollbar={false}>
         {!hasSubmitted ? (
           <View className="survey-section">
             <View className="survey-notice">
@@ -290,7 +290,7 @@ export default function Feedback() {
             <Text className="footer-text">感谢您的支持，Miao 正在变更好</Text>
           </View>
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 }

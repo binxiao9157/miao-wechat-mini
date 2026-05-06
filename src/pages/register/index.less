@@ -1,5 +1,7 @@
 .register-page {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(180deg, var(--background) 0%, var(--background) 78%, var(--surface-container-low) 100%);
   position: relative;
   overflow: hidden;
@@ -32,12 +34,19 @@
   width: 100%;
   padding: 0 48rpx;
   padding-top: calc(env(safe-area-inset-top) + 56rpx);
-  padding-bottom: 48rpx;
   display: flex;
   flex-direction: column;
   position: relative;
   z-index: 10;
   box-sizing: border-box;
+  flex: 1;
+  height: 0;
+}
+
+.register-scroll {
+  flex: 1;
+  height: 0;
+  padding-bottom: 48rpx;
 }
 
 /* Logo Section */

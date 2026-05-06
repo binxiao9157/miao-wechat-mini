@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Input, Switch, Image } from '@tarojs/components';
+import { View, Text, Input, Switch, Image, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
 import { aiConfig, AIProfile, AIProvider, DEFAULT_AI_PROFILES } from '../../services/aiConfig';
@@ -78,6 +78,7 @@ export default function AdminSettings() {
     <View className="admin-settings-page">
       <PageHeader title="后台配置" subtitle="AI Provider Profile" onBack={() => safeBack()} />
 
+      <ScrollView className="admin-settings-scroll" scrollY showScrollbar={false}>
       <View className="section">
         <View className="section-head">
           <View className="section-icon">
@@ -262,6 +263,8 @@ export default function AdminSettings() {
           API Key 仍只保存在服务端环境变量中。这里仅切换 provider、模型名和生成参数，小程序不会保存密钥。
         </Text>
       </View>
+
+      </ScrollView>
 
       <View className="bottom-actions">
         <View className="reset-btn" onClick={handleReset}>

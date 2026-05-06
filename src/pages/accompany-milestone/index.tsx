@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from '@tarojs/components';
+import { View, Text, ScrollView } from '@tarojs/components';
 import { useRouter } from '@tarojs/taro';
 import PawLogo from '../../components/common/PawLogo';
 import PageHeader from '../../components/layout/PageHeader';
@@ -33,6 +33,7 @@ export default function AccompanyMilestone() {
       {/* Header */}
       <PageHeader title="陪伴里程碑" />
 
+      <ScrollView className="milestone-scroll" scrollY showScrollbar={false}>
       {/* 天数卡片 */}
       <View className="days-card">
         <Text className="days-label">与 {catName} 相遇的第</Text>
@@ -79,6 +80,7 @@ export default function AccompanyMilestone() {
           每一天的陪伴都是最珍贵的礼物，{'\n'}愿你和 {catName} 的故事继续温暖下去。
         </Text>
       </View>
+      </ScrollView>
     </View>
   );
 }

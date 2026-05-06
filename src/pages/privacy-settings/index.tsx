@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image } from '@tarojs/components';
+import { View, Text, Image, ScrollView } from '@tarojs/components';
 import Taro, { navigateTo } from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
@@ -70,6 +70,7 @@ export default function PrivacySettings() {
       {/* Header */}
       <PageHeader title="隐私设置" onBack={() => safeBack()} />
 
+      <ScrollView className="privacy-settings-scroll" scrollY showScrollbar={false}>
       {/* 清除缓存 */}
       <View className="settings-section">
         <View className="setting-item" onClick={handleClearCache}>
@@ -108,6 +109,7 @@ export default function PrivacySettings() {
           清除缓存将删除本地存储的媒体文件（如日记图片等），不会影响您的账号信息、猫咪数据和其他核心数据。
         </Text>
       </View>
+      </ScrollView>
 
       {/* 清除中动画 */}
       {isClearing && (

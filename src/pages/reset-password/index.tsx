@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, Input, Image } from '@tarojs/components';
+import { View, Text, Input, Image, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
 import { storage } from '../../services/storage';
@@ -110,6 +110,7 @@ export default function ResetPassword() {
       {/* Header */}
       <PageHeader title="重置密码" />
 
+      <ScrollView className="reset-password-scroll" scrollY showScrollbar={false}>
       {/* 表单 */}
       <View className="form-section">
         {/* 手机号 */}
@@ -181,6 +182,7 @@ export default function ResetPassword() {
           <Text className="submit-btn-text">重置密码</Text>
         </View>
       </View>
+      </ScrollView>
     </View>
   );
 }

@@ -1,10 +1,15 @@
 .upload-material-page {
-  min-height: 100vh;
-  background: var(--background);
+  height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--background);
   position: relative;
   box-sizing: border-box;
+}
+
+.upload-material-scroll {
+  flex: 1;
+  height: 0;
 }
 
 /* === Back Button === */
@@ -53,7 +58,6 @@
 
 /* === Content === */
 .content {
-  flex: 1;
   padding: calc(var(--nav-top, calc(env(safe-area-inset-top) + 76rpx)) + 80rpx) 48rpx 48rpx;
 }
 

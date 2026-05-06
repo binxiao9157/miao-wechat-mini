@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Input, Image } from '@tarojs/components';
+import { View, Text, Input, Image, ScrollView } from '@tarojs/components';
 import Taro, { navigateTo } from '@tarojs/taro';
 import PageHeader from '../../components/layout/PageHeader';
 const SPARKLES_WHITE = require('../../assets/profile-icons/sparkles-white.png');
@@ -70,7 +70,7 @@ export default function CreateCompanion() {
       <PageHeader title="手捏小猫" />
 
       {/* Scrollable Content */}
-      <View className="scroll-content">
+      <ScrollView className="create-companion-scroll" scrollY showScrollbar={false}>
         {/* Name Input */}
         <View className="form-section">
           <Text className="form-label">猫咪昵称</Text>
@@ -117,7 +117,7 @@ export default function CreateCompanion() {
             ))}
           </View>
         </View>
-      </View>
+      </ScrollView>
 
       {/* Fixed Bottom Button */}
       <View className="bottom-bar">

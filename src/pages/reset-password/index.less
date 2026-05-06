@@ -1,4 +1,6 @@
-.reset-password-page { min-height: 100vh; background: var(--background); padding: 0 48rpx 48rpx; padding-top: calc(env(safe-area-inset-top) + 32rpx); }
+.reset-password-page { height: 100vh; display: flex; flex-direction: column; background: var(--background); }
+
+.reset-password-scroll { flex: 1; height: 0; padding: 0 48rpx 48rpx; padding-top: calc(env(safe-area-inset-top) + 32rpx); }
 
 .toast { position: fixed; top: 80rpx; left: 50%; transform: translateX(-50%); background: var(--color-success); color: #fff; padding: 16rpx 40rpx; border-radius: 40rpx; z-index: 500; box-shadow: 0 8rpx 32rpx rgba(82,196,26,0.3); }
 .toast-text { color: #fff; font-size: 26rpx; font-weight: 700; }

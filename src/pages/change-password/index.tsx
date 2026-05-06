@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Input, Image } from '@tarojs/components';
+import { View, Text, Input, Image, ScrollView } from '@tarojs/components';
 import { safeBack } from '../../utils/navigateAdapter';
 import { useAuthContext } from '../../context/AuthContext';
 import { storage } from '../../services/storage';
@@ -86,6 +86,7 @@ export default function ChangePassword() {
       {/* Header */}
       <PageHeader title="修改密码" />
 
+      <ScrollView className="change-password-scroll" scrollY showScrollbar={false}>
       {/* 安全验证说明 */}
       <View className="intro-section">
         <View className="intro-icon-box">
@@ -181,6 +182,7 @@ export default function ChangePassword() {
 
       {/* 底部提示 */}
       <Text className="footer-hint">忘记密码？请联系客服进行人工找回</Text>
+      </ScrollView>
     </View>
   );
 }

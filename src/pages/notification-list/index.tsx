@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, Image } from '@tarojs/components';
+import { View, Text, Image, ScrollView } from '@tarojs/components';
 import Taro, { navigateTo, useDidShow } from '@tarojs/taro';
 import PageHeader from '../../components/layout/PageHeader';
 import { storage, TimeLetter, PointsInfo } from '../../services/storage';
@@ -183,6 +183,7 @@ export default function NotificationList() {
         }
       />
 
+      <ScrollView className="notification-list-scroll" scrollY showScrollbar={false}>
       {/* 操作栏 */}
       {unreadCount > 0 && (
         <View className="action-bar">
@@ -226,6 +227,7 @@ export default function NotificationList() {
           <Text className="empty-desc">当有新消息时，会在这里显示</Text>
         </View>
       )}
+      </ScrollView>
     </View>
   );
 }

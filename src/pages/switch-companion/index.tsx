@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image } from '@tarojs/components';
+import { View, Text, Image, ScrollView } from '@tarojs/components';
 import { navigateTo, reLaunch, useDidShow } from '@tarojs/taro';
 import CatAvatar from '../../components/common/CatAvatar';
 import PageHeader from '../../components/layout/PageHeader';
@@ -86,6 +86,7 @@ export default function SwitchCompanion() {
         }
       />
 
+      <ScrollView className="switch-companion-scroll" scrollY showScrollbar={false}>
       {/* Cat Grid */}
       <View className="cat-grid">
         {cats.map((cat) => (
@@ -153,6 +154,7 @@ export default function SwitchCompanion() {
           </Text>
         </View>
       )}
+      </ScrollView>
 
       {/* 删除确认弹窗 */}
       {deletingCat && (

@@ -1,8 +1,15 @@
 @import '../../styles/mixins.less';
 
 .switch-companion-page {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: var(--background);
+}
+
+.switch-companion-scroll {
+  flex: 1;
+  height: 0;
   padding-bottom: 80rpx;
 }
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, Button } from '@tarojs/components';
+import { View, Text, Image, Button, ScrollView } from '@tarojs/components';
 import Taro, { switchTab, navigateTo, useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
 import { storage, PointsInfo, PointTransaction } from '../../services/storage';
 import { useNavSpace } from '../../hooks/useNavSpace';
@@ -130,6 +130,7 @@ export default function Points() {
         <View className="placeholder" />
       </View>
 
+      <ScrollView className="points-scroll" scrollY showScrollbar={false}>
       <View className="points-content">
         {/* 积分卡片 - 对齐PWA: Star图标 + 积分明细用ChevronRight */}
         <View className="points-card" onClick={() => setShowHistory(true)}>
@@ -219,6 +220,7 @@ export default function Points() {
           </View>
         </View>
       </View>
+      </ScrollView>
 
       {/* 积分明细弹窗 */}
       {showHistory && (

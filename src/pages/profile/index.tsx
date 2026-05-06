@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Image } from '@tarojs/components';
+import { View, Text, Image, ScrollView } from '@tarojs/components';
 import Taro, { navigateTo, reLaunch, useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, UserInfo, CatInfo } from '../../services/storage';
@@ -328,6 +328,7 @@ export default function Profile() {
         </View>
       </View>
 
+      <ScrollView className="profile-scroll" scrollY showScrollbar={false}>
       <View className="profile-content">
         {/* 头像区域 */}
         <View className="profile-header">
@@ -430,6 +431,7 @@ export default function Profile() {
           <Text className="footer-icp">浙ICP备2026026483号-1</Text>
         </View>
       </View>
+      </ScrollView>
 
       {/* 退出登录确认弹窗 */}
       <ConfirmModal

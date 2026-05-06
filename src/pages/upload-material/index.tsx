@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, Input } from '@tarojs/components';
+import { View, Text, Image, Input, ScrollView } from '@tarojs/components';
 import Taro, { navigateTo } from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
@@ -143,6 +143,7 @@ export default function UploadMaterial() {
         <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
       </View>
 
+      <ScrollView className="upload-material-scroll" scrollY showScrollbar={false}>
       <View className="content">
         <View className="title-section">
           <Text className="main-title">AI 形象生成</Text>
@@ -191,6 +192,7 @@ export default function UploadMaterial() {
           </View>
         </View>
       </View>
+      </ScrollView>
 
       {firstFrameUrl && (
         <View className="confirm-overlay">

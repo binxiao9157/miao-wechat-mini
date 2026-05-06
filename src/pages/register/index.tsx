@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
-import { View, Text, Input, Button, Image } from '@tarojs/components';
+import { View, Text, Input, Button, Image, ScrollView } from '@tarojs/components';
 import { navigateTo } from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
 import PawLogo from '../../components/common/PawLogo';
@@ -85,6 +85,7 @@ export default function Register() {
         {/* Header */}
         <PageHeader title="加入 Miao" onBack={() => safeBack()} />
 
+        <ScrollView className="register-scroll" scrollY showScrollbar={false}>
         {/* Logo Section */}
         <View className="logo-section">
           <View className="logo-wrapper">
@@ -202,6 +203,7 @@ export default function Register() {
             <Text className="link" onClick={() => navigateTo({ url: '/pages/privacy-policy/index' })}>《隐私政策》</Text>
           </Text>
         </View>
+        </ScrollView>
       </View>
     </View>
   );

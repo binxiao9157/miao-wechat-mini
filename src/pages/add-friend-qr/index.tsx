@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Image, Canvas, Button } from '@tarojs/components';
-import Taro, { useRouter, useShareAppMessage } from '@tarojs/taro';
+import Taro, { useRouter, useShareAppMessage, useDidShow } from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
 import CatAvatar from '../../components/common/CatAvatar';
 import PageHeader from '../../components/layout/PageHeader';
@@ -22,6 +22,8 @@ export default function AddFriendQR() {
   const [invite, setInvite] = useState<FriendInvite | null>(null);
   const [isCreatingInvite, setIsCreatingInvite] = useState(false);
   const [qrReady, setQrReady] = useState(false);
+  const [qrImageUrl, setQrImageUrl] = useState('');
+  const [pageReady, setPageReady] = useState(false);
 
   const canvasRef = useRef<any>(null);
 
@@ -56,8 +58,13 @@ export default function AddFriendQR() {
   const cat = getCat();
   const invitePayload = invite ? friendService.buildInvitePayload(invite.code) : '';
 
+  // 等页面动画完成后再开始创建邀请码，避免 Canvas 原生组件在页面跳转动画中提前渲染
+  useDidShow(() => {
+    setTimeout(() => setPageReady(true), 300);
+  });
+
   useEffect(() => {
-    if (!cat || isCreatingInvite || invite) return;
+    if (!pageReady || !cat || isCreatingInvite || invite) return;
     setIsCreatingInvite(true);
     friendService.createInvite({ id: cat.id, name: cat.name, avatar: cat.avatar })
       .then(setInvite)
@@ -66,7 +73,7 @@ export default function AddFriendQR() {
         showToastMessage(error?.message || '创建邀请码失败');
       })
       .finally(() => setIsCreatingInvite(false));
-  }, [cat?.id]);
+  }, [pageReady, cat?.id]);
 
   // Draw QR code on canvas when invite is ready
   useEffect(() => {
@@ -77,13 +84,12 @@ export default function AddFriendQR() {
   const drawQRToCanvas = () => {
     if (!invitePayload) return;
 
-    // Use nextTick to ensure Canvas node is mounted in native layer
     Taro.nextTick(() => {
       setTimeout(() => {
         const query = Taro.createSelectorQuery().in(Taro.getCurrentInstance().page);
         query.select('#qrCanvas')
           .fields({ node: true, size: true })
-          .exec((res) => {
+          .exec(async (res) => {
             if (!res[0]?.node) return;
             const canvas = res[0].node;
             const ctx = canvas.getContext('2d');
@@ -94,13 +100,17 @@ export default function AddFriendQR() {
             canvas.height = size * dpr;
             ctx.scale(dpr, dpr);
 
-            // Draw white background
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, size, size);
-
-            // Draw QR code
             drawQROnCanvas(ctx, invitePayload, 0, 0, size, '#1C1B1F', '#ffffff');
 
+            // 导出为临时图片，用 Image 替代 Canvas 显示，避免原生组件穿透问题
+            try {
+              const tempRes = await Taro.canvasToTempFilePath({ canvas });
+              setQrImageUrl(tempRes.tempFilePath);
+            } catch {
+              // 导出失败时仍用 Canvas 直接显示
+            }
             setQrReady(true);
           });
       }, 100);
@@ -198,16 +208,11 @@ export default function AddFriendQR() {
             </View>
           </View>
 
-          {/* 二维码区域 - Canvas 生成 */}
+          {/* 二维码区域 - Canvas 离屏绘制后导出为 Image 显示，避免原生组件穿透 */}
           <View className="qr-area">
             <View className="qr-wrapper">
-              {invitePayload ? (
-                <Canvas
-                  id="qrCanvas"
-                  type="2d"
-                  className="qr-canvas"
-                  style={{ width: '320rpx', height: '320rpx' }}
-                />
+              {qrReady && qrImageUrl ? (
+                <Image className="qr-image" src={qrImageUrl} mode="aspectFit" />
               ) : (
                 <View className="qr-placeholder">
                   <Text className="qr-emoji">QR</Text>
@@ -257,6 +262,16 @@ export default function AddFriendQR() {
         <View className="toast">
           <Text className="toast-message">{toastMessage}</Text>
         </View>
+      )}
+
+      {/* 离屏 Canvas 用于绘制二维码，绘制后导出为 Image */}
+      {invitePayload && !qrImageUrl && (
+        <Canvas
+          id="qrCanvas"
+          type="2d"
+          className="qr-canvas-offscreen"
+          style={{ width: '320rpx', height: '320rpx', position: 'fixed', left: '-9999rpx', top: '-9999rpx' }}
+        />
       )}
     </View>
   );

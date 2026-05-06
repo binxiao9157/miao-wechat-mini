@@ -130,6 +130,7 @@ export default function Home() {
 
   useDidShow(() => {
     Taro.eventCenter.trigger('tabbar:show');
+    Taro.eventCenter.trigger('tabbar:route', 'pages/home/index');
     setVideoError(false);
     setIsVideoReady(false);
     setCurrentAction('idle');

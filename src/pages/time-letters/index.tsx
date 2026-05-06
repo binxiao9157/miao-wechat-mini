@@ -220,6 +220,7 @@ export default function TimeLettersPage() {
   // 从 admin-settings 返回时重新读取调试开关
   useDidShow(() => {
     setIsFastForward(storage.getIsFastForward());
+    Taro.eventCenter.trigger('tabbar:route', 'pages/time-letters/index');
     // 切回页面时同步 TabBar 状态（view 可能因闭包过期，用 ref）
     const currentView = viewRef.current;
     if (currentView === 'write' || currentView === 'detail') {

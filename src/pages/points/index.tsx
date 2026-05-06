@@ -78,6 +78,7 @@ export default function Points() {
     setIsPointsCheat(storage.getIsPointsCheat());
     // 切回页面时确保 TabBar 显示
     Taro.eventCenter.trigger('tabbar:show');
+    Taro.eventCenter.trigger('tabbar:route', 'pages/points/index');
   });
 
   const loadPoints = () => {

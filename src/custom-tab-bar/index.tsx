@@ -36,35 +36,53 @@ const tabs = [
 ];
 
 export default function CustomTabBar() {
-  // 每次渲染直接从页面栈读取当前路径，不依赖 useState/useDidShow
-  // 微信小程序 switchTab 后会自动触发 custom-tab-bar 重新渲染
-  const pages = Taro.getCurrentPages();
-  const current = pages[pages.length - 1]?.route || '';
+  const [activeRoute, setActiveRoute] = useState('');
   const [hidden, setHidden] = useState(false);
 
+  // 初始化：从页面栈读取当前路由
   useEffect(() => {
-    const onShow = () => setHidden(true);
-    const onHide = () => setHidden(false);
-    Taro.eventCenter.on('tabbar:hide', onShow);
-    Taro.eventCenter.on('tabbar:show', onHide);
+    const pages = Taro.getCurrentPages();
+    const current = pages[pages.length - 1]?.route || '';
+    setActiveRoute(current);
+  }, []);
+
+  // 监听页面显示事件，同步路由
+  useEffect(() => {
+    const onRouteSync = (route: string) => setActiveRoute(route);
+    Taro.eventCenter.on('tabbar:route', onRouteSync);
     return () => {
-      Taro.eventCenter.off('tabbar:hide', onShow);
-      Taro.eventCenter.off('tabbar:show', onHide);
+      Taro.eventCenter.off('tabbar:route', onRouteSync);
+    };
+  }, []);
+
+  // 监听 tabbar 显示/隐藏
+  useEffect(() => {
+    const onHide = () => setHidden(true);
+    const onShow = () => setHidden(false);
+    Taro.eventCenter.on('tabbar:hide', onHide);
+    Taro.eventCenter.on('tabbar:show', onShow);
+    return () => {
+      Taro.eventCenter.off('tabbar:hide', onHide);
+      Taro.eventCenter.off('tabbar:show', onShow);
     };
   }, []);
 
   if (hidden) return null;
 
   return (
-    <View className={`miao-tabbar ${current === 'pages/home/index' ? 'on-home' : ''}`}>
+    <View className={`miao-tabbar ${activeRoute === 'pages/home/index' ? 'on-home' : ''}`}>
       {tabs.map((tab) => {
-        const active = current === tab.pagePath.replace(/^\//, '');
+        const tabRoute = tab.pagePath.replace(/^\//, '');
+        const active = activeRoute === tabRoute;
         const iconSrc = active ? TAB_ICONS[tab.iconKey].active : TAB_ICONS[tab.iconKey].inactive;
         return (
           <View
             key={tab.pagePath}
             className={`miao-tab ${active ? 'active' : ''} ${tab.center ? 'center' : ''}`}
-            onClick={() => Taro.switchTab({ url: tab.pagePath })}
+            onClick={() => {
+              setActiveRoute(tabRoute);
+              Taro.switchTab({ url: tab.pagePath });
+            }}
           >
             <View className="miao-tab-icon">
               <Image

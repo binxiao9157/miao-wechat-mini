@@ -95,6 +95,7 @@ export default function Profile() {
   // 切回页面时确保 TabBar 显示
   useDidShow(() => {
     Taro.eventCenter.trigger('tabbar:show');
+    Taro.eventCenter.trigger('tabbar:route', 'pages/profile/index');
   });
 
   const navSpace = useNavSpace();

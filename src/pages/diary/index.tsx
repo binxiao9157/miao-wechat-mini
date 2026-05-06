@@ -230,6 +230,7 @@ export default function Diary() {
   // 切回页面时确保 TabBar 显示（overlay 层 z-index > tab bar 所以不影响）
   useDidShow(() => {
     Taro.eventCenter.trigger('tabbar:show');
+    Taro.eventCenter.trigger('tabbar:route', 'pages/diary/index');
   });
 
   const loadDiaries = async () => {

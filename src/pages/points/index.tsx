@@ -50,8 +50,14 @@ export default function Points() {
     } else {
       Taro.eventCenter.trigger('tabbar:show');
     }
-    return () => { Taro.eventCenter.trigger('tabbar:show'); };
   }, [showHistory]);
+
+  // 页面卸载时恢复 TabBar
+  useEffect(() => {
+    return () => {
+      Taro.eventCenter.trigger('tabbar:show');
+    };
+  }, []);
 
   useEffect(() => {
     Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
@@ -70,6 +76,8 @@ export default function Points() {
   useDidShow(() => {
     loadPoints();
     setIsPointsCheat(storage.getIsPointsCheat());
+    // 切回页面时确保 TabBar 显示
+    Taro.eventCenter.trigger('tabbar:show');
   });
 
   const loadPoints = () => {

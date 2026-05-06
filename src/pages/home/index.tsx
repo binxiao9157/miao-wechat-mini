@@ -129,6 +129,7 @@ export default function Home() {
   }, [loadCat, refreshCatsFromCloud, showFloatingBubble]);
 
   useDidShow(() => {
+    Taro.eventCenter.trigger('tabbar:show');
     setVideoError(false);
     setIsVideoReady(false);
     setCurrentAction('idle');

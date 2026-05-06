@@ -220,6 +220,18 @@ export default function Diary() {
     }
   }, [commentingId, showCompose, showShareSheet, deletingId]);
 
+  // 页面卸载时恢复 TabBar
+  useEffect(() => {
+    return () => {
+      Taro.eventCenter.trigger('tabbar:show');
+    };
+  }, []);
+
+  // 切回页面时确保 TabBar 显示（overlay 层 z-index > tab bar 所以不影响）
+  useDidShow(() => {
+    Taro.eventCenter.trigger('tabbar:show');
+  });
+
   const loadDiaries = async () => {
     const activeCatId = storage.getActiveCatId();
     const catList = storage.getCatList();

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import Taro, { navigateTo, reLaunch, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
+import Taro, { navigateTo, reLaunch, useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, UserInfo, CatInfo } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
@@ -83,8 +83,19 @@ export default function Profile() {
     } else {
       Taro.eventCenter.trigger('tabbar:show');
     }
-    return () => { Taro.eventCenter.trigger('tabbar:show'); };
   }, [hasOverlay]);
+
+  // 页面卸载时恢复 TabBar
+  useEffect(() => {
+    return () => {
+      Taro.eventCenter.trigger('tabbar:show');
+    };
+  }, []);
+
+  // 切回页面时确保 TabBar 显示
+  useDidShow(() => {
+    Taro.eventCenter.trigger('tabbar:show');
+  });
 
   const navSpace = useNavSpace();
   const navStyle: React.CSSProperties = {

@@ -163,6 +163,8 @@ export default function TimeLettersPage() {
   const navSpace = useNavSpace();
   const [letters, setLetters] = useState<TimeLetter[]>([]);
   const [view, setView] = useState<ViewState>('list');
+  const viewRef = useRef<ViewState>('list');
+  const setViewState = (v: ViewState) => { viewRef.current = v; setView(v); };
   const [selectedLetter, setSelectedLetter] = useState<TimeLetter | null>(null);
   const [letterToDelete, setLetterToDelete] = useState<TimeLetter | null>(null);
   const [filterCatId, setFilterCatId] = useState<string>('all');
@@ -218,6 +220,13 @@ export default function TimeLettersPage() {
   // 从 admin-settings 返回时重新读取调试开关
   useDidShow(() => {
     setIsFastForward(storage.getIsFastForward());
+    // 切回页面时同步 TabBar 状态（view 可能因闭包过期，用 ref）
+    const currentView = viewRef.current;
+    if (currentView === 'write' || currentView === 'detail') {
+      Taro.eventCenter.trigger('tabbar:hide');
+    } else {
+      Taro.eventCenter.trigger('tabbar:show');
+    }
   });
 
   // 写信/详情页面时隐藏底部 TabBar
@@ -227,10 +236,14 @@ export default function TimeLettersPage() {
     } else {
       Taro.eventCenter.trigger('tabbar:show');
     }
+  }, [view]);
+
+  // 页面卸载时恢复 TabBar
+  useEffect(() => {
     return () => {
       Taro.eventCenter.trigger('tabbar:show');
     };
-  }, [view]);
+  }, []);
 
   const loadLetters = () => {
     const list = storage.getTimeLetters();
@@ -259,7 +272,7 @@ export default function TimeLettersPage() {
     const isUnlocked = isLetterUnlocked(letter);
     if (isUnlocked) {
       setSelectedLetter(letter);
-      setView('detail');
+      setViewState('detail');
     } else {
       const unlockDate = new Date(letter.unlockAt);
       const month = unlockDate.getMonth() + 1;
@@ -350,7 +363,7 @@ export default function TimeLettersPage() {
     setTitle("");
     setContent("");
     setDays(1);
-    setView('list');
+    setViewState('list');
     showToast("封存成功！信件已存入本地时光机");
   }, [selectedCatId, title, content, days, letters, myCats, showToast]);
 
@@ -372,7 +385,7 @@ export default function TimeLettersPage() {
         </View>
         <View
           className="add-btn"
-          onClick={() => setView('write')}
+          onClick={() => setViewState('write')}
         >
           <Image className="icon-img" src={PLUS_WHITE} mode="aspectFit" style={{ width: 28, height: 28 }} />
         </View>
@@ -462,7 +475,7 @@ export default function TimeLettersPage() {
       <ScrollView className="write-scroll" scrollY>
         {/* 头部导航 */}
         <View className="write-header">
-          <View className="back-btn" onClick={() => setView('list')}>
+          <View className="back-btn" onClick={() => setViewState('list')}>
             <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />
           </View>
           <View className="write-title">
@@ -575,7 +588,7 @@ export default function TimeLettersPage() {
 
         {/* 顶部导航 */}
         <View className="detail-header">
-          <View className="detail-back" onClick={() => setView('list')}>
+          <View className="detail-back" onClick={() => setViewState('list')}>
             <Image className="icon-img" src={ARROWLEFT_WHITE} mode="aspectFit" style={{ width: 24, height: 24 }} />
           </View>
           <View className="detail-title">

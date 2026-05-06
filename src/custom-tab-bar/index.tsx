@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import './index.less';
 
 // Lucide-style icon images for tab bar
@@ -35,10 +35,19 @@ const tabs = [
   { pagePath: '/pages/profile/index', text: 'MIAO', iconKey: 'profile' as const },
 ];
 
-export default function CustomTabBar() {
+function getCurrentPath(): string {
   const pages = Taro.getCurrentPages();
-  const current = pages[pages.length - 1]?.route || '';
+  return pages[pages.length - 1]?.route || '';
+}
+
+export default function CustomTabBar() {
+  const [current, setCurrent] = useState(getCurrentPath);
   const [hidden, setHidden] = useState(false);
+
+  // 每次页面显示时刷新当前路由，确保 tab 选中状态同步
+  useDidShow(() => {
+    setCurrent(getCurrentPath());
+  });
 
   useEffect(() => {
     const onShow = () => setHidden(true);
@@ -62,7 +71,10 @@ export default function CustomTabBar() {
           <View
             key={tab.pagePath}
             className={`miao-tab ${active ? 'active' : ''} ${tab.center ? 'center' : ''}`}
-            onClick={() => Taro.switchTab({ url: tab.pagePath })}
+            onClick={() => {
+              setCurrent(tab.pagePath.replace(/^\//, ''));
+              Taro.switchTab({ url: tab.pagePath });
+            }}
           >
             <View className="miao-tab-icon">
               <Image

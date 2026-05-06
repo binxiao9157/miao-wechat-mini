@@ -131,13 +131,27 @@ export default function Home() {
   useDidShow(() => {
     setVideoError(false);
     setIsVideoReady(false);
+    setCurrentAction('idle');
     loadCat();
     refreshCatsFromCloud();
     checkDailyLogin();
+
+    // 延迟尝试播放视频，确保 Video 组件已挂载
+    const playTimer = setTimeout(() => {
+      try {
+        const ctx = Taro.createVideoContext('catVideo');
+        if (ctx) ctx.play();
+      } catch {}
+    }, 500);
+    return () => clearTimeout(playTimer);
   });
 
   useDidHide(() => {
-    setVideoError(true);
+    // 不销毁 Video 组件，仅暂停播放
+    try {
+      const ctx = Taro.createVideoContext('catVideo');
+      if (ctx) ctx.pause();
+    } catch {}
   });
 
   // 组件卸载时清理视频资源
@@ -317,6 +331,7 @@ export default function Home() {
 
           {hasVideo && !videoError && (
             <Video
+              id="catVideo"
               className="cat-video"
               src={videoSrc}
               autoplay

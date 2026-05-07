@@ -8,6 +8,8 @@ type SyncTask = {
   action: 'upsert' | 'delete';
   payload?: any;
   retries?: number;
+  lastError?: string;
+  lastTriedAt?: number;
 };
 
 const PERSIST_KEY = 'miao_pending_sync_tasks';
@@ -70,8 +72,12 @@ class SyncQueue {
       await new Promise<void>(resolve => { this.flushResolve = resolve; });
       return;
     }
-    const tasks = Array.from(this.dirty.values());
+    const tasks = Array.from(this.dirty.values()).filter(task => (task.retries ?? 0) < this.MAX_RETRIES);
+    const exhaustedTasks = Array.from(this.dirty.values()).filter(task => (task.retries ?? 0) >= this.MAX_RETRIES);
     this.dirty.clear();
+    for (const task of exhaustedTasks) {
+      this.dirty.set(this.getTaskKey(task), task);
+    }
     this.persist();
     this.timer = null;
     this.flushing = true;
@@ -91,9 +97,15 @@ class SyncQueue {
     for (const task of tasks) {
       try {
         await this.executeTask(username, task);
-      } catch {
+      } catch (error: any) {
         if ((task.retries ?? 0) < this.MAX_RETRIES) {
-          this.enqueue({ ...task, retries: (task.retries ?? 0) + 1 });
+          const nextTask = {
+            ...task,
+            retries: (task.retries ?? 0) + 1,
+            lastError: error?.message || String(error || 'unknown'),
+            lastTriedAt: Date.now(),
+          };
+          this.dirty.set(this.getTaskKey(task), nextTask);
         }
       }
     }
@@ -103,7 +115,7 @@ class SyncQueue {
     this.flushResolve = null;
 
     // 如果 flush 期间有新任务入队，再调度一次
-    if (this.dirty.size > 0) {
+    if (Array.from(this.dirty.values()).some(task => (task.retries ?? 0) < this.MAX_RETRIES)) {
       this.scheduleFlush();
     }
   }

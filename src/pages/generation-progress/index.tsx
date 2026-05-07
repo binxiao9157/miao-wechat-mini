@@ -47,8 +47,11 @@ export default function GenerationProgress() {
 
   // 从 storage 获取刚创建的猫咪信息
   const catRef = useRef<{ id: string; name: string; breed: string; color: string; avatar: string; source: 'created' | 'uploaded' } | null>(null);
+  const startedRef = useRef(false);
 
   useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
     const activeCat = storage.getActiveCat();
     if (!activeCat) {
       safeBack();
@@ -83,6 +86,14 @@ export default function GenerationProgress() {
   const startGeneration = async (cat: NonNullable<typeof catRef.current>) => {
     let pointsDeducted = 0;
     try {
+      const currentCat = storage.getCatById(cat.id);
+      storage.saveCatInfo({
+        ...(currentCat || cat),
+        generationStatus: 'pending',
+        generationError: undefined,
+        generationUpdatedAt: Date.now(),
+      });
+
       // 积分兑换时，在生成前扣除积分
       if (isRedemption && redemptionAmount > 0) {
         const success = storage.deductPoints(redemptionAmount, '解锁新伙伴');
@@ -160,13 +171,23 @@ export default function GenerationProgress() {
       }, 1500);
 
     } catch (err: any) {
+      const message = err.message || '生成失败，请重试';
       // 生成失败时退还积分
       if (pointsDeducted > 0) {
         storage.addPoints(pointsDeducted, '生成失败退还');
       }
+      if (cat?.id) {
+        const currentCat = storage.getCatById(cat.id);
+        storage.saveCatInfo({
+          ...(currentCat || cat),
+          generationStatus: 'failed',
+          generationError: message,
+          generationUpdatedAt: Date.now(),
+        });
+      }
       console.error('生成过程出错:', err);
       setPhase('error');
-      setErrorMsg(err.message || '生成失败，请重试');
+      setErrorMsg(message);
     }
   };
 
@@ -221,7 +242,16 @@ export default function GenerationProgress() {
   };
 
   const handleGoBack = () => {
-    navigateTo({ url: '/pages/create-companion/index' });
+    const cat = catRef.current;
+    if (cat) {
+      storage.deleteCatById(cat.id);
+      refreshCatStatus();
+    }
+    const redemptionQuery = isRedemption && redemptionAmount > 0
+      ? `?isRedemption=1&redemptionAmount=${redemptionAmount}`
+      : '';
+    const target = cat?.source === 'uploaded' ? '/pages/upload-material/index' : '/pages/create-companion/index';
+    navigateTo({ url: `${target}${redemptionQuery}` });
   };
 
   return (

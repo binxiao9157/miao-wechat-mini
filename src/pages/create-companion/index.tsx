@@ -47,7 +47,9 @@ export default function CreateCompanion() {
       color: '预设',
       avatar: selectedPreset.imageUrl,
       source: 'created' as const,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      generationStatus: 'pending' as const,
+      generationUpdatedAt: Date.now(),
     };
     storage.saveCatInfo(newCat);
 

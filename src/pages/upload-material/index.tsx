@@ -89,6 +89,8 @@ export default function UploadMaterial() {
       avatar: firstFrameUrl,
       source: 'uploaded' as const,
       createdAt: Date.now(),
+      generationStatus: 'pending' as const,
+      generationUpdatedAt: Date.now(),
     };
     storage.saveCatInfo(newCat);
 

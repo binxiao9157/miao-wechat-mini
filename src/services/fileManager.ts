@@ -69,6 +69,10 @@ function compressForStorage(base64: string | undefined, maxSize: number, quality
   });
 }
 
+function getPrimaryStatus(currentStatus: CatInfo['generationStatus'], primaryVideo?: string): CatInfo['generationStatus'] {
+  return primaryVideo ? 'ready' : currentStatus;
+}
+
 export class FileManager {
   public static async downloadVideos(
     videoUrls: { [key: string]: string },
@@ -92,19 +96,24 @@ export class FileManager {
       compressForStorage(metadata?.anchorFrame, 600, 0.7),
     ]);
 
+    const existingCat = storage.getCatById(groupId);
     const newCat: CatInfo = {
+      ...(existingCat || {}),
       id: groupId,
       name: catName,
       breed: metadata?.breed || 'AI 生成',
       color: metadata?.furColor || '未知',
       avatar: avatarUrl,
       source: metadata?.source === 'created' ? 'created' : 'uploaded',
-      createdAt: Date.now(),
+      createdAt: existingCat?.createdAt || Date.now(),
       videoPath: finalPaths.idle || finalPaths.petting || Object.values(finalPaths)[0],
       videoPaths: finalPaths,
       remoteVideoUrl: finalPaths.idle || finalPaths.petting || Object.values(finalPaths)[0],
       placeholderImage: compressedPlaceholder,
       anchorFrame: compressedAnchor,
+      generationStatus: 'ready',
+      generationError: undefined,
+      generationUpdatedAt: Date.now(),
     };
 
     storage.saveCatInfo(newCat);
@@ -137,7 +146,10 @@ export class FileManager {
       },
       videoPath: persistedUrls.idle || cat.videoPath || cat.remoteVideoUrl,
       remoteVideoUrl: persistedUrls.idle || cat.remoteVideoUrl || cat.videoPath,
-      isUnlocking
+      isUnlocking,
+      generationStatus: getPrimaryStatus(cat.generationStatus, persistedUrls.idle || cat.videoPath || cat.remoteVideoUrl),
+      generationError: undefined,
+      generationUpdatedAt: Date.now(),
     };
 
     storage.saveCatInfo(updatedCat);

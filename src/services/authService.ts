@@ -23,6 +23,17 @@ function normalizeUser(raw: any, fallbackPassword?: string): UserInfo {
   };
 }
 
+function toAuthErrorMessage(error: any, fallback: string): string {
+  const status = error?.response?.status;
+  const code = error?.response?.data?.code;
+  const message = error?.response?.data?.message || error?.response?.data?.error || error?.message;
+
+  if (status === 409 || code === 'USERNAME_EXISTS') return '用户名已被注册';
+  if (code === 'INVALID_PARAMETER' || status === 400) return '用户名或密码格式不正确，请重新检查';
+  if (message && !/^HTTP \d+$/.test(message)) return message;
+  return fallback;
+}
+
 function getStableWechatDevOpenid(): string {
   const cached = getItem(WECHAT_DEV_OPENID_KEY);
   if (cached) return cached;
@@ -84,22 +95,33 @@ export const authService = {
   async register(info: UserInfo): Promise<UserInfo> {
     const username = (info.username || '').trim();
     const password = (info.password || '').trim();
-    const res = await request({
-      url: '/api/v1/auth/register',
-      method: 'POST',
-      data: {
-        username,
-        password,
-        nickname: (info.nickname || username).trim(),
-        avatar: info.avatar || '',
-      },
-      timeout: 15000,
-    });
-    const token = res.data?.token;
-    if (!token) throw new Error('注册失败：服务端未返回 token');
-    const user = normalizeUser(res.data?.user, info.password);
-    persistAuth(token, user);
-    return user;
+    if (!username || !password) throw new Error('用户名和密码不能为空');
+    if (!/^[A-Za-z0-9_.-]{3,32}$/.test(username)) {
+      throw new Error('用户名需为 3-32 位字母、数字、下划线、短横线或点号');
+    }
+    if (password.length < 6 || password.length > 20) {
+      throw new Error('密码长度需为 6-20 位');
+    }
+    try {
+      const res = await request({
+        url: '/api/v1/auth/register',
+        method: 'POST',
+        data: {
+          username,
+          password,
+          nickname: (info.nickname || username).trim(),
+          avatar: info.avatar || '',
+        },
+        timeout: 15000,
+      });
+      const token = res.data?.token;
+      if (!token) throw new Error('注册失败：服务端未返回 token');
+      const user = normalizeUser(res.data?.user, info.password);
+      persistAuth(token, user);
+      return user;
+    } catch (error: any) {
+      throw new Error(toAuthErrorMessage(error, '注册失败，请稍后重试'));
+    }
   },
 
   async wechatLogin(profile?: Partial<UserInfo>): Promise<UserInfo> {

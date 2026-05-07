@@ -51,7 +51,7 @@ export default function SwitchCompanion() {
 
   const handleAddNew = () => {
     if (points >= REDEEM_THRESHOLD) {
-      reLaunch({ url: '/pages/empty-cat/index' });
+      reLaunch({ url: `/pages/empty-cat/index?isRedemption=1&redemptionAmount=${REDEEM_THRESHOLD}` });
     }
   };
 

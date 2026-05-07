@@ -175,6 +175,9 @@ export interface CatInfo {
   avatar: string;
   source: 'created' | 'uploaded';
   createdAt?: number;
+  generationStatus?: 'pending' | 'failed' | 'ready';
+  generationError?: string;
+  generationUpdatedAt?: number;
   videoPath?: string;
   videoPaths?: Record<string, string | undefined> & {
     idle?: string;
@@ -312,7 +315,51 @@ const USER_DATA_KEYS = {
   HAS_SUBMITTED_SURVEY: 'miao_has_submitted_survey',
   IS_FAST_FORWARD: 'miao_debug_fast_forward',
   IS_POINTS_CHEAT: 'miao_debug_points_cheat',
+  DELETE_TOMBSTONES: 'miao_delete_tombstones',
 };
+
+type TombstoneType = 'cat' | 'diary' | 'letter';
+type DeleteTombstones = Record<string, number>;
+
+function getTombstoneKey(type: TombstoneType, id: string): string {
+  return `${type}:${id}`;
+}
+
+function getDeleteTombstones(): DeleteTombstones {
+  try {
+    const raw = getItem(getUserKey(USER_DATA_KEYS.DELETE_TOMBSTONES));
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveDeleteTombstones(tombstones: DeleteTombstones) {
+  const key = getUserKey(USER_DATA_KEYS.DELETE_TOMBSTONES);
+  setItem(key, JSON.stringify(tombstones));
+  invalidateCache(key);
+}
+
+function rememberDeleted(type: TombstoneType, id?: string) {
+  if (!id) return;
+  const tombstones = getDeleteTombstones();
+  tombstones[getTombstoneKey(type, id)] = Date.now();
+  saveDeleteTombstones(tombstones);
+}
+
+function forgetDeleted(type: TombstoneType, id?: string) {
+  if (!id) return;
+  const tombstones = getDeleteTombstones();
+  const key = getTombstoneKey(type, id);
+  if (!(key in tombstones)) return;
+  delete tombstones[key];
+  saveDeleteTombstones(tombstones);
+}
+
+function isDeleted(type: TombstoneType, id?: string): boolean {
+  if (!id) return false;
+  return getTombstoneKey(type, id) in getDeleteTombstones();
+}
 
 function getCurrentUsername(): string | null {
   try {
@@ -336,7 +383,7 @@ async function request(url: string, options: { method?: string; data?: any; head
 async function syncCatToServer(userId: string, cat: CatInfo): Promise<void> {
   await request('/api/v1/cats', {
     method: 'POST',
-    data: { cat: { ...cat, placeholderImage: undefined, anchorFrame: undefined } },
+    data: { cat: { ...cat, placeholderImage: undefined, anchorFrame: undefined, generationError: undefined } },
   });
 }
 
@@ -798,9 +845,13 @@ export const storage = {
 
     const response = await request('/api/v1/cats');
     const serverCats: CatInfo[] = Array.isArray(response)
-      ? response.map(stripServerCat)
+      ? response.map(stripServerCat).filter((cat) => {
+          if (!isDeleted('cat', cat.id)) return true;
+          getSyncQueue().enqueue({ type: 'cat', id: cat.id, action: 'delete' });
+          return false;
+        })
       : [];
-    const localCats = storage.getCatList();
+    const localCats = storage.getCatList().filter(cat => !isDeleted('cat', cat.id));
 
     if (!serverCats.length) {
       await Promise.all(localCats.map(cat => syncCatToServer(username, cat).catch(() => undefined)));
@@ -863,6 +914,10 @@ export const storage = {
           for (const id of allIds) {
             const l = localMap.get(id);
             const s = serverMap.get(id);
+            if (isDeleted('diary', id)) {
+              if (s) getSyncQueue().enqueue({ type: 'diary', id, action: 'delete' });
+              continue;
+            }
             if (l && s) {
               // 本地内容优先，但 likes/comments/isLiked 始终取服务端最新值
               merged.push({
@@ -872,7 +927,7 @@ export const storage = {
                 comments: s.comments ?? l.comments,
               });
             }
-            else if (l) { merged.push(l); syncDiaryToServer(username, l); }
+            else if (l) { merged.push(l); getSyncQueue().enqueue({ type: 'diary', id: l.id, action: 'upsert', payload: l }); }
             else if (s) merged.push(s);
           }
           merged.sort((a, b) => b.createdAt - a.createdAt);
@@ -898,8 +953,12 @@ export const storage = {
           for (const id of allIds) {
             const l = localMap.get(id);
             const s = serverMap.get(id);
+            if (isDeleted('letter', id)) {
+              if (s) getSyncQueue().enqueue({ type: 'letter', id, action: 'delete' });
+              continue;
+            }
             if (l && s) merged.push((l.createdAt || 0) >= (s.createdAt || 0) ? l : s);
-            else if (l) { merged.push(l); syncLetterToServer(username, l); }
+            else if (l) { merged.push(l); getSyncQueue().enqueue({ type: 'letter', id: l.id, action: 'upsert', payload: l }); }
             else if (s) merged.push(s);
           }
           merged.sort((a, b) => b.createdAt - a.createdAt);
@@ -919,14 +978,14 @@ export const storage = {
           const serverPoints = resp as PointsInfo;
           const localPoints = storage.getPoints();
           if (!serverPoints || typeof serverPoints !== 'object') {
-            syncPointsToServer(username, localPoints);
+            await syncPointsToServer(username, localPoints);
           } else {
             const merged = mergePoints(localPoints, serverPoints);
             const key = getUserKey(USER_DATA_KEYS.POINTS);
             storage.setItem(key, JSON.stringify(merged));
             invalidateCache(key);
             if (merged.updatedAt && merged.updatedAt > (serverPoints.updatedAt || 0)) {
-              syncPointsToServer(username, merged);
+              await syncPointsToServer(username, merged);
             }
           }
         }
@@ -950,6 +1009,7 @@ export const storage = {
     } else {
       list.push(nextCat);
     }
+    forgetDeleted('cat', nextCat.id);
     storage.saveCatList(list);
     storage.setActiveCatId(nextCat.id);
     const userId = getCurrentUsername();
@@ -1111,6 +1171,7 @@ export const storage = {
     const previous = storage.getDiaries();
     const previousMap = new Map(previous.map(d => [d.id, d]));
     const trimmed = diaries.length > MAX_DIARIES ? diaries.slice(0, MAX_DIARIES) : diaries;
+    const trimmedIds = new Set(trimmed.map(d => d.id));
     const success = storage.setItem(getUserKey(USER_DATA_KEYS.DIARIES), JSON.stringify(trimmed));
 
     if (success) {
@@ -1120,9 +1181,16 @@ export const storage = {
     const userId = getCurrentUsername();
     if (userId) {
       for (const d of trimmed) {
+        forgetDeleted('diary', d.id);
         const previousDiary = previousMap.get(d.id);
         if (!previousDiary || JSON.stringify(previousDiary) !== JSON.stringify(d)) {
           getSyncQueue().enqueue({ type: 'diary', id: d.id, action: 'upsert', payload: d });
+        }
+      }
+      for (const prev of previous) {
+        if (!trimmedIds.has(prev.id)) {
+          rememberDeleted('diary', prev.id);
+          getSyncQueue().enqueue({ type: 'diary', id: prev.id, action: 'delete' });
         }
       }
     }
@@ -1137,6 +1205,7 @@ export const storage = {
       mediaStorage.deleteMedia(id);
     }
     const updated = diaries.filter(d => d.id !== id);
+    rememberDeleted('diary', id);
     storage.saveDiaries(updated);
     const userId = getCurrentUsername();
     if (userId) getSyncQueue().enqueue({ type: 'diary', id, action: 'delete' });
@@ -1161,17 +1230,29 @@ export const storage = {
   },
 
   saveTimeLetters: (letters: TimeLetter[]) => {
+    const previous = storage.getTimeLetters();
     const trimmed = letters.length > MAX_TIME_LETTERS ? letters.slice(0, MAX_TIME_LETTERS) : letters;
+    const trimmedIds = new Set(trimmed.map(l => l.id));
     storage.setItem(getUserKey(USER_DATA_KEYS.TIME_LETTERS), JSON.stringify(trimmed));
     const userId = getCurrentUsername();
     if (userId) {
-      for (const l of trimmed) getSyncQueue().enqueue({ type: 'letter', id: l.id, action: 'upsert', payload: l });
+      for (const l of trimmed) {
+        forgetDeleted('letter', l.id);
+        getSyncQueue().enqueue({ type: 'letter', id: l.id, action: 'upsert', payload: l });
+      }
+      for (const prev of previous) {
+        if (!trimmedIds.has(prev.id)) {
+          rememberDeleted('letter', prev.id);
+          getSyncQueue().enqueue({ type: 'letter', id: prev.id, action: 'delete' });
+        }
+      }
     }
   },
 
   deleteTimeLetter: (id: string): TimeLetter[] => {
     const letters = storage.getTimeLetters();
     const updated = letters.filter(l => l.id !== id);
+    rememberDeleted('letter', id);
     storage.saveTimeLetters(updated);
     const userId = getCurrentUsername();
     if (userId) getSyncQueue().enqueue({ type: 'letter', id, action: 'delete' });
@@ -1187,6 +1268,7 @@ export const storage = {
   deleteCatById: (id: string) => {
     const list = storage.getCatList();
     const updated = list.filter(c => c.id !== id);
+    rememberDeleted('cat', id);
     storage.saveCatList(updated);
 
     const activeId = storage.getActiveCatId();

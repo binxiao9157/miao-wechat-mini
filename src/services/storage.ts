@@ -160,6 +160,7 @@ export interface UserInfo {
   username: string;
   nickname: string;
   avatar: string;
+  password?: string;
   passwordSet?: boolean;
   openidBound?: boolean;
   phone?: string;

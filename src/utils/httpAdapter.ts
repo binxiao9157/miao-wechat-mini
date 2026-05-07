@@ -27,7 +27,7 @@ interface RequestOptions {
 }
 
 interface RequestResult {
-   any;
+  data: any;
   status: number;
   headers: Record<string, string>;
 }
@@ -78,12 +78,12 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
           Taro.eventCenter.trigger('auth:unauthorized');
         }
         const err: any = new Error(msg);
-        err.response = { status: res.statusCode,  errData };
+        err.response = { status: res.statusCode, data: errData };
         throw err;
       }
 
       return {
-         data: res.data,
+        data: res.data,
         status: res.statusCode,
         headers: res.header || {},
       };
@@ -134,7 +134,7 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
     if (response.status < 200 || response.status >= 300) {
       const msg = responseData?.message || responseData?.error || `HTTP ${response.status}`;
       const err: any = new Error(msg);
-      err.response = { status: response.status,  responseData };
+      err.response = { status: response.status, data: responseData };
       throw err;
     }
 

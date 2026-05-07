@@ -240,7 +240,6 @@ export default function Profile() {
   };
 
   const handleAdminTap = () => {
-    if (process.env.NODE_ENV !== 'development') return;
     adminTapCountRef.current += 1;
     if (adminTapTimerRef.current) clearTimeout(adminTapTimerRef.current);
 

@@ -105,8 +105,11 @@ function LetterCard({ letter, targetCat, isUnlocked, fastForward, onDelete, onCl
         <CatAvatar
           src={letter.catAvatar}
           name={targetCat?.name}
-          className={`letter-avatar ${!isUnlocked ? 'blur' : ''}`}
+          className="letter-avatar"
         />
+        {!isUnlocked && (
+          <View className="blur-mask" />
+        )}
         {!isUnlocked && (
           <View className="lock-overlay">
             <Image className="icon-img" src={LOCK_WHITE} mode="aspectFit" style={{ width: 24, height: 24 }} />
@@ -570,6 +573,7 @@ export default function TimeLettersPage() {
           <Image className="icon-img" src={SEND_WHITE} mode="aspectFit" style={{ width: 20, height: 20 }} />
           <Text className="save-text">封存信件</Text>
         </View>
+
       </ScrollView>
     </View>
   );

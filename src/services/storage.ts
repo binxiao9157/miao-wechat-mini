@@ -282,11 +282,11 @@ const STORAGE_KEYS = {
 };
 
 const DEFAULT_PRESET_CATS: PresetCat[] = [
-  { id: 'british_shorthair', name: '英国短毛猫', imageUrl: 'https://picsum.photos/seed/british_shorthair/800/800' },
-  { id: 'ragdoll', name: '布偶猫', imageUrl: 'https://picsum.photos/seed/ragdoll/800/800' },
-  { id: 'persian', name: '波斯猫', imageUrl: 'https://picsum.photos/seed/persian/800/800' },
-  { id: 'maine_coon', name: '缅因猫', imageUrl: 'https://picsum.photos/seed/maine_coon/800/800' },
-  { id: 'siamese', name: '暹罗猫', imageUrl: 'https://picsum.photos/seed/siamese/800/800' },
+  { id: 'british_shorthair', name: '英国短毛猫', imageUrl: 'https://fastly.picsum.photos/id/534/800/800.jpg?hmac=DijMB8QbxnoQc_h2Sol9Uh3CypfI5ml6agCoUj8-cEY' },
+  { id: 'ragdoll', name: '布偶猫', imageUrl: 'https://fastly.picsum.photos/id/366/800/800.jpg?hmac=R8t4TxfCjjhVEcB-QZq9c2mTa8YufuOVZV0_pgABCBQ' },
+  { id: 'persian', name: '波斯猫', imageUrl: 'https://fastly.picsum.photos/id/219/800/800.jpg?hmac=jtAqs0bVp0OWaGB1TzTJ4pgcnTAvAw3GL7X3liCjhXQ' },
+  { id: 'maine_coon', name: '缅因猫', imageUrl: 'https://fastly.picsum.photos/id/293/800/800.jpg?hmac=AcdZBXya3-oW-8OFNZnNQmWD1rUESR9TagsKbEyf8NU' },
+  { id: 'siamese', name: '暹罗猫', imageUrl: 'https://fastly.picsum.photos/id/164/800/800.jpg?hmac=-vrHqnVZ5JXaSiIV-qbYsO6fUd1_YjwsX82JGuoMk6g' },
 ];
 
 const USER_DATA_KEYS = {

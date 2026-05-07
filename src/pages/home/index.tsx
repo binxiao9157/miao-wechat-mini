@@ -343,6 +343,7 @@ export default function Home() {
               showPlayBtn={false}
               showCenterPlayBtn={false}
               controls={false}
+              enableProgressGesture={false}
               objectFit="cover"
               onPlay={() => setIsVideoReady(true)}
               onError={handleVideoError}

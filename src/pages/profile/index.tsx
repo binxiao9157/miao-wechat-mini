@@ -7,6 +7,7 @@ import { request } from '../../utils/httpAdapter';
 import { DEFAULT_AVATAR } from '../../utils/constants';
 import { friendService } from '../../services/friendService';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import { isTimeLetterUnlocked } from '../../utils/timeLetterUnlock';
 import './index.less';
 
 // Lucide-style icon images (colored PNGs matching PWA)
@@ -43,10 +44,10 @@ function getUnreadNotificationCount() {
   let count = 0;
 
   const isFastForward = storage.getIsFastForward();
-  const now = isFastForward ? Date.now() * 10 : Date.now();
+  const now = Date.now();
   storage.getTimeLetters().forEach((letter) => {
     const id = `letter_${letter.id}`;
-    if (letter.unlockAt <= now && !readIds.includes(id)) count += 1;
+    if (isTimeLetterUnlocked(letter, isFastForward, now) && !readIds.includes(id)) count += 1;
   });
 
   storage.getPoints().history?.slice(0, 5).forEach((tx) => {
@@ -214,6 +215,7 @@ export default function Profile() {
               'miao_cat_list', 'miao_active_cat_id', 'miao_friends', 'miao_diaries',
               'miao_time_letters', 'miao_points', 'miao_settings', 'miao_ai_config',
               'miao_friend_diaries', 'miao_has_submitted_survey', 'miao_debug_fast_forward',
+              'miao_debug_points_cheat',
               'user_avatar_key', 'miao_login_time', 'miao_last_active_time',
               'miao_last_cat_image', 'miao_last_cat_breed', 'app_preset_cats',
               'miao_last_read_notifications', 'miao_read_notification_ids',
@@ -331,7 +333,7 @@ export default function Profile() {
       {/* Header */}
       <View className="header">
         <View className="header-title">
-          <Text className="title" onClick={handleAdminTap}>Miao</Text>
+          <Text className="title">Miao</Text>
           <Text className="subtitle">MIAO SANCTUARY</Text>
         </View>
         <View className="header-actions">
@@ -363,8 +365,8 @@ export default function Profile() {
               <ProfileIcon name="camera" size={14} />
             </View>
           </View>
-          <Text className="nickname" onClick={handleAdminTap}>{user?.nickname || '未登录'}</Text>
-          <Text className="username" onClick={handleAdminTap}>ID: {user?.username || 'guest'}</Text>
+          <Text className="nickname">{user?.nickname || '未登录'}</Text>
+          <Text className="username">ID: {user?.username || 'guest'}</Text>
 
           {/* 统计卡片 - 可点击 */}
           <View className="stats-row">

@@ -200,17 +200,19 @@
 .preset-item {
   display: flex;
   align-items: center;
-  padding: 10px 12px;
+  padding: 12px;
   background: #fff;
-  border-radius: 12px;
-  margin-bottom: 8px;
-  gap: 10px;
+  border-radius: 24px;
+  border: 1px solid rgba(232, 159, 113, 0.16);
+  box-shadow: 0 6px 18px rgba(93, 64, 55, 0.04);
+  margin-bottom: 10px;
+  gap: 12px;
 }
 
 .preset-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
   background: #fef6f0;
   flex-shrink: 0;
 }
@@ -218,15 +220,15 @@
 .preset-name {
   flex: 1;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 800;
   color: var(--color-warm-brown);
 }
 
 .preset-remove {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 16px;
-  background: var(--surface-container);
+  background: #fff5f1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -240,31 +242,96 @@
   padding: 20px;
 }
 
-.preset-add {
+.preset-add-card {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
-  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 28px;
+  background: rgba(255, 157, 118, 0.05);
+  border: 2px dashed rgba(255, 157, 118, 0.22);
 }
 
-.preset-input {
+.preset-upload {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
+  background: #fff;
+  border: 2px solid #fff;
+  box-shadow: 0 8px 22px rgba(93, 64, 55, 0.08);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.preset-upload:active {
+  opacity: 0.78;
+}
+
+.preset-upload-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.preset-upload-empty {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preset-upload-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preset-upload-mask-text {
+  font-size: 12px;
+  color: #fff;
+  font-weight: 800;
+}
+
+.preset-add-fields {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preset-name-input {
+  width: 100%;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(93, 64, 55, 0.04);
 }
 
 .preset-add-btn {
+  height: 48px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 8px 14px;
   background: #ff9d76;
   border-radius: 20px;
-  flex-shrink: 0;
+  box-shadow: 0 8px 22px rgba(255, 157, 118, 0.22);
+}
+
+.preset-add-btn:active {
+  opacity: 0.86;
 }
 
 .preset-add-text {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
   color: #fff;
 }
 

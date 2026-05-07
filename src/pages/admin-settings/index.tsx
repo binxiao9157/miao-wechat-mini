@@ -9,6 +9,7 @@ import PageHeader from '../../components/layout/PageHeader';
 const SETTINGS_DARK = require('../../assets/profile-icons/settings-dark.png');
 const PLUS_WHITE = require('../../assets/profile-icons/plus-white.png');
 const X_GRAY = require('../../assets/profile-icons/x-gray.png');
+const UPLOAD_PRIMARY = require('../../assets/profile-icons/upload-primary.png');
 
 import './index.less';
 
@@ -16,7 +17,8 @@ export default function AdminSettings() {
   const [profile, setProfile] = useState<AIProfile>(DEFAULT_AI_PROFILES.volcengine);
   const [presets, setPresets] = useState<PresetCat[]>([]);
   const [newPresetName, setNewPresetName] = useState('');
-  const [newPresetUrl, setNewPresetUrl] = useState('');
+  const [newPresetImage, setNewPresetImage] = useState('');
+  const [isUploadingPreset, setIsUploadingPreset] = useState(false);
   const [isPointsCheat, setIsPointsCheat] = useState(() => storage.getIsPointsCheat());
   const [isFastForward, setIsFastForward] = useState(() => storage.getIsFastForward());
 
@@ -54,20 +56,67 @@ export default function AdminSettings() {
     Taro.showToast({ title: '已恢复默认', icon: 'success' });
   };
 
+  const choosePresetImage = async (): Promise<string> => {
+    try {
+      const res = await Taro.chooseMedia({
+        count: 1,
+        mediaType: ['image'],
+        sourceType: ['album', 'camera'],
+      });
+      return res.tempFiles?.[0]?.tempFilePath || '';
+    } catch (error: any) {
+      if ((error?.errMsg || '').includes('cancel')) throw error;
+      const res = await Taro.chooseImage({
+        count: 1,
+        sourceType: ['album', 'camera'],
+        sizeType: ['compressed'],
+      });
+      return res.tempFilePaths?.[0] || '';
+    }
+  };
+
+  const persistPresetImage = async (tempFilePath: string): Promise<string> => {
+    if (!tempFilePath) throw new Error('未选择图片');
+    if (Taro.getEnv() !== Taro.ENV_TYPE.WEAPP) return tempFilePath;
+    if (/^https?:\/\//.test(tempFilePath)) return tempFilePath;
+
+    const saved = await Taro.saveFile({ tempFilePath }) as Taro.saveFile.SuccessCallbackResult;
+    return saved.savedFilePath || tempFilePath;
+  };
+
+  const handleChoosePresetImage = async () => {
+    try {
+      setIsUploadingPreset(true);
+      const tempFilePath = await choosePresetImage();
+      const imagePath = await persistPresetImage(tempFilePath);
+      setNewPresetImage(imagePath);
+    } catch (error: any) {
+      if (!(error?.errMsg || '').includes('cancel')) {
+        Taro.showToast({ title: '图片上传失败', icon: 'none' });
+      }
+    } finally {
+      setIsUploadingPreset(false);
+    }
+  };
+
   const handleAddPreset = () => {
-    if (!newPresetName.trim() || !newPresetUrl.trim()) {
-      Taro.showToast({ title: '请填写完整', icon: 'none' });
+    if (!newPresetName.trim()) {
+      Taro.showToast({ title: '请填写品种名称', icon: 'none' });
+      return;
+    }
+    if (!newPresetImage) {
+      Taro.showToast({ title: '请上传猫咪图片', icon: 'none' });
       return;
     }
     const newPreset: PresetCat = {
       id: 'preset_' + Date.now(),
       name: newPresetName.trim(),
-      imageUrl: newPresetUrl.trim(),
+      imageUrl: newPresetImage,
     };
     const updated = [...presets, newPreset];
     setPresets(updated);
     setNewPresetName('');
-    setNewPresetUrl('');
+    setNewPresetImage('');
   };
 
   const handleRemovePreset = (id: string) => {
@@ -94,7 +143,7 @@ export default function AdminSettings() {
               className={`provider-tab ${profile.provider === provider ? 'active' : ''}`}
               onClick={() => handleProviderChange(provider)}
             >
-              <Text className="provider-text">{provider === 'dashscope' ? 'DashScope' : 'Volcengine'}</Text>
+              <Text className="provider-text">{provider === 'dashscope' ? '阿里百炼' : '火山引擎'}</Text>
             </View>
           ))}
         </View>
@@ -195,24 +244,33 @@ export default function AdminSettings() {
           )}
         </View>
 
-        <View className="preset-add">
-          <Input
-            className="input preset-input"
-            placeholder="品种名称"
-            placeholderStyle="color: #8E8E8E"
-            value={newPresetName}
-            onInput={(e) => setNewPresetName(e.detail.value)}
-          />
-          <Input
-            className="input preset-input"
-            placeholder="图片 URL"
-            placeholderStyle="color: #8E8E8E"
-            value={newPresetUrl}
-            onInput={(e) => setNewPresetUrl(e.detail.value)}
-          />
-          <View className="preset-add-btn" onClick={handleAddPreset}>
-            <Image className="icon-img" src={PLUS_WHITE} mode="aspectFit" style={{ width: 16, height: 16 }} />
-            <Text className="preset-add-text">添加</Text>
+        <View className="preset-add-card">
+          <View className="preset-upload" onClick={handleChoosePresetImage}>
+            {newPresetImage ? (
+              <Image className="preset-upload-preview" src={newPresetImage} mode="aspectFill" />
+            ) : (
+              <View className="preset-upload-empty">
+                <Image className="icon-img" src={UPLOAD_PRIMARY} mode="aspectFit" style={{ width: 26, height: 26 }} />
+              </View>
+            )}
+            {isUploadingPreset && (
+              <View className="preset-upload-mask">
+                <Text className="preset-upload-mask-text">处理中</Text>
+              </View>
+            )}
+          </View>
+          <View className="preset-add-fields">
+            <Input
+              className="input preset-name-input"
+              placeholder="品种名称"
+              placeholderStyle="color: #8E8E8E"
+              value={newPresetName}
+              onInput={(e) => setNewPresetName(e.detail.value)}
+            />
+            <View className="preset-add-btn" onClick={handleAddPreset}>
+              <Image className="icon-img" src={PLUS_WHITE} mode="aspectFit" style={{ width: 16, height: 16 }} />
+              <Text className="preset-add-text">添加预设</Text>
+            </View>
           </View>
         </View>
       </View>

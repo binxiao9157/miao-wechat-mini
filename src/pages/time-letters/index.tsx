@@ -5,6 +5,7 @@ import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, TimeLetter, CatInfo } from '../../services/storage';
 import CatAvatar from '../../components/common/CatAvatar';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import { formatTimeLetterCountdown, isTimeLetterUnlocked } from '../../utils/timeLetterUnlock';
 import './index.less';
 
 // Lucide-style PNG icons
@@ -22,27 +23,6 @@ const ALERTCIRCLE_RED = require('../../assets/profile-icons/alertcircle-red.png'
 
 type ViewState = 'list' | 'write' | 'detail';
 
-// 格式化倒计时
-function formatCountdown(unlockAt: number, fastForward?: boolean): string {
-  const now = Date.now();
-  let remainingMs = unlockAt - now;
-
-  if (fastForward) {
-    // 快进模式：1秒=1分钟，即倒计时除以60
-    remainingMs = remainingMs / 60;
-  }
-
-  if (remainingMs <= 0) return '已解锁';
-
-  const days = Math.floor(remainingMs / 86400000);
-  const hours = Math.floor((remainingMs % 86400000) / 3600000);
-  const minutes = Math.floor((remainingMs % 3600000) / 60000);
-
-  if (days > 0) return `${days}天${hours}小时`;
-  if (hours > 0) return `${hours}小时${minutes}分钟`;
-  return `${minutes}分钟`;
-}
-
 // 信件卡片组件
 interface LetterCardProps {
   letter: TimeLetter;
@@ -55,7 +35,7 @@ interface LetterCardProps {
 }
 
 function LetterCard({ letter, targetCat, isUnlocked, fastForward, onDelete, onClick, onLongPress }: LetterCardProps) {
-  const [countdown, setCountdown] = useState(() => formatCountdown(letter.unlockAt, fastForward));
+  const [countdown, setCountdown] = useState(() => formatTimeLetterCountdown(letter, !!fastForward));
 
   const longPressTimerRef = useRef<any>(null);
   const longPressTriggeredRef = useRef(false);
@@ -83,13 +63,13 @@ function LetterCard({ letter, targetCat, isUnlocked, fastForward, onDelete, onCl
     if (isUnlocked) return;
 
     const timer = setInterval(() => {
-      const next = formatCountdown(letter.unlockAt, fastForward);
+      const next = formatTimeLetterCountdown(letter, !!fastForward);
       setCountdown(next);
       if (next === '已解锁') clearInterval(timer);
     }, 10000);
 
     return () => clearInterval(timer);
-  }, [letter.unlockAt, isUnlocked, fastForward]);
+  }, [letter.createdAt, letter.unlockAt, isUnlocked, fastForward]);
 
   return (
     <View
@@ -256,13 +236,7 @@ export default function TimeLettersPage() {
 
   // 判断信件是否解锁
   const isLetterUnlocked = useCallback((letter: TimeLetter) => {
-    if (isFastForward) {
-      // 快进模式：倒计时除以60（1秒=1分钟）
-      const elapsedReal = Date.now() - letter.createdAt;
-      const totalDuration = letter.unlockAt - letter.createdAt;
-      return elapsedReal * 60 >= totalDuration;
-    }
-    return Date.now() >= letter.unlockAt;
+    return isTimeLetterUnlocked(letter, isFastForward);
   }, [isFastForward]);
 
   // 显示提示

@@ -4,6 +4,7 @@ import Taro, { navigateTo, useDidShow } from '@tarojs/taro';
 import PageHeader from '../../components/layout/PageHeader';
 import { storage, TimeLetter, PointsInfo } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
+import { getEffectiveUnlockAt, isTimeLetterUnlocked } from '../../utils/timeLetterUnlock';
 
 const SETTINGS_DARK = require('../../assets/profile-icons/settings-dark.png');
 const SPARKLES_PRIMARY = require('../../assets/profile-icons/sparkles-primary.png');
@@ -32,15 +33,15 @@ function computeLocalNotifications(): Notification[] {
 
   // 时光信件解锁通知
   const letters = storage.getTimeLetters();
+  const now = Date.now();
   letters.forEach((letter: TimeLetter) => {
-    const now = isFastForward ? Date.now() * 10 : Date.now();
-    if (letter.unlockAt <= now) {
+    if (isTimeLetterUnlocked(letter, isFastForward, now)) {
       notifications.push({
         id: `letter_${letter.id}`,
         type: 'letter',
         title: '时光信件已解锁',
         content: `"${letter.title || '一封来自过去的信'}" 可以查看了`,
-        time: letter.unlockAt,
+        time: getEffectiveUnlockAt(letter, isFastForward),
         read: readIds.includes(`letter_${letter.id}`),
         catAvatar: letter.catAvatar,
         source: 'local',

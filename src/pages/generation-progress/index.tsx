@@ -48,6 +48,7 @@ export default function GenerationProgress() {
   // 从 storage 获取刚创建的猫咪信息
   const catRef = useRef<{ id: string; name: string; breed: string; color: string; avatar: string; source: 'created' | 'uploaded' } | null>(null);
   const startedRef = useRef(false);
+  const unlockStartedRef = useRef(false);
 
   useEffect(() => {
     if (startedRef.current) return;
@@ -191,17 +192,9 @@ export default function GenerationProgress() {
     }
   };
 
-  const handleUnlockAll = async () => {
-    if (!idleVideoUrl || !catRef.current) return;
-
-    const cat = catRef.current;
-    setIsUnlocking(true);
-
-    // 串行提交视频生成任务，避免触发 DashScope rate limit
+  const runSecondaryUnlock = async (cat: NonNullable<typeof catRef.current>) => {
     const secondaryActions: (keyof typeof ACTION_PROMPTS)[] = ['tail', 'rubbing', 'blink'];
     try {
-      await FileManager.updateCatVideos(cat.id, {}, true);
-
       const anchorFrame = anchorImage || cat.avatar;
       for (const action of secondaryActions) {
         try {
@@ -218,9 +211,37 @@ export default function GenerationProgress() {
     } catch (e) {
       console.error('后台生成任务失败:', e);
       await FileManager.updateCatVideos(cat.id, {}, false);
-    } finally {
-      reLaunch({ url: '/pages/home/index' });
     }
+  };
+
+  const handleUnlockAll = async () => {
+    if (unlockStartedRef.current) return;
+
+    const activeCat = storage.getActiveCat();
+    const cat = catRef.current || (activeCat ? {
+      id: activeCat.id,
+      name: activeCat.name,
+      breed: activeCat.breed,
+      color: activeCat.color,
+      avatar: activeCat.avatar,
+      source: activeCat.source,
+    } : null);
+
+    if (!cat) {
+      Taro.showToast({ title: '未找到猫咪数据', icon: 'none' });
+      return;
+    }
+
+    unlockStartedRef.current = true;
+    setIsUnlocking(true);
+    setShowConfirmDialog(false);
+
+    await FileManager.updateCatVideos(cat.id, {}, true);
+    refreshCatStatus();
+    Taro.showToast({ title: '已开始后台解锁', icon: 'none' });
+
+    void runSecondaryUnlock(cat);
+    reLaunch({ url: '/pages/home/index' });
   };
 
   const handleStayBasic = () => {
@@ -348,9 +369,11 @@ export default function GenerationProgress() {
                   形象已初步锁定！是否还需要解锁我更多动作（摸头、踩奶、玩耍）？
                 </Text>
                 <View className="dialog-actions">
-                  <View className="dialog-btn primary" onClick={handleUnlockAll}>
-                    <Text className="dialog-btn-text primary-text">是，全部解锁</Text>
-                    <Image className="icon-img" src={ARROWRIGHT_PRIMARY2} mode="aspectFit" style={{ width: 16, height: 16 }} />
+                  <View className={`dialog-btn primary ${isUnlocking ? 'disabled' : ''}`} onClick={handleUnlockAll}>
+                    <Text className="dialog-btn-text primary-text">{isUnlocking ? '正在开启后台解锁...' : '是，全部解锁'}</Text>
+                    {!isUnlocking && (
+                      <Image className="icon-img" src={ARROWRIGHT_PRIMARY2} mode="aspectFit" style={{ width: 16, height: 16 }} />
+                    )}
                   </View>
                   <View className="dialog-btn secondary" onClick={handleStayBasic}>
                     <Text className="dialog-btn-text secondary-text">否，就这样吧</Text>

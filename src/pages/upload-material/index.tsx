@@ -31,21 +31,49 @@ export default function UploadMaterial() {
     setTimeout(() => setShowToast(null), 2500);
   };
 
+  const prepareSelectedImage = async (filePath: string): Promise<string> => {
+    if (!filePath || /^https?:\/\//i.test(filePath)) return filePath;
+    if (Taro.getEnv() !== Taro.ENV_TYPE.WEAPP) return filePath;
+
+    try {
+      const compressed = await Taro.compressImage({
+        src: filePath,
+        quality: 72,
+      });
+      return compressed.tempFilePath || filePath;
+    } catch (error) {
+      console.warn('[UploadMaterial] compress image failed, using original:', error);
+      return filePath;
+    }
+  };
+
   const handleChooseImage = () => {
     Taro.chooseMedia({
       count: 1,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
       sizeType: ['compressed'],
-      success: (res) => {
-        setSelectedImage(res.tempFiles[0].tempFilePath);
+      success: async (res) => {
+        const imagePath = res.tempFiles?.[0]?.tempFilePath;
+        if (!imagePath) {
+          triggerToast('选择图片失败，请重试');
+          return;
+        }
+        setSelectedImage(await prepareSelectedImage(imagePath));
       },
       fail: () => {
         Taro.chooseImage({
           count: 1,
           sourceType: ['album', 'camera'],
           sizeType: ['compressed'],
-          success: (imgRes) => setSelectedImage(imgRes.tempFilePaths[0]),
+          success: async (imgRes) => {
+            const imagePath = imgRes.tempFilePaths?.[0];
+            if (!imagePath) {
+              triggerToast('选择图片失败，请重试');
+              return;
+            }
+            setSelectedImage(await prepareSelectedImage(imagePath));
+          },
           fail: () => triggerToast('选择图片失败，请重试'),
         });
       },
@@ -67,7 +95,9 @@ export default function UploadMaterial() {
     try {
       // 直接传文件路径，volcanoService 内部用 Taro.uploadFile 上传，避免 base64 过大触发微信限制
       const prompt = IMAGE_PROMPTS.anchor('未知', '未知');
-      const task = await VolcanoService.submitImageTask(prompt, selectedImage);
+      const uploadImage = await prepareSelectedImage(selectedImage);
+      if (uploadImage !== selectedImage) setSelectedImage(uploadImage);
+      const task = await VolcanoService.submitImageTask(prompt, uploadImage);
       const imageUrl = await VolcanoService.pollImageResult(task.id, task.image_url);
       setFirstFrameUrl(imageUrl);
     } catch (e: any) {

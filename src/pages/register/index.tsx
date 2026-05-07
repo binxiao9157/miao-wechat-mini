@@ -43,6 +43,10 @@ export default function Register() {
       setError('两次输入的密码不一致');
       return;
     }
+    if (trimmedPassword.length < 6 || trimmedPassword.length > 20) {
+      setError('密码长度需为 6-20 位');
+      return;
+    }
 
     setIsLoading(true);
     setError('');

@@ -25,6 +25,7 @@ import './index.less';
 
 interface DiaryWithMedia extends DiaryEntry {
   mediaUrl?: string;
+  catName?: string;
 }
 
 type FriendDiaryWithMedia = FriendDiaryEntry & { mediaUrl?: string };
@@ -163,6 +164,21 @@ export default function Diary() {
     }
   };
 
+  const persistDisplayedDiaries = (updatedVisible: DiaryWithMedia[]): DiaryEntry[] => {
+    const updatedById = new Map<string, DiaryEntry>(
+      updatedVisible.map(({ mediaUrl, ...rest }) => [rest.id, rest])
+    );
+    const allDiaries = storage.getDiaries();
+    const merged = allDiaries.map(d => updatedById.get(d.id) || d);
+    for (const diary of updatedById.values()) {
+      if (!allDiaries.some(d => d.id === diary.id)) {
+        merged.unshift(diary);
+      }
+    }
+    storage.saveDiaries(merged.sort((a, b) => b.createdAt - a.createdAt));
+    return Array.from(updatedById.values());
+  };
+
   // 静默同步好友动态（交互后刷新，不阻塞 UI）
   const syncFriendDiariesQuiet = () => {
     friendService.syncFriendDiaries().then(() => {
@@ -241,9 +257,6 @@ export default function Diary() {
     setCatList(catList);
 
     const list = storage.getDiaries();
-    if (list.some(d => d.media?.startsWith('miao_media:'))) {
-      storage.saveDiaries(list);
-    }
 
     // 按当前活跃猫咪过滤日记
     const filteredList = activeCatId ? list.filter(d => d.catId === activeCatId) : list;
@@ -375,11 +388,12 @@ export default function Diary() {
         comments: []
       };
 
-      const updated = [newDiary, ...diaries];
-      const success = storage.saveDiaries(updated);
+      const allDiaries = storage.getDiaries();
+      const updatedAll = [newDiary, ...allDiaries].sort((a, b) => b.createdAt - a.createdAt);
+      const success = storage.saveDiaries(updatedAll);
 
       if (success) {
-        setDiaries(updated);
+        setDiaries(prev => [newDiary, ...prev]);
         setNewContent('');
         setSelectedMedia(null);
         setShowCompose(false);
@@ -407,8 +421,7 @@ export default function Diary() {
           }
           return d;
         });
-        const toSave: DiaryEntry[] = updated.map(({ mediaUrl, ...rest }) => rest);
-        storage.saveDiaries(toSave);
+        persistDisplayedDiaries(updated);
         return updated;
       });
       try {
@@ -418,8 +431,7 @@ export default function Diary() {
             if (d.id === diaryId) return { ...d, isLiked: result.liked, likes: result.likes };
             return d;
           });
-          const correctedSave: DiaryEntry[] = corrected.map(({ mediaUrl, ...rest }) => rest);
-          storage.saveDiaries(correctedSave);
+          persistDisplayedDiaries(corrected);
           return corrected;
         });
         // 点赞成功后同步数据，获取好友的点赞/评论最新状态
@@ -432,8 +444,7 @@ export default function Diary() {
             }
             return d;
           });
-          const rolledSave: DiaryEntry[] = rolled.map(({ mediaUrl, ...rest }) => rest);
-          storage.saveDiaries(rolledSave);
+          persistDisplayedDiaries(rolled);
           return rolled;
         });
       }
@@ -496,8 +507,7 @@ export default function Diary() {
             }
             return d;
           });
-          const toSave: DiaryEntry[] = updated.map(({ mediaUrl, ...rest }) => rest);
-          storage.saveDiaries(toSave);
+          persistDisplayedDiaries(updated);
           return updated;
         });
         Taro.showToast({ title: '评论成功', icon: 'success' });
@@ -554,8 +564,7 @@ export default function Diary() {
                 }
                 return d;
               });
-              const toSave: DiaryEntry[] = updated.map(({ mediaUrl, ...rest }) => rest);
-              storage.saveDiaries(toSave);
+              persistDisplayedDiaries(updated);
               return updated;
             });
           } else {

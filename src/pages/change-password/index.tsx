@@ -112,7 +112,8 @@ export default function ChangePassword() {
               </View>
               <Input
                 className="form-input"
-                type={showCurrent ? 'text' : 'password'}
+                type="text"
+                password={!showCurrent}
                 value={currentPassword}
                 onInput={(e) => { setCurrentPassword(e.detail.value); if (error) setError(''); }}
                 placeholder="请输入当前使用的密码"
@@ -134,7 +135,8 @@ export default function ChangePassword() {
             </View>
             <Input
               className="form-input"
-              type={showNew ? 'text' : 'password'}
+              type="text"
+              password={!showNew}
               value={newPassword}
               onInput={(e) => { setNewPassword(e.detail.value); if (error) setError(''); }}
               placeholder="设置 6-20 位新密码"
@@ -155,7 +157,8 @@ export default function ChangePassword() {
             </View>
             <Input
               className="form-input"
-              type={showConfirm ? 'text' : 'password'}
+              type="text"
+              password={!showConfirm}
               value={confirmPassword}
               onInput={(e) => { setConfirmPassword(e.detail.value); if (error) setError(''); }}
               placeholder="请再次输入新密码"

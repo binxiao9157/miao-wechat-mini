@@ -1,13 +1,30 @@
 import { useState } from 'react';
+import type { CSSProperties } from 'react';
 import { Image, View, Text } from '@tarojs/components';
 import './CatAvatar.less';
+
+type ImageMode =
+  | 'scaleToFill'
+  | 'aspectFit'
+  | 'aspectFill'
+  | 'widthFix'
+  | 'heightFix'
+  | 'top'
+  | 'bottom'
+  | 'center'
+  | 'left'
+  | 'right'
+  | 'top left'
+  | 'top right'
+  | 'bottom left'
+  | 'bottom right';
 
 interface CatAvatarProps {
   src?: string;
   name?: string;
   className?: string;
-  mode?: string;
-  style?: React.CSSProperties;
+  mode?: ImageMode;
+  style?: CSSProperties;
 }
 
 export default function CatAvatar({ src, name, className = '', mode = 'aspectFill', style }: CatAvatarProps) {

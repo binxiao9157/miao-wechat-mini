@@ -263,6 +263,16 @@ export interface PointsInfo {
   history: PointTransaction[];
 }
 
+type CustomNotification = {
+  id: string;
+  type: string;
+  title: string;
+  content: string;
+  time: number;
+  read: boolean;
+  catAvatar?: string;
+};
+
 export interface PresetCat {
   id: string;
   name: string;
@@ -1098,6 +1108,8 @@ export const storage = {
   },
 
   saveDiaries: (diaries: DiaryEntry[]): boolean => {
+    const previous = storage.getDiaries();
+    const previousMap = new Map(previous.map(d => [d.id, d]));
     const trimmed = diaries.length > MAX_DIARIES ? diaries.slice(0, MAX_DIARIES) : diaries;
     const success = storage.setItem(getUserKey(USER_DATA_KEYS.DIARIES), JSON.stringify(trimmed));
 
@@ -1107,7 +1119,12 @@ export const storage = {
 
     const userId = getCurrentUsername();
     if (userId) {
-      for (const d of trimmed) getSyncQueue().enqueue({ type: 'diary', id: d.id, action: 'upsert', payload: d });
+      for (const d of trimmed) {
+        const previousDiary = previousMap.get(d.id);
+        if (!previousDiary || JSON.stringify(previousDiary) !== JSON.stringify(d)) {
+          getSyncQueue().enqueue({ type: 'diary', id: d.id, action: 'upsert', payload: d });
+        }
+      }
     }
 
     return success;
@@ -1292,14 +1309,28 @@ export const storage = {
   },
 
   // 自定义通知（好友分享等）
-  getCustomNotifications: (): Array<{ id: string; type: string; title: string; content: string; time: number; read: boolean; catAvatar?: string }> => {
+  getCustomNotifications: (): CustomNotification[] => {
     return storage.safeParse(getUserKey('miao_custom_notifications'), []);
   },
 
-  addCustomNotification: (notification: { type: string; title: string; content: string; catAvatar?: string }) => {
+  addCustomNotification: (notification: { id?: string; type: string; title: string; content: string; catAvatar?: string; time?: number; read?: boolean }) => {
     const list = storage.getCustomNotifications();
-    const id = `${notification.type}_${Date.now()}`;
-    list.unshift({ ...notification, id, time: Date.now(), read: false });
+    const id = notification.id || `${notification.type}_${Date.now()}`;
+    const existingIndex = list.findIndex(item => item.id === id);
+    const next: CustomNotification = {
+      type: notification.type,
+      title: notification.title,
+      content: notification.content,
+      catAvatar: notification.catAvatar,
+      id,
+      time: notification.time || Date.now(),
+      read: notification.read ?? false,
+    };
+    if (existingIndex >= 0) {
+      list[existingIndex] = { ...list[existingIndex], ...next, read: list[existingIndex].read || next.read };
+    } else {
+      list.unshift(next);
+    }
     // 最多保留 50 条
     const trimmed = list.slice(0, 50);
     storage.setItem(getUserKey('miao_custom_notifications'), JSON.stringify(trimmed));

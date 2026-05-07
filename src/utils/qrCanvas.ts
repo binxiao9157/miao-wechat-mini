@@ -2,6 +2,7 @@
  * Lightweight QR Code generator for Taro Canvas (WeChat Mini Program).
  * Uses a minimal QR encoding approach suitable for short URLs/deep links.
  */
+import Taro from '@tarojs/taro';
 
 type CanvasContext = any;
 
@@ -399,7 +400,8 @@ export async function generateFriendPoster(options: {
 
   return new Promise((resolve, reject) => {
     const instance = Taro.getCurrentInstance();
-    const query = Taro.createSelectorQuery().in(instance.page);
+    const page = instance.page;
+    const query = page ? Taro.createSelectorQuery().in(page) : Taro.createSelectorQuery();
     query.select(`#${canvasId}`)
       .fields({ node: true, size: true })
       .exec((res) => {

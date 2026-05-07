@@ -146,7 +146,9 @@ export default function Login() {
     }
 
     const phoneCode = e.detail?.code;
-    const fallbackCode = e.detail?.cloudID || `dev_phone_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const fallbackCode = process.env.NODE_ENV === 'development'
+      ? (e.detail?.cloudID || `dev_phone_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`)
+      : '';
     const code = phoneCode || fallbackCode;
     if (!code) {
       setError('获取手机号授权失败');

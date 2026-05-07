@@ -25,6 +25,7 @@ const ICONS = {
 };
 
 type ProfileIconName = keyof typeof ICONS;
+const ADMIN_TAP_WINDOW_MS = 3000;
 
 function ProfileIcon({ name, size, className = '' }: { name: ProfileIconName; size?: number; className?: string }) {
   return (
@@ -99,12 +100,12 @@ export default function Profile() {
   });
 
   const navSpace = useNavSpace();
-  const navStyle: React.CSSProperties = {
+  const navStyle = {
     '--nav-top': navSpace['--nav-top'],
     '--nav-height': navSpace['--nav-height'],
     '--nav-capsule-top': navSpace['--nav-capsule-top'],
     '--nav-side': navSpace['--nav-side'],
-  };
+  } as React.CSSProperties & Record<string, string | number | undefined>;
 
   useShareAppMessage(() => ({
     title: activeCat ? `来认识${activeCat.name}吧！` : 'Miao - 你的AI猫咪伙伴',
@@ -164,7 +165,15 @@ export default function Profile() {
           if (!n.read) {
             const existing = storage.getCustomNotifications();
             if (!existing.some(e => e.id === n.id)) {
-              storage.addCustomNotification({ type: n.type, title: n.title, content: n.content, catAvatar: n.catAvatar });
+              storage.addCustomNotification({
+                id: n.id,
+                type: n.type,
+                title: n.title,
+                content: n.content,
+                catAvatar: n.catAvatar,
+                time: n.createdAt,
+                read: !!n.read,
+              });
             }
           }
         }
@@ -222,10 +231,23 @@ export default function Profile() {
             // 2. 清除 USER_DATA_PATH 下的媒体缓存文件
             try {
               const fs = Taro.getFileSystemManager();
-              const files = fs.readdirSync(Taro.env.USER_DATA_PATH);
+              const userDataPath = Taro.env.USER_DATA_PATH || '';
+              if (!userDataPath) return;
+              const referencedMediaIds = new Set<string>();
+              const collectMediaId = (media?: string) => {
+                if (media?.startsWith('miao_media:')) {
+                  referencedMediaIds.add(media.replace('miao_media:', ''));
+                }
+              };
+              storage.getDiaries().forEach(d => collectMediaId(d.media));
+              storage.getFriendDiaries().forEach(d => collectMediaId(d.media));
+              const files = fs.readdirSync(userDataPath);
               files.forEach((file: string) => {
-                if (file.startsWith('media_') || file.startsWith('tmp_')) {
-                  try { fs.unlinkSync(`${Taro.env.USER_DATA_PATH}/${file}`); cleared++; } catch {}
+                const mediaMatch = file.match(/^media_(.+)\.(jpg|jpeg|png|mp4)$/i);
+                const mediaId = mediaMatch?.[1];
+                const isReferencedMedia = mediaId ? referencedMediaIds.has(mediaId) : false;
+                if (file.startsWith('tmp_') || (file.startsWith('media_') && !isReferencedMedia)) {
+                  try { fs.unlinkSync(`${userDataPath}/${file}`); cleared++; } catch {}
                 }
               });
             } catch {}
@@ -252,7 +274,7 @@ export default function Profile() {
 
     adminTapTimerRef.current = setTimeout(() => {
       adminTapCountRef.current = 0;
-    }, 2000);
+    }, ADMIN_TAP_WINDOW_MS);
   };
 
   const menuItems = [
@@ -341,8 +363,8 @@ export default function Profile() {
               <ProfileIcon name="camera" size={14} />
             </View>
           </View>
-          <Text className="nickname">{user?.nickname || '未登录'}</Text>
-          <Text className="username">ID: {user?.username || 'guest'}</Text>
+          <Text className="nickname" onClick={handleAdminTap}>{user?.nickname || '未登录'}</Text>
+          <Text className="username" onClick={handleAdminTap}>ID: {user?.username || 'guest'}</Text>
 
           {/* 统计卡片 - 可点击 */}
           <View className="stats-row">

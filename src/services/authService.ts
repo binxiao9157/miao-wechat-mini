@@ -82,10 +82,17 @@ export const authService = {
   },
 
   async register(info: UserInfo): Promise<UserInfo> {
+    const username = (info.username || '').trim();
+    const password = (info.password || '').trim();
     const res = await request({
       url: '/api/v1/auth/register',
       method: 'POST',
-      data: info,
+      data: {
+        username,
+        password,
+        nickname: (info.nickname || username).trim(),
+        avatar: info.avatar || '',
+      },
       timeout: 15000,
     });
     const token = res.data?.token;

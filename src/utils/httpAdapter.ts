@@ -47,7 +47,7 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
   const isMini = isMiniProgram();
   // 小程序环境需要完整域名，Web/H5 环境保留调用方传入的 /api 路径。
   const baseURL = isMini
-    ? (process.env.TARO_APP_API_BASE_URL || 'https://your-server.com')
+    ? (process.env.TARO_APP_API_BASE_URL || 'https://www.mmdd10.tech')
     : '';
   const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`;
   const token = getItem('miao_auth_token');

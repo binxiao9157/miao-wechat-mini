@@ -1,10 +1,10 @@
 import React from 'react';
 import { useState } from 'react';
 import { View, Input, Button, Image, Text } from '@tarojs/components';
-import sendPrimary from '../../assets/profile-icons/send-primary.png';
 import './CommentInput.less';
 
 const MAX_LENGTH = 500;
+const sendPrimary = require('../../assets/profile-icons/send-primary.png');
 
 interface CommentInputProps {
   onSubmit: (content: string) => void;

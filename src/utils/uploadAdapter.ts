@@ -9,7 +9,7 @@ interface UploadOptions {
   headers?: Record<string, string>;
 }
 
-const getBaseURL = () => process.env.TARO_APP_API_BASE_URL || 'https://your-server.com';
+const getBaseURL = () => process.env.TARO_APP_API_BASE_URL || 'https://www.mmdd10.tech';
 
 export function uploadFile(options: UploadOptions): Promise<any> {
   const token = getItem('miao_auth_token');

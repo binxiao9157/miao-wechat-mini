@@ -78,7 +78,7 @@ export default function ResetPassword() {
       await request({
         url: '/api/v1/auth/reset-password',
         method: 'POST',
-         resetData,
+        data: resetData,
       });
       setShowToast(true);
       setTimeout(() => {
@@ -158,7 +158,8 @@ export default function ResetPassword() {
             </View>
             <Input
               className="form-input-with-icon"
-              type={showPassword ? 'text' : 'password'}
+              type="text"
+              password={!showPassword}
               value={newPassword}
               onInput={(e) => { setNewPassword(e.detail.value); if (error) setError(''); }}
               placeholder="设置 6-20 位新密码"

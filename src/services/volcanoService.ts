@@ -55,8 +55,16 @@ function dataUrlToTempFile(dataUrl: string): string {
 
 // 判断是否为微信本地文件路径（需要 uploadFile 上传）
 function isLocalFilePath(path: string): boolean {
-  if (path.startsWith('https://')) return false; // 真实 CDN URL
-  return true; // wxfile://、http://tmp/ 等微信本地路径
+  if (!path) return false;
+  if (/^https?:\/\//i.test(path)) {
+    return path.startsWith('http://tmp/') || path.startsWith('http://usr/');
+  }
+  const userDataPath = Taro.env.USER_DATA_PATH || '';
+  return (
+    path.startsWith('wxfile://') ||
+    path.startsWith('file://') ||
+    (!!userDataPath && path.startsWith(userDataPath))
+  );
 }
 
 // 获取可上传的文件路径：

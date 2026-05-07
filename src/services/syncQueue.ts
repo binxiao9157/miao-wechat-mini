@@ -1,5 +1,6 @@
 import Taro from '@tarojs/taro';
 import { storage } from './storage';
+import { getItem, removeItem, setItem } from '../utils/storageAdapter';
 
 type SyncTask = {
   type: 'diary' | 'letter' | 'points' | 'cat';
@@ -9,6 +10,8 @@ type SyncTask = {
   retries?: number;
 };
 
+const PERSIST_KEY = 'miao_pending_sync_tasks';
+
 class SyncQueue {
   private dirty = new Map<string, SyncTask>();
   private timer: ReturnType<typeof setTimeout> | null = null;
@@ -16,10 +19,43 @@ class SyncQueue {
   private readonly MAX_RETRIES = 3;
   private flushing = false;
   private flushResolve: (() => void) | null = null;
+  private hydrated = false;
+
+  private getTaskKey(task: SyncTask) {
+    return task.id ? `${task.type}:${task.id}` : task.type;
+  }
+
+  private hydrate() {
+    if (this.hydrated) return;
+    this.hydrated = true;
+    try {
+      const raw = getItem(PERSIST_KEY);
+      if (!raw) return;
+      const tasks = JSON.parse(raw) as SyncTask[];
+      if (!Array.isArray(tasks)) return;
+      for (const task of tasks) {
+        if (!task?.type || !task.action) continue;
+        this.dirty.set(this.getTaskKey(task), task);
+      }
+    } catch {
+      removeItem(PERSIST_KEY);
+    }
+  }
+
+  private persist() {
+    const tasks = Array.from(this.dirty.values());
+    if (tasks.length === 0) {
+      removeItem(PERSIST_KEY);
+      return;
+    }
+    setItem(PERSIST_KEY, JSON.stringify(tasks));
+  }
 
   enqueue(task: SyncTask) {
-    const key = task.id ? `${task.type}:${task.id}` : task.type;
+    this.hydrate();
+    const key = this.getTaskKey(task);
     this.dirty.set(key, { ...task, retries: task.retries ?? 0 });
+    this.persist();
     this.scheduleFlush();
   }
 
@@ -29,17 +65,23 @@ class SyncQueue {
   }
 
   async flush() {
+    this.hydrate();
     if (this.flushing) {
       await new Promise<void>(resolve => { this.flushResolve = resolve; });
       return;
     }
     const tasks = Array.from(this.dirty.values());
     this.dirty.clear();
+    this.persist();
     this.timer = null;
     this.flushing = true;
 
     const username = storage.getUserInfo()?.username;
     if (!username) {
+      for (const task of tasks) {
+        this.dirty.set(this.getTaskKey(task), task);
+      }
+      this.persist();
       this.flushing = false;
       this.flushResolve?.();
       this.flushResolve = null;
@@ -55,6 +97,7 @@ class SyncQueue {
         }
       }
     }
+    this.persist();
     this.flushing = false;
     this.flushResolve?.();
     this.flushResolve = null;

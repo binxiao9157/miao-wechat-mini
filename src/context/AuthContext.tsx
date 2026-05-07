@@ -21,6 +21,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+function isUnauthorizedError(error: any): boolean {
+  return error?.response?.status === 401 || error?.response?.data?.code === 'UNAUTHORIZED';
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -50,11 +54,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(remoteUser);
           refreshCatStatus();
         })
-        .catch(() => {
-          authService.logout();
-          storage.clearCurrentUser();
-          setUser(null);
-          setIsAuthenticated(false);
+        .catch((error) => {
+          if (isUnauthorizedError(error)) {
+            authService.logout();
+            storage.clearCurrentUser();
+            setUser(null);
+            setIsAuthenticated(false);
+          } else {
+            console.warn('[AuthContext] keep cached session after current-user check failed:', error?.message || error);
+          }
         })
         .finally(() => {
           setIsInitializing(false);

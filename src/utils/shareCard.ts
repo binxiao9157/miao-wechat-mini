@@ -120,7 +120,8 @@ function queryCanvasNode(canvasId: string, retries = 3, delay = 200): Promise<an
   return new Promise((resolve, reject) => {
     const attempt = (remaining: number) => {
       const instance = Taro.getCurrentInstance();
-      const query = Taro.createSelectorQuery().in(instance.page);
+      const page = instance.page;
+      const query = page ? Taro.createSelectorQuery().in(page) : Taro.createSelectorQuery();
       query.select(`#${canvasId}`)
         .fields({ node: true, size: true })
         .exec((res) => {

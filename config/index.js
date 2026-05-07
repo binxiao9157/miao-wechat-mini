@@ -1,5 +1,7 @@
 const path = require('path');
 
+const DEFAULT_API_BASE_URL = 'https://www.mmdd10.tech';
+
 const config = {
   projectName: 'miao-wechat-mini',
   framework: 'react',
@@ -16,7 +18,7 @@ const config = {
   plugins: [path.resolve(__dirname, '..', 'scripts', 'taro-plugin-share-timeline')],
   defineConstants: {
     'process.env.TARO_APP_API_BASE_URL': JSON.stringify(
-      process.env.TARO_APP_API_BASE_URL || 'http://localhost:3000'
+      process.env.TARO_APP_API_BASE_URL || DEFAULT_API_BASE_URL
     ),
     'process.env.TARO_APP_AI_PROVIDER': JSON.stringify(
       process.env.TARO_APP_AI_PROVIDER || 'volcengine'

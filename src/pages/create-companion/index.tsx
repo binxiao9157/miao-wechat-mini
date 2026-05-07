@@ -17,6 +17,7 @@ export default function CreateCompanion() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
   const [catName, setCatName] = useState('');
+  const [failedPresetImages, setFailedPresetImages] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setPresets(storage.getPresetCats());
@@ -102,12 +103,9 @@ export default function CreateCompanion() {
                 <View className="breed-image-wrapper">
                   <Image
                     className="breed-image"
-                    src={preset.imageUrl}
+                    src={failedPresetImages[preset.id] ? DEFAULT_AVATAR : preset.imageUrl}
                     mode="aspectFill"
-                    onError={(e) => {
-                      const target = e.detail?.target as any;
-                      if (target) target.src = DEFAULT_AVATAR;
-                    }}
+                    onError={() => setFailedPresetImages(prev => ({ ...prev, [preset.id]: true }))}
                   />
                 </View>
                 <Text className={`breed-name ${selectedPresetId === preset.id ? 'selected' : ''}`}>

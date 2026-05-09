@@ -1,20 +1,81 @@
-<view class="form-page">
-  <view class="header">
-    <text class="back" bindtap="goBack">‹</text>
-    <text class="header-title">个人资料</text>
+<view class="edit-profile-page">
+  <view class="page-header">
+    <text class="back-btn" bindtap="goBack">‹</text>
+    <text class="page-title">编辑资料</text>
+    <button class="save-btn {{saving ? 'disabled' : ''}}" loading="{{saving}}" bindtap="save">
+      <text class="save-btn-text">{{saving ? '...' : '保存'}}</text>
+    </button>
   </view>
 
-  <view class="form">
-    <view class="avatar-row">
-      <image wx:if="{{avatar}}" class="avatar-preview" src="{{avatar}}" mode="aspectFill" />
-      <view wx:else class="avatar-empty">M</view>
-      <button class="avatar-button" bindtap="chooseAvatar">选择头像</button>
+  <scroll-view class="edit-profile-scroll" scroll-y>
+    <view class="avatar-section">
+      <view class="avatar-wrapper" bindtap="openAvatarSheet">
+        <view class="avatar-box">
+          <image wx:if="{{avatar}}" class="avatar-image" src="{{avatar}}" mode="aspectFill" />
+          <text wx:else class="avatar-placeholder">M</text>
+        </view>
+        <view class="avatar-camera-btn">
+          <image class="icon-img" src="/assets/profile-icons/camera-primary.png" mode="aspectFit" />
+        </view>
+      </view>
+      <text class="avatar-hint">点击更换头像</text>
     </view>
-    <text class="label">昵称</text>
-    <input class="input" value="{{nickname}}" maxlength="12" placeholder="输入昵称" bindinput="onNicknameInput" />
-    <text class="label">头像地址</text>
-    <input class="input" value="{{avatar}}" placeholder="可选，选择或粘贴头像地址" bindinput="onAvatarInput" />
-    <button class="miao-button-primary submit" loading="{{saving}}" bindtap="save">保存资料</button>
-    <button class="miao-button-secondary submit" bindtap="changePassword">修改密码</button>
+
+    <view class="form-section">
+      <view class="form-group">
+        <text class="form-label">昵称</text>
+        <view class="input-wrapper">
+          <input class="form-input" value="{{nickname}}" maxlength="12" placeholder="输入您的新昵称" placeholder-style="color: #8E8E8E" bindinput="onNicknameInput" />
+        </view>
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">头像地址</text>
+        <view class="input-wrapper">
+          <input class="form-input" value="{{avatar}}" placeholder="可选，选择或粘贴头像地址" placeholder-style="color: #8E8E8E" bindinput="onAvatarInput" />
+        </view>
+      </view>
+
+      <view class="form-group">
+        <view class="nav-item" bindtap="changePassword">
+          <text class="nav-item-text">修改登录密码</text>
+          <text class="nav-item-arrow">›</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="hint-box">
+      <text class="hint-text">提示：好的昵称能让您的猫咪伙伴更容易记住您哦。头像建议选择清晰的个人照片或可爱的宠物合照。</text>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{showActionSheet}}" class="actionsheet-overlay" bindtap="closeAvatarSheet">
+    <view class="actionsheet" catchtap="noop">
+      <view class="actionsheet-header">
+        <text class="actionsheet-title">更换头像</text>
+        <view class="actionsheet-close" bindtap="closeAvatarSheet">
+          <image class="icon-img small" src="/assets/profile-icons/x-gray.png" mode="aspectFit" />
+        </view>
+      </view>
+
+      <view class="actionsheet-options">
+        <view class="actionsheet-option" bindtap="chooseAvatarFromAlbum">
+          <view class="option-icon-box blue">
+            <image class="option-icon" src="/assets/profile-icons/image-primary.png" mode="aspectFit" />
+          </view>
+          <text class="option-text">从相册选择</text>
+        </view>
+        <view class="actionsheet-option" bindtap="takeAvatarPhoto">
+          <view class="option-icon-box orange">
+            <image class="option-icon" src="/assets/profile-icons/camera-primary.png" mode="aspectFit" />
+          </view>
+          <text class="option-text">拍照</text>
+        </view>
+      </view>
+
+      <view class="actionsheet-cancel" bindtap="closeAvatarSheet">
+        <text class="cancel-text">取消</text>
+      </view>
+    </view>
   </view>
 </view>

@@ -1,45 +1,47 @@
-<view class="history-page">
+<view class="cat-history-page history-page">
   <view class="header">
-    <image class="back-icon" src="/assets/profile-icons/arrowleft-dark.png" mode="aspectFit" bindtap="goBack" />
+    <image class="back-icon icon-img" src="/assets/profile-icons/arrowleft-dark.png" mode="aspectFit" bindtap="goBack"></image>
     <text class="header-title">猫咪历史</text>
   </view>
 
-  <scroll-view class="history-scroll" scroll-y>
-    <view wx:if="{{cats.length}}" class="history-grid">
-      <view
-        wx:for="{{cats}}"
-        wx:key="id"
-        class="history-card"
-        data-id="{{item.id}}"
-        bindtap="openCat"
-      >
-        <image class="thumb" src="{{item.avatar}}" mode="aspectFill" />
-        <view class="thumb-overlay"></view>
-        <view class="play-mark"><image class="play-icon" src="/assets/profile-icons/play-white.png" mode="aspectFit" /></view>
-        <button
-          class="delete-button"
-          catchtap="deleteCat"
-          data-id="{{item.id}}"
-          data-name="{{item.name}}"
-        ><image class="delete-icon" src="/assets/profile-icons/trash2-red2.png" mode="aspectFit" /></button>
-        <view class="content">
-          <text class="name">{{item.name || '小猫'}}</text>
-          <text class="meta">{{item.createdDate || '未知日期'}}</text>
-          <text class="video-count">{{item.videoCount}} 个视频 · {{item.generationStatus || 'draft'}}</text>
+  <scroll-view class="cat-history-scroll history-scroll" scroll-y>
+    <view wx:if="{{cats.length}}" class="cat-grid history-grid">
+      <view wx:for="{{cats}}" wx:key="id" class="cat-card history-card" data-id="{{item.id}}" bindtap="openCat">
+        <view class="card-thumb">
+          <image class="thumb-image thumb" src="{{item.avatar}}" mode="aspectFill"></image>
+          <view class="thumb-overlay"></view>
+          <view class="play-btn play-mark"><image class="icon-img play-icon" src="/assets/profile-icons/play-white.png" mode="aspectFit"></image></view>
+          <button class="card-delete delete-button" catchtap="deleteCat" data-id="{{item.id}}" data-name="{{item.name}}">
+            <image class="icon-img delete-icon" src="/assets/profile-icons/trash2-red2.png" mode="aspectFit"></image>
+          </button>
+          <view class="card-info content">
+            <text class="card-name name">{{item.name || '小猫'}}</text>
+            <text class="card-date meta">{{item.createdDate || '未知日期'}}</text>
+          </view>
         </view>
       </view>
       <view class="add-card" bindtap="addCat">
-        <view class="add-icon"><image class="add-icon-img" src="/assets/profile-icons/plus-white.png" mode="aspectFit" /></view>
-        <text>生成新猫咪</text>
+        <view class="add-icon-box add-icon"><image class="icon-img add-icon-img" src="/assets/profile-icons/plus-white.png" mode="aspectFit"></image></view>
+        <text class="add-text">生成新猫咪</text>
       </view>
     </view>
 
-    <view wx:else class="empty">
-      <view class="empty-icon"><image class="empty-icon-img" src="/assets/profile-icons/sparkles-gray.png" mode="aspectFit" /></view>
+    <view wx:else class="empty-state empty">
+      <view class="empty-icon-box empty-icon"><image class="icon-img empty-icon-img" src="/assets/profile-icons/sparkles-gray.png" mode="aspectFit"></image></view>
       <text class="empty-title">还没有生成记录</text>
-      <text class="empty-subtitle">上传照片后，猫咪会出现在这里。</text>
+      <text class="empty-desc empty-subtitle">快去上传照片，生成您的第一个 AI 猫咪吧！</text>
     </view>
-
-    <button wx:if="{{!cats.length}}" class="miao-button-primary add-action" bindtap="addCat">生成新猫咪</button>
   </scroll-view>
+
+  <view wx:if="{{deleteTarget}}" class="delete-overlay backdrop-overlay" bindtap="cancelDelete">
+    <view class="delete-dialog" catchtap="noop">
+      <view class="delete-icon-box"><image class="icon-img" src="/assets/profile-icons/trash2-red2.png" mode="aspectFit"></image></view>
+      <text class="delete-title">确定要删除吗？</text>
+      <text class="delete-desc">删除后将无法找回这条记录，确定要继续吗？</text>
+      <view class="delete-actions">
+        <view class="delete-btn cancel" bindtap="cancelDelete"><text class="delete-btn-text">取消</text></view>
+        <view class="delete-btn confirm" bindtap="confirmDelete"><text class="delete-btn-text white">确定删除</text></view>
+      </view>
+    </view>
+  </view>
 </view>

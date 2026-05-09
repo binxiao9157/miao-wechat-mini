@@ -1,28 +1,39 @@
 <view class="profile-page">
   <view class="header">
-    <image class="back-icon" src="/assets/profile-icons/arrowleft-dark.png" mode="aspectFit" bindtap="goBack" />
-    <text class="header-title">我的</text>
-  </view>
-
-  <view class="user-band">
-    <image wx:if="{{avatar}}" class="avatar image-avatar" src="{{avatar}}" mode="aspectFill" />
-    <view wx:else class="avatar">{{avatarLetter}}</view>
-    <view class="user-info">
-      <text class="nickname">{{displayName}}</text>
-      <text class="username">{{username}}</text>
+    <view class="header-title">
+      <text class="title">我的</text>
+      <text class="subtitle">MIAO PROFILE</text>
+    </view>
+    <view class="header-actions">
+      <button class="header-btn" bindtap="goNotificationList">
+        <image class="header-icon" src="/assets/profile-icons/bell-header.png" mode="aspectFit" />
+        <view wx:if="{{unreadCount > 0}}" class="unread-badge"><text class="unread-text">{{unreadCount}}</text></view>
+      </button>
     </view>
   </view>
 
-  <view class="stats">
-    <view class="stat">
+  <view class="profile-header">
+    <view class="avatar-wrapper">
+    <image wx:if="{{avatar}}" class="avatar image-avatar" src="{{avatar}}" mode="aspectFill" />
+    <view wx:else class="avatar">{{avatarLetter}}</view>
+    <view class="avatar-edit-btn" bindtap="goEditProfile">
+      <image class="avatar-edit-icon" src="/assets/profile-icons/camera-white.png" mode="aspectFit" />
+    </view>
+    </view>
+    <text class="nickname">{{displayName}}</text>
+    <text class="username">{{username}}</text>
+  </view>
+
+  <view class="stats-row">
+    <view class="stat-card">
       <text class="stat-value">{{stats.catCount}}</text>
       <text class="stat-label">猫咪</text>
     </view>
-    <view class="stat">
+    <view class="stat-card">
       <text class="stat-value">{{stats.videoCount}}</text>
       <text class="stat-label">视频</text>
     </view>
-    <view class="stat">
+    <view class="stat-card">
       <text class="stat-value">{{stats.days}}</text>
       <text class="stat-label">陪伴天数</text>
     </view>
@@ -35,7 +46,8 @@
     <button class="quick-item" bindtap="goFriends"><view class="quick-icon"><image class="quick-icon-img" src="/assets/profile-icons/userplus-gray.png" mode="aspectFit" /></view><text>好友</text></button>
   </view>
 
-  <view class="menu">
+  <view class="menu-section">
+    <text class="menu-title">SETTINGS</text>
     <button class="menu-item" bindtap="goEditProfile"><view class="menu-left"><view class="menu-icon blue"><image src="/assets/profile-icons/user-blue.png" mode="aspectFit" /></view><text>个人资料设置</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
     <button class="menu-item" bindtap="goSwitch"><view class="menu-left"><view class="menu-icon warm"><image src="/assets/profile-icons/heart-cat.png" mode="aspectFit" /></view><text>切换猫咪</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
     <button class="menu-item" bindtap="goMilestone"><view class="menu-left"><view class="menu-icon green"><image src="/assets/profile-icons/calendar-stat.png" mode="aspectFit" /></view><text>陪伴里程碑</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>

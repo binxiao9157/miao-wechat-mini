@@ -1,39 +1,43 @@
-<view class="create-page">
+<view class="create-companion-page">
   <view class="header">
     <text class="back" bindtap="goBack">‹</text>
     <text class="header-title">创建猫咪</text>
   </view>
 
-  <view class="hero">
-    <image class="avatar" src="{{selectedPresetImage || '/assets/logo.png'}}" mode="aspectFill" />
-    <text class="title">创建猫咪</text>
-    <text wx:if="{{isRedemption}}" class="redemption">{{redemptionText}}</text>
-  </view>
+  <scroll-view class="create-companion-scroll" scroll-y>
+    <view class="form-section">
+      <text class="form-label">CAT NAME</text>
+      <input class="name-input" value="{{name}}" placeholder="例如：奶茶" bindinput="onNameInput" />
+    </view>
 
-  <view class="form">
-    <text class="label">名字</text>
-    <input class="input" value="{{name}}" placeholder="例如：奶茶" bindinput="onNameInput" />
-
-    <text class="label">品种预设</text>
-    <scroll-view class="preset-scroll" scroll-x>
+    <view class="form-section">
+      <text class="form-label">BREED PRESET</text>
+      <view class="breed-grid">
       <view
         wx:for="{{presets}}"
         wx:key="id"
-        class="preset-card {{selectedPresetId === item.id ? 'active' : ''}}"
+        class="breed-card {{selectedPresetId === item.id ? 'selected' : ''}}"
         data-id="{{item.id}}"
         bindtap="selectPreset"
       >
-        <image class="preset-image" src="{{item.imageUrl}}" mode="aspectFill" />
-        <text class="preset-name">{{item.name}}</text>
+        <view wx:if="{{selectedPresetId === item.id}}" class="check-badge"><text class="check-mark">✓</text></view>
+        <view class="breed-image-wrapper"><image class="breed-image" src="{{item.imageUrl}}" mode="aspectFill" /></view>
+        <text class="breed-name {{selectedPresetId === item.id ? 'selected' : ''}}">{{item.name}}</text>
       </view>
-    </scroll-view>
+      </view>
+    </view>
 
-    <text class="label">毛色</text>
-    <input class="input" value="{{color}}" placeholder="例如：橘白、银渐层、奶牛色" bindinput="onColorInput" />
+    <view class="form-section">
+      <text class="form-label">FUR COLOR</text>
+      <input class="name-input" value="{{color}}" placeholder="例如：橘白、银渐层、奶牛色" bindinput="onColorInput" />
+    </view>
 
     <text wx:if="{{error}}" class="error">{{error}}</text>
+    <text wx:if="{{isRedemption}}" class="redemption">{{redemptionText}}</text>
+  </scroll-view>
 
-    <button class="miao-button-primary action" loading="{{saving}}" bindtap="handleCreate">
+  <view class="bottom-bar">
+    <button class="generate-btn active" loading="{{saving}}" bindtap="handleCreate">
       生成猫咪
     </button>
   </view>

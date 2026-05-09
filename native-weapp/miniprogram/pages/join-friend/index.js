@@ -5,6 +5,8 @@ Page({
   data: {
     code: '',
     invite: null,
+    inviterInitial: 'M',
+    showSuccess: false,
     loading: false
   },
 
@@ -30,7 +32,10 @@ Page({
     this.setData({ loading: true });
     try {
       const invite = await socialStore.getInvite(code);
-      this.setData({ invite, code });
+      const inviterName = invite && invite.inviter && invite.inviter.nickname
+        ? invite.inviter.nickname
+        : (invite && invite.ownerId) || 'M';
+      this.setData({ invite, code, inviterInitial: String(inviterName).slice(0, 1).toUpperCase() });
     } catch (error) {
       wx.showToast({ title: error.message || '邀请码无效', icon: 'none' });
     } finally {
@@ -44,8 +49,8 @@ Page({
     this.setData({ loading: true });
     try {
       await socialStore.acceptInvite(code);
-      wx.showToast({ title: '已添加好友', icon: 'success' });
-      safeBack('/pages/profile/index');
+      this.setData({ showSuccess: true });
+      setTimeout(() => safeBack('/pages/profile/index'), 1200);
     } catch (error) {
       wx.showToast({ title: error.message || '添加失败', icon: 'none' });
     } finally {

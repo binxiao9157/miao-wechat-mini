@@ -108,7 +108,7 @@ Page({
   },
 
   createCat() {
-    navigateTo('/pages/upload-material/index');
+    navigateTo('/pages/empty-cat/index');
   },
 
   selectAction(event) {

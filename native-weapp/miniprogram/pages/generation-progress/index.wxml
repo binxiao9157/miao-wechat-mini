@@ -1,19 +1,46 @@
 <view class="generation-page">
-  <view wx:if="{{phase === 'generating'}}" class="center">
-    <view class="ring">
-      <text class="percent">{{progress}}%</text>
+  <view wx:if="{{phase === 'generating'}}" class="generating-view">
+    <view class="loading-spinner">
+      <view class="spinner-ring"></view>
+      <view class="spinner-icon">
+        <image class="icon-img spinner-img" src="/assets/profile-icons/sparkles-gray.png" mode="aspectFit" />
+      </view>
     </view>
-    <text class="counter">{{currentIndex}} / {{totalCount}} · {{actionLabel}}</text>
-    <text class="title">{{statusText}}</text>
-    <text class="subtitle">视频生成耗时较长，离开后再次进入可继续查询任务。</text>
+    <text class="status-subtitle">AWAKENING DIGITAL LIFE</text>
+    <text class="status-title">{{statusText}}</text>
+    <view class="progress-bar-wrapper">
+      <view class="progress-bar-bg">
+        <view class="progress-bar-fill" style="width: {{progress}}%;"></view>
+      </view>
+    </view>
+    <text class="progress-hint">{{currentIndex}} / {{totalCount}} · {{actionLabel}}</text>
+    <view class="steps-list">
+      <view class="step-item {{progress >= 5 ? 'active' : ''}} {{progress > 30 ? 'done' : ''}}">
+        <view class="step-dot {{progress > 30 ? 'done' : (progress >= 5 ? 'active' : '')}}">
+          <text class="step-num">{{progress > 30 ? '✓' : '1'}}</text>
+        </view>
+        <text class="step-label">构筑灵魂基石</text>
+      </view>
+      <view class="step-item {{progress >= 30 ? 'active' : ''}} {{progress >= 90 ? 'done' : ''}}">
+        <view class="step-dot {{progress >= 90 ? 'done' : (progress >= 30 ? 'active' : '')}}">
+          <text class="step-num">{{progress >= 90 ? '✓' : '2'}}</text>
+        </view>
+        <text class="step-label">注入生命律动</text>
+      </view>
+      <view class="step-item {{progress >= 100 ? 'active done' : ''}}">
+        <view class="step-dot {{progress >= 100 ? 'done' : ''}}">
+          <text class="step-num">{{progress >= 100 ? '✓' : '3'}}</text>
+        </view>
+        <text class="step-label">魔法连接完成</text>
+      </view>
+    </view>
   </view>
 
-  <view wx:elif="{{phase === 'success'}}" class="center">
-    <video class="preview-video" src="{{videoUrl}}" autoplay loop muted controls="{{false}}" object-fit="contain"></video>
+  <view wx:elif="{{phase === 'success'}}" class="success-view">
     <image class="success-icon" src="/assets/profile-icons/checkcircle-green.png" mode="aspectFit" />
-    <text class="title">{{statusText || '生成完成'}}</text>
-    <text class="subtitle">你的数字猫咪已经准备好了。</text>
-    <button class="miao-button-primary action" bindtap="goHome">查看我的猫咪</button>
+    <text class="success-title">{{statusText || '生成完成'}}</text>
+    <text class="success-desc">你的数字猫咪已经准备好了</text>
+    <button class="success-btn" bindtap="goHome">查看我的猫咪</button>
   </view>
 
   <view wx:elif="{{phase === 'confirm'}}" class="confirm-view">
@@ -29,11 +56,14 @@
     </view>
   </view>
 
-  <view wx:else class="center">
-    <text class="title">生成失败</text>
-    <text class="error">{{error}}</text>
-    <button class="miao-button-primary action" bindtap="retry">重试</button>
-    <button class="miao-button-secondary action" bindtap="backToEdit">返回修改材料</button>
-    <button class="miao-button-secondary action" bindtap="goHome">稍后再说</button>
+  <view wx:else class="error-view">
+    <image class="error-icon" src="/assets/profile-icons/alertcircle-red2.png" mode="aspectFit" />
+    <text class="error-title">生成遇到问题</text>
+    <text class="error-desc">{{error}}</text>
+    <view class="error-actions">
+      <button class="error-btn retry" bindtap="retry">重新尝试</button>
+      <button class="error-btn back" bindtap="backToEdit">返回创建页</button>
+      <button class="error-btn back" bindtap="goHome">稍后再说</button>
+    </view>
   </view>
 </view>

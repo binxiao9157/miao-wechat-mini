@@ -1,9 +1,29 @@
-<view class="empty-page">
-  <image class="logo" src="../../assets/logo.png" mode="aspectFit" />
-  <text class="title">还没有猫咪伙伴</text>
-  <text class="subtitle">上传照片生成数字形象，也可以先创建一个草稿继续验证流程。</text>
+<view class="welcome-page">
+  <view class="logo-section">
+    <image class="logo-icon" src="../../assets/logo.png" mode="aspectFit" />
+    <text class="logo-text">Miao</text>
+  </view>
+  <text class="main-title">遇见你的数字猫咪伙伴</text>
+  <text class="main-desc">上传真实照片生成专属形象，或选择预设猫咪快速开始陪伴。</text>
   <text wx:if="{{isRedemption}}" class="redemption">{{redemptionText}}</text>
-  <button class="miao-button-primary action" bindtap="goUpload">上传猫咪照片</button>
-  <button class="miao-button-secondary action" bindtap="goCreate">选择预设猫咪</button>
-  <button class="miao-button-secondary action" bindtap="logout">退出登录</button>
+  <view class="option-cards">
+    <view class="option-card" bindtap="goUpload">
+      <view class="card-header">
+        <view class="card-icon-box"><image class="card-icon" src="/assets/profile-icons/upload-primary.png" mode="aspectFit" /></view>
+        <text class="card-arrow">›</text>
+      </view>
+      <text class="card-title">上传猫咪照片</text>
+      <text class="card-desc">AI 捕捉猫咪特征，生成更贴近真实猫咪的数字形象。</text>
+      <view class="upload-hint"><text class="upload-hint-text">RECOMMENDED</text></view>
+    </view>
+    <view class="option-card" bindtap="goCreate">
+      <view class="card-header">
+        <view class="card-icon-box"><image class="card-icon" src="/assets/profile-icons/sparkles-primary.png" mode="aspectFit" /></view>
+        <text class="card-arrow">›</text>
+      </view>
+      <text class="card-title">选择预设猫咪</text>
+      <text class="card-desc">先用预设形象创建伙伴，快速体验视频生成流程。</text>
+    </view>
+  </view>
+  <view class="footer" bindtap="logout"><text class="footer-text">退出登录</text></view>
 </view>

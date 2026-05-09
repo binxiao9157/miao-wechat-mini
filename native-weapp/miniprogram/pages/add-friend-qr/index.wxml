@@ -1,22 +1,91 @@
-<view class="invite-page">
-  <view class="header">
-    <text class="back" bindtap="goBack">‹</text>
-    <text class="header-title">邀请好友</text>
+<view class="add-friend-qr-page">
+  <view wx:if="{{toastText}}" class="toast {{toastType}}">
+    <text class="toast-icon">{{toastType === 'success' ? '✓' : '!'}}</text>
+    <text class="toast-message">{{toastText}}</text>
   </view>
 
-  <view class="invite-card">
-    <text class="label">邀请码</text>
-    <text class="code">{{invite.code || '生成中...'}}</text>
-    <view class="qr-box">
-      <image wx:if="{{qrImageUrl}}" class="qr-image" src="{{qrImageUrl}}" mode="aspectFit" />
-      <canvas wx:else id="qrCanvas" type="2d" class="qr-canvas"></canvas>
-      <text class="qr-note">{{qrReady ? '好友扫码即可加入' : '二维码生成中...'}}</text>
+  <view class="page-header">
+    <text class="back-btn" bindtap="goBack">‹</text>
+    <view class="header-title-wrap">
+      <text class="header-title">面对面添加</text>
+      <text class="header-subtitle">Face-to-Face</text>
     </view>
-    <text class="desc">好友在“加入好友”页面输入邀请码，即可互相关注猫咪动态。</text>
-    <button class="miao-button-primary action" loading="{{loading}}" bindtap="copyCode">复制邀请码</button>
-    <button class="miao-button-secondary action" loading="{{loading}}" bindtap="copyPayload">复制邀请链接</button>
-    <button class="miao-button-secondary action" bindtap="saveQr">保存二维码</button>
-    <button class="miao-button-secondary action" open-type="share">分享给微信好友</button>
-    <button class="miao-button-secondary action" loading="{{loading}}" bindtap="createInvite">重新生成</button>
+    <view class="header-right"></view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">
+    <text class="loading-text">正在生成二维码...</text>
+  </view>
+
+  <view wx:if="{{errorText && !loading}}" class="error-page">
+    <view class="error-icon">!</view>
+    <text class="error-title">生成失败</text>
+    <text class="error-desc">{{errorText}}</text>
+    <view class="error-btn" bindtap="createInvite"><text class="error-btn-text">重新生成</text></view>
+  </view>
+
+  <view wx:if="{{!errorText}}" class="card-container {{qrReady ? 'card-visible' : 'card-hidden'}}">
+    <view class="qr-card">
+      <view class="card-top-line"></view>
+
+      <view class="user-info-row">
+        <view class="user-avatar"><text class="user-avatar-text">M</text></view>
+        <view class="user-text">
+          <text class="user-nickname">Miao</text>
+          <text class="user-subtitle">邀请你成为好友</text>
+        </view>
+      </view>
+
+      <view class="qr-area">
+        <view class="qr-wrapper">
+          <image wx:if="{{qrImageUrl}}" class="qr-image" src="{{qrImageUrl}}" mode="aspectFit" bindtap="openPreview" />
+          <view wx:else class="qr-placeholder">
+            <text class="qr-emoji">QR</text>
+            <text class="qr-hint">{{loading ? '正在生成二维码...' : '好友邀请码'}}</text>
+            <text wx:if="{{invite.code}}" class="qr-code-text">{{invite.code}}</text>
+          </view>
+          <canvas id="qrCanvas" type="2d" class="qr-canvas qr-canvas-offscreen"></canvas>
+          <view wx:if="{{errorText}}" class="qr-error">
+            <text class="qr-error-text">{{errorText}}</text>
+            <text class="qr-retry" bindtap="createInvite">重试</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="cat-info-bar">
+        <view class="cat-avatar-small"></view>
+        <text class="cat-name-text">代表猫咪：Miao</text>
+      </view>
+
+      <text class="footer-hint">让好友打开 Miao 扫描或复制邀请码\n即可建立跨时空的温暖连接</text>
+    </view>
+  </view>
+
+  <view wx:if="{{!errorText}}" class="action-buttons {{qrReady ? 'card-visible' : 'card-hidden'}}">
+    <view class="action-btn" bindtap="saveQr">
+      <view class="action-icon"><image class="icon-img" src="/assets/profile-icons/download-primary.png" mode="aspectFit" /></view>
+      <text class="action-text">保存图片</text>
+    </view>
+    <button class="action-btn" open-type="share">
+      <view class="action-icon"><image class="icon-img" src="/assets/profile-icons/share-gray.png" mode="aspectFit" /></view>
+      <text class="action-text">分享给好友</text>
+    </button>
+  </view>
+
+  <view class="copy-actions">
+    <button class="copy-btn" loading="{{loading}}" bindtap="copyCode">复制邀请码</button>
+    <button class="copy-btn" loading="{{loading}}" bindtap="copyPayload">复制邀请链接</button>
+    <button class="copy-btn" loading="{{loading}}" bindtap="createInvite">重新生成</button>
+  </view>
+
+  <view wx:if="{{showPreview}}" class="preview-modal">
+    <view class="preview-mask" bindtap="closePreview"></view>
+    <view class="preview-close" bindtap="closePreview">×</view>
+    <image class="preview-image" src="{{qrImageUrl}}" mode="aspectFit"></image>
+    <view class="preview-hint">
+      <text class="preview-title">面对面添加</text>
+      <text class="preview-subtitle">长按或截图分享给好友</text>
+      <view class="preview-back-btn" bindtap="closePreview">返回</view>
+    </view>
   </view>
 </view>

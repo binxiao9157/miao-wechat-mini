@@ -1,38 +1,72 @@
-<view class="feedback-page">
-  <view class="header">
-    <text class="back" bindtap="goBack">‹</text>
-    <text class="header-title">意见反馈</text>
+<view class="feedback-page {{success ? 'success-page' : ''}}">
+  <view wx:if="{{success}}" class="success-card">
+    <view class="success-icon-wrap">
+      <image class="icon-img" src="/assets/profile-icons/checkcircle-green.png" mode="aspectFit" />
+    </view>
+    <text class="success-title">感谢您的宝贵意见！</text>
+    <text class="success-desc">我们会尽快优化，给您更好的体验</text>
   </view>
 
-  <scroll-view class="feedback-scroll" scroll-y>
-    <view wx:if="{{!hasSubmittedSurvey}}" class="survey">
-      <view wx:for="{{questions}}" wx:key="id" class="question">
-        <text class="question-title">{{item.question}}</text>
-
-        <view wx:if="{{item.type === 'radio'}}" class="option-grid">
-          <button wx:for="{{item.options}}" wx:for-item="option" wx:key="label" class="option {{option.selected ? 'active' : ''}}" data-id="{{item.id}}" data-value="{{option.label}}" bindtap="selectOption">{{option.label}}</button>
-        </view>
-
-        <view wx:if="{{item.type === 'checkbox'}}" class="option-grid">
-          <button wx:for="{{item.options}}" wx:for-item="option" wx:key="label" class="option {{option.selected ? 'active' : ''}}" data-id="{{item.id}}" data-value="{{option.label}}" bindtap="toggleOption">{{option.label}}</button>
-        </view>
-
-        <view wx:if="{{item.type === 'rating'}}" class="stars">
-          <button wx:for="{{item.stars}}" wx:for-item="star" wx:key="value" class="star {{star.active ? 'active' : ''}}" data-id="{{item.id}}" data-value="{{star.value}}" bindtap="rate">★</button>
-        </view>
-
-        <textarea wx:if="{{item.type === 'text'}}" class="textarea small" value="{{item.answer}}" maxlength="300" placeholder="选填" data-id="{{item.id}}" bindinput="inputSurveyText" />
-      </view>
-
-      <button class="miao-button-primary submit" loading="{{saving}}" bindtap="submitSurvey">提交问卷</button>
+  <block wx:else>
+    <view class="page-header">
+      <text class="back-btn" bindtap="goBack">‹</text>
+      <text class="page-title">反馈</text>
     </view>
 
-    <view wx:else class="form">
-      <view class="type-row">
-        <button wx:for="{{feedbackTypes}}" wx:key="label" class="type-chip {{item.active ? 'active' : ''}}" data-value="{{item.label}}" bindtap="selectType">{{item.label}}</button>
+    <scroll-view class="feedback-scroll content-scroll" scroll-y>
+      <view wx:if="{{!hasSubmittedSurvey}}" class="survey-section">
+        <view class="survey-notice">
+          <text class="notice-text">为了给喵星人提供更好的陪伴，请花 2 分钟完成以下调研。您的反馈对我们至关重要！</text>
+        </view>
+
+        <view wx:for="{{questions}}" wx:key="id" class="question-card">
+          <text class="question-text">{{item.question}}<text wx:if="{{item.required}}" class="required-mark"> *</text></text>
+
+          <view wx:if="{{item.type === 'radio'}}">
+            <view wx:for="{{item.options}}" wx:for-item="option" wx:key="label" class="option-item {{option.selected ? 'selected' : ''}}" data-id="{{item.id}}" data-value="{{option.label}}" bindtap="selectOption">
+              <view class="radio-dot {{option.selected ? 'checked' : ''}}"><view wx:if="{{option.selected}}" class="radio-inner"></view></view>
+              <text class="option-label">{{option.label}}</text>
+            </view>
+          </view>
+
+          <view wx:if="{{item.type === 'checkbox'}}">
+            <view wx:for="{{item.options}}" wx:for-item="option" wx:key="label" class="option-item {{option.selected ? 'selected' : ''}}" data-id="{{item.id}}" data-value="{{option.label}}" bindtap="toggleOption">
+              <view class="checkbox-box {{option.selected ? 'checked' : ''}}"><text wx:if="{{option.selected}}" class="checkbox-tick">✓</text></view>
+              <text class="option-label">{{option.label}}</text>
+            </view>
+          </view>
+
+          <view wx:if="{{item.type === 'rating'}}" class="rating-row">
+            <view wx:for="{{item.stars}}" wx:for-item="star" wx:key="value" class="rating-item" data-id="{{item.id}}" data-value="{{star.value}}" bindtap="rate">
+              <image class="rating-star" src="{{star.active ? '/assets/profile-icons/star-primary.png' : '/assets/profile-icons/star-inactive.png'}}" mode="aspectFit" />
+              <text class="rating-label">{{star.value}}分</text>
+            </view>
+          </view>
+
+          <textarea wx:if="{{item.type === 'text'}}" class="question-textarea" value="{{item.answer}}" maxlength="500" placeholder="请填写您的建议..." placeholder-style="color: #8E8E8E" data-id="{{item.id}}" bindinput="inputSurveyText" />
+        </view>
+
+        <button class="submit-btn" loading="{{saving}}" bindtap="submitSurvey">
+          <text class="submit-btn-text">提交问卷</text>
+        </button>
       </view>
-      <textarea class="textarea" value="{{feedbackText}}" maxlength="800" placeholder="告诉我们哪里不好用，或者你想要什么功能" bindinput="onFeedbackInput" />
-      <button class="miao-button-primary submit" loading="{{saving}}" bindtap="submitFeedback">提交反馈</button>
-    </view>
-  </scroll-view>
+
+      <view wx:else class="simple-section">
+        <view class="feedback-card">
+          <text class="section-label">反馈类型</text>
+          <view class="type-grid">
+            <view wx:for="{{feedbackTypes}}" wx:key="label" class="type-btn {{item.active ? 'active' : ''}}" data-value="{{item.label}}" bindtap="selectType">
+              <text class="type-btn-text {{item.active ? 'active' : ''}}">{{item.label}}</text>
+            </view>
+          </view>
+          <text class="section-label">反馈内容</text>
+          <textarea class="feedback-textarea" value="{{feedbackText}}" maxlength="800" placeholder="告诉我们哪里不好用，或者你想要什么功能" placeholder-style="color: #8E8E8E" bindinput="onFeedbackInput" />
+        </view>
+        <button class="submit-btn" loading="{{saving}}" bindtap="submitFeedback">
+          <text class="submit-btn-text">提交反馈</text>
+        </button>
+        <text class="footer-text">我们会认真阅读每一条反馈。</text>
+      </view>
+    </scroll-view>
+  </block>
 </view>

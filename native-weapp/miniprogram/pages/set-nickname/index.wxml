@@ -1,7 +1,23 @@
-<view class="nickname-page">
-  <text class="title">怎么称呼你？</text>
-  <text class="subtitle">设置一个昵称，让猫咪知道你是谁。</text>
-  <input class="input" maxlength="12" placeholder="输入昵称" bindinput="onInput" />
-  <button class="miao-button-primary action" loading="{{saving}}" bindtap="submit">保存昵称</button>
-  <button class="miao-button-secondary action" bindtap="skip">稍后再说</button>
+<view class="set-nickname-page">
+  <view class="page-header">
+    <view class="back-btn" bindtap="goBack">
+      <image class="icon-img" src="/assets/profile-icons/arrowleft-dark.png" mode="aspectFit" />
+    </view>
+  </view>
+  <view class="bg-decoration bg-decoration-1"></view>
+  <view class="bg-decoration bg-decoration-2"></view>
+  <view class="content">
+    <view class="title-section">
+      <text class="title">给自己取个名字吧</text>
+      <text class="subtitle">2-12个字符，不支持emoji</text>
+    </view>
+    <view class="input-section">
+      <input class="nickname-input" maxlength="12" placeholder="输入昵称" placeholder-style="color: #8E8E8E" bindinput="onInput" />
+      <text class="char-count">{{nickname.length || 0}}/12</text>
+    </view>
+    <view class="buttons">
+      <button class="save-btn" loading="{{saving}}" bindtap="submit">保存昵称</button>
+      <button class="skip-btn" bindtap="skip">跳过，使用默认昵称</button>
+    </view>
+  </view>
 </view>

@@ -1,31 +1,206 @@
-<view class="letters-page">
-  <view class="header">
-    <text class="back" bindtap="goBack">‹</text>
-    <text class="header-title">时光信</text>
+<view class="time-letters-container">
+  <view wx:if="{{toastText}}" class="toast-container">
+    <text class="toast-text">{{toastText}}</text>
   </view>
 
-  <view class="composer">
-    <textarea class="textarea" value="{{draft}}" maxlength="600" placeholder="写给未来的自己和猫咪" bindinput="onInput" />
-    <picker mode="date" value="{{unlockDate}}" bindchange="onDateChange">
-      <view class="date-picker">开启日期：{{unlockDate}}</view>
-    </picker>
-    <button class="miao-button-primary submit" loading="{{saving}}" bindtap="submit">寄出时光信</button>
-  </view>
-
-  <scroll-view class="list" scroll-y>
-    <view
-      wx:for="{{letters}}"
-      wx:key="id"
-      class="letter-item {{item.unlocked ? '' : 'locked'}}"
-      data-id="{{item.id}}"
-      bindtap="markRead"
-    >
-      <text class="letter-date">{{item.unlockLabel}}</text>
-      <text class="letter-content">{{item.displayContent}}</text>
-      <text class="letter-status">{{item.unlocked ? (item.read ? '已读' : '可查看') : '未开启'}}</text>
+  <view wx:if="{{view === 'list'}}" class="time-letters-page">
+    <view class="page-header">
+      <view class="header-title">
+        <text class="title-main">时光信件</text>
+        <text class="title-sub">TIME CAPSULES</text>
+      </view>
+      <view class="header-actions">
+        <view class="action-spacer"></view>
+        <view class="add-btn" bindtap="openWrite">
+          <image class="icon-img" src="/assets/profile-icons/plus-white.png" mode="aspectFit"></image>
+        </view>
+      </view>
     </view>
-    <view wx:if="{{!letters.length}}" class="empty">还没有时光信</view>
-  </scroll-view>
 
-  <native-tab-bar active="letters" />
+    <scroll-view class="cat-filter" scroll-x wx:if="{{cats.length}}">
+      <view class="filter-item {{selectedCatId === 'all' ? 'active' : ''}}" data-id="all" bindtap="selectCat">
+        <text class="filter-text">全部</text>
+      </view>
+      <view
+        wx:for="{{cats}}"
+        wx:key="id"
+        class="filter-item cat-item {{selectedCatId === item.id ? 'active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="selectCat"
+      >
+        <image class="filter-avatar" src="{{item.avatar || item.imageUrl || '/assets/logo.png'}}" mode="aspectFill"></image>
+        <text class="filter-text">{{item.name}}</text>
+      </view>
+    </scroll-view>
+
+    <scroll-view class="letters-list" scroll-y>
+      <view wx:if="{{!filteredLetters.length}}" class="empty-state">
+        <view class="empty-icon">
+          <image class="icon-img" src="/assets/profile-icons/clock-gray.png" mode="aspectFit"></image>
+        </view>
+        <text class="empty-title">还没有信件</text>
+        <text class="empty-desc">写一封信给未来的自己，让时光见证温暖</text>
+      </view>
+
+      <view wx:else class="letters-container">
+        <view
+          wx:for="{{filteredLetters}}"
+          wx:key="id"
+          class="letter-card {{item.unlocked ? '' : 'locked'}}"
+          data-id="{{item.id}}"
+          bindtap="markRead"
+        >
+          <view class="letter-avatar-wrap">
+            <image class="letter-avatar" src="{{item.catAvatar}}" mode="aspectFill"></image>
+            <view wx:if="{{!item.unlocked}}" class="blur-mask"></view>
+            <view wx:if="{{!item.unlocked}}" class="lock-overlay">
+              <image class="icon-img" src="/assets/profile-icons/lock-white.png" mode="aspectFit"></image>
+            </view>
+            <view wx:if="{{item.unlocked}}" class="unlock-badge">
+              <image class="icon-img" src="/assets/profile-icons/check-white.png" mode="aspectFit"></image>
+            </view>
+          </view>
+
+          <view class="letter-content">
+            <view class="letter-header">
+              <text class="letter-title">{{item.title}}</text>
+              <view class="delete-btn" catchtap="promptDelete" data-id="{{item.id}}">
+                <image class="icon-img" src="/assets/profile-icons/trash2-lightgray.png" mode="aspectFit"></image>
+              </view>
+            </view>
+            <view class="letter-preview">
+              <text wx:if="{{item.unlocked}}" class="preview-text">{{item.displayContent}}</text>
+              <text wx:else class="countdown-text">距离开启还有 <text class="countdown-highlight">{{item.countdownLabel}}</text></text>
+            </view>
+            <view class="letter-footer">
+              <text class="target-cat">收信喵：{{item.catName}}</text>
+              <text class="letter-date">{{item.createdLabel}}</text>
+            </view>
+          </view>
+
+          <view class="letter-arrow">
+            <image class="icon-img" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit"></image>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view wx:if="{{deletingLetter}}" class="confirm-overlay" bindtap="cancelDelete">
+      <view class="confirm-card" catchtap="noop">
+        <view class="confirm-icon-box">
+          <image class="icon-img" src="/assets/profile-icons/trash2-red.png" mode="aspectFit"></image>
+        </view>
+        <text class="confirm-title">确认删除信件</text>
+        <text class="confirm-desc">您确定要永久删除这封写给 <text class="highlight">{{deletingLetter.catName}}</text> 的时光信件吗？此操作不可撤销。</text>
+        <view class="confirm-actions">
+          <view class="confirm-btn secondary" bindtap="cancelDelete"><text>取消</text></view>
+          <view class="confirm-btn danger" bindtap="confirmDelete"><text>确认删除</text></view>
+        </view>
+      </view>
+    </view>
+
+    <native-tab-bar active="letters" />
+  </view>
+
+  <view wx:if="{{view === 'write'}}" class="write-page">
+    <scroll-view class="write-scroll" scroll-y>
+      <view class="write-header">
+        <view class="back-btn" bindtap="closeWrite">
+          <image class="icon-img" src="/assets/profile-icons/arrowleft-dark.png" mode="aspectFit"></image>
+        </view>
+        <view class="write-title">
+          <text class="title-main">写给未来</text>
+          <text class="title-sub">WRITE TO FUTURE</text>
+        </view>
+        <view class="placeholder"></view>
+      </view>
+
+      <view class="section" wx:if="{{cats.length}}">
+        <text class="section-label">收信喵</text>
+        <scroll-view class="cat-selector" scroll-x>
+          <view wx:for="{{cats}}" wx:key="id" class="cat-option" data-id="{{item.id}}" bindtap="selectWriteCat">
+            <view class="cat-avatar-wrap {{activeCatId === item.id ? 'active' : ''}}">
+              <image class="cat-avatar" src="{{item.avatar || item.imageUrl || '/assets/logo.png'}}" mode="aspectFill"></image>
+            </view>
+            <view wx:if="{{activeCatId === item.id}}" class="selected-badge">
+              <image class="icon-img" src="/assets/profile-icons/check-white.png" mode="aspectFit"></image>
+            </view>
+            <text class="cat-name {{activeCatId === item.id ? 'active' : ''}}">{{item.name}}</text>
+          </view>
+        </scroll-view>
+      </view>
+
+      <view class="section">
+        <text class="section-label">信件标题</text>
+        <view class="input-wrapper">
+          <input class="title-input" value="{{title}}" placeholder="给未来的信起个题目吧..." placeholder-class="input-placeholder" bindinput="onTitleInput" />
+        </view>
+      </view>
+
+      <view class="section">
+        <text class="section-label">信件内容</text>
+        <view class="input-wrapper">
+          <textarea class="content-textarea" value="{{draft}}" maxlength="2000" placeholder="写下此刻想说的话..." placeholder-class="textarea-placeholder" bindinput="onInput"></textarea>
+        </view>
+      </view>
+
+      <view class="section">
+        <view class="days-header">
+          <text class="section-label">封存时长</text>
+          <text class="days-display">{{days}} 天后开启</text>
+        </view>
+        <view class="days-grid">
+          <view wx:for="{{dayOptions}}" wx:key="*this" class="day-option {{days === item ? 'selected' : ''}}" data-days="{{item}}" bindtap="selectDays">
+            <text class="day-text">{{item}}D</text>
+          </view>
+        </view>
+      </view>
+
+      <button class="save-btn {{!title || !draft ? 'disabled' : ''}}" loading="{{saving}}" bindtap="submit">
+        <image class="icon-img" src="/assets/profile-icons/send-white.png" mode="aspectFit"></image>
+        <text class="save-text">封存信件</text>
+      </button>
+    </scroll-view>
+  </view>
+
+  <view wx:if="{{view === 'detail' && selectedLetter}}" class="detail-page">
+    <view class="detail-bg">
+      <image class="detail-bg-image" src="{{selectedLetter.catAvatar}}" mode="aspectFill"></image>
+      <view class="detail-bg-overlay"></view>
+    </view>
+    <view class="detail-header">
+      <view class="detail-back" bindtap="closeDetail">
+        <image class="icon-img" src="/assets/profile-icons/arrowleft-white.png" mode="aspectFit"></image>
+      </view>
+      <view class="detail-title">
+        <text class="title-main">时光回响</text>
+        <text class="title-sub">ECHO FROM PAST</text>
+      </view>
+      <view class="placeholder"></view>
+    </view>
+    <view class="detail-guide">
+      <text class="guide-label">这是写给它的信</text>
+      <text class="guide-name">{{selectedLetter.catName}}</text>
+    </view>
+    <scroll-view class="detail-card" scroll-y>
+      <view class="card-content">
+        <view class="deco-circle top"></view>
+        <view class="deco-circle bottom"></view>
+        <view class="letter-meta">
+          <image class="icon-img" src="/assets/profile-icons/calendar-gray.png" mode="aspectFit"></image>
+          <text class="meta-text">写于 {{selectedLetter.createdLabel}}</text>
+        </view>
+        <text class="detail-letter-title">{{selectedLetter.title}}</text>
+        <text class="detail-letter-content">{{selectedLetter.content}}</text>
+        <view class="detail-footer">
+          <view class="footer-line"></view>
+          <text class="footer-desc">这封信在时光中沉淀了很久\n希望能带给你温暖与力量</text>
+          <view class="footer-brand">
+            <view class="brand-line"></view>
+            <text class="brand-text">MIAO SANCTUARY</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
 </view>

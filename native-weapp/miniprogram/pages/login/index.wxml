@@ -1,39 +1,80 @@
 <view class="login-page">
-  <view class="hero">
-    <image class="logo" src="../../assets/logo.png" mode="aspectFit" />
-    <text class="title">欢迎来到 Miao</text>
-    <text class="subtitle">以喵星之名，守护你的每一份温暖</text>
-  </view>
+  <view class="bg-decoration bg-decoration-1"></view>
+  <view class="bg-decoration bg-decoration-2"></view>
 
-  <view class="form">
-    <input class="input" value="{{username}}" placeholder="用户名" bindinput="onUsernameInput" />
-    <view class="password-line">
-      <input class="input password" value="{{password}}" placeholder="密码" password="{{!showPassword}}" bindinput="onPasswordInput" />
-      <text class="toggle" bindtap="togglePassword">{{showPassword ? '隐藏' : '显示'}}</text>
-    </view>
-
-    <text wx:if="{{error}}" class="error">{{error}}</text>
-
-    <view class="agreement" bindtap="toggleAgreement">
-      <view class="checkbox {{agreed ? 'checked' : ''}}">
-        <text wx:if="{{agreed}}">✓</text>
+  <view class="content">
+    <view class="main-area">
+      <view class="logo-section">
+        <view class="logo-wrapper">
+          <image class="logo-icon" src="/assets/logo.png" mode="aspectFit" />
+        </view>
+        <text class="app-name">Miao</text>
       </view>
-      <text class="agreement-text">我已阅读并同意 </text>
-      <text class="agreement-link" catchtap="goTerms">服务条款</text>
-      <text class="agreement-text"> 和 </text>
-      <text class="agreement-link" catchtap="goPrivacyPolicy">隐私政策</text>
+
+      <view class="title-section">
+        <text class="title">欢迎来到 Miao</text>
+        <text class="subtitle">以喵星之名，守护你的每一份温暖</text>
+      </view>
+
+      <view class="cat-container">
+        <view class="cat-outer">
+          <view class="cat-inner">
+            <image wx:if="{{catImage}}" class="cat-image" src="{{catImage}}" mode="aspectFill" />
+          </view>
+        </view>
+      </view>
+
+      <view class="form-section">
+        <view class="input-group">
+          <input class="miao-input" value="{{username}}" placeholder="用户名" placeholder-style="color: #8E8E8E" bindinput="onUsernameInput" />
+        </view>
+
+        <view class="input-group">
+          <view class="password-wrapper">
+            <input class="miao-input password-input" value="{{password}}" placeholder="密码" placeholder-style="color: #8E8E8E" password="{{!showPassword}}" bindinput="onPasswordInput" />
+            <view class="eye-icon" bindtap="togglePassword">
+              <image class="icon-img" src="{{showPassword ? '/assets/profile-icons/eyeoff-dark.png' : '/assets/profile-icons/eye-dark.png'}}" mode="aspectFit" />
+            </view>
+          </view>
+        </view>
+
+        <view class="forgot-password">
+          <text class="forgot-text" bindtap="goResetPassword">忘记密码？</text>
+        </view>
+
+        <text wx:if="{{error}}" class="error-text">{{error}}</text>
+
+        <view class="agreement" bindtap="toggleAgreement">
+          <view class="custom-checkbox {{agreed ? 'checked' : ''}}">
+            <text wx:if="{{agreed}}" class="check-mark">✓</text>
+          </view>
+          <view class="agreement-text">
+            <text class="agreement-normal">我已阅读并同意</text>
+            <text class="link" catchtap="goTerms">《Miao 服务条款》</text>
+            <text class="agreement-normal">和</text>
+            <text class="link" catchtap="goPrivacyPolicy">《隐私政策》</text>
+          </view>
+        </view>
+
+        <view class="buttons">
+          <button class="login-btn" loading="{{loading}}" bindtap="handlePasswordLogin">{{loading ? '登录中...' : '登录'}}</button>
+          <view class="register-link" bindtap="goRegister">
+            <text class="register-link-text">还没有账号？</text>
+            <text class="register-link-action">立即注册</text>
+          </view>
+          <button class="phone-login-btn" loading="{{loading}}" open-type="getPhoneNumber" bindtap="handlePhoneLoginTap" bindgetphonenumber="handlePhoneLogin">手机号快捷登录</button>
+          <button class="wechat-login-btn" loading="{{loading}}" bindtap="handleWechatLogin">微信一键登录</button>
+        </view>
+      </view>
     </view>
 
-    <button class="miao-button-primary action" loading="{{loading}}" bindtap="handlePasswordLogin">
-      登录
-    </button>
-    <button class="miao-button-secondary action" loading="{{loading}}" bindtap="handleWechatLogin">
-      微信登录
-    </button>
-    <button class="phone-login action" loading="{{loading}}" open-type="getPhoneNumber" bindtap="handlePhoneLoginTap" bindgetphonenumber="handlePhoneLogin">
-      手机号快捷登录
-    </button>
-    <button class="link-button" bindtap="goRegister">创建新账号</button>
-    <button class="link-button" bindtap="goResetPassword">忘记密码</button>
+    <view class="footer">
+      <view class="footer-links">
+        <text class="footer-link" bindtap="goPrivacyPolicy">隐私政策</text>
+        <text class="dot">·</text>
+        <text class="footer-link" bindtap="goTerms">服务条款</text>
+      </view>
+      <text class="copyright">© 2026 MIAO SANCTUARY</text>
+    </view>
   </view>
 </view>

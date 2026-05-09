@@ -1,55 +1,93 @@
 <view class="points-page">
   <view class="header">
-    <text class="back" bindtap="goBack">‹</text>
-    <text class="header-title">积分</text>
-  </view>
-
-  <view class="total-panel" bindtap="openHistory">
-    <text class="total-label">当前积分</text>
-    <text class="total-value">{{effectivePoints || 0}}</text>
-    <text class="total-note">{{isPointsCheat ? '调试模式已开启' : '点击查看积分明细'}}</text>
-  </view>
-
-  <view class="section">
-    <view class="section-header">
-      <text class="section-title">今日任务</text>
-      <text class="section-tag">每日更新</text>
+    <view class="header-title">
+      <text class="title-main">积分中心</text>
+      <text class="title-sub">POINTS CENTER</text>
     </view>
-    <view wx:for="{{tasks}}" wx:key="id" class="task-item {{item.completed ? 'completed' : ''}}" data-action="{{item.action}}" data-completed="{{item.completed ? 1 : 0}}" bindtap="tapTask">
-      <view class="task-icon">{{item.completed ? '✓' : '+'}}</view>
-      <view class="task-info">
-        <text class="task-title">{{item.title}}</text>
-        <text class="task-desc">{{item.description}}</text>
-        <text class="task-reward">+{{item.reward}} 积分</text>
+    <view class="header-actions"><view class="action-spacer"></view></view>
+  </view>
+
+  <scroll-view class="points-scroll" scroll-y>
+    <view class="points-content">
+      <view class="points-card" bindtap="openHistory">
+        <view class="points-card-glow"></view>
+        <view class="points-card-glow-bottom"></view>
+        <view class="points-card-content">
+          <view class="points-card-header">
+            <text class="points-card-label">积分明细</text>
+            <image class="icon-img-sm" src="/assets/profile-icons/chevronright-white.png" mode="aspectFit"></image>
+          </view>
+          <view class="points-icon-wrapper">
+            <image class="icon-img" src="/assets/profile-icons/star-white.png" mode="aspectFit"></image>
+          </view>
+          <text class="points-card-subtitle">当前积分余额</text>
+          <text class="points-value">{{effectivePoints || 0}}</text>
+        </view>
       </view>
-      <text class="task-status">{{item.completed ? '已完成' : '去完成'}}</text>
-    </view>
-  </view>
 
-  <view class="redeem-card {{redeemActive ? 'active' : ''}}">
-    <text class="redeem-title">积分兑换</text>
-    <text class="redeem-subtitle">解锁第 {{nextCatIndex}} 位伙伴</text>
-    <text class="redeem-desc">消耗 {{redeemThreshold || 0}} 积分，即可生成一只全新的猫咪伙伴。</text>
-    <text wx:if="{{showRedeemGap}}" class="redeem-hint">还差 {{redeemGap}} 积分</text>
-    <button class="miao-button-primary redeem" bindtap="redeemCat">{{redeemButtonText}}</button>
-  </view>
+      <view class="tasks-section">
+        <view class="tasks-header">
+          <text class="tasks-title">今日任务</text>
+          <text class="tasks-tag">每日更新</text>
+        </view>
+        <view class="tasks-list">
+          <view wx:for="{{tasks}}" wx:key="id" class="task-item {{!item.completed && item.action === 'home' ? 'clickable' : ''}}" data-action="{{item.action}}" data-completed="{{item.completed ? 1 : 0}}" bindtap="tapTask">
+            <view class="task-left">
+              <view class="task-icon {{item.completed ? 'completed' : ''}}">
+                <image wx:if="{{item.completed}}" class="icon-img" src="/assets/profile-icons/checkcircle2-green.png" mode="aspectFit"></image>
+                <image wx:else class="icon-img" src="/assets/profile-icons/star-primary.png" mode="aspectFit"></image>
+              </view>
+              <view class="task-info">
+                <text class="task-title">{{item.title}}</text>
+                <text class="task-desc">{{item.description}}</text>
+                <view class="task-reward">
+                  <text class="task-reward-value">+{{item.reward}}</text>
+                  <text class="task-reward-unit">积分</text>
+                </view>
+              </view>
+            </view>
+            <text wx:if="{{item.completed}}" class="task-badge completed">已完成</text>
+            <view wx:else class="task-go-btn">
+              <image class="icon-img" src="/assets/profile-icons/arrowright-primary.png" mode="aspectFit"></image>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="redeem-section">
+        <text class="redeem-title">积分兑换</text>
+        <view class="redeem-card {{redeemActive ? 'active' : ''}}">
+          <view class="redeem-icon {{redeemActive ? 'active' : ''}}">
+            <image class="icon-img" src="{{redeemActive ? '/assets/profile-icons/star-primary.png' : '/assets/profile-icons/lock-gray.png'}}" mode="aspectFit"></image>
+          </view>
+          <text class="redeem-subtitle">解锁第 {{nextCatIndex}} 位伙伴</text>
+          <text class="redeem-desc">消耗 {{redeemThreshold || 0}} 积分，即可生成一只全新的猫咪伙伴</text>
+          <text wx:if="{{showRedeemGap}}" class="redeem-hint">还差 {{redeemGap}} 积分即可解锁第 {{nextCatIndex}} 位伙伴</text>
+          <button class="redeem-btn {{redeemActive ? 'active' : ''}}" bindtap="redeemCat">{{redeemButtonText}}</button>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
 
   <view wx:if="{{showHistory}}" class="modal">
     <view class="modal-mask" bindtap="closeHistory"></view>
-    <view class="modal-panel">
+    <view class="modal-content bottom-sheet">
       <view class="modal-header">
         <text class="modal-title">积分明细</text>
-        <button class="modal-close" bindtap="closeHistory">×</button>
+        <view class="modal-close" bindtap="closeHistory"><image class="icon-img" src="/assets/profile-icons/x-gray.png" mode="aspectFit"></image></view>
       </view>
-      <scroll-view class="history" scroll-y>
-        <view wx:for="{{points.history}}" wx:key="id" class="history-item">
-          <view>
-            <text class="reason">{{item.reason || '积分变化'}}</text>
-            <text class="time">{{item.timeLabel}}</text>
-          </view>
-          <text class="amount {{item.kind}}">{{item.amountText}}</text>
+      <scroll-view class="modal-list" scroll-y>
+        <view wx:if="{{!points.history.length}}" class="modal-empty">
+          <view class="modal-empty-icon"><image class="icon-img" src="/assets/profile-icons/star-primary.png" mode="aspectFit"></image></view>
+          <text class="modal-empty-text">暂无积分记录</text>
         </view>
-        <view wx:if="{{!points.history.length}}" class="empty">还没有积分记录</view>
+        <view wx:for="{{points.history}}" wx:key="id" class="modal-item">
+          <view class="modal-item-info">
+            <text class="modal-item-reason">{{item.reason || '积分变化'}}</text>
+            <text class="modal-item-time">{{item.timeLabel}}</text>
+          </view>
+          <text class="modal-item-amount {{item.kind}}">{{item.amountText}}</text>
+        </view>
       </scroll-view>
     </view>
   </view>

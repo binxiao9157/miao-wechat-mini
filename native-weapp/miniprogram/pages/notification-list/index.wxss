@@ -135,3 +135,166 @@
   text-align: center;
   font-size: 28rpx;
 }
+
+.notification-list-page {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: var(--background);
+}
+
+.notification-list-scroll {
+  flex: 1;
+  height: 0;
+}
+
+.settings-btn {
+  width: 96rpx;
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16rpx;
+}
+
+.mark-all-btn {
+  padding: 8rpx 20rpx;
+}
+
+.mark-all-text {
+  color: var(--primary-strong);
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.notification-list {
+  padding: 32rpx;
+}
+
+.notification-item {
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+  margin-bottom: 32rpx;
+  padding: 40rpx;
+  border-radius: 24rpx;
+  background: #fff;
+}
+
+.unread {
+  border-left: 4rpx solid var(--primary-strong);
+}
+
+.notification-icon {
+  width: 96rpx;
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 32rpx;
+}
+
+.notification-icon.letter {
+  background: rgba(255, 157, 118, 0.1);
+  color: var(--primary-strong);
+}
+
+.notification-icon.points {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+.notification-icon.greeting {
+  background: rgba(255, 77, 79, 0.1);
+  color: var(--color-danger);
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 6rpx;
+}
+
+.notification-title {
+  overflow: hidden;
+  color: var(--color-warm-brown);
+  font-size: 28rpx;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unread-dot {
+  width: 14rpx;
+  height: 14rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--color-danger);
+}
+
+.notification-desc {
+  display: block;
+  overflow: hidden;
+  margin-bottom: 4rpx;
+  color: var(--text-hint);
+  font-size: 24rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notification-time {
+  display: block;
+  color: rgba(93, 64, 55, 0.3);
+  font-size: 20rpx;
+}
+
+.notification-arrow {
+  flex-shrink: 0;
+  color: rgba(93, 64, 55, 0.2);
+  font-size: 32rpx;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 240rpx;
+}
+
+.empty-icon-box {
+  width: 256rpx;
+  height: 256rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 48rpx;
+  border-radius: 80rpx;
+  background: var(--surface-container);
+}
+
+.empty-title {
+  margin-bottom: 8rpx;
+  color: var(--color-warm-brown);
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.empty-desc {
+  color: rgba(93, 64, 55, 0.4);
+  font-size: 24rpx;
+}
+
+.icon-img {
+  width: 48rpx;
+  height: 48rpx;
+}

@@ -1,5 +1,5 @@
 <view class="home-page">
-  <view class="topbar">
+  <view wx:if="{{cat}}" class="topbar">
     <button class="tool-button" bindtap="goSwitch">切换</button>
     <button class="tool-button" bindtap="goHistory">历史</button>
     <button class="tool-button" bindtap="goProfile">我的</button>
@@ -7,7 +7,7 @@
 
   <view
     wx:if="{{cat}}"
-    class="stage"
+    class="video-fullscreen"
     bindtouchstart="onTouchStart"
     bindtouchmove="onTouchMove"
     bindtouchend="onTouchEnd"
@@ -28,39 +28,24 @@
       object-fit="cover"
       binderror="handleVideoError"
     ></video>
-    <image wx:else class="cat-avatar" src="{{poster}}" mode="aspectFill" />
-    <view wx:if="{{videoError}}" class="video-error">
+    <image wx:if="{{poster}}" class="placeholder-img" src="{{poster}}" mode="aspectFill" />
+    <view wx:if="{{videoError}}" class="video-error-overlay">
       <text class="video-error-title">视频暂时无法播放</text>
-      <button class="retry-button" bindtap="retryVideo">重试</button>
+      <text class="video-error-desc">网络波动，请稍后重试</text>
+      <button class="retry-btn" bindtap="retryVideo">重试播放</button>
     </view>
     <view class="bubble" wx:if="{{bubbleText}}">{{bubbleText}}</view>
     <view class="points-toast" wx:if="{{pointsToast}}">{{pointsToast}}</view>
-    <view class="cat-info-panel">
-      <text class="title">{{cat.name || 'Miao 首页'}}</text>
-      <text class="subtitle">{{statusText}}</text>
-    </view>
   </view>
 
   <view wx:if="{{cat}}" class="action-bar">
-    <button
-      wx:for="{{actionItems}}"
-      wx:key="key"
-      class="action-chip {{item.active ? 'active' : ''}} {{item.generated ? '' : 'missing'}}"
-      data-action="{{item.key}}"
-      bindtap="selectAction"
-    >
-      {{item.label}}
-    </button>
+    <button wx:for="{{actionItems}}" wx:key="key" class="action-chip {{item.active ? 'active' : ''}} {{item.generated ? '' : 'missing'}}" data-action="{{item.key}}" bindtap="selectAction">{{item.label}}</button>
+    <button wx:if="{{canContinueGeneration}}" class="action-chip unlock" bindtap="continueGeneration">补齐</button>
   </view>
 
-  <button wx:if="{{canContinueGeneration}}" class="miao-button-primary action" bindtap="continueGeneration">
-    补齐互动动作
-  </button>
-
-  <view wx:if="{{!cat}}" class="empty">
-    <text class="title">还没有猫咪</text>
-    <text class="subtitle">上传照片，生成你的第一只 AI 猫咪。</text>
-    <button class="miao-button-primary action" bindtap="createCat">开始生成</button>
+  <view wx:if="{{!cat}}" class="no-cat-screen">
+    <text class="no-cat-text">还没有猫咪</text>
+    <button class="add-cat-btn" bindtap="createCat">领养一只</button>
   </view>
 
   <native-tab-bar active="home" />

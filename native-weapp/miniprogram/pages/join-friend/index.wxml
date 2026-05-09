@@ -1,17 +1,48 @@
-<view class="join-page">
-  <view class="header">
-    <text class="back" bindtap="goBack">‹</text>
-    <text class="header-title">加入好友</text>
+<view class="join-friend-page">
+  <view class="page-header">
+    <view class="back-btn" bindtap="goBack">
+      <image class="icon-img" src="/assets/profile-icons/arrowleft-dark.png" mode="aspectFit" />
+    </view>
   </view>
 
-  <view class="form">
-    <input class="input" value="{{code}}" placeholder="输入好友邀请码" bindinput="onInput" />
-    <button class="miao-button-secondary action" loading="{{loading}}" bindtap="lookup">查看邀请</button>
+  <view wx:if="{{showSuccess}}" class="success-overlay">
+    <view class="success-icon-box"><text class="success-emoji">✓</text></view>
+    <text class="success-title">添加成功！</text>
+    <text class="success-desc">你们现在已经是好友了</text>
+    <view class="success-back-btn" bindtap="goBack"><text class="success-back-text">返回</text></view>
   </view>
 
-  <view wx:if="{{invite}}" class="invite-card">
-    <text class="title">{{invite.inviter.nickname || invite.ownerId}}</text>
-    <text class="desc">邀请你认识 {{invite.catName || '小猫'}}。</text>
-    <button class="miao-button-primary action" loading="{{loading}}" bindtap="accept">接受邀请</button>
+  <view wx:if="{{!invite}}" class="error-state">
+    <view class="error-icon-box"><text class="error-emoji">!</text></view>
+    <text class="error-title">输入邀请码</text>
+    <text class="error-desc">粘贴好友分享的邀请码，查看邀请信息</text>
+    <view class="manual-form">
+      <input class="manual-input" value="{{code}}" placeholder="输入好友邀请码" placeholder-style="color: #8E8E8E" bindinput="onInput" />
+      <view class="action-btn secondary" bindtap="lookup">
+        <text class="action-btn-text">查看邀请</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="content">
+    <view class="inviter-section">
+      <view class="inviter-avatar">
+        <image wx:if="{{invite.inviter.avatar}}" class="inviter-avatar-img" src="{{invite.inviter.avatar}}" mode="aspectFill" />
+        <text wx:else class="inviter-avatar-text">{{inviterInitial}}</text>
+      </view>
+      <text class="inviter-name">{{invite.inviter.nickname || invite.ownerId}}</text>
+      <text class="inviter-desc">邀请你成为 Miao 好友</text>
+      <view class="inviter-cat-row">
+        <view class="inviter-cat-avatar"><text class="inviter-cat-emoji">M</text></view>
+        <text class="inviter-cat">{{invite.catName || '小猫'}}</text>
+      </view>
+    </view>
+
+    <view class="action-section">
+      <view class="action-btn primary" bindtap="accept">
+        <image class="icon-img btn-icon" src="/assets/profile-icons/sparkles-primary.png" mode="aspectFit" />
+        <text class="action-btn-text white">{{loading ? '添加中...' : '添加好友'}}</text>
+      </view>
+    </view>
   </view>
 </view>

@@ -1,76 +1,157 @@
 <view class="diary-page">
-  <view class="header">
-    <text class="back" bindtap="goBack">‹</text>
-    <text class="header-title">日记</text>
-    <button class="friend-entry" bindtap="goFriends">好友</button>
-  </view>
-
-  <view class="composer">
-    <textarea class="textarea" value="{{draft}}" maxlength="500" placeholder="记录今天和猫咪的瞬间" bindinput="onInput" />
-    <view wx:if="{{selectedMedia}}" class="media-preview">
-      <image wx:if="{{selectedMedia.mediaType === 'image'}}" class="preview-image" src="{{selectedMedia.url}}" mode="aspectFill" />
-      <video wx:if="{{selectedMedia.mediaType === 'video'}}" class="preview-video" src="{{selectedMedia.url}}" controls object-fit="cover"></video>
-      <button class="clear-media" bindtap="clearMedia">移除</button>
-    </view>
-    <view class="composer-actions">
-      <button class="media-button" bindtap="chooseImage">图片</button>
-      <button class="media-button" bindtap="chooseVideo">视频</button>
-    </view>
-    <button class="miao-button-primary submit" loading="{{saving}}" bindtap="submit">保存日记</button>
-  </view>
-
-  <view class="tabs">
-    <button class="tab {{activeTab === 'mine' ? 'active' : ''}}" data-tab="mine" bindtap="switchTab">我的日记</button>
-    <button class="tab {{activeTab === 'friends' ? 'active' : ''}}" data-tab="friends" bindtap="switchTab">好友动态</button>
-  </view>
-
-  <scroll-view class="list" scroll-y scroll-into-view="{{scrollIntoView}}">
-    <view wx:for="{{visibleDiaries}}" wx:key="id" id="diary-{{item.id}}" class="diary-item {{item.focused ? 'focused' : ''}}">
-      <view class="author-row">
-        <image class="author-avatar" src="{{item.authorAvatar || item.catAvatar || '/assets/logo.png'}}" mode="aspectFill" />
-        <view class="author-info">
-          <text class="author">{{item.authorName}}</text>
-          <text class="time">{{item.timeLabel}}</text>
-        </view>
-        <text wx:if="{{item.syncText}}" class="sync-badge">{{item.syncText}}</text>
+  <scroll-view class="diary-list" scroll-y scroll-into-view="{{scrollIntoView}}">
+    <view class="header">
+      <view class="header-title">
+        <text class="title-main">日常记录</text>
+        <text class="title-sub">DAILY MOMENTS</text>
       </view>
-      <text class="content">{{item.content}}</text>
-      <image wx:if="{{item.media && item.mediaType === 'image' && !item.mediaLoadError}}" class="diary-media image" src="{{item.media}}" mode="aspectFill" data-id="{{item.id}}" data-friend="{{item.isFriend ? 1 : 0}}" binderror="handleMediaError" />
-      <video wx:if="{{item.media && item.mediaType === 'video' && !item.mediaLoadError}}" class="diary-media video" src="{{item.media}}" controls object-fit="cover" data-id="{{item.id}}" data-friend="{{item.isFriend ? 1 : 0}}" binderror="handleMediaError"></video>
-      <view wx:if="{{item.media && item.mediaLoadError}}" class="media-fallback">媒体暂时无法加载</view>
-      <view wx:if="{{item.syncErrorText}}" class="sync-panel">
-        <text class="sync-message">{{item.syncErrorText}}</text>
-        <view class="sync-actions">
-          <button class="sync-action" data-id="{{item.id}}" bindtap="retrySync">重试同步</button>
-          <button wx:if="{{item.canReplaceMedia}}" class="sync-action primary" data-id="{{item.id}}" data-media-type="{{item.mediaType}}" bindtap="replaceDiaryMedia">重新选择媒体</button>
+      <view class="header-actions">
+        <view class="friend-btn" bindtap="goFriends">
+          <image class="icon-img" src="/assets/profile-icons/userplus-gray.png" mode="aspectFit"></image>
+        </view>
+        <view class="add-btn" bindtap="openCompose">
+          <image class="icon-img" src="/assets/profile-icons/plus-white.png" mode="aspectFit"></image>
         </view>
       </view>
-      <view class="engage-row">
-        <button class="engage {{item.isLiked ? 'liked' : ''}}" data-id="{{item.id}}" data-friend="{{item.isFriend ? 1 : 0}}" bindtap="likeDiary">{{item.isLiked ? '已赞' : item.likesText}}</button>
-        <button class="engage" data-id="{{item.id}}" data-friend="{{item.isFriend ? 1 : 0}}" bindtap="openComment">评论 {{item.commentCount || ''}}</button>
-        <button class="engage" data-id="{{item.id}}" bindtap="prepareShare" open-type="share">分享</button>
+    </view>
+
+    <view class="tab-bar">
+      <view class="tab-item {{activeTab === 'mine' ? 'active' : ''}}" data-tab="mine" bindtap="switchTab">
+        <text class="tab-text">我的记录</text>
+        <view wx:if="{{activeTab === 'mine'}}" class="tab-indicator"></view>
       </view>
-      <view wx:if="{{item.comments.length}}" class="comments">
-        <view wx:for="{{item.comments}}" wx:for-item="comment" wx:key="id" class="comment">
-          <text class="comment-text">{{comment.authorNickname || comment.authorId || '好友'}}：{{comment.content}}</text>
-          <button wx:if="{{comment.canDelete}}" class="comment-delete" data-diary-id="{{item.id}}" data-comment-id="{{comment.id}}" data-friend="{{item.isFriend ? 1 : 0}}" bindtap="deleteComment">删除</button>
-        </view>
-      </view>
-      <view class="meta-row">
-        <text class="cat-name">{{item.catName || 'Miao'}}</text>
-        <button wx:if="{{!item.isFriend}}" class="delete" data-id="{{item.id}}" bindtap="deleteDiary">删除</button>
+      <view class="tab-item {{activeTab === 'friends' ? 'active' : ''}}" data-tab="friends" bindtap="switchTab">
+        <text class="tab-text">好友动态</text>
+        <view wx:if="{{activeTab === 'friends'}}" class="tab-indicator"></view>
       </view>
     </view>
-    <view wx:if="{{resolvingShared}}" class="empty">正在加载分享日记...</view>
-    <view wx:elif="{{sharedError}}" class="empty shared-empty">{{sharedError}}</view>
-    <view wx:elif="{{!visibleDiaries.length}}" class="empty">{{activeTab === 'friends' ? '还没有好友动态' : '还没有日记'}}</view>
+
+    <view class="tab-content tab-slide-right">
+      <view wx:for="{{visibleDiaries}}" wx:key="id" id="diary-{{item.id}}" class="diary-item diary-card {{item.focused ? 'focused' : ''}}">
+        <view class="author-row card-header">
+          <image class="author-avatar cat-avatar" src="{{item.authorAvatar || item.catAvatar || '/assets/logo.png'}}" mode="aspectFill"></image>
+          <view class="author-info">
+            <text class="author">{{item.authorName}}</text>
+            <text class="time">{{item.timeLabel}}</text>
+          </view>
+          <text wx:if="{{item.syncText}}" class="sync-badge">{{item.syncText}}</text>
+        </view>
+        <text class="content diary-content">{{item.content}}</text>
+        <image wx:if="{{item.media && item.mediaType === 'image' && !item.mediaLoadError}}" class="diary-media image" src="{{item.media}}" mode="aspectFill" data-id="{{item.id}}" data-friend="{{item.isFriend ? 1 : 0}}" binderror="handleMediaError"></image>
+        <video wx:if="{{item.media && item.mediaType === 'video' && !item.mediaLoadError}}" class="diary-media video" src="{{item.media}}" controls object-fit="cover" data-id="{{item.id}}" data-friend="{{item.isFriend ? 1 : 0}}" binderror="handleMediaError"></video>
+        <view wx:if="{{item.media && item.mediaLoadError}}" class="media-fallback">媒体暂时无法加载</view>
+        <view wx:if="{{item.syncErrorText}}" class="sync-panel">
+          <text class="sync-message">{{item.syncErrorText}}</text>
+          <view class="sync-actions">
+            <button class="sync-action" data-id="{{item.id}}" bindtap="retrySync">重试同步</button>
+            <button wx:if="{{item.canReplaceMedia}}" class="sync-action primary" data-id="{{item.id}}" data-media-type="{{item.mediaType}}" bindtap="replaceDiaryMedia">重新选择媒体</button>
+          </view>
+        </view>
+        <view class="engage-row card-actions">
+          <button class="engage {{item.isLiked ? 'liked' : ''}}" data-id="{{item.id}}" data-friend="{{item.isFriend ? 1 : 0}}" bindtap="likeDiary">{{item.isLiked ? '已赞' : item.likesText}}</button>
+          <button class="engage" data-id="{{item.id}}" data-friend="{{item.isFriend ? 1 : 0}}" bindtap="openComment">评论 {{item.commentCount || ''}}</button>
+          <button class="engage" data-id="{{item.id}}" bindtap="prepareShare" open-type="share">分享</button>
+        </view>
+        <view wx:if="{{item.comments.length}}" class="comments">
+          <view wx:for="{{item.comments}}" wx:for-item="comment" wx:key="id" class="comment">
+            <text class="comment-text">{{comment.authorNickname || comment.authorId || '好友'}}：{{comment.content}}</text>
+            <button wx:if="{{comment.canDelete}}" class="comment-delete" data-diary-id="{{item.id}}" data-comment-id="{{comment.id}}" data-friend="{{item.isFriend ? 1 : 0}}" bindtap="deleteComment">删除</button>
+          </view>
+        </view>
+        <view class="meta-row">
+          <text class="cat-name">{{item.catName || 'Miao'}}</text>
+          <button wx:if="{{!item.isFriend}}" class="delete" data-id="{{item.id}}" bindtap="deleteDiary">删除</button>
+        </view>
+      </view>
+
+      <view wx:if="{{resolvingShared}}" class="empty"><text class="empty-text">正在加载分享日记...</text></view>
+      <view wx:elif="{{sharedError}}" class="empty shared-empty"><text class="empty-text">{{sharedError}}</text></view>
+      <view wx:elif="{{!visibleDiaries.length}}" class="empty">
+        <text class="empty-text">{{activeTab === 'friends' ? '还没有好友动态' : '还没有记录'}}</text>
+        <text class="empty-hint">{{activeTab === 'friends' ? '快去添加好友，看看 TA 们的猫咪在做什么吧' : '还没有关于猫咪的记录，快去分享你们的第一个温暖瞬间吧～'}}</text>
+      </view>
+    </view>
   </scroll-view>
 
+  <view wx:if="{{showCompose}}" class="compose-modal">
+    <view class="compose-content">
+      <view class="compose-header">
+        <view class="compose-title-wrap">
+          <text class="compose-title">记录此刻</text>
+          <text class="compose-subtitle">CAPTURE THE MOMENT</text>
+        </view>
+        <view class="close-btn" bindtap="closeCompose">
+          <image class="icon-img" src="/assets/profile-icons/x-dark.png" mode="aspectFit"></image>
+        </view>
+      </view>
+
+      <view class="compose-body">
+        <textarea class="compose-input" value="{{draft}}" maxlength="500" focus placeholder="这一刻在想什么..." placeholder-class="input-placeholder" bindinput="onInput"></textarea>
+        <view wx:if="{{selectedMedia}}" class="media-preview">
+          <image wx:if="{{selectedMedia.mediaType === 'image'}}" class="preview-image" src="{{selectedMedia.url}}" mode="aspectFill"></image>
+          <video wx:if="{{selectedMedia.mediaType === 'video'}}" class="preview-video" src="{{selectedMedia.url}}" controls="{{false}}" show-play-btn="{{false}}" object-fit="cover" autoplay loop muted></video>
+          <view class="remove-media-btn" bindtap="clearMedia">
+            <image class="icon-img" src="/assets/profile-icons/x-white.png" mode="aspectFit"></image>
+          </view>
+        </view>
+      </view>
+
+      <view class="compose-footer">
+        <view class="media-actions">
+          <view class="media-btn" bindtap="chooseImage">
+            <image class="icon-img" src="/assets/profile-icons/image-gray.png" mode="aspectFit"></image>
+          </view>
+          <view class="media-btn" bindtap="chooseVideo">
+            <image class="icon-img" src="/assets/profile-icons/film-gray.png" mode="aspectFit"></image>
+          </view>
+        </view>
+        <button class="publish-btn {{saving ? 'loading' : ''}} {{!draft && !selectedMedia ? 'disabled' : ''}}" loading="{{saving}}" bindtap="submit">发布</button>
+      </view>
+    </view>
+  </view>
+
   <view wx:if="{{commentTarget}}" class="comment-modal">
-    <view class="comment-mask" bindtap="closeComment"></view>
-    <view class="comment-panel">
-      <input class="comment-input" value="{{commentText}}" maxlength="100" focus placeholder="写下评论" bindinput="onCommentInput" />
-      <button class="comment-send" bindtap="submitComment">发送</button>
+    <view class="comment-modal-mask" bindtap="closeComment"></view>
+    <view class="comment-modal-content">
+      <view class="comment-input-row">
+        <input class="comment-input" value="{{commentText}}" maxlength="100" focus placeholder="写下你的评论..." bindinput="onCommentInput" confirm-type="send" bindconfirm="submitComment"></input>
+        <view class="comment-send-btn {{!commentText ? 'disabled' : ''}}" bindtap="submitComment">
+          <image class="icon-img" src="/assets/profile-icons/send-primary.png" mode="aspectFit"></image>
+        </view>
+      </view>
+      <text class="comment-count">{{commentText.length}}/100</text>
+    </view>
+  </view>
+
+  <view wx:if="{{showAddFriendMenu}}" class="add-friend-modal">
+    <view class="add-friend-mask" bindtap="closeAddFriendMenu"></view>
+    <view class="add-friend-content">
+      <block wx:if="{{addFriendStep === 1}}">
+        <view class="add-friend-header">
+          <text class="add-friend-title">选择代表猫咪</text>
+          <text class="add-friend-subtitle">SELECT YOUR CAT REPRESENTATIVE</text>
+        </view>
+        <view class="cat-grid">
+          <view wx:if="{{!catList.length}}" class="cat-empty"><text>还没有生成的猫咪哦</text></view>
+          <view wx:for="{{catList}}" wx:key="id" class="cat-item {{selectedCatForQR && selectedCatForQR.id === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectCatForQR">
+            <image class="cat-avatar" src="{{item.avatar || item.imageUrl || '/assets/logo.png'}}" mode="aspectFill"></image>
+            <text class="cat-name">{{item.name}}</text>
+          </view>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="add-friend-header">
+          <text class="add-friend-title">选择添加方式</text>
+          <text class="add-friend-subtitle">CHOOSE ADDITION METHOD</text>
+        </view>
+        <view class="add-method-grid">
+          <view class="add-method-item" bindtap="openQrInvite">
+            <view class="add-method-icon qr-icon"><text class="method-icon-text">QR</text></view>
+            <text class="add-method-text">面对面添加</text>
+          </view>
+        </view>
+        <view class="add-friend-back" bindtap="backAddFriendStep"><text>返回上一步</text></view>
+      </block>
     </view>
   </view>
 

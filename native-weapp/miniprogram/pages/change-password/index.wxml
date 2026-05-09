@@ -1,12 +1,51 @@
-<view class="form-page">
-  <view class="header">
-    <text class="back" bindtap="goBack">‹</text>
-    <text class="header-title">修改密码</text>
+<view class="change-password-page">
+  <view class="page-header">
+    <text class="back-btn" bindtap="goBack">‹</text>
+    <text class="page-title">修改密码</text>
   </view>
-  <view class="form">
-    <input class="input" password placeholder="当前密码，可为空" data-field="currentPassword" bindinput="onInput" />
-    <input class="input" password placeholder="新密码" data-field="password" bindinput="onInput" />
-    <input class="input" password placeholder="确认新密码" data-field="confirmPassword" bindinput="onInput" />
-    <button class="miao-button-primary submit" loading="{{saving}}" bindtap="save">保存密码</button>
-  </view>
+
+  <scroll-view class="change-password-scroll" scroll-y>
+    <view class="intro-section">
+      <view class="intro-icon-box">
+        <image class="icon-img large" src="/assets/profile-icons/lock-dark.png" mode="aspectFit" />
+      </view>
+      <text class="intro-title">安全验证</text>
+      <text class="intro-desc">为了您的账号安全，请在修改密码前进行身份验证。</text>
+    </view>
+
+    <view class="form-section">
+      <view class="form-group">
+        <text class="form-label">当前密码</text>
+        <view class="input-wrapper">
+          <view class="input-icon"><image class="icon-img" src="/assets/profile-icons/lock-dark.png" mode="aspectFit" /></view>
+          <input class="form-input" password="{{!showCurrent}}" placeholder="请输入当前使用的密码" placeholder-style="color: #8E8E8E" data-field="currentPassword" bindinput="onInput" />
+          <view class="input-toggle" bindtap="toggleCurrent"><image class="icon-img" src="{{showCurrent ? '/assets/profile-icons/eyeoff-dark.png' : '/assets/profile-icons/eye-dark.png'}}" mode="aspectFit" /></view>
+        </view>
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">新密码</text>
+        <view class="input-wrapper">
+          <view class="input-icon"><image class="icon-img" src="/assets/profile-icons/lock-dark.png" mode="aspectFit" /></view>
+          <input class="form-input" password="{{!showNew}}" placeholder="设置 6-20 位新密码" placeholder-style="color: #8E8E8E" data-field="password" bindinput="onInput" />
+          <view class="input-toggle" bindtap="toggleNew"><image class="icon-img" src="{{showNew ? '/assets/profile-icons/eyeoff-dark.png' : '/assets/profile-icons/eye-dark.png'}}" mode="aspectFit" /></view>
+        </view>
+      </view>
+
+      <view class="form-group">
+        <text class="form-label">确认新密码</text>
+        <view class="input-wrapper">
+          <view class="input-icon"><image class="icon-img" src="/assets/profile-icons/lock-dark.png" mode="aspectFit" /></view>
+          <input class="form-input" password="{{!showConfirm}}" placeholder="请再次输入新密码" placeholder-style="color: #8E8E8E" data-field="confirmPassword" bindinput="onInput" />
+          <view class="input-toggle" bindtap="toggleConfirm"><image class="icon-img" src="{{showConfirm ? '/assets/profile-icons/eyeoff-dark.png' : '/assets/profile-icons/eye-dark.png'}}" mode="aspectFit" /></view>
+        </view>
+      </view>
+
+      <button class="save-btn" loading="{{saving}}" bindtap="save">
+        <text class="save-btn-text">保存修改</text>
+      </button>
+    </view>
+
+    <text class="footer-hint">忘记密码？请联系客服进行人工找回</text>
+  </scroll-view>
 </view>

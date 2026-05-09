@@ -472,11 +472,15 @@ const contentStore = {
     return letters;
   },
 
-  async addLetter(content, unlockAt) {
+  async addLetter(content, unlockAt, meta = {}) {
     const text = String(content || '').trim();
     if (!text) throw new Error('信件内容不能为空');
     const letter = {
       id: nowId('letter'),
+      catId: meta.catId || '',
+      catAvatar: meta.catAvatar || '',
+      catName: meta.catName || '',
+      title: String(meta.title || '').trim(),
       content: text,
       createdAt: Date.now(),
       unlockAt: unlockAt || Date.now() + 86400000,

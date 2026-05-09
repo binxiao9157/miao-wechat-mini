@@ -20,7 +20,8 @@ function viewModel(cat) {
 
 Page({
   data: {
-    cats: []
+    cats: [],
+    deleteTarget: null
   },
 
   onShow() {
@@ -54,20 +55,24 @@ Page({
 
   deleteCat(event) {
     const { id, name } = event.currentTarget.dataset;
-    wx.showModal({
-      title: '删除记录',
-      content: `确定删除 ${name || '这只猫咪'} 的记录吗？`,
-      confirmText: '删除',
-      confirmColor: '#D64B4B',
-      success: async (res) => {
-        if (!res.confirm) return;
-        const remaining = await dataStore.deleteCatById(id);
-        if (remaining.length === 0) {
-          reLaunch('/pages/empty-cat/index');
-        } else {
-          this.refresh();
-        }
-      }
-    });
+    this.setData({ deleteTarget: { id, name } });
+  },
+
+  cancelDelete() {
+    this.setData({ deleteTarget: null });
+  },
+
+  noop() {},
+
+  async confirmDelete() {
+    const target = this.data.deleteTarget;
+    if (!target) return;
+    const remaining = await dataStore.deleteCatById(target.id);
+    this.setData({ deleteTarget: null });
+    if (remaining.length === 0) {
+      reLaunch('/pages/empty-cat/index');
+    } else {
+      this.refresh();
+    }
   }
 });

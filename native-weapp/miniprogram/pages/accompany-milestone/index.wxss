@@ -1,109 +1,140 @@
 .milestone-page {
   min-height: 100vh;
-  padding: 56rpx 36rpx;
-  background: #FFF9F5;
+  padding: calc(env(safe-area-inset-top) + 36rpx) 44rpx 64rpx;
+  box-sizing: border-box;
+  background: var(--background);
 }
 
 .header {
-  height: 72rpx;
   display: flex;
   align-items: center;
+  padding-bottom: 42rpx;
 }
 
 .back {
-  width: 72rpx;
-  color: #633E1D;
-  font-size: 64rpx;
-  line-height: 1;
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: 30rpx;
+  background: #fff;
+  color: var(--on-primary-container);
+  font-size: 58rpx;
+  line-height: 76rpx;
+  text-align: center;
+  box-shadow: 0 8rpx 24rpx rgba(99, 62, 29, 0.08);
 }
 
 .header-title {
-  color: #633E1D;
-  font-size: 34rpx;
+  margin-left: 20rpx;
+  color: var(--on-primary-container);
+  font-size: 42rpx;
   font-weight: 900;
 }
 
 .hero {
-  margin-top: 38rpx;
-  padding: 38rpx;
-  border-radius: 28rpx;
-  background: #633E1D;
+  padding: 56rpx 32rpx;
+  border-radius: 40rpx;
+  background: linear-gradient(135deg, var(--primary-strong) 0%, #ff6b3d 100%);
+  text-align: center;
+  box-shadow: 0 16rpx 48rpx rgba(255, 107, 61, 0.3);
 }
 
-.cat-name,
-.subtitle {
-  color: rgba(255, 255, 255, 0.76);
-  font-size: 27rpx;
+.cat-name {
+  display: block;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 28rpx;
+  font-weight: 800;
 }
 
 .days {
   display: block;
-  margin-top: 14rpx;
-  color: #FFFFFF;
-  font-size: 72rpx;
+  margin-top: 16rpx;
+  color: #fff;
+  font-size: 92rpx;
   font-weight: 900;
+  line-height: 1.1;
 }
 
 .subtitle {
   display: block;
-  margin-top: 12rpx;
+  margin-top: 10rpx;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 26rpx;
+  line-height: 1.6;
 }
 
 .stats {
-  margin-top: 24rpx;
+  margin-top: 28rpx;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 18rpx;
 }
 
 .stat {
-  min-height: 140rpx;
-  border-radius: 24rpx;
-  background: #FFFFFF;
+  min-height: 148rpx;
+  border-radius: 30rpx;
+  background: #fff;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(99, 62, 29, 0.05);
 }
 
 .value {
-  color: #633E1D;
-  font-size: 40rpx;
+  color: var(--on-primary-container);
+  font-size: 42rpx;
   font-weight: 900;
 }
 
 .label {
   margin-top: 8rpx;
-  color: #8E8E8E;
+  color: var(--on-surface-variant);
   font-size: 24rpx;
+  font-weight: 800;
 }
 
 .list {
-  margin-top: 32rpx;
+  margin-top: 36rpx;
+  padding: 30rpx;
+  border-radius: 32rpx;
+  background: #fff;
+  box-shadow: 0 8rpx 24rpx rgba(99, 62, 29, 0.05);
 }
 
 .item {
-  margin-bottom: 18rpx;
-  padding: 24rpx;
-  border-radius: 22rpx;
-  background: #FFFFFF;
+  min-height: 76rpx;
+  padding: 12rpx 0;
   display: flex;
   align-items: center;
   gap: 18rpx;
+  border-bottom: 1rpx solid rgba(93, 64, 55, 0.08);
 }
 
-.item.done {
-  border: 2rpx solid #E89F71;
+.item:last-child {
+  border-bottom: 0;
+}
+
+.item.done .mark {
+  background: rgba(255, 157, 118, 0.14);
+  color: var(--primary-strong);
 }
 
 .mark {
-  color: #E89F71;
-  font-size: 34rpx;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 24rpx;
+  background: var(--color-warm-cream);
+  color: rgba(93, 64, 55, 0.38);
+  font-size: 28rpx;
   font-weight: 900;
+  line-height: 48rpx;
+  text-align: center;
 }
 
 .text {
-  color: #633E1D;
+  flex: 1;
+  color: var(--on-primary-container);
   font-size: 28rpx;
   font-weight: 800;
 }
+.milestone-scroll{height:100vh}.days-card{margin:32rpx;padding:48rpx;border-radius:40rpx;background:#fff;box-shadow:0 12rpx 34rpx rgba(99,62,29,.08);text-align:center}.days-label{color:var(--on-surface-variant);font-size:24rpx}.days-number{display:block;color:var(--primary);font-size:96rpx;font-weight:900;line-height:1}.days-unit{color:var(--text-primary);font-size:28rpx;font-weight:900}.calendar-section,.message-section{margin:32rpx;padding:32rpx;border-radius:32rpx;background:#fff}.calendar-title{font-size:32rpx;font-weight:900;color:var(--text-primary)}.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10rpx;margin-top:24rpx}.calendar-weekday,.calendar-cell{display:flex;align-items:center;justify-content:center;aspect-ratio:1}.weekday-text{font-size:22rpx;color:var(--on-surface-variant)}.calendar-cell.empty{opacity:.25}.calendar-cell.today{box-shadow:0 0 0 3rpx var(--primary)}.calendar-cell.accompanied{background:var(--color-warm-cream);border-radius:18rpx}.cell-text{font-size:22rpx}.cell-paw{font-size:18rpx}.message-text{color:var(--on-surface-variant);font-size:26rpx;line-height:1.7}

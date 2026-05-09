@@ -81,7 +81,7 @@ Page({
   },
 
   goCreate() {
-    navigateTo('/pages/upload-material/index');
+    navigateTo('/pages/empty-cat/index');
   },
 
   goDiary() {

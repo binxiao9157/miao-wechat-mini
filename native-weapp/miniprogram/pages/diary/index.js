@@ -1,6 +1,7 @@
 const { contentStore } = require('../../services/content-store');
 const { socialStore } = require('../../services/social-store');
 const { authService } = require('../../services/auth');
+const { dataStore } = require('../../services/data-store');
 const { chooseImage, chooseVideo, compressImage, saveMediaFile } = require('../../utils/media');
 const { safeBack, navigateTo } = require('../../utils/nav');
 const { generateShareCard } = require('../../utils/share-card');
@@ -20,6 +21,11 @@ Page({
     diaries: [],
     friendDiaries: [],
     visibleDiaries: [],
+    showCompose: false,
+    showAddFriendMenu: false,
+    addFriendStep: 1,
+    catList: [],
+    selectedCatForQR: null,
     draft: '',
     selectedMedia: null,
     commentTarget: null,
@@ -65,6 +71,7 @@ Page({
   refresh() {
     const diaries = contentStore.getDiaries().map((item) => this.decorateDiary(item, false));
     const friendDiaries = socialStore.getFriendDiariesLocal().map((item) => this.decorateDiary(item, true));
+    const catList = dataStore.getCats();
     const focusId = this.data.focusDiaryId || this.sharedDiaryId || '';
     let activeTab = this.data.activeTab;
     if (focusId) {
@@ -75,6 +82,7 @@ Page({
       activeTab,
       diaries,
       friendDiaries,
+      catList,
       visibleDiaries: activeTab === 'friends' ? friendDiaries : diaries,
       scrollIntoView: focusId ? `diary-${focusId}` : '',
       sharedError: focusId && !this.data.resolvingShared ? this.data.sharedError : ''
@@ -146,6 +154,14 @@ Page({
     safeBack('/pages/profile/index');
   },
 
+  openCompose() {
+    this.setData({ showCompose: true });
+  },
+
+  closeCompose() {
+    this.setData({ showCompose: false, draft: '', selectedMedia: null });
+  },
+
   onInput(event) {
     this.setData({ draft: event.detail.value });
   },
@@ -185,7 +201,7 @@ Page({
     this.setData({ saving: true });
     try {
       await contentStore.addDiary(draft, selectedMedia || {});
-      this.setData({ draft: '', selectedMedia: null, activeTab: 'mine' });
+      this.setData({ draft: '', selectedMedia: null, activeTab: 'mine', showCompose: false });
       this.refresh();
       wx.showToast({ title: '已发布', icon: 'success' });
     } catch (error) {
@@ -400,7 +416,27 @@ Page({
   },
 
   goFriends() {
-    navigateTo('/pages/scan-friend/index');
+    this.setData({ showAddFriendMenu: true, addFriendStep: 1, selectedCatForQR: null });
+  },
+
+  closeAddFriendMenu() {
+    this.setData({ showAddFriendMenu: false, addFriendStep: 1, selectedCatForQR: null });
+  },
+
+  selectCatForQR(event) {
+    const { id } = event.currentTarget.dataset;
+    const selectedCatForQR = this.data.catList.find((item) => item.id === id) || null;
+    this.setData({ selectedCatForQR, addFriendStep: selectedCatForQR ? 2 : 1 });
+  },
+
+  openQrInvite() {
+    const catId = this.data.selectedCatForQR && this.data.selectedCatForQR.id;
+    this.closeAddFriendMenu();
+    navigateTo(`/pages/add-friend-qr/index${catId ? `?catId=${encodeURIComponent(catId)}` : ''}`);
+  },
+
+  backAddFriendStep() {
+    this.setData({ addFriendStep: 1 });
   },
 
   deleteDiary(event) {

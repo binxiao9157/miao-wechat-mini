@@ -7,6 +7,8 @@ Page({
     username: '',
     password: '',
     confirmPassword: '',
+    showPassword: false,
+    showConfirmPassword: false,
     agreed: false,
     loading: false,
     error: ''
@@ -22,6 +24,14 @@ Page({
 
   onConfirmInput(event) {
     this.setData({ confirmPassword: event.detail.value });
+  },
+
+  togglePassword() {
+    this.setData({ showPassword: !this.data.showPassword });
+  },
+
+  toggleConfirmPassword() {
+    this.setData({ showConfirmPassword: !this.data.showConfirmPassword });
   },
 
   toggleAgreement() {

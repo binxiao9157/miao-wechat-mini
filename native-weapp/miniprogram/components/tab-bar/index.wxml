@@ -2,7 +2,7 @@
   <view
     wx:for="{{tabs}}"
     wx:key="key"
-    class="tab-item {{item.active ? 'active' : ''}}"
+    class="tab-item {{item.key === 'home' ? 'center' : ''}} {{item.active ? 'active' : ''}}"
     data-url="{{item.url}}"
     data-key="{{item.key}}"
     bindtap="go"

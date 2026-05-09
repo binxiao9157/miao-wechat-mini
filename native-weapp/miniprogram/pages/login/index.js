@@ -1,6 +1,7 @@
 const { authService } = require('../../services/auth');
 const { routeAfterAuth } = require('../../services/session-router');
 const { navigateTo, redirectTo } = require('../../utils/nav');
+const { getItem } = require('../../utils/storage');
 
 function getMiniProgramEnvVersion() {
   try {
@@ -19,7 +20,17 @@ Page({
     showPassword: false,
     agreed: false,
     loading: false,
-    error: ''
+    error: '',
+    catImage: ''
+  },
+
+  onLoad() {
+    const lastUsername = getItem('miao_last_username') || '';
+    const lastCatImage = getItem('miao_last_cat_image') || '';
+    this.setData({
+      username: lastUsername || this.data.username,
+      catImage: lastCatImage || this.data.catImage
+    });
   },
 
   onUsernameInput(event) {

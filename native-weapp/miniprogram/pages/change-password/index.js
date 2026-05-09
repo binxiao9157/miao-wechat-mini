@@ -6,6 +6,9 @@ Page({
     currentPassword: '',
     password: '',
     confirmPassword: '',
+    showCurrent: false,
+    showNew: false,
+    showConfirm: false,
     saving: false
   },
 
@@ -16,6 +19,18 @@ Page({
   onInput(event) {
     const { field } = event.currentTarget.dataset;
     this.setData({ [field]: event.detail.value });
+  },
+
+  toggleCurrent() {
+    this.setData({ showCurrent: !this.data.showCurrent });
+  },
+
+  toggleNew() {
+    this.setData({ showNew: !this.data.showNew });
+  },
+
+  toggleConfirm() {
+    this.setData({ showConfirm: !this.data.showConfirm });
   },
 
   async save() {

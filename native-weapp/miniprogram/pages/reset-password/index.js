@@ -6,6 +6,8 @@ Page({
     phone: '',
     code: '',
     password: '',
+    showPassword: false,
+    countdown: 0,
     saving: false
   },
 
@@ -16,6 +18,31 @@ Page({
   onInput(event) {
     const { field } = event.currentTarget.dataset;
     this.setData({ [field]: event.detail.value });
+  },
+
+  togglePassword() {
+    this.setData({ showPassword: !this.data.showPassword });
+  },
+
+  sendCode() {
+    const phone = this.data.phone.trim();
+    if (!phone || phone.length !== 11) {
+      wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
+      return;
+    }
+    if (this.data.countdown > 0) return;
+    wx.showToast({ title: '验证码已发送', icon: 'none' });
+    this.setData({ countdown: 60 });
+    clearInterval(this.countdownTimer);
+    this.countdownTimer = setInterval(() => {
+      const next = this.data.countdown - 1;
+      if (next <= 0) {
+        clearInterval(this.countdownTimer);
+        this.setData({ countdown: 0 });
+        return;
+      }
+      this.setData({ countdown: next });
+    }, 1000);
   },
 
   async submit() {

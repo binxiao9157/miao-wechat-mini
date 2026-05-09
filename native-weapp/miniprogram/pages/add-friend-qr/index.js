@@ -8,7 +8,11 @@ Page({
     invitePayload: '',
     qrImageUrl: '',
     qrReady: false,
-    loading: false
+    loading: false,
+    errorText: '',
+    toastText: '',
+    toastType: '',
+    showPreview: false
   },
 
   onShow() {
@@ -24,16 +28,25 @@ Page({
   },
 
   async createInvite() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorText: '' });
     try {
       const invite = await socialStore.createInvite();
       const invitePayload = invite && invite.code ? `miao://friend?invite=${encodeURIComponent(invite.code)}` : '';
       this.setData({ invite, invitePayload, qrImageUrl: '', qrReady: false }, () => this.drawQr());
     } catch (error) {
-      wx.showToast({ title: error.message || '创建失败', icon: 'none' });
+      this.setData({ errorText: error.message || '创建失败' });
+      this.showToast(error.message || '创建失败', 'error');
     } finally {
       this.setData({ loading: false });
     }
+  },
+
+  showToast(message, type = 'success') {
+    this.setData({ toastText: message, toastType: type });
+    clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => {
+      this.setData({ toastText: '', toastType: '' });
+    }, 2200);
   },
 
   copyCode() {
@@ -41,7 +54,7 @@ Page({
     if (!code) return;
     wx.setClipboardData({
       data: code,
-      success: () => wx.showToast({ title: '已复制', icon: 'success' })
+      success: () => this.showToast('已复制', 'success')
     });
   },
 
@@ -50,7 +63,7 @@ Page({
     if (!payload) return;
     wx.setClipboardData({
       data: payload,
-      success: () => wx.showToast({ title: '邀请链接已复制', icon: 'success' })
+      success: () => this.showToast('邀请链接已复制', 'success')
     });
   },
 
@@ -72,7 +85,7 @@ Page({
           drawQROnCanvas(ctx, payload, 0, 0, size, '#1C1B1F', '#FFFFFF');
           wx.canvasToTempFilePath({
             canvas: node,
-            success: (tempRes) => this.setData({ qrImageUrl: tempRes.tempFilePath, qrReady: true }),
+            success: (tempRes) => this.setData({ qrImageUrl: tempRes.tempFilePath, qrReady: true, errorText: '' }),
             fail: () => this.setData({ qrReady: true })
           });
         });
@@ -83,13 +96,13 @@ Page({
   saveQr() {
     const filePath = this.data.qrImageUrl;
     if (!filePath) {
-      wx.showToast({ title: '二维码生成中', icon: 'none' });
+      this.showToast('二维码生成中', 'error');
       return;
     }
     const save = () => {
       wx.saveImageToPhotosAlbum({
         filePath,
-        success: () => wx.showToast({ title: '已保存', icon: 'success' }),
+        success: () => this.showToast('已保存', 'success'),
         fail: () => {
           wx.showModal({
             title: '保存失败',
@@ -128,6 +141,14 @@ Page({
         });
       }
     });
+  },
+
+  openPreview() {
+    if (this.data.qrImageUrl) this.setData({ showPreview: true });
+  },
+
+  closePreview() {
+    this.setData({ showPreview: false });
   },
 
   onShareAppMessage() {

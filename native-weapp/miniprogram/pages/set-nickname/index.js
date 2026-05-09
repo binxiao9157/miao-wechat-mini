@@ -1,5 +1,5 @@
 const { authService } = require('../../services/auth');
-const { reLaunch } = require('../../utils/nav');
+const { reLaunch, safeBack } = require('../../utils/nav');
 
 Page({
   data: {
@@ -9,6 +9,10 @@ Page({
 
   onInput(event) {
     this.setData({ nickname: event.detail.value });
+  },
+
+  goBack() {
+    safeBack('/pages/login/index');
   },
 
   async submit() {

@@ -22,16 +22,19 @@
       loop
       muted
       controls="{{false}}"
+      show-loading="{{false}}"
       show-play-btn="{{false}}"
       show-center-play-btn="{{false}}"
       show-fullscreen-btn="{{false}}"
       object-fit="cover"
+      bindloadedmetadata="handleVideoLoaded"
+      bindplay="handleVideoLoaded"
       binderror="handleVideoError"
     ></video>
-    <image wx:if="{{poster}}" class="placeholder-img" src="{{poster}}" mode="aspectFill" />
+    <image wx:if="{{poster && (!currentVideo || videoError)}}" class="placeholder-img" src="{{poster}}" mode="aspectFill" />
     <view wx:if="{{videoError}}" class="video-error-overlay">
       <text class="video-error-title">视频暂时无法播放</text>
-      <text class="video-error-desc">网络波动，请稍后重试</text>
+      <text class="video-error-desc">{{videoErrorDesc}}</text>
       <button class="retry-btn" bindtap="retryVideo"><text class="retry-btn-text">重试播放</text></button>
     </view>
     <view class="bubble frosted-glass-bubble bubble-enter" wx:if="{{bubbleText}}">

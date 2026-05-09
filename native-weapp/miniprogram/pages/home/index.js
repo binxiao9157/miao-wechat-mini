@@ -1,6 +1,7 @@
 const { dataStore } = require('../../services/data-store');
 const { contentStore } = require('../../services/content-store');
 const { navigateTo } = require('../../utils/nav');
+const { getCatVideoUrl, normalizeVideoPaths, normalizeMediaUrl } = require('../../utils/media-url');
 
 const ACTIONS = [
   { key: 'idle', label: '蹭蹭', hint: '轻点播放' },
@@ -26,6 +27,8 @@ Page({
     bubbleText: '',
     pointsToast: '',
     videoError: false,
+    videoErrorDesc: '网络波动，请稍后重试',
+    videoReady: false,
     videoRetryKey: 0,
     statusText: '已进入原生首页。',
     canContinueGeneration: false
@@ -69,26 +72,37 @@ Page({
   },
 
   applyCat(cat, preferredAction) {
-    const paths = (cat && cat.videoPaths) || {};
-    const idleVideo = paths.idle || (cat && cat.videoPath) || '';
+    const paths = normalizeVideoPaths(cat && cat.videoPaths);
+    const idleVideo = getCatVideoUrl(cat, 'idle');
     const currentAction = paths[preferredAction] ? preferredAction : 'idle';
-    const currentVideo = paths[currentAction] || idleVideo;
+    const currentVideo = getCatVideoUrl(cat, currentAction);
     const ready = !!idleVideo;
     const missingCount = ACTIONS.filter((action) => !paths[action.key]).length;
-    this.setData({
+    const keepCurrentVideo = currentVideo && currentVideo === this.data.currentVideo && currentAction === this.data.currentAction;
+    const nextData = {
       cat,
       currentAction,
       currentVideo,
-      poster: (cat && cat.avatar) || '',
+      poster: normalizeMediaUrl((cat && (cat.avatar || cat.imageUrl || cat.placeholderImage || cat.anchorFrame)) || ''),
       actionItems: ACTIONS.map((action) => ({
         ...action,
         active: action.key === currentAction,
         generated: !!paths[action.key] || (action.key === 'idle' && !!idleVideo)
       })),
       videoError: false,
+      videoErrorDesc: currentVideo ? '网络波动，请稍后重试' : '当前猫咪还没有可播放的视频',
+      videoReady: keepCurrentVideo ? this.data.videoReady : false,
       statusText: ready ? (missingCount > 0 ? `还有 ${missingCount} 个互动动作待生成` : '你的小猫已经苏醒。') : '猫咪已创建，等待生成视频。',
       canContinueGeneration: !!cat && (!ready || missingCount > 0)
-    });
+    };
+    if (keepCurrentVideo) {
+      delete nextData.currentAction;
+      delete nextData.currentVideo;
+      delete nextData.videoError;
+      delete nextData.videoErrorDesc;
+      delete nextData.videoReady;
+    }
+    this.setData(nextData);
   },
 
   continueGeneration() {
@@ -115,8 +129,8 @@ Page({
     const { action } = event.currentTarget.dataset;
     const cat = this.data.cat;
     if (!cat) return;
-    const paths = cat.videoPaths || {};
-    const idleVideo = paths.idle || cat.videoPath || '';
+    const paths = normalizeVideoPaths(cat.videoPaths);
+    const idleVideo = getCatVideoUrl(cat, 'idle');
     if (!idleVideo && action !== 'idle') {
       navigateTo('/pages/generation-progress/index?action=all');
       return;
@@ -125,13 +139,16 @@ Page({
       navigateTo(`/pages/generation-progress/index?action=${action}`);
       return;
     }
-    const video = paths[action] || cat.videoPath || '';
+    const video = getCatVideoUrl(cat, action);
     this.setData({
       currentAction: action,
       currentVideo: video,
       actionItems: this.data.actionItems.map((item) => ({ ...item, active: item.key === action })),
       bubbleText: BUBBLES[action] || '',
-      videoError: false
+      videoError: false,
+      videoErrorDesc: '网络波动，请稍后重试',
+      videoReady: false,
+      videoRetryKey: this.data.videoRetryKey + 1
     });
     this.grantInteractionReward();
   },
@@ -182,15 +199,36 @@ Page({
     this.selectAction({ currentTarget: { dataset: { action } } });
   },
 
-  handleVideoError() {
-    this.setData({ videoError: true, statusText: '视频暂时无法播放，请稍后重试。' });
+  handleVideoLoaded() {
+    this.setData({ videoError: false, videoErrorDesc: '网络波动，请稍后重试', videoReady: true });
+  },
+
+  handleVideoError(event) {
+    const errMsg = event && event.detail && event.detail.errMsg;
+    console.warn('[native] home video failed:', {
+      currentVideo: this.data.currentVideo,
+      errMsg
+    });
+    const videoErrorDesc = errMsg && /domain|url|src|invalid|fail/i.test(errMsg)
+      ? '视频地址或业务域名可能不可用'
+      : '网络波动，请稍后重试';
+    this.setData({
+      videoError: true,
+      videoErrorDesc,
+      videoReady: false,
+      statusText: '视频暂时无法播放，请稍后重试。'
+    });
   },
 
   retryVideo() {
     this.setData({
       videoError: false,
+      videoReady: false,
       videoRetryKey: this.data.videoRetryKey + 1,
       statusText: '正在重新加载视频...'
+    }, () => {
+      const ctx = wx.createVideoContext && wx.createVideoContext(`catVideo-${this.data.videoRetryKey}`, this);
+      if (ctx && ctx.play) ctx.play();
     });
   },
 

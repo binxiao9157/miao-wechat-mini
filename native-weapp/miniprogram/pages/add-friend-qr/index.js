@@ -11,8 +11,7 @@ Page({
     loading: false,
     errorText: '',
     toastText: '',
-    toastType: '',
-    showPreview: false
+    toastType: ''
   },
 
   onShow() {
@@ -47,24 +46,6 @@ Page({
     this.toastTimer = setTimeout(() => {
       this.setData({ toastText: '', toastType: '' });
     }, 2200);
-  },
-
-  copyCode() {
-    const code = this.data.invite && this.data.invite.code;
-    if (!code) return;
-    wx.setClipboardData({
-      data: code,
-      success: () => this.showToast('已复制', 'success')
-    });
-  },
-
-  copyPayload() {
-    const payload = this.data.invitePayload;
-    if (!payload) return;
-    wx.setClipboardData({
-      data: payload,
-      success: () => this.showToast('邀请链接已复制', 'success')
-    });
   },
 
   drawQr() {
@@ -141,14 +122,6 @@ Page({
         });
       }
     });
-  },
-
-  openPreview() {
-    if (this.data.qrImageUrl) this.setData({ showPreview: true });
-  },
-
-  closePreview() {
-    this.setData({ showPreview: false });
   },
 
   onShareAppMessage() {

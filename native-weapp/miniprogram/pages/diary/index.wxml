@@ -123,10 +123,10 @@
       <view class="compose-footer">
         <view class="media-actions">
           <view class="media-btn" bindtap="chooseImage">
-            <image class="icon-img" src="/assets/profile-icons/image-gray.png" mode="aspectFit"></image>
+            <image class="icon-img media-image-icon" src="/assets/profile-icons/image-gray.png" mode="aspectFit"></image>
           </view>
           <view class="media-btn" bindtap="chooseVideo">
-            <image class="icon-img" src="/assets/profile-icons/film-gray.png" mode="aspectFit"></image>
+            <image class="icon-img media-video-icon" src="/assets/profile-icons/video-gray.png" mode="aspectFit"></image>
           </view>
         </view>
         <button class="publish-btn {{saving ? 'loading' : ''}} {{!draft && !selectedMedia ? 'disabled' : ''}}" loading="{{saving}}" bindtap="submit">发布</button>

@@ -726,7 +726,8 @@
 
 .media-actions {
   display: flex;
-  gap: 24rpx;
+  flex-shrink: 0;
+  gap: 20rpx;
 }
 
 .media-btn {
@@ -740,17 +741,31 @@
 }
 
 .media-btn .icon-img {
+  display: block;
+}
+
+.media-image-icon {
   width: 48rpx;
   height: 48rpx;
+  transform: translateY(1rpx);
+}
+
+.media-video-icon {
+  width: 54rpx;
+  height: 54rpx;
+  transform: translateY(1rpx);
 }
 
 .publish-btn {
+  flex: 0 0 172rpx;
+  width: 172rpx;
   min-width: 172rpx;
   height: 88rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 44rpx;
+  margin: 0;
+  padding: 0;
   border-radius: 999rpx;
   background: var(--primary);
   color: #fff;

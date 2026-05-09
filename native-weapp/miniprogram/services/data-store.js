@@ -4,6 +4,7 @@ const { authService } = require('./auth');
 const { userScopedKey } = require('../types/models');
 const { events } = require('../utils/event-bus');
 const { generationTasks } = require('./generation-tasks');
+const { normalizeMediaUrl, normalizeVideoPaths } = require('../utils/media-url');
 
 function parseJson(raw, fallback) {
   if (!raw) return fallback;
@@ -32,6 +33,30 @@ const DEFAULT_PRESET_CATS = [
   { id: 'siamese', name: '暹罗猫', imageUrl: 'https://fastly.picsum.photos/id/164/800/800.jpg?hmac=-vrHqnVZ5JXaSiIV-qbYsO6fUd1_YjwsX82JGuoMk6g' }
 ];
 
+function normalizeCat(cat = {}) {
+  const videoPaths = normalizeVideoPaths(cat.videoPaths);
+  const videoPath = normalizeMediaUrl(
+    cat.videoPath ||
+    cat.videoUrl ||
+    cat.video_url ||
+    cat.remoteVideoUrl ||
+    cat.mediaUrl ||
+    videoPaths.idle
+  );
+  return {
+    ...cat,
+    avatar: normalizeMediaUrl(cat.avatar || cat.imageUrl || cat.placeholderImage || cat.anchorFrame || '/assets/logo.png'),
+    imageUrl: normalizeMediaUrl(cat.imageUrl || cat.avatar || cat.placeholderImage || cat.anchorFrame || ''),
+    placeholderImage: normalizeMediaUrl(cat.placeholderImage || cat.avatar || cat.imageUrl || ''),
+    anchorFrame: normalizeMediaUrl(cat.anchorFrame || cat.placeholderImage || cat.avatar || cat.imageUrl || ''),
+    videoPath,
+    videoPaths: {
+      ...(videoPath ? { idle: videoPath } : {}),
+      ...videoPaths
+    }
+  };
+}
+
 const dataStore = {
   getPresetCats() {
     return parseJson(getItem('app_preset_cats'), DEFAULT_PRESET_CATS);
@@ -57,7 +82,7 @@ const dataStore = {
   },
 
   saveCats(cats) {
-    const nextCats = Array.isArray(cats) ? cats : [];
+    const nextCats = Array.isArray(cats) ? cats.map(normalizeCat) : [];
     setItem(scopedKey('miao_cat_list'), JSON.stringify(nextCats));
     const activeId = getItem(scopedKey('miao_active_cat_id'));
     if (activeId && !nextCats.some((cat) => cat.id === activeId)) {

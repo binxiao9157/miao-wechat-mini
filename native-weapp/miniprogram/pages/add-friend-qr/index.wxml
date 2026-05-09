@@ -66,29 +66,12 @@
 
   <view wx:if="{{!errorText}}" class="action-buttons {{qrReady ? 'card-visible' : 'card-hidden'}}">
     <view class="action-btn" bindtap="saveQr">
-      <view class="action-icon"><image class="icon-img" src="/assets/profile-icons/download-primary.png" mode="aspectFit" /></view>
+      <view class="action-icon"><image class="icon-img action-icon-img download-icon" src="/assets/profile-icons/download-primary.png" mode="aspectFit" /></view>
       <text class="action-text">保存图片</text>
     </view>
     <button class="action-btn" open-type="share">
-      <view class="action-icon"><image class="icon-img" src="/assets/profile-icons/share-gray.png" mode="aspectFit" /></view>
+      <view class="action-icon"><image class="icon-img action-icon-img share-icon" src="/assets/profile-icons/share-gray.png" mode="aspectFit" /></view>
       <text class="action-text">分享给好友</text>
     </button>
-  </view>
-
-  <view class="copy-actions legacy-hidden">
-    <button class="copy-btn" loading="{{loading}}" bindtap="copyCode">复制邀请码</button>
-    <button class="copy-btn" loading="{{loading}}" bindtap="copyPayload">复制邀请链接</button>
-    <button class="copy-btn" loading="{{loading}}" bindtap="createInvite">重新生成</button>
-  </view>
-
-  <view wx:if="{{false && showPreview}}" class="preview-modal">
-    <view class="preview-mask" bindtap="closePreview"></view>
-    <view class="preview-close" bindtap="closePreview">×</view>
-    <image class="preview-image" src="{{qrImageUrl}}" mode="aspectFit"></image>
-    <view class="preview-hint">
-      <text class="preview-title">面对面添加</text>
-      <text class="preview-subtitle">长按或截图分享给好友</text>
-      <view class="preview-back-btn" bindtap="closePreview">返回</view>
-    </view>
   </view>
 </view>

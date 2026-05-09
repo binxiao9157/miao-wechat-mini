@@ -1,5 +1,6 @@
 const { authService } = require('../../services/auth');
 const { dataStore } = require('../../services/data-store');
+const { contentStore } = require('../../services/content-store');
 const { safeBack, navigateTo, reLaunch } = require('../../utils/nav');
 
 Page({
@@ -7,33 +8,47 @@ Page({
     user: null,
     displayName: 'Miao 用户',
     username: '',
+    avatar: '',
     avatarLetter: 'M',
     cat: null,
     stats: {
       days: 0,
       videoCount: 0,
       catCount: 0
-    }
+    },
+    unreadCount: 0,
+    messageLabel: '消息中心'
   },
 
   onShow() {
     this.refresh();
+    Promise.allSettled([
+      contentStore.syncNotificationsFromServer(),
+      contentStore.syncLettersFromServer(),
+      contentStore.syncPointsFromServer()
+    ]).finally(() => this.refresh());
   },
 
   refresh() {
     const user = authService.getCachedUser();
     const cat = dataStore.getActiveCat();
     const catStats = dataStore.getCatStats(cat);
+    const unreadCount = contentStore.getUnreadNotificationCount();
     this.setData({
       user,
       displayName: (user && (user.nickname || user.username)) || 'Miao 用户',
       username: (user && user.username) || '未登录',
+      avatar: (user && user.avatar) || '',
       avatarLetter: ((user && (user.nickname || user.username)) || 'M').slice(0, 1).toUpperCase(),
       cat,
       stats: {
         ...catStats,
         catCount: dataStore.getCats().length
-      }
+      },
+      unreadCount,
+      messageLabel: unreadCount > 0
+        ? `消息中心（${unreadCount}）`
+        : '消息中心'
     });
   },
 
@@ -114,12 +129,31 @@ Page({
       success: (res) => {
         if (!res.confirm) return;
         const preserve = [
+          'miao_users',
           'miao_auth_token',
           'miao_current_user',
           'miao_last_username',
+          'miao_login_time',
+          'miao_last_active_time',
           'miao_cat_list',
           'miao_active_cat_id',
-          'miao_generation_tasks'
+          'miao_generation_tasks',
+          'miao_friends',
+          'miao_friend_diaries',
+          'miao_diaries',
+          'miao_time_letters',
+          'miao_points',
+          'miao_settings',
+          'miao_ai_config',
+          'miao_has_submitted_survey',
+          'miao_debug_fast_forward',
+          'miao_debug_points_cheat',
+          'miao_last_cat_image',
+          'miao_last_cat_breed',
+          'app_preset_cats',
+          'miao_last_read_notifications',
+          'miao_read_notification_ids',
+          'user_avatar_key'
         ];
         const info = wx.getStorageInfoSync();
         let count = 0;

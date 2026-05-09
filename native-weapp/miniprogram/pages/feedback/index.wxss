@@ -23,31 +23,95 @@
   font-weight: 900;
 }
 
+.feedback-scroll {
+  height: calc(100vh - 150rpx);
+  margin-top: 28rpx;
+}
+
+.survey,
 .form {
-  margin-top: 38rpx;
-  padding: 28rpx;
+  padding-bottom: 48rpx;
+}
+
+.question,
+.form {
+  margin-bottom: 20rpx;
+  padding: 26rpx;
   border-radius: 24rpx;
   background: #FFFFFF;
-  box-shadow: 0 16rpx 36rpx rgba(99, 62, 29, 0.08);
+  box-shadow: 0 12rpx 28rpx rgba(99, 62, 29, 0.06);
+}
+
+.question-title {
+  display: block;
+  color: #633E1D;
+  font-size: 27rpx;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+.option-grid,
+.type-row {
+  margin-top: 18rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+}
+
+.option,
+.type-chip {
+  min-width: 180rpx;
+  height: 62rpx;
+  padding: 0 20rpx;
+  border-radius: 31rpx;
+  background: #FEF6F0;
+  color: #633E1D;
+  font-size: 24rpx;
+  font-weight: 800;
+  line-height: 62rpx;
+}
+
+.option.active,
+.type-chip.active {
+  background: #E89F71;
+  color: #FFFFFF;
+}
+
+.stars {
+  margin-top: 18rpx;
+  display: flex;
+  gap: 10rpx;
+}
+
+.star {
+  width: 64rpx;
+  height: 64rpx;
+  padding: 0;
+  border-radius: 32rpx;
+  background: #FEF6F0;
+  color: #D6C7BA;
+  font-size: 36rpx;
+  line-height: 64rpx;
+}
+
+.star.active {
+  color: #E89F71;
 }
 
 .textarea {
   width: 100%;
   min-height: 300rpx;
+  margin-top: 22rpx;
+  padding: 22rpx;
+  border-radius: 20rpx;
+  background: #FEF6F0;
   color: #633E1D;
   font-size: 28rpx;
   line-height: 1.6;
 }
 
-.input {
-  width: 100%;
-  height: 92rpx;
-  margin-top: 22rpx;
-  padding: 0 26rpx;
-  border-radius: 20rpx;
-  background: #FEF6F0;
-  color: #633E1D;
-  font-size: 28rpx;
+.textarea.small {
+  min-height: 180rpx;
 }
 
 .submit {

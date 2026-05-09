@@ -85,6 +85,20 @@
   font-weight: 800;
 }
 
+.points-toast {
+  position: absolute;
+  left: 50%;
+  top: 140rpx;
+  transform: translateX(-50%);
+  padding: 16rpx 28rpx;
+  border-radius: 28rpx;
+  background: rgba(232, 159, 113, 0.94);
+  color: #FFFFFF;
+  font-size: 26rpx;
+  font-weight: 900;
+  box-shadow: 0 12rpx 28rpx rgba(99, 62, 29, 0.18);
+}
+
 .cat-info-panel {
   position: absolute;
   left: 0;

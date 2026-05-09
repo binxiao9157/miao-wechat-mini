@@ -4,23 +4,55 @@
     <text class="header-title">积分</text>
   </view>
 
-  <view class="total-panel">
+  <view class="total-panel" bindtap="openHistory">
     <text class="total-label">当前积分</text>
-    <text class="total-value">{{points.total || 0}}</text>
-    <text class="total-note">每日登录会自动获得 10 积分。</text>
+    <text class="total-value">{{effectivePoints || 0}}</text>
+    <text class="total-note">{{isPointsCheat ? '调试模式已开启' : '点击查看积分明细'}}</text>
   </view>
-  <button class="miao-button-primary redeem" bindtap="redeemCat">100 积分兑换新猫咪</button>
 
-  <scroll-view class="history" scroll-y>
-    <view wx:for="{{points.history}}" wx:key="id" class="history-item">
-      <view>
-        <text class="reason">{{item.reason || '积分变化'}}</text>
-        <text class="time">{{item.timeLabel}}</text>
-      </view>
-      <text class="amount {{item.kind}}">{{item.amountText}}</text>
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">今日任务</text>
+      <text class="section-tag">每日更新</text>
     </view>
-    <view wx:if="{{!points.history.length}}" class="empty">还没有积分记录</view>
-  </scroll-view>
+    <view wx:for="{{tasks}}" wx:key="id" class="task-item {{item.completed ? 'completed' : ''}}" data-action="{{item.action}}" data-completed="{{item.completed ? 1 : 0}}" bindtap="tapTask">
+      <view class="task-icon">{{item.completed ? '✓' : '+'}}</view>
+      <view class="task-info">
+        <text class="task-title">{{item.title}}</text>
+        <text class="task-desc">{{item.description}}</text>
+        <text class="task-reward">+{{item.reward}} 积分</text>
+      </view>
+      <text class="task-status">{{item.completed ? '已完成' : '去完成'}}</text>
+    </view>
+  </view>
+
+  <view class="redeem-card {{redeemActive ? 'active' : ''}}">
+    <text class="redeem-title">积分兑换</text>
+    <text class="redeem-subtitle">解锁第 {{nextCatIndex}} 位伙伴</text>
+    <text class="redeem-desc">消耗 {{redeemThreshold || 0}} 积分，即可生成一只全新的猫咪伙伴。</text>
+    <text wx:if="{{showRedeemGap}}" class="redeem-hint">还差 {{redeemGap}} 积分</text>
+    <button class="miao-button-primary redeem" bindtap="redeemCat">{{redeemButtonText}}</button>
+  </view>
+
+  <view wx:if="{{showHistory}}" class="modal">
+    <view class="modal-mask" bindtap="closeHistory"></view>
+    <view class="modal-panel">
+      <view class="modal-header">
+        <text class="modal-title">积分明细</text>
+        <button class="modal-close" bindtap="closeHistory">×</button>
+      </view>
+      <scroll-view class="history" scroll-y>
+        <view wx:for="{{points.history}}" wx:key="id" class="history-item">
+          <view>
+            <text class="reason">{{item.reason || '积分变化'}}</text>
+            <text class="time">{{item.timeLabel}}</text>
+          </view>
+          <text class="amount {{item.kind}}">{{item.amountText}}</text>
+        </view>
+        <view wx:if="{{!points.history.length}}" class="empty">还没有积分记录</view>
+      </scroll-view>
+    </view>
+  </view>
 
   <native-tab-bar active="points" />
 </view>

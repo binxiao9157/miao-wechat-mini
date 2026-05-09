@@ -1,6 +1,6 @@
 const { authService } = require('../../services/auth');
 const { routeAfterAuth } = require('../../services/session-router');
-const { navigateTo } = require('../../utils/nav');
+const { navigateTo, redirectTo } = require('../../utils/nav');
 
 Page({
   data: {
@@ -72,6 +72,53 @@ Page({
       await routeAfterAuth();
     } catch (error) {
       this.setData({ error: error.message || '微信登录失败' });
+    } finally {
+      this.setData({ loading: false });
+    }
+  },
+
+  getPhoneLoginError(message) {
+    const msg = String(message || '');
+    if (msg.includes('WECHAT_NOT_CONFIGURED')) return '手机号登录暂未开通，请使用其他登录方式';
+    if (msg.includes('PHONE_LOGIN_FAILED')) return '微信手机号验证失败，请重试或使用其他登录方式';
+    if (msg.includes('WECHAT_UPSTREAM_ERROR')) return '微信服务暂时不可用，请稍后重试';
+    if (msg.includes('no permission') || msg.includes('deny')) return '小程序未开通手机号登录能力，请使用其他登录方式';
+    if (msg.includes('timeout') || msg.includes('超时')) return '网络超时，请检查网络后重试';
+    return msg || '手机号登录失败，请重试';
+  },
+
+  async handlePhoneLogin(event) {
+    if (!this.ensureAgreement()) return;
+    const detail = event.detail || {};
+    if (detail.errMsg && detail.errMsg.includes('fail')) {
+      wx.showModal({
+        title: '提示',
+        content: this.getPhoneLoginError(detail.errMsg),
+        showCancel: false,
+        confirmText: '我知道了'
+      });
+      return;
+    }
+
+    const phoneCode = detail.code || detail.cloudID || `dev_phone_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    if (!phoneCode) {
+      this.setData({ error: '获取手机号授权失败' });
+      return;
+    }
+
+    this.setData({ loading: true, error: '' });
+    try {
+      const user = await authService.phoneLogin(phoneCode);
+      const app = getApp();
+      app.globalData.user = user;
+      app.globalData.isAuthenticated = true;
+      if (user.isNewUser || (user.nickname || '').startsWith('喵星人_')) {
+        redirectTo('/pages/set-nickname/index');
+        return;
+      }
+      await routeAfterAuth();
+    } catch (error) {
+      this.setData({ error: this.getPhoneLoginError(error.message) });
     } finally {
       this.setData({ loading: false });
     }

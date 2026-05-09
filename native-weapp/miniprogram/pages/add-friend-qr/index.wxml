@@ -7,8 +7,16 @@
   <view class="invite-card">
     <text class="label">邀请码</text>
     <text class="code">{{invite.code || '生成中...'}}</text>
+    <view class="qr-box">
+      <image wx:if="{{qrImageUrl}}" class="qr-image" src="{{qrImageUrl}}" mode="aspectFit" />
+      <canvas wx:else id="qrCanvas" type="2d" class="qr-canvas"></canvas>
+      <text class="qr-note">{{qrReady ? '好友扫码即可加入' : '二维码生成中...'}}</text>
+    </view>
     <text class="desc">好友在“加入好友”页面输入邀请码，即可互相关注猫咪动态。</text>
     <button class="miao-button-primary action" loading="{{loading}}" bindtap="copyCode">复制邀请码</button>
+    <button class="miao-button-secondary action" loading="{{loading}}" bindtap="copyPayload">复制邀请链接</button>
+    <button class="miao-button-secondary action" bindtap="saveQr">保存二维码</button>
+    <button class="miao-button-secondary action" open-type="share">分享给微信好友</button>
     <button class="miao-button-secondary action" loading="{{loading}}" bindtap="createInvite">重新生成</button>
   </view>
 </view>

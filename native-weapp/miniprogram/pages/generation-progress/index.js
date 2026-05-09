@@ -35,6 +35,9 @@ Page({
     if (shouldGenerateAll) {
       return ACTIONS.filter((action) => !existingPaths[action.key]);
     }
+    if (requestedAction !== 'idle' && !existingPaths.idle && !cat.videoPath) {
+      return ACTIONS.filter((action) => action.key === 'idle' || action.key === requestedAction);
+    }
     return ACTIONS.filter((action) => action.key === requestedAction);
   },
 
@@ -70,8 +73,10 @@ Page({
         latestCat = dataStore.getCatById(cat.id) || latestCat;
       }
 
+      const finishedCat = dataStore.getCatById(cat.id) || latestCat;
+      const hasIdleVideo = !!(finishedCat.videoPaths && finishedCat.videoPaths.idle) || !!finishedCat.videoPath;
       await dataStore.updateCatAndSync(cat.id, {
-        generationStatus: 'ready',
+        generationStatus: hasIdleVideo ? 'ready' : 'pending',
         generationError: '',
         generationUpdatedAt: Date.now()
       });
@@ -105,7 +110,8 @@ Page({
     let taskRecord = generationTasks.get(cat.id, action.key);
     if (!taskRecord || !taskRecord.taskId || taskRecord.status === 'failed') {
       this.setData({ statusText: `正在提交${action.label}任务...` });
-      const task = await submitVideoTask(cat.avatar, ACTION_PROMPTS[action.key]);
+      const sourceImage = cat.anchorFrame || cat.avatar;
+      const task = await submitVideoTask(sourceImage, ACTION_PROMPTS[action.key]);
       taskRecord = generationTasks.upsert({
         catId: cat.id,
         action: action.key,

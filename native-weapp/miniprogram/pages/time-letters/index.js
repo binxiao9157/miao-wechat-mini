@@ -1,5 +1,6 @@
 const { contentStore } = require('../../services/content-store');
 const { safeBack } = require('../../utils/nav');
+const { getItem } = require('../../utils/storage');
 
 function formatDate(timestamp) {
   const date = new Date(timestamp || Date.now());
@@ -9,7 +10,7 @@ function formatDate(timestamp) {
 }
 
 function viewModel(letter) {
-  const unlocked = Date.now() >= (letter.unlockAt || 0);
+  const unlocked = getItem('miao_debug_fast_forward') === '1' || Date.now() >= (letter.unlockAt || 0);
   return {
     ...letter,
     unlocked,

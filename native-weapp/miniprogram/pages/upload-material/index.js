@@ -46,7 +46,7 @@ Page({
       this.setData({ error: '请输入猫咪名字并上传照片' });
       return;
     }
-    if (this.redemptionAmount > 0 && (contentStore.getPoints().total || 0) < this.redemptionAmount) {
+    if (this.redemptionAmount > 0 && contentStore.getEffectivePoints(this.redemptionAmount) < this.redemptionAmount) {
       this.setData({ error: '积分不足，无法兑换新猫咪' });
       return;
     }
@@ -65,7 +65,10 @@ Page({
         name,
         breed: 'AI 生成',
         color: '上传照片',
-        avatar: imageUrl
+        avatar: imageUrl,
+        source: 'uploaded',
+        placeholderImage: this.data.imagePath,
+        anchorFrame: imageUrl
       });
       navigateTo('/pages/generation-progress/index');
     } catch (error) {

@@ -1,0 +1,50 @@
+<view class="download-page">
+  <view class="header">
+    <image class="back-icon" src="/assets/profile-icons/arrowleft-dark.png" mode="aspectFit" bindtap="goBack" />
+    <text class="header-title">下载</text>
+  </view>
+
+  <view class="qr-section">
+    <view class="qr-frame">
+      <image class="qr-code" src="/assets/profile-icons/download-primary.png" mode="aspectFit" />
+    </view>
+    <text class="hint">扫码下载 Miao App</text>
+    <text class="subhint">App 版本即将上线，小程序数据将持续兼容。</text>
+  </view>
+
+  <view class="features">
+    <text class="section-title">App 专属功能</text>
+    <view class="feature-item">
+      <view class="feature-icon"><image class="feature-icon-img" src="/assets/profile-icons/film-gray.png" mode="aspectFit" /></view>
+      <view class="feature-text">
+        <text class="feature-title">高清视频</text>
+        <text class="feature-desc">更流畅的猫咪视频体验</text>
+      </view>
+    </view>
+    <view class="feature-item">
+      <view class="feature-icon"><image class="feature-icon-img" src="/assets/profile-icons/bell-primary.png" mode="aspectFit" /></view>
+      <view class="feature-text">
+        <text class="feature-title">推送通知</text>
+        <text class="feature-desc">及时收到猫咪动态提醒</text>
+      </view>
+    </view>
+    <view class="feature-item">
+      <view class="feature-icon"><image class="feature-icon-img" src="/assets/profile-icons/download-primary.png" mode="aspectFit" /></view>
+      <view class="feature-text">
+        <text class="feature-title">离线模式</text>
+        <text class="feature-desc">无网络也能陪伴猫咪</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="download-actions">
+    <button class="miao-button-primary download-btn" bindtap="comingSoon">
+      <image class="download-icon white" src="/assets/profile-icons/download-white.png" mode="aspectFit" />
+      <text>iOS 下载</text>
+    </button>
+    <button class="miao-button-secondary download-btn" bindtap="comingSoon">
+      <image class="download-icon" src="/assets/profile-icons/download-primary.png" mode="aspectFit" />
+      <text>Android 下载</text>
+    </button>
+  </view>
+</view>

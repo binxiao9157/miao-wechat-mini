@@ -24,7 +24,34 @@ function scopedKey(key) {
   return username ? userScopedKey(username, key) : key;
 }
 
+const DEFAULT_PRESET_CATS = [
+  { id: 'british_shorthair', name: '英国短毛猫', imageUrl: 'https://fastly.picsum.photos/id/534/800/800.jpg?hmac=DijMB8QbxnoQc_h2Sol9Uh3CypfI5ml6agCoUj8-cEY' },
+  { id: 'ragdoll', name: '布偶猫', imageUrl: 'https://fastly.picsum.photos/id/366/800/800.jpg?hmac=R8t4TxfCjjhVEcB-QZq9c2mTa8YufuOVZV0_pgABCBQ' },
+  { id: 'persian', name: '波斯猫', imageUrl: 'https://fastly.picsum.photos/id/219/800/800.jpg?hmac=jtAqs0bVp0OWaGB1TzTJ4pgcnTAvAw3GL7X3liCjhXQ' },
+  { id: 'maine_coon', name: '缅因猫', imageUrl: 'https://fastly.picsum.photos/id/293/800/800.jpg?hmac=AcdZBXya3-oW-8OFNZnNQmWD1rUESR9TagsKbEyf8NU' },
+  { id: 'siamese', name: '暹罗猫', imageUrl: 'https://fastly.picsum.photos/id/164/800/800.jpg?hmac=-vrHqnVZ5JXaSiIV-qbYsO6fUd1_YjwsX82JGuoMk6g' }
+];
+
 const dataStore = {
+  getPresetCats() {
+    return parseJson(getItem('app_preset_cats'), DEFAULT_PRESET_CATS);
+  },
+
+  savePresetCats(presets) {
+    const next = Array.isArray(presets)
+      ? presets
+        .filter((item) => item && item.id && item.name && item.imageUrl)
+        .map((item) => ({ id: item.id, name: item.name, imageUrl: item.imageUrl }))
+      : DEFAULT_PRESET_CATS;
+    setItem('app_preset_cats', JSON.stringify(next));
+    return next;
+  },
+
+  resetPresetCats() {
+    removeItem('app_preset_cats');
+    return DEFAULT_PRESET_CATS;
+  },
+
   getCats() {
     return parseJson(getItem(scopedKey('miao_cat_list')), []);
   },
@@ -91,7 +118,7 @@ const dataStore = {
     return res.data;
   },
 
-  async createDraftCat({ name, breed, color, avatar }) {
+  async createDraftCat({ name, breed, color, avatar, source, placeholderImage, anchorFrame }) {
     const now = Date.now();
     const cat = {
       id: `cat_${now}_${Math.random().toString(36).slice(2, 8)}`,
@@ -99,7 +126,9 @@ const dataStore = {
       breed: breed || '未知',
       color: color || '温暖色',
       avatar: avatar || '/assets/logo.png',
-      source: 'created',
+      source: source || 'created',
+      placeholderImage: placeholderImage || avatar || '/assets/logo.png',
+      anchorFrame: anchorFrame || avatar || '/assets/logo.png',
       createdAt: now,
       updatedAt: now,
       generationStatus: 'pending',

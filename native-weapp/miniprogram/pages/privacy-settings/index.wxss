@@ -32,19 +32,40 @@
 }
 
 .setting-row {
-  min-height: 142rpx;
-  padding: 28rpx;
+  min-height: 132rpx;
+  padding: 26rpx;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 24rpx;
+  gap: 20rpx;
   border-bottom: 1rpx solid #F2E7DE;
+}
+
+.setting-icon {
+  width: 58rpx;
+  height: 58rpx;
+  border-radius: 18rpx;
+  background: #FFF1F1;
+  color: #D64B4B;
+  font-size: 34rpx;
+  font-weight: 900;
+  line-height: 54rpx;
+  text-align: center;
+}
+
+.setting-icon.shield {
+  background: #FEF1E8;
+  color: #E89F71;
+  font-size: 30rpx;
+}
+
+.setting-info {
+  flex: 1;
 }
 
 .title {
   display: block;
   color: #633E1D;
-  font-size: 30rpx;
+  font-size: 29rpx;
   font-weight: 900;
 }
 
@@ -52,6 +73,57 @@
   display: block;
   margin-top: 8rpx;
   color: #8E8E8E;
-  font-size: 24rpx;
+  font-size: 23rpx;
   line-height: 1.45;
+}
+
+.arrow {
+  color: #B58D73;
+  font-size: 42rpx;
+}
+
+.info-section {
+  margin-top: 28rpx;
+  padding: 0 12rpx;
+  color: #8E8E8E;
+  font-size: 23rpx;
+  line-height: 1.6;
+}
+
+.clearing-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clearing-card {
+  width: 260rpx;
+  height: 180rpx;
+  border-radius: 24rpx;
+  background: #FFFFFF;
+  color: #633E1D;
+  font-size: 26rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18rpx;
+}
+
+.spinner {
+  width: 42rpx;
+  height: 42rpx;
+  border-radius: 50%;
+  border: 5rpx solid #F2E7DE;
+  border-top-color: #E89F71;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

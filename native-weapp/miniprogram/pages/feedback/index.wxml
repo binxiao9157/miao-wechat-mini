@@ -3,9 +3,36 @@
     <text class="back" bindtap="goBack">‹</text>
     <text class="header-title">意见反馈</text>
   </view>
-  <view class="form">
-    <textarea class="textarea" value="{{content}}" maxlength="800" placeholder="告诉我们哪里不好用，或者你想要什么功能" data-field="content" bindinput="onInput" />
-    <input class="input" value="{{contact}}" placeholder="联系方式，可选" data-field="contact" bindinput="onInput" />
-    <button class="miao-button-primary submit" loading="{{saving}}" bindtap="submit">提交反馈</button>
-  </view>
+
+  <scroll-view class="feedback-scroll" scroll-y>
+    <view wx:if="{{!hasSubmittedSurvey}}" class="survey">
+      <view wx:for="{{questions}}" wx:key="id" class="question">
+        <text class="question-title">{{item.question}}</text>
+
+        <view wx:if="{{item.type === 'radio'}}" class="option-grid">
+          <button wx:for="{{item.options}}" wx:for-item="option" wx:key="label" class="option {{option.selected ? 'active' : ''}}" data-id="{{item.id}}" data-value="{{option.label}}" bindtap="selectOption">{{option.label}}</button>
+        </view>
+
+        <view wx:if="{{item.type === 'checkbox'}}" class="option-grid">
+          <button wx:for="{{item.options}}" wx:for-item="option" wx:key="label" class="option {{option.selected ? 'active' : ''}}" data-id="{{item.id}}" data-value="{{option.label}}" bindtap="toggleOption">{{option.label}}</button>
+        </view>
+
+        <view wx:if="{{item.type === 'rating'}}" class="stars">
+          <button wx:for="{{item.stars}}" wx:for-item="star" wx:key="value" class="star {{star.active ? 'active' : ''}}" data-id="{{item.id}}" data-value="{{star.value}}" bindtap="rate">★</button>
+        </view>
+
+        <textarea wx:if="{{item.type === 'text'}}" class="textarea small" value="{{item.answer}}" maxlength="300" placeholder="选填" data-id="{{item.id}}" bindinput="inputSurveyText" />
+      </view>
+
+      <button class="miao-button-primary submit" loading="{{saving}}" bindtap="submitSurvey">提交问卷</button>
+    </view>
+
+    <view wx:else class="form">
+      <view class="type-row">
+        <button wx:for="{{feedbackTypes}}" wx:key="label" class="type-chip {{item.active ? 'active' : ''}}" data-value="{{item.label}}" bindtap="selectType">{{item.label}}</button>
+      </view>
+      <textarea class="textarea" value="{{feedbackText}}" maxlength="800" placeholder="告诉我们哪里不好用，或者你想要什么功能" bindinput="onFeedbackInput" />
+      <button class="miao-button-primary submit" loading="{{saving}}" bindtap="submitFeedback">提交反馈</button>
+    </view>
+  </scroll-view>
 </view>

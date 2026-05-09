@@ -1,0 +1,106 @@
+<view class="admin-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">后台配置</text>
+  </view>
+
+  <view class="section">
+    <text class="section-title">AI 模型配置</text>
+    <view class="provider-tabs">
+      <button
+        wx:for="{{providerOptions}}"
+        wx:key="key"
+        class="provider-tab {{profile.provider === item.key ? 'active' : ''}}"
+        data-provider="{{item.key}}"
+        bindtap="selectProvider"
+      >
+        {{item.label}}
+      </button>
+    </view>
+
+    <view class="field">
+      <text class="field-label">图片模型</text>
+      <input class="input" value="{{profile.imageModel}}" data-field="imageModel" bindinput="onProfileInput" />
+    </view>
+    <view class="field">
+      <text class="field-label">视频模型</text>
+      <input class="input" value="{{profile.videoModel}}" data-field="videoModel" bindinput="onProfileInput" />
+    </view>
+    <view class="field-grid">
+      <view class="field compact">
+        <text class="field-label">清晰度</text>
+        <input class="input" value="{{profile.resolution}}" data-field="resolution" bindinput="onProfileInput" />
+      </view>
+      <view class="field compact">
+        <text class="field-label">时长</text>
+        <input class="input" type="number" value="{{profile.duration}}" data-field="duration" bindinput="onProfileInput" />
+      </view>
+      <view class="field compact">
+        <text class="field-label">Seed</text>
+        <input class="input" type="number" value="{{profile.seed}}" data-field="seed" bindinput="onProfileInput" />
+      </view>
+    </view>
+    <view class="setting-row">
+      <view>
+        <text class="setting-title">Prompt 扩展</text>
+        <text class="setting-desc">提交生成任务时传递 prompt_extend 参数。</text>
+      </view>
+      <switch checked="{{profile.promptExtend}}" data-field="promptExtend" bindchange="toggleProfileBool" color="#E89F71" />
+    </view>
+    <view class="setting-row">
+      <view>
+        <text class="setting-title">Mock 模式</text>
+        <text class="setting-desc">用于本地 QA，不调用真实 AI 生成接口。</text>
+      </view>
+      <switch checked="{{profile.mockMode}}" data-field="mockMode" bindchange="toggleProfileBool" color="#E89F71" />
+    </view>
+    <view class="action-row">
+      <button class="secondary-btn" bindtap="resetConfig">恢复默认</button>
+      <button class="primary-btn" bindtap="saveConfig">保存配置</button>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-head">
+      <text class="section-title">预设猫咪</text>
+      <button class="mini-btn" bindtap="resetPresets">重置</button>
+    </view>
+    <view class="preset-list">
+      <view wx:for="{{presets}}" wx:key="id" class="preset-item">
+        <image class="preset-avatar" src="{{item.imageUrl}}" mode="aspectFill" />
+        <text class="preset-name">{{item.name}}</text>
+        <button class="remove-btn" data-id="{{item.id}}" bindtap="removePreset">删除</button>
+      </view>
+      <view wx:if="{{!presets.length}}" class="preset-empty">暂无预设猫咪</view>
+    </view>
+    <view class="preset-add">
+      <view class="preset-upload" bindtap="choosePresetImage">
+        <image wx:if="{{newPresetImage}}" class="preset-upload-image" src="{{newPresetImage}}" mode="aspectFill" />
+        <text wx:elif="{{uploadingPreset}}" class="preset-upload-text">处理中</text>
+        <text wx:else class="preset-upload-text">选择图片</text>
+      </view>
+      <view class="preset-form">
+        <input class="input" value="{{newPresetName}}" placeholder="品种名称" bindinput="onPresetNameInput" />
+        <button class="primary-btn add-btn" bindtap="addPreset">添加预设</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <text class="section-title">调试开关</text>
+    <view class="setting-row">
+      <view>
+        <text class="setting-title">积分兑换调试</text>
+        <text class="setting-desc">开启后积分中心按兑换门槛展示可兑换状态。</text>
+      </view>
+      <switch checked="{{pointsCheat}}" bindchange="togglePointsCheat" color="#E89F71" />
+    </view>
+    <view class="setting-row">
+      <view>
+        <text class="setting-title">时光信快进</text>
+        <text class="setting-desc">保留旧版调试入口，供后续 QA 使用。</text>
+      </view>
+      <switch checked="{{fastForward}}" bindchange="toggleFastForward" color="#E89F71" />
+    </view>
+  </view>
+</view>

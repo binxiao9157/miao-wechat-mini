@@ -1,19 +1,27 @@
 <view class="notifications-page">
   <view class="header">
-    <text class="back" bindtap="goBack">‹</text>
-    <text class="header-title">通知</text>
-    <button class="read-button" bindtap="markAllRead">全读</button>
+    <image class="back-icon" src="/assets/profile-icons/arrowleft-dark.png" mode="aspectFit" bindtap="goBack" />
+    <text class="header-title">通知设置</text>
   </view>
 
-  <scroll-view class="list" scroll-y>
-    <view wx:for="{{notifications}}" wx:key="id" class="notification {{item.read ? 'read' : ''}}">
-      <view class="dot" wx:if="{{!item.read}}"></view>
-      <view class="content">
-        <text class="title">{{item.title || '通知'}}</text>
-        <text class="body">{{item.content}}</text>
-        <text class="time">{{item.timeLabel}}</text>
+  <view class="hero">
+    <view class="hero-icon"><image class="hero-icon-img" src="/assets/profile-icons/bell-primary.png" mode="aspectFit" /></view>
+    <text class="hero-title">通知与提醒</text>
+    <text class="hero-subtitle">NOTIFICATION SETTINGS</text>
+  </view>
+
+  <view class="settings-card">
+    <view wx:for="{{items}}" wx:key="key" class="setting-item">
+      <view class="setting-icon"><image class="setting-icon-img" src="/assets/profile-icons/bell-primary.png" mode="aspectFit" /></view>
+      <view class="setting-info">
+        <text class="setting-title">{{item.title}}</text>
+        <text class="setting-desc">{{item.desc}}</text>
       </view>
+      <switch data-key="{{item.key}}" checked="{{item.checked}}" color="#E89F71" bindchange="setSwitch" />
     </view>
-    <view wx:if="{{!notifications.length}}" class="empty">暂无通知</view>
-  </scroll-view>
+  </view>
+
+  <view class="footer-note">
+    <text>关闭推送通知后，你仍可在消息中心查看消息。每日问候和时光信件提醒仅在小程序打开时生效。</text>
+  </view>
 </view>

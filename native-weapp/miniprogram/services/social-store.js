@@ -1,8 +1,9 @@
-const { get, post } = require('../utils/request');
+const { get, post, del } = require('../utils/request');
 const { getItem, setItem } = require('../utils/storage');
 const { authService } = require('./auth');
 const { dataStore } = require('./data-store');
 const { userScopedKey } = require('../types/models');
+const { isDataUrl, saveDataUrlToFile } = require('../utils/media');
 
 function parseJson(raw, fallback) {
   if (!raw) return fallback;
@@ -47,6 +48,42 @@ const socialStore = {
     setItem(scopedKey('miao_friends'), JSON.stringify(Array.isArray(friends) ? friends : []));
   },
 
+  getFriendDiariesLocal() {
+    return parseJson(getItem(scopedKey('miao_friend_diaries')), []);
+  },
+
+  async normalizeFriendDiary(item = {}) {
+    const diary = {
+      ...item,
+      likes: Number(item.likes || 0),
+      isLiked: !!item.isLiked,
+      comments: Array.isArray(item.comments) ? item.comments : []
+    };
+    if (isDataUrl(diary.media)) {
+      const savedPath = await saveDataUrlToFile(diary.id, diary.media);
+      diary.media = savedPath && !isDataUrl(savedPath) ? savedPath : '';
+      diary.mediaCacheFailed = !diary.media;
+    }
+    delete diary.remoteMedia;
+    return diary;
+  },
+
+  saveFriendDiaries(diaries) {
+    const next = Array.isArray(diaries)
+      ? diaries.map((item) => ({
+        ...item,
+        media: isDataUrl(item.media) ? '' : item.media,
+        mediaCacheFailed: !!item.mediaCacheFailed || isDataUrl(item.media),
+        remoteMedia: isDataUrl(item.remoteMedia) ? '' : item.remoteMedia,
+        likes: Number(item.likes || 0),
+        isLiked: !!item.isLiked,
+        comments: Array.isArray(item.comments) ? item.comments : []
+      })).slice(0, 200)
+      : [];
+    setItem(scopedKey('miao_friend_diaries'), JSON.stringify(next));
+    return next;
+  },
+
   async syncFriends() {
     const res = await get('/api/v1/friends', { timeout: 15000 });
     const friends = Array.isArray(res.data) ? res.data : [];
@@ -77,7 +114,84 @@ const socialStore = {
 
   async getFriendDiaries() {
     const res = await get('/api/v1/friends/diaries', { timeout: 15000 });
-    return Array.isArray(res.data) ? res.data : [];
+    const diaries = await Promise.all((Array.isArray(res.data) ? res.data : []).map((item) => this.normalizeFriendDiary(item)));
+    this.saveFriendDiaries(diaries);
+    return this.getFriendDiariesLocal();
+  },
+
+  async fetchFriendDiaryById(id) {
+    if (!id) return null;
+    const local = this.getFriendDiariesLocal().find((item) => item.id === id);
+    if (local) return local;
+    const diaries = await this.getFriendDiaries().catch(() => this.getFriendDiariesLocal());
+    return diaries.find((item) => item.id === id) || null;
+  },
+
+  updateFriendDiaryLocal(id, updater) {
+    const diaries = this.getFriendDiariesLocal();
+    const next = diaries.map((item) => {
+      if (item.id !== id) return item;
+      const patch = typeof updater === 'function' ? updater(item) : updater;
+      return {
+        ...item,
+        ...(patch || {}),
+        comments: Array.isArray((patch || {}).comments) ? patch.comments : (item.comments || [])
+      };
+    });
+    this.saveFriendDiaries(next);
+    return next.find((item) => item.id === id) || null;
+  },
+
+  async likeDiary(diaryId) {
+    const optimistic = this.updateFriendDiaryLocal(diaryId, (item) => ({
+      isLiked: !item.isLiked,
+      likes: Math.max(0, Number(item.likes || 0) + (item.isLiked ? -1 : 1))
+    }));
+    try {
+      const res = await post(`/api/v1/diaries/${encodeURIComponent(diaryId)}/like`, {}, { timeout: 15000 });
+      const data = res.data || {};
+      return this.updateFriendDiaryLocal(diaryId, {
+        isLiked: !!data.liked,
+        likes: Number(data.likes || 0)
+      });
+    } catch (error) {
+      console.warn('[native] like friend diary failed:', error);
+      return optimistic;
+    }
+  },
+
+  async commentDiary(diaryId, content) {
+    const text = String(content || '').trim();
+    if (!text) throw new Error('评论不能为空');
+    const fallbackComment = {
+      id: `comment_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      content: text,
+      createdAt: Date.now()
+    };
+    let comment = fallbackComment;
+    try {
+      const res = await post(`/api/v1/diaries/${encodeURIComponent(diaryId)}/comments`, { content: text }, { timeout: 15000 });
+      comment = (res.data && res.data.comment) || fallbackComment;
+    } catch (error) {
+      console.warn('[native] comment friend diary failed:', error);
+    }
+    return this.updateFriendDiaryLocal(diaryId, (item) => ({
+      comments: [...(item.comments || []), comment]
+    }));
+  },
+
+  async deleteComment(diaryId, commentId) {
+    try {
+      await del(`/api/v1/diaries/${encodeURIComponent(diaryId)}/comments/${encodeURIComponent(commentId)}`, { timeout: 15000 });
+    } catch (error) {
+      const status = error.response && error.response.status;
+      if (!(status === 404 && /^comment_/.test(commentId || ''))) throw error;
+      console.warn('[native] delete friend diary comment failed:', error);
+    }
+    const updated = this.updateFriendDiaryLocal(diaryId, (item) => ({
+      comments: (item.comments || []).filter((comment) => comment.id !== commentId)
+    }));
+    return updated;
   }
 };
 

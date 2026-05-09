@@ -1,12 +1,6 @@
 const { request, get, post } = require('../utils/request');
 const { uploadFile } = require('../utils/upload');
-const {
-  AI_PROVIDER,
-  IMAGE_MODEL,
-  VIDEO_MODEL,
-  VIDEO_RESOLUTION,
-  VIDEO_DURATION
-} = require('../config/env');
+const { aiConfig } = require('./ai-config');
 
 const ACTION_PROMPTS = {
   idle: '一只可爱的猫咪蹲坐在温馨的房间里，正视镜头。它缓慢站起来，走向镜头轻轻蹭了一下，然后退回到原来的位置蹲好。画面清晰，光影真实，竖屏构图。',
@@ -22,6 +16,10 @@ const IMAGE_PROMPTS = {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getProfile() {
+  return aiConfig.getProfile();
 }
 
 function dataUrlToTempFile(dataUrl) {
@@ -47,6 +45,11 @@ function getUploadPath(image) {
 }
 
 async function submitImageTask(prompt, imagePath) {
+  const profile = getProfile();
+  if (profile.mockMode) {
+    await sleep(800);
+    return { id: `mock_img_task_${Date.now()}`, status: 'submitted' };
+  }
   const uploadPath = getUploadPath(imagePath);
   if (uploadPath) {
     const data = await uploadFile({
@@ -55,8 +58,8 @@ async function submitImageTask(prompt, imagePath) {
       name: 'image',
       formData: {
         type: 'image',
-        provider: AI_PROVIDER,
-        model: IMAGE_MODEL,
+        provider: profile.provider,
+        model: profile.imageModel,
         prompt
       },
       timeout: 120000
@@ -71,8 +74,8 @@ async function submitImageTask(prompt, imagePath) {
     method: 'POST',
     data: {
       type: 'image',
-      provider: AI_PROVIDER,
-      model: IMAGE_MODEL,
+      provider: profile.provider,
+      model: profile.imageModel,
       prompt,
       image_base64: imagePath
     },
@@ -84,11 +87,16 @@ async function submitImageTask(prompt, imagePath) {
 }
 
 async function pollImageResult(taskId, initialUrl) {
+  const profile = getProfile();
+  if (profile.mockMode) {
+    await sleep(1200);
+    return initialUrl || 'https://picsum.photos/seed/miao-cat/900/900';
+  }
   if (initialUrl) return initialUrl;
   const startedAt = Date.now();
   let delay = 2000;
   while (Date.now() - startedAt < 120000) {
-    const res = await get(`/api/v1/ai/tasks/${encodeURIComponent(taskId)}?type=image&provider=${AI_PROVIDER}`, { timeout: 60000 });
+    const res = await get(`/api/v1/ai/tasks/${encodeURIComponent(taskId)}?type=image&provider=${profile.provider}`, { timeout: 60000 });
     const result = res.data || {};
     if (result.status === 'succeeded') {
       const imageUrl = result.output?.image_url || result.data?.image_url || result.image_url;
@@ -105,6 +113,11 @@ async function pollImageResult(taskId, initialUrl) {
 }
 
 async function submitVideoTask(image, prompt) {
+  const profile = getProfile();
+  if (profile.mockMode) {
+    await sleep(800);
+    return { id: `mock_video_task_${Date.now()}`, status: 'submitted' };
+  }
   const uploadPath = getUploadPath(image);
   if (uploadPath) {
     const data = await uploadFile({
@@ -113,11 +126,13 @@ async function submitVideoTask(image, prompt) {
       name: 'image',
       formData: {
         type: 'video',
-        provider: AI_PROVIDER,
-        model: VIDEO_MODEL,
+        provider: profile.provider,
+        model: profile.videoModel,
         prompt,
-        resolution: VIDEO_RESOLUTION,
-        duration: String(VIDEO_DURATION),
+        seed: String(profile.seed),
+        resolution: profile.resolution,
+        duration: String(profile.duration),
+        prompt_extend: String(profile.promptExtend),
         audio: 'false'
       },
       timeout: 120000
@@ -132,13 +147,15 @@ async function submitVideoTask(image, prompt) {
     method: 'POST',
     data: {
       type: 'video',
-      provider: AI_PROVIDER,
-      model: VIDEO_MODEL,
+      provider: profile.provider,
+      model: profile.videoModel,
       prompt,
       image_base64: image,
       parameters: {
-        resolution: VIDEO_RESOLUTION,
-        duration: VIDEO_DURATION,
+        seed: profile.seed,
+        resolution: profile.resolution,
+        duration: profile.duration,
+        prompt_extend: profile.promptExtend,
         audio: false
       }
     },
@@ -150,10 +167,16 @@ async function submitVideoTask(image, prompt) {
 }
 
 async function pollVideoResult(taskId, onStatus) {
+  const profile = getProfile();
+  if (profile.mockMode) {
+    await sleep(1500);
+    if (onStatus) onStatus('succeeded');
+    return 'https://www.w3schools.com/html/mov_bbb.mp4';
+  }
   const startedAt = Date.now();
   let delay = 2500;
   while (Date.now() - startedAt < 300000) {
-    const res = await get(`/api/v1/ai/tasks/${encodeURIComponent(taskId)}?type=video&provider=${AI_PROVIDER}`, { timeout: 60000 });
+    const res = await get(`/api/v1/ai/tasks/${encodeURIComponent(taskId)}?type=video&provider=${profile.provider}`, { timeout: 60000 });
     const result = res.data || {};
     if (onStatus) onStatus(result.status || 'running');
     if (result.status === 'succeeded') {

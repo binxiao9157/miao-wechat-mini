@@ -5,10 +5,15 @@
   </view>
 
   <view class="form">
+    <view class="avatar-row">
+      <image wx:if="{{avatar}}" class="avatar-preview" src="{{avatar}}" mode="aspectFill" />
+      <view wx:else class="avatar-empty">M</view>
+      <button class="avatar-button" bindtap="chooseAvatar">选择头像</button>
+    </view>
     <text class="label">昵称</text>
     <input class="input" value="{{nickname}}" maxlength="12" placeholder="输入昵称" bindinput="onNicknameInput" />
-    <text class="label">头像 URL</text>
-    <input class="input" value="{{avatar}}" placeholder="可选，粘贴头像地址" bindinput="onAvatarInput" />
+    <text class="label">头像地址</text>
+    <input class="input" value="{{avatar}}" placeholder="可选，选择或粘贴头像地址" bindinput="onAvatarInput" />
     <button class="miao-button-primary submit" loading="{{saving}}" bindtap="save">保存资料</button>
     <button class="miao-button-secondary submit" bindtap="changePassword">修改密码</button>
   </view>

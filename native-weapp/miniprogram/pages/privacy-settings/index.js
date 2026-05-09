@@ -1,45 +1,114 @@
-const { getItem, setItem } = require('../../utils/storage');
-const { safeBack } = require('../../utils/nav');
+const { contentStore } = require('../../services/content-store');
+const { dataStore } = require('../../services/data-store');
+const { socialStore } = require('../../services/social-store');
+const { safeBack, navigateTo } = require('../../utils/nav');
 
-const KEY = 'miao_native_privacy_settings';
+function formatSize(sizeKb) {
+  const value = Number(sizeKb || 0);
+  if (value >= 1024) return `${(value / 1024).toFixed(1)} MB`;
+  return `${value} KB`;
+}
 
-function readSettings() {
+function listUserFiles() {
   try {
-    return JSON.parse(getItem(KEY) || '{}');
+    return wx.getFileSystemManager().readdirSync(wx.env.USER_DATA_PATH) || [];
   } catch {
-    return {};
+    return [];
   }
+}
+
+function fileNameFromPath(path) {
+  const value = String(path || '');
+  if (!value) return '';
+  const parts = value.split('?')[0].split('/');
+  return parts[parts.length - 1] || '';
+}
+
+function collectReferencedFiles() {
+  const refs = new Set();
+  const addPath = (path) => {
+    const fileName = fileNameFromPath(path);
+    if (fileName) refs.add(fileName);
+  };
+
+  contentStore.getDiaries().forEach((item) => addPath(item.media));
+  socialStore.getFriendDiariesLocal().forEach((item) => addPath(item.media));
+  dataStore.getCats().forEach((cat) => {
+    addPath(cat.avatar);
+    addPath(cat.placeholderImage);
+    addPath(cat.anchorFrame);
+    addPath(cat.videoPath);
+    Object.values(cat.videoPaths || {}).forEach(addPath);
+  });
+
+  return refs;
 }
 
 Page({
   data: {
-    settings: {
-      allowShare: true,
-      allowFriendView: false,
-      localOnlyMedia: true
-    }
+    cacheSize: '0 KB',
+    clearing: false
   },
 
   onShow() {
-    this.setData({
-      settings: {
-        ...this.data.settings,
-        ...readSettings()
-      }
-    });
+    this.refreshCacheSize();
+  },
+
+  refreshCacheSize() {
+    try {
+      const info = wx.getStorageInfoSync();
+      const referencedFiles = collectReferencedFiles();
+      const fileCount = listUserFiles().filter((file) => {
+        if (/^tmp_|^upload_/.test(file)) return true;
+        return /^media_/.test(file) && !referencedFiles.has(file);
+      }).length;
+      const suffix = fileCount > 0 ? ` · ${fileCount} 个媒体缓存` : '';
+      this.setData({ cacheSize: `${formatSize(info.currentSize)}${suffix}` });
+    } catch {
+      this.setData({ cacheSize: '未知' });
+    }
   },
 
   goBack() {
     safeBack('/pages/profile/index');
   },
 
-  setSwitch(event) {
-    const { key } = event.currentTarget.dataset;
-    const settings = {
-      ...this.data.settings,
-      [key]: event.detail.value
-    };
-    setItem(KEY, JSON.stringify(settings));
-    this.setData({ settings });
+  goPolicy() {
+    navigateTo('/pages/privacy-policy/index');
+  },
+
+  clearCache() {
+    wx.showModal({
+      title: '清除缓存',
+      content: '确定要清除本地媒体和临时缓存吗？不会影响账号、猫咪数据和核心记录。',
+      confirmText: '清除',
+      confirmColor: '#E89F71',
+      success: (res) => {
+        if (!res.confirm) return;
+        this.doClearCache();
+      }
+    });
+  },
+
+  doClearCache() {
+    this.setData({ clearing: true });
+    let count = 0;
+    try {
+      const fs = wx.getFileSystemManager();
+      const referencedFiles = collectReferencedFiles();
+      listUserFiles().forEach((file) => {
+        if (!/^tmp_|^upload_/.test(file) && (!/^media_/.test(file) || referencedFiles.has(file))) return;
+        try {
+          fs.unlinkSync(`${wx.env.USER_DATA_PATH}/${file}`);
+          count += 1;
+        } catch {}
+      });
+      wx.showToast({ title: `已清除 ${count} 项`, icon: 'success' });
+    } catch {
+      wx.showToast({ title: '清除失败', icon: 'none' });
+    } finally {
+      this.setData({ clearing: false });
+      this.refreshCacheSize();
+    }
   }
 });

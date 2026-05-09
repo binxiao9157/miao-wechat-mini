@@ -34,6 +34,7 @@
       <button class="retry-button" bindtap="retryVideo">重试</button>
     </view>
     <view class="bubble" wx:if="{{bubbleText}}">{{bubbleText}}</view>
+    <view class="points-toast" wx:if="{{pointsToast}}">{{pointsToast}}</view>
     <view class="cat-info-panel">
       <text class="title">{{cat.name || 'Miao 首页'}}</text>
       <text class="subtitle">{{statusText}}</text>

@@ -1,32 +1,41 @@
 const { contentStore } = require('../../services/content-store');
 const { safeBack } = require('../../utils/nav');
 
-function formatTime(timestamp) {
-  const date = new Date(timestamp || Date.now());
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getDate()}`.padStart(2, '0');
-  const hour = `${date.getHours()}`.padStart(2, '0');
-  const minute = `${date.getMinutes()}`.padStart(2, '0');
-  return `${month}-${day} ${hour}:${minute}`;
-}
+const SETTINGS = [
+  {
+    key: 'pushNotifications',
+    title: '推送通知',
+    desc: '接收好友互动、系统消息等推送提醒'
+  },
+  {
+    key: 'greetingsEnabled',
+    title: '每日问候',
+    desc: '每天早上和晚上收到猫咪的温暖问候'
+  },
+  {
+    key: 'timeLetterReminder',
+    title: '时光信件提醒',
+    desc: '有新的时光信件到达时提醒你'
+  }
+];
 
 Page({
   data: {
-    notifications: []
+    settings: contentStore.getSettings(),
+    items: []
   },
 
   onShow() {
     this.refresh();
-    contentStore.syncNotificationsFromServer().catch((error) => {
-      console.warn('[native] sync notifications failed:', error);
-    }).finally(() => this.refresh());
   },
 
   refresh() {
+    const settings = contentStore.getSettings();
     this.setData({
-      notifications: contentStore.getNotifications().map((item) => ({
+      settings,
+      items: SETTINGS.map((item) => ({
         ...item,
-        timeLabel: formatTime(item.createdAt || item.time)
+        checked: !!settings[item.key]
       }))
     });
   },
@@ -35,8 +44,18 @@ Page({
     safeBack('/pages/profile/index');
   },
 
-  async markAllRead() {
-    await contentStore.markAllNotificationsRead();
-    this.refresh();
+  async setSwitch(event) {
+    const { key } = event.currentTarget.dataset;
+    const value = !!event.detail.value;
+    const settings = {
+      ...this.data.settings,
+      [key]: value
+    };
+    this.setData({
+      settings,
+      items: this.data.items.map((item) => (item.key === key ? { ...item, checked: value } : item))
+    });
+    await contentStore.updateSettings({ [key]: value });
+    wx.showToast({ title: value ? '已开启' : '已关闭', icon: 'none', duration: 1000 });
   }
 });

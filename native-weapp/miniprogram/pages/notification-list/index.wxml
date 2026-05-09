@@ -3,10 +3,24 @@
     <text class="back" bindtap="goBack">‹</text>
     <text class="header-title">消息中心</text>
   </view>
+
+  <view wx:if="{{unreadCount > 0}}" class="action-bar">
+    <text class="unread-count">{{unreadCount}} 条未读</text>
+    <button class="read-all" bindtap="markAllRead">全部已读</button>
+  </view>
+
   <scroll-view class="list" scroll-y>
-    <view wx:for="{{items}}" wx:key="id" class="item" data-target="{{item.target}}" bindtap="openItem">
-      <text class="title">{{item.title}}</text>
-      <text class="content">{{item.content}}</text>
+    <view wx:for="{{items}}" wx:key="id" class="item {{item.unread ? 'unread' : 'read'}}" data-id="{{item.id}}" data-source="{{item.source}}" data-target="{{item.target}}" bindtap="openItem">
+      <view class="icon {{item.type}}">{{item.type === 'points' ? '分' : item.type === 'letter' ? '信' : item.type === 'greeting' ? '喵' : '讯'}}</view>
+      <view class="body">
+        <view class="title-row">
+          <text class="title">{{item.title}}</text>
+          <view wx:if="{{item.unread}}" class="dot"></view>
+        </view>
+        <text class="content">{{item.content}}</text>
+        <text class="time">{{item.timeLabel}}</text>
+      </view>
+      <text class="arrow">›</text>
     </view>
     <view wx:if="{{!items.length}}" class="empty">暂无消息</view>
   </scroll-view>

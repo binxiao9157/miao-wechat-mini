@@ -4,18 +4,24 @@ const { navigateTo, safeBack } = require('../../utils/nav');
 Page({
   data: {
     name: '',
-    breed: '中华田园猫',
+    breed: '',
     color: '',
+    selectedPresetId: '',
+    selectedPresetImage: '',
     saving: false,
     error: '',
-    breeds: [
-      { label: '田园猫', value: '中华田园猫' },
-      { label: '英短', value: '英国短毛猫' },
-      { label: '布偶', value: '布偶猫' },
-      { label: '暹罗', value: '暹罗猫' },
-      { label: '缅因', value: '缅因猫' },
-      { label: '未知', value: '未知' }
-    ]
+    presets: []
+  },
+
+  onShow() {
+    const presets = dataStore.getPresetCats();
+    const selected = presets.find((item) => item.id === this.data.selectedPresetId) || presets[0] || null;
+    this.setData({
+      presets,
+      selectedPresetId: selected ? selected.id : '',
+      selectedPresetImage: selected ? selected.imageUrl : '',
+      breed: selected ? selected.name : '未知'
+    });
   },
 
   onNameInput(event) {
@@ -26,8 +32,15 @@ Page({
     this.setData({ color: event.detail.value });
   },
 
-  selectBreed(event) {
-    this.setData({ breed: event.currentTarget.dataset.value });
+  selectPreset(event) {
+    const { id } = event.currentTarget.dataset;
+    const preset = this.data.presets.find((item) => item.id === id);
+    if (!preset) return;
+    this.setData({
+      selectedPresetId: preset.id,
+      selectedPresetImage: preset.imageUrl,
+      breed: preset.name
+    });
   },
 
   goBack() {
@@ -41,6 +54,10 @@ Page({
       this.setData({ error: '请先给猫咪取个名字' });
       return;
     }
+    if (!this.data.selectedPresetId) {
+      this.setData({ error: '请选择猫咪品种预设' });
+      return;
+    }
 
     this.setData({ saving: true, error: '' });
     try {
@@ -48,7 +65,9 @@ Page({
         name,
         breed: this.data.breed,
         color,
-        avatar: '/assets/logo.png'
+        avatar: this.data.selectedPresetImage || '/assets/logo.png',
+        placeholderImage: this.data.selectedPresetImage || '/assets/logo.png',
+        anchorFrame: this.data.selectedPresetImage || '/assets/logo.png'
       });
       wx.showToast({ title: '已创建草稿', icon: 'success' });
       navigateTo('/pages/generation-progress/index');

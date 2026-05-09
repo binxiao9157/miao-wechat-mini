@@ -3,7 +3,8 @@ const { safeBack, navigateTo } = require('../../utils/nav');
 
 Page({
   data: {
-    items: []
+    items: [],
+    unreadCount: 0
   },
 
   onShow() {
@@ -16,34 +17,25 @@ Page({
       contentStore.syncLettersFromServer(),
       contentStore.syncPointsFromServer()
     ]);
-    const notifications = contentStore.getNotifications().map((item) => ({
-      id: item.id,
-      title: item.title || '通知',
-      content: item.content,
-      target: '/pages/notifications/index'
-    }));
-    const letters = contentStore.getLetters()
-      .filter((item) => Date.now() >= (item.unlockAt || 0) && !item.read)
-      .map((item) => ({
-        id: item.id,
-        title: '时光信已开启',
-        content: item.content,
-        target: '/pages/time-letters/index'
-      }));
-    const points = (contentStore.getPoints().history || []).slice(0, 5).map((item) => ({
-      id: item.id,
-      title: item.reason || '积分变化',
-      content: `+${item.amount || 0} 积分`,
-      target: '/pages/points/index'
-    }));
-    this.setData({ items: [...notifications, ...letters, ...points] });
+    const items = contentStore.buildNotificationItems();
+    this.setData({ items, unreadCount: items.filter((item) => !item.read).length });
   },
 
   goBack() {
     safeBack('/pages/profile/index');
   },
 
-  openItem(event) {
-    navigateTo(event.currentTarget.dataset.target);
+  async openItem(event) {
+    const { id, source, target } = event.currentTarget.dataset;
+    await contentStore.markNotificationRead(id, source);
+    this.refresh();
+    navigateTo(target);
+  },
+
+  async markAllRead() {
+    const ids = this.data.items.map((item) => item.id);
+    contentStore.saveReadNotificationIds([...contentStore.getReadNotificationIds(), ...ids]);
+    await contentStore.markAllNotificationsRead();
+    this.refresh();
   }
 });

@@ -1,0 +1,60 @@
+.cat-start-page {
+  min-height: 100vh;
+  padding: 56rpx 36rpx calc(56rpx + env(safe-area-inset-bottom));
+  background: #FFF9F5;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  height: 72rpx;
+}
+
+.back {
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.logo {
+  width: 220rpx;
+  height: 220rpx;
+  border-radius: 110rpx;
+  background: #FFFFFF;
+  box-shadow: 0 16rpx 36rpx rgba(99, 62, 29, 0.08);
+}
+
+.title {
+  margin-top: 42rpx;
+  color: #633E1D;
+  font-size: 44rpx;
+  font-weight: 900;
+}
+
+.desc {
+  margin-top: 20rpx;
+  max-width: 560rpx;
+  color: #6E5844;
+  font-size: 28rpx;
+  line-height: 1.7;
+}
+
+.start {
+  width: 100%;
+  margin-top: 52rpx;
+}
+
+.footer {
+  color: #B58D73;
+  font-size: 21rpx;
+  text-align: center;
+}

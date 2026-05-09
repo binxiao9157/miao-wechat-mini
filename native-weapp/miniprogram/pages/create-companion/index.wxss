@@ -44,14 +44,6 @@
   font-weight: 900;
 }
 
-.subtitle {
-  margin-top: 16rpx;
-  color: #8E8E8E;
-  font-size: 26rpx;
-  line-height: 1.6;
-  text-align: center;
-}
-
 .form {
   margin-top: 48rpx;
 }
@@ -74,24 +66,45 @@
   font-size: 30rpx;
 }
 
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18rpx;
+.preset-scroll {
+  width: 100%;
+  white-space: nowrap;
 }
 
-.chip {
-  padding: 18rpx 28rpx;
-  border-radius: 34rpx;
+.preset-card {
+  width: 190rpx;
+  margin-right: 18rpx;
+  padding: 14rpx;
+  border: 3rpx solid transparent;
+  border-radius: 24rpx;
   background: #FFFFFF;
-  color: #8E8E8E;
-  font-size: 26rpx;
-  font-weight: 700;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: top;
 }
 
-.chip.active {
-  background: #E89F71;
-  color: #FFFFFF;
+.preset-card.active {
+  border-color: #E89F71;
+  background: #FFF6F0;
+}
+
+.preset-image {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 18rpx;
+  background: #FEF6F0;
+}
+
+.preset-name {
+  max-width: 160rpx;
+  margin-top: 12rpx;
+  color: #633E1D;
+  font-size: 24rpx;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .error {

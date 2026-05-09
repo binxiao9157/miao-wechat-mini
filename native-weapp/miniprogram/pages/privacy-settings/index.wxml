@@ -5,28 +5,33 @@
   </view>
 
   <view class="settings">
-    <view class="setting-row">
-      <view>
-        <text class="title">允许分享猫咪</text>
-        <text class="desc">控制分享入口是否携带猫咪资料。</text>
+    <view class="setting-row danger" bindtap="clearCache">
+      <view class="setting-icon">×</view>
+      <view class="setting-info">
+        <text class="title">清除缓存</text>
+        <text class="desc">当前缓存：{{cacheSize}}</text>
       </view>
-      <switch data-key="allowShare" checked="{{settings.allowShare}}" color="#E89F71" bindchange="setSwitch" />
+      <text class="arrow">›</text>
     </view>
 
-    <view class="setting-row">
-      <view>
-        <text class="title">好友可见日记</text>
-        <text class="desc">开启后，好友功能可展示你的公开日记。</text>
+    <view class="setting-row" bindtap="goPolicy">
+      <view class="setting-icon shield">✓</view>
+      <view class="setting-info">
+        <text class="title">隐私政策</text>
+        <text class="desc">查看我们的隐私保护政策</text>
       </view>
-      <switch data-key="allowFriendView" checked="{{settings.allowFriendView}}" color="#E89F71" bindchange="setSwitch" />
+      <text class="arrow">›</text>
     </view>
+  </view>
 
-    <view class="setting-row">
-      <view>
-        <text class="title">媒体优先本地缓存</text>
-        <text class="desc">保留本地媒体引用，减少重复下载。</text>
-      </view>
-      <switch data-key="localOnlyMedia" checked="{{settings.localOnlyMedia}}" color="#E89F71" bindchange="setSwitch" />
+  <view class="info-section">
+    <text>清除缓存将删除本地媒体和临时文件，不会影响您的账号信息、猫咪数据、日记文本和积分记录。</text>
+  </view>
+
+  <view wx:if="{{clearing}}" class="clearing-mask">
+    <view class="clearing-card">
+      <view class="spinner"></view>
+      <text>正在清除...</text>
     </view>
   </view>
 </view>

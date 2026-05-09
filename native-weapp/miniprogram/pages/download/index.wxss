@@ -1,0 +1,145 @@
+.download-page {
+  min-height: 100vh;
+  padding: 56rpx 36rpx calc(56rpx + env(safe-area-inset-bottom));
+  background: #FFF9F5;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+}
+
+.back {
+  width: 72rpx;
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.back-icon {
+  width: 44rpx;
+  height: 44rpx;
+  margin-right: 28rpx;
+}
+
+.header-title {
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.qr-section {
+  margin-top: 52rpx;
+  padding: 44rpx;
+  border-radius: 28rpx;
+  background: #FFFFFF;
+  text-align: center;
+  box-shadow: 0 16rpx 36rpx rgba(99, 62, 29, 0.08);
+}
+
+.qr-frame {
+  width: 250rpx;
+  height: 250rpx;
+  margin: 0 auto;
+  border-radius: 34rpx;
+  background: #FFF9F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-code {
+  width: 220rpx;
+  height: 220rpx;
+}
+
+.hint {
+  display: block;
+  margin-top: 22rpx;
+  color: #633E1D;
+  font-size: 28rpx;
+  font-weight: 900;
+}
+
+.subhint {
+  display: block;
+  margin-top: 10rpx;
+  color: #8E8E8E;
+  font-size: 23rpx;
+  line-height: 1.45;
+}
+
+.features {
+  margin-top: 32rpx;
+}
+
+.section-title {
+  color: #633E1D;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.feature-item {
+  margin-top: 18rpx;
+  padding: 22rpx;
+  border-radius: 22rpx;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  box-shadow: 0 10rpx 24rpx rgba(99, 62, 29, 0.05);
+}
+
+.feature-icon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 28rpx;
+  background: #FEF6F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feature-icon-img {
+  width: 30rpx;
+  height: 30rpx;
+}
+
+.feature-text {
+  flex: 1;
+}
+
+.feature-title {
+  display: block;
+  color: #633E1D;
+  font-size: 27rpx;
+  font-weight: 900;
+}
+
+.feature-desc {
+  display: block;
+  margin-top: 6rpx;
+  color: #8E8E8E;
+  font-size: 24rpx;
+}
+
+.download-btn {
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+}
+
+.download-icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.download-actions {
+  margin-top: 28rpx;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18rpx;
+}

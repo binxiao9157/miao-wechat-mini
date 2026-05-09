@@ -5,11 +5,35 @@
   </view>
 
   <view class="player">
-    <video wx:if="{{videoUrl}}" class="video" src="{{videoUrl}}" autoplay loop muted controls object-fit="contain"></video>
-    <image wx:else class="poster" src="{{cat.avatar}}" mode="aspectFill" />
+    <image wx:if="{{cat.avatar}}" class="player-bg" src="{{cat.avatar}}" mode="aspectFill" />
+    <video
+      wx:if="{{videoUrl && !error}}"
+      class="video"
+      src="{{videoUrl}}"
+      autoplay
+      loop
+      muted
+      controls="{{false}}"
+      show-play-btn="{{false}}"
+      show-center-play-btn="{{false}}"
+      show-fullscreen-btn="{{false}}"
+      object-fit="contain"
+      bindloadedmetadata="onVideoReady"
+      bindplay="onVideoReady"
+      binderror="onVideoError"
+    ></video>
+    <view wx:elif="{{error}}" class="error-panel">
+      <text class="error-title">视频加载失败</text>
+      <text class="error-desc">{{error}}</text>
+      <button class="error-btn" bindtap="retryVideo">重试</button>
+    </view>
+    <view wx:else class="no-video">
+      <text>暂无视频</text>
+    </view>
+    <view wx:if="{{loading && videoUrl && !error}}" class="loading-ring"></view>
   </view>
 
-  <view class="actions">
+  <view class="action-chips">
     <button
       wx:for="{{actions}}"
       wx:key="key"
@@ -17,5 +41,23 @@
       data-action="{{item.key}}"
       bindtap="selectAction"
     >{{item.label}}</button>
+  </view>
+
+  <view class="info-panel">
+    <view class="meta-row">
+      <text class="breed">{{cat.breed || 'AI 猫咪'}}</text>
+      <text wx:if="{{createdDate}}" class="date">生成于 {{createdDate}}</text>
+    </view>
+    <text class="desc">这是您的专属 AI 猫咪，它会一直陪伴在您身边。</text>
+
+    <view class="side-actions">
+      <button class="round-action {{liked ? 'liked' : ''}}" bindtap="toggleLike">{{liked ? '已喜欢' : '喜欢'}}</button>
+      <button class="round-action" bindtap="shareHint">分享</button>
+    </view>
+
+    <view class="footer-actions">
+      <button class="footer-btn save" bindtap="saveVideo">保存到相册</button>
+      <button class="footer-btn delete" bindtap="deleteCat">删除记录</button>
+    </view>
   </view>
 </view>

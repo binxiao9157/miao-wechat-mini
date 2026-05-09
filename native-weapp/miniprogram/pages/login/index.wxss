@@ -110,6 +110,17 @@
   margin-top: 28rpx;
 }
 
+.phone-login {
+  height: 88rpx;
+  border-radius: 44rpx;
+  background: #FFFFFF;
+  color: #633E1D;
+  font-size: 29rpx;
+  font-weight: 900;
+  line-height: 88rpx;
+  box-shadow: 0 10rpx 24rpx rgba(99, 62, 29, 0.06);
+}
+
 .link-button {
   margin-top: 28rpx;
   background: transparent;

@@ -24,5 +24,11 @@
   <view wx:for="{{diaries}}" wx:key="id" class="diary-item">
     <text class="name">{{item.authorNickname || item.authorId}}</text>
     <text class="diary">{{item.content}}</text>
+    <image wx:if="{{item.media && item.mediaType === 'image'}}" class="diary-media" src="{{item.media}}" mode="aspectFill" />
+    <video wx:if="{{item.media && item.mediaType === 'video'}}" class="diary-media" src="{{item.media}}" controls object-fit="cover"></video>
+    <view class="engage-row">
+      <button class="engage {{item.isLiked ? 'liked' : ''}}" data-id="{{item.id}}" bindtap="likeDiary">{{item.isLiked ? '已赞' : item.likesText}}</button>
+      <button class="engage" data-id="{{item.id}}" bindtap="openDiary">评论 {{item.comments.length || ''}}</button>
+    </view>
   </view>
 </view>

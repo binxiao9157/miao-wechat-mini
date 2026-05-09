@@ -1,4 +1,5 @@
 const { dataStore } = require('../../services/data-store');
+const { contentStore } = require('../../services/content-store');
 const { navigateTo } = require('../../utils/nav');
 
 const ACTIONS = [
@@ -23,6 +24,7 @@ Page({
     poster: '',
     actionItems: [],
     bubbleText: '',
+    pointsToast: '',
     videoError: false,
     videoRetryKey: 0,
     statusText: '已进入原生首页。',
@@ -32,6 +34,10 @@ Page({
   onShow() {
     this.touchStart = null;
     this.longPressFired = false;
+    this.startOnlineTimer();
+    contentStore.grantDailyLogin().then((points) => {
+      this.lastPointsTotal = points.total;
+    }).catch(() => undefined);
     const cat = dataStore.getActiveCat();
     this.applyCat(cat, 'idle');
     dataStore.syncCatsFromServer().catch((error) => {
@@ -43,6 +49,23 @@ Page({
 
   onUnload() {
     clearTimeout(this.longPressTimer);
+    clearTimeout(this.pointsToastTimer);
+    clearInterval(this.onlineTimer);
+  },
+
+  onHide() {
+    clearTimeout(this.longPressTimer);
+    clearTimeout(this.pointsToastTimer);
+    clearInterval(this.onlineTimer);
+  },
+
+  startOnlineTimer() {
+    clearInterval(this.onlineTimer);
+    this.onlineTimer = setInterval(() => {
+      contentStore.updateOnlineMinutes().then((result) => {
+        if (result && result.granted) this.showPointsToast(result.granted, '在线时长奖励');
+      }).catch(() => undefined);
+    }, 60000);
   },
 
   applyCat(cat, preferredAction) {
@@ -50,7 +73,7 @@ Page({
     const idleVideo = paths.idle || (cat && cat.videoPath) || '';
     const currentAction = paths[preferredAction] ? preferredAction : 'idle';
     const currentVideo = paths[currentAction] || idleVideo;
-    const ready = !!idleVideo || (cat && cat.generationStatus === 'ready');
+    const ready = !!idleVideo;
     const missingCount = ACTIONS.filter((action) => !paths[action.key]).length;
     this.setData({
       cat,
@@ -93,7 +116,12 @@ Page({
     const cat = this.data.cat;
     if (!cat) return;
     const paths = cat.videoPaths || {};
-    if (!paths[action] && !(action === 'idle' && (paths.idle || cat.videoPath))) {
+    const idleVideo = paths.idle || cat.videoPath || '';
+    if (!idleVideo && action !== 'idle') {
+      navigateTo('/pages/generation-progress/index?action=all');
+      return;
+    }
+    if (!paths[action] && !(action === 'idle' && idleVideo)) {
       navigateTo(`/pages/generation-progress/index?action=${action}`);
       return;
     }
@@ -105,6 +133,7 @@ Page({
       bubbleText: BUBBLES[action] || '',
       videoError: false
     });
+    this.grantInteractionReward();
   },
 
   onTouchStart(event) {
@@ -163,5 +192,19 @@ Page({
       videoRetryKey: this.data.videoRetryKey + 1,
       statusText: '正在重新加载视频...'
     });
+  },
+
+  grantInteractionReward() {
+    contentStore.grantInteractionPoints().then((result) => {
+      if (result && result.granted) this.showPointsToast(result.granted, '互动奖励');
+    }).catch(() => undefined);
+  },
+
+  showPointsToast(amount, reason) {
+    this.setData({ pointsToast: `+${amount} ${reason}` });
+    clearTimeout(this.pointsToastTimer);
+    this.pointsToastTimer = setTimeout(() => {
+      this.setData({ pointsToast: '' });
+    }, 1800);
   }
 });

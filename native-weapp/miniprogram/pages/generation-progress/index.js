@@ -1,4 +1,5 @@
 const { dataStore } = require('../../services/data-store');
+const { contentStore } = require('../../services/content-store');
 const { ACTION_PROMPTS, submitVideoTask, pollVideoResult, persistVideo } = require('../../services/volcano');
 const { generationTasks } = require('../../services/generation-tasks');
 const { reLaunch } = require('../../utils/nav');
@@ -24,6 +25,8 @@ Page({
 
   onLoad(options = {}) {
     this.started = false;
+    this.redemptionAmount = Number(options.redemptionAmount || 0);
+    this.pointsSpent = false;
     this.options = options;
     this.start();
   },
@@ -59,6 +62,11 @@ Page({
     }
 
     try {
+      if (this.redemptionAmount > 0 && !this.pointsSpent) {
+        await contentStore.spendPoints(this.redemptionAmount, '解锁新伙伴');
+        this.pointsSpent = true;
+      }
+
       await dataStore.updateCatAndSync(cat.id, {
         generationStatus: 'pending',
         generationError: '',
@@ -83,6 +91,10 @@ Page({
 
       this.setData({ phase: 'success', progress: 100, statusText: '生成成功', videoUrl: latestVideoUrl });
     } catch (error) {
+      if (this.pointsSpent) {
+        await contentStore.refundPoints(this.redemptionAmount, '生成失败退还').catch(() => undefined);
+        this.pointsSpent = false;
+      }
       const latestCat = dataStore.getCatById(cat.id) || cat;
       const hasPlayableVideo = !!(latestCat.videoPaths && latestCat.videoPaths.idle) || !!latestCat.videoPath;
       await dataStore.updateCatAndSync(cat.id, {

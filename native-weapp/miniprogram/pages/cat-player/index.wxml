@@ -1,6 +1,6 @@
 <view class="player-page">
   <view class="header">
-    <text class="back" bindtap="goBack">‹</text>
+    <image class="back-icon" src="/assets/profile-icons/arrowleft-white.png" mode="aspectFit" bindtap="goBack" />
     <text class="header-title">{{cat.name || '猫咪播放'}}</text>
   </view>
 
@@ -51,13 +51,29 @@
     <text class="desc">这是您的专属 AI 猫咪，它会一直陪伴在您身边。</text>
 
     <view class="side-actions">
-      <button class="round-action {{liked ? 'liked' : ''}}" bindtap="toggleLike">{{liked ? '已喜欢' : '喜欢'}}</button>
-      <button class="round-action" bindtap="shareHint">分享</button>
+      <button class="round-action {{liked ? 'liked' : ''}}" bindtap="toggleLike">
+        <view class="action-circle">
+          <image class="action-icon" src="{{liked ? '/assets/profile-icons/heart-red.png' : '/assets/profile-icons/heart-gray.png'}}" mode="aspectFit" />
+        </view>
+        <text>{{liked ? '已喜欢' : '喜欢'}}</text>
+      </button>
+      <button class="round-action" bindtap="shareHint">
+        <view class="action-circle">
+          <image class="action-icon" src="/assets/profile-icons/share-gray.png" mode="aspectFit" />
+        </view>
+        <text>分享</text>
+      </button>
     </view>
 
     <view class="footer-actions">
-      <button class="footer-btn save" bindtap="saveVideo">保存到相册</button>
-      <button class="footer-btn delete" bindtap="deleteCat">删除记录</button>
+      <button class="footer-btn save" bindtap="saveVideo">
+        <image class="footer-icon" src="/assets/profile-icons/download-primary.png" mode="aspectFit" />
+        <text>保存到相册</text>
+      </button>
+      <button class="footer-btn delete" bindtap="deleteCat">
+        <image class="footer-icon" src="/assets/profile-icons/trash2-red2.png" mode="aspectFit" />
+        <text>删除记录</text>
+      </button>
     </view>
   </view>
 </view>

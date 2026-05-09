@@ -78,7 +78,7 @@ Page({
       wx.showToast({ title: '积分不足', icon: 'none' });
       return;
     }
-    navigateTo(`/pages/upload-material/index?isRedemption=1&redemptionAmount=${threshold}`);
+    navigateTo(`/pages/empty-cat/index?isRedemption=1&redemptionAmount=${threshold}`);
   },
 
   tapTask(event) {

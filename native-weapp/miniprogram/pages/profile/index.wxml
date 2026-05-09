@@ -36,26 +36,37 @@
   </view>
 
   <view class="menu">
-    <button class="menu-item" bindtap="goEditProfile"><text>个人资料设置</text><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
-    <button class="menu-item" bindtap="goSwitch"><text>切换猫咪</text><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
-    <button class="menu-item" bindtap="goMilestone"><text>陪伴里程碑</text><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
-    <button class="menu-item" bindtap="goCreate"><text>生成新猫咪</text><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
-    <button class="menu-item" bindtap="goLetters"><text>时光信</text><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
-    <button class="menu-item" bindtap="goInvite"><text>邀请好友</text><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
+    <button class="menu-item" bindtap="goEditProfile"><view class="menu-left"><view class="menu-icon blue"><image src="/assets/profile-icons/user-blue.png" mode="aspectFit" /></view><text>个人资料设置</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
+    <button class="menu-item" bindtap="goSwitch"><view class="menu-left"><view class="menu-icon warm"><image src="/assets/profile-icons/heart-cat.png" mode="aspectFit" /></view><text>切换猫咪</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
+    <button class="menu-item" bindtap="goMilestone"><view class="menu-left"><view class="menu-icon green"><image src="/assets/profile-icons/calendar-stat.png" mode="aspectFit" /></view><text>陪伴里程碑</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
+    <button class="menu-item" bindtap="goCreate"><view class="menu-left"><view class="menu-icon warm"><image src="/assets/profile-icons/sparkles-primary.png" mode="aspectFit" /></view><text>生成新猫咪</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
+    <button class="menu-item" bindtap="goLetters"><view class="menu-left"><view class="menu-icon pink"><image src="/assets/profile-icons/mail-active.png" mode="aspectFit" /></view><text>时光信</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
+    <button class="menu-item" bindtap="goInvite"><view class="menu-left"><view class="menu-icon green"><image src="/assets/profile-icons/userplus-gray.png" mode="aspectFit" /></view><text>邀请好友</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
     <button class="menu-item message-item" bindtap="goNotificationList">
-      <text>{{messageLabel}}</text>
+      <view class="menu-left"><view class="menu-icon purple"><image src="/assets/profile-icons/message-purple.png" mode="aspectFit" /></view><text>{{messageLabel}}</text></view>
       <view wx:if="{{unreadCount > 0}}" class="unread-dot"></view>
       <image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" />
     </button>
-    <button class="menu-item" bindtap="goNotifications"><text>通知设置</text><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
-    <button class="menu-item" bindtap="goPrivacy"><text>隐私设置</text><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
-    <button class="menu-item" bindtap="goFeedback"><text>意见反馈</text><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
-    <button class="menu-item" bindtap="goPrivacyPolicy"><text>隐私政策</text><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
-    <button class="menu-item" bindtap="goTerms"><text>服务条款</text><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
-    <button class="menu-item" bindtap="clearCache"><text>清除缓存</text><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
+    <button class="menu-item" bindtap="goNotifications"><view class="menu-left"><view class="menu-icon warm"><image src="/assets/profile-icons/bell-primary.png" mode="aspectFit" /></view><text>通知设置</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
+    <button class="menu-item" bindtap="goPrivacy"><view class="menu-left"><view class="menu-icon blue"><image src="/assets/profile-icons/shieldcheck-primary.png" mode="aspectFit" /></view><text>隐私设置</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
+    <button class="menu-item" bindtap="goFeedback"><view class="menu-left"><view class="menu-icon purple"><image src="/assets/profile-icons/message-gray.png" mode="aspectFit" /></view><text>意见反馈</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
+    <button class="menu-item" bindtap="goPrivacyPolicy"><view class="menu-left"><view class="menu-icon blue"><image src="/assets/profile-icons/lock-gray.png" mode="aspectFit" /></view><text>隐私政策</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
+    <button class="menu-item" bindtap="goTerms"><view class="menu-left"><view class="menu-icon gray"><image src="/assets/profile-icons/bookopen-inactive.png" mode="aspectFit" /></view><text>服务条款</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
+    <button class="menu-item" bindtap="clearCache"><view class="menu-left"><view class="menu-icon gray"><image src="/assets/profile-icons/trash2-gray.png" mode="aspectFit" /></view><text>清除缓存</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
+    <button class="menu-item danger" bindtap="deleteAccount"><view class="menu-left"><view class="menu-icon red"><image src="/assets/profile-icons/trash2-red2.png" mode="aspectFit" /></view><text>注销账户</text></view><image class="arrow-icon" src="/assets/profile-icons/chevronright-gray.png" mode="aspectFit" /></button>
   </view>
 
   <button class="miao-button-secondary logout" bindtap="logout">退出登录</button>
+
+  <view class="footer" bindtap="handleAdminTap">
+    <text class="footer-text">MIAO SANCTUARY</text>
+    <view class="footer-dots">
+      <view class="footer-dot primary"></view>
+      <view class="footer-dot secondary"></view>
+      <view class="footer-dot primary"></view>
+    </view>
+    <text class="footer-icp">浙ICP备2026026483号-1</text>
+  </view>
 
   <native-tab-bar active="profile" />
 </view>

@@ -30,7 +30,7 @@
     <button class="miao-button-secondary action" loading="{{loading}}" bindtap="handleWechatLogin">
       微信登录
     </button>
-    <button class="phone-login action" loading="{{loading}}" open-type="getPhoneNumber" bindgetphonenumber="handlePhoneLogin">
+    <button class="phone-login action" loading="{{loading}}" open-type="getPhoneNumber" bindtap="handlePhoneLoginTap" bindgetphonenumber="handlePhoneLogin">
       手机号快捷登录
     </button>
     <button class="link-button" bindtap="goRegister">创建新账号</button>

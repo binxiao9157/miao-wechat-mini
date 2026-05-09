@@ -10,7 +10,17 @@ Page({
     selectedPresetImage: '',
     saving: false,
     error: '',
-    presets: []
+    presets: [],
+    isRedemption: false,
+    redemptionText: ''
+  },
+
+  onLoad(options = {}) {
+    this.redemptionAmount = Number(options.redemptionAmount || 0);
+    this.setData({
+      isRedemption: options.isRedemption === '1' && this.redemptionAmount > 0,
+      redemptionText: this.redemptionAmount > 0 ? `${this.redemptionAmount} 积分兑换` : ''
+    });
   },
 
   onShow() {
@@ -70,7 +80,8 @@ Page({
         anchorFrame: this.data.selectedPresetImage || '/assets/logo.png'
       });
       wx.showToast({ title: '已创建草稿', icon: 'success' });
-      navigateTo('/pages/generation-progress/index');
+      const redemptionQuery = this.redemptionAmount > 0 ? `?isRedemption=1&redemptionAmount=${this.redemptionAmount}` : '';
+      navigateTo(`/pages/generation-progress/index${redemptionQuery}`);
     } catch (error) {
       this.setData({ error: error.message || '创建失败，请稍后重试' });
     } finally {

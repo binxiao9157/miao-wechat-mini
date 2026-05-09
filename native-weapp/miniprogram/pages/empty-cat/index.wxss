@@ -27,6 +27,16 @@
   text-align: center;
 }
 
+.redemption {
+  margin-top: 24rpx;
+  padding: 12rpx 24rpx;
+  border-radius: 28rpx;
+  background: #FEF1E8;
+  color: #E89F71;
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
 .action {
   width: 100%;
   margin-top: 32rpx;

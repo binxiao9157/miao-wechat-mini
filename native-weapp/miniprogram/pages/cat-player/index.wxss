@@ -18,6 +18,13 @@
   line-height: 1;
 }
 
+.back-icon {
+  width: 44rpx;
+  height: 44rpx;
+  margin-right: 28rpx;
+  flex: 0 0 44rpx;
+}
+
 .header-title {
   flex: 1;
   color: #FFFFFF;
@@ -176,22 +183,44 @@
 
 .round-action,
 .footer-btn {
-  height: 70rpx;
+  min-height: 78rpx;
   padding: 0;
   border-radius: 35rpx;
   font-size: 24rpx;
   font-weight: 900;
-  line-height: 70rpx;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
 }
 
 .round-action {
   background: rgba(255, 255, 255, 0.14);
   color: #FFFFFF;
+  flex-direction: column;
+  gap: 8rpx;
+  padding: 16rpx 0;
 }
 
 .round-action.liked {
   background: rgba(214, 75, 75, 0.28);
   color: #FFCCCC;
+}
+
+.action-circle {
+  width: 46rpx;
+  height: 46rpx;
+  border-radius: 23rpx;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-icon {
+  width: 28rpx;
+  height: 28rpx;
 }
 
 .footer-btn.save {
@@ -202,6 +231,11 @@
 .footer-btn.delete {
   background: rgba(214, 75, 75, 0.24);
   color: #FFCCCC;
+}
+
+.footer-icon {
+  width: 30rpx;
+  height: 30rpx;
 }
 
 @keyframes spin {

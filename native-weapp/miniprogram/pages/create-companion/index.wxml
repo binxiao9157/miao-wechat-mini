@@ -7,6 +7,7 @@
   <view class="hero">
     <image class="avatar" src="{{selectedPresetImage || '/assets/logo.png'}}" mode="aspectFill" />
     <text class="title">创建猫咪</text>
+    <text wx:if="{{isRedemption}}" class="redemption">{{redemptionText}}</text>
   </view>
 
   <view class="form">

@@ -2,6 +2,16 @@ const { authService } = require('../../services/auth');
 const { routeAfterAuth } = require('../../services/session-router');
 const { navigateTo, redirectTo } = require('../../utils/nav');
 
+function getMiniProgramEnvVersion() {
+  try {
+    const info = wx.getAccountInfoSync && wx.getAccountInfoSync();
+    return info && info.miniProgram && info.miniProgram.envVersion;
+  } catch {
+    return 'release';
+  }
+  return 'release';
+}
+
 Page({
   data: {
     username: '',
@@ -87,10 +97,27 @@ Page({
     return msg || '手机号登录失败，请重试';
   },
 
+  handlePhoneLoginTap() {
+    if (!this.ensureAgreement()) return;
+    clearTimeout(this.phoneLoginTimer);
+    this.setData({ loading: true, error: '' });
+    this.phoneLoginTimer = setTimeout(() => {
+      this.setData({ loading: false });
+      wx.showModal({
+        title: '提示',
+        content: '获取手机号失败，请确认小程序已开通手机号登录能力，或在微信真机上重试。也可以使用其他登录方式。',
+        showCancel: false,
+        confirmText: '我知道了'
+      });
+    }, 5000);
+  },
+
   async handlePhoneLogin(event) {
+    clearTimeout(this.phoneLoginTimer);
     if (!this.ensureAgreement()) return;
     const detail = event.detail || {};
     if (detail.errMsg && detail.errMsg.includes('fail')) {
+      this.setData({ loading: false });
       wx.showModal({
         title: '提示',
         content: this.getPhoneLoginError(detail.errMsg),
@@ -100,9 +127,10 @@ Page({
       return;
     }
 
-    const phoneCode = detail.code || detail.cloudID || `dev_phone_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const canUseDevFallback = getMiniProgramEnvVersion() === 'develop';
+    const phoneCode = detail.code || (canUseDevFallback ? (detail.cloudID || `dev_phone_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`) : '');
     if (!phoneCode) {
-      this.setData({ error: '获取手机号授权失败' });
+      this.setData({ loading: false, error: '获取手机号授权失败' });
       return;
     }
 

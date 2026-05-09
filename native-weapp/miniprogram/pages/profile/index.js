@@ -1,7 +1,11 @@
 const { authService } = require('../../services/auth');
 const { dataStore } = require('../../services/data-store');
 const { contentStore } = require('../../services/content-store');
+const { del } = require('../../utils/request');
+const { clear } = require('../../utils/storage');
 const { safeBack, navigateTo, reLaunch } = require('../../utils/nav');
+
+const ADMIN_TAP_WINDOW_MS = 1800;
 
 Page({
   data: {
@@ -18,6 +22,10 @@ Page({
     },
     unreadCount: 0,
     messageLabel: '消息中心'
+  },
+
+  onLoad() {
+    this.adminTapCount = 0;
   },
 
   onShow() {
@@ -120,6 +128,20 @@ Page({
     navigateTo('/pages/terms-of-service/index');
   },
 
+  handleAdminTap() {
+    this.adminTapCount = (this.adminTapCount || 0) + 1;
+    clearTimeout(this.adminTapTimer);
+    if (this.adminTapCount >= 5) {
+      this.adminTapCount = 0;
+      wx.vibrateShort({ type: 'light' });
+      navigateTo('/pages/admin-settings/index');
+      return;
+    }
+    this.adminTapTimer = setTimeout(() => {
+      this.adminTapCount = 0;
+    }, ADMIN_TAP_WINDOW_MS);
+  },
+
   clearCache() {
     wx.showModal({
       title: '清除缓存',
@@ -182,6 +204,31 @@ Page({
         app.globalData.user = null;
         app.globalData.isAuthenticated = false;
         reLaunch('/pages/login/index');
+      }
+    });
+  },
+
+  deleteAccount() {
+    wx.showModal({
+      title: '注销账户？',
+      content: '注销账户将永久删除您的所有数据（包括猫咪、日记、信件），此操作不可撤销。确定继续吗？',
+      confirmText: '确定注销',
+      confirmColor: '#D64B4B',
+      success: async (res) => {
+        if (!res.confirm) return;
+        wx.showLoading({ title: '正在注销' });
+        try {
+          await del('/api/v1/me', { timeout: 15000 });
+        } catch (error) {
+          console.warn('[native] delete account failed, clearing local anyway:', error);
+        } finally {
+          clear();
+          const app = getApp();
+          app.globalData.user = null;
+          app.globalData.isAuthenticated = false;
+          wx.hideLoading();
+          reLaunch('/pages/register/index');
+        }
       }
     });
   }

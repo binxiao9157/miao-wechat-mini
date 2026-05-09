@@ -2,7 +2,8 @@
   <image class="logo" src="../../assets/logo.png" mode="aspectFit" />
   <text class="title">还没有猫咪伙伴</text>
   <text class="subtitle">上传照片生成数字形象，也可以先创建一个草稿继续验证流程。</text>
+  <text wx:if="{{isRedemption}}" class="redemption">{{redemptionText}}</text>
   <button class="miao-button-primary action" bindtap="goUpload">上传猫咪照片</button>
-  <button class="miao-button-secondary action" bindtap="goCreate">创建猫咪草稿</button>
+  <button class="miao-button-secondary action" bindtap="goCreate">选择预设猫咪</button>
   <button class="miao-button-secondary action" bindtap="logout">退出登录</button>
 </view>

@@ -1,0 +1,39 @@
+<view class="create-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">创建猫咪</text>
+  </view>
+
+  <view class="hero">
+    <image class="avatar" src="../../assets/logo.png" mode="aspectFit" />
+    <text class="title">先建立一只猫咪草稿</text>
+    <text class="subtitle">本阶段打通原生创建和服务端保存；AI 视频生成会在下一步接入。</text>
+  </view>
+
+  <view class="form">
+    <text class="label">名字</text>
+    <input class="input" value="{{name}}" placeholder="例如：奶茶" bindinput="onNameInput" />
+
+    <text class="label">品种</text>
+    <view class="chips">
+      <view
+        wx:for="{{breeds}}"
+        wx:key="value"
+        class="chip {{breed === item.value ? 'active' : ''}}"
+        data-value="{{item.value}}"
+        bindtap="selectBreed"
+      >
+        {{item.label}}
+      </view>
+    </view>
+
+    <text class="label">毛色</text>
+    <input class="input" value="{{color}}" placeholder="例如：橘白、银渐层、奶牛色" bindinput="onColorInput" />
+
+    <text wx:if="{{error}}" class="error">{{error}}</text>
+
+    <button class="miao-button-primary action" loading="{{saving}}" bindtap="handleCreate">
+      保存草稿
+    </button>
+  </view>
+</view>

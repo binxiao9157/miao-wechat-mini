@@ -5,6 +5,7 @@
     "pages/register/index",
     "pages/home/index",
     "pages/empty-cat/index",
+    "pages/create-companion/index",
     "pages/bootstrap/index"
   ],
   "window": {

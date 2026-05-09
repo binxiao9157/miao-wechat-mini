@@ -1,0 +1,106 @@
+.create-page {
+  min-height: 100vh;
+  padding: 56rpx 48rpx;
+  background: #FFF9F5;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+}
+
+.back {
+  width: 72rpx;
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.header-title {
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.hero {
+  margin-top: 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 80rpx;
+  background: #FFFFFF;
+}
+
+.title {
+  margin-top: 32rpx;
+  color: #633E1D;
+  font-size: 40rpx;
+  font-weight: 900;
+}
+
+.subtitle {
+  margin-top: 16rpx;
+  color: #8E8E8E;
+  font-size: 26rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.form {
+  margin-top: 48rpx;
+}
+
+.label {
+  display: block;
+  margin: 30rpx 0 14rpx;
+  color: #633E1D;
+  font-size: 28rpx;
+  font-weight: 900;
+}
+
+.input {
+  width: 100%;
+  min-height: 96rpx;
+  padding: 0 32rpx;
+  border-radius: 48rpx;
+  background: #FFFFFF;
+  color: #633E1D;
+  font-size: 30rpx;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18rpx;
+}
+
+.chip {
+  padding: 18rpx 28rpx;
+  border-radius: 34rpx;
+  background: #FFFFFF;
+  color: #8E8E8E;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.chip.active {
+  background: #E89F71;
+  color: #FFFFFF;
+}
+
+.error {
+  display: block;
+  margin-top: 24rpx;
+  color: #D64B4B;
+  font-size: 26rpx;
+}
+
+.action {
+  margin-top: 40rpx;
+}

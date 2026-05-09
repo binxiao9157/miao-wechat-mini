@@ -1,9 +1,9 @@
 const { authService } = require('../../services/auth');
-const { reLaunch } = require('../../utils/nav');
+const { navigateTo, reLaunch } = require('../../utils/nav');
 
 Page({
-  showNext() {
-    wx.showToast({ title: '阶段 2 将迁移猫咪主链路', icon: 'none' });
+  goCreate() {
+    navigateTo('/pages/create-companion/index');
   },
 
   logout() {

@@ -17,4 +17,5 @@ remains in `src/` and is not modified by this native scaffold.
 
 - Phase 0: scaffold and base adapters are in place.
 - Phase 1: auth and startup routing are in place.
-- Phase 2 next: migrate cat creation/upload, AI generation progress, and the real home player.
+- Phase 2A: draft cat creation is in place.
+- Phase 2 next: migrate upload, AI generation progress, and the real home player.

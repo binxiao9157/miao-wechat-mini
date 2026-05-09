@@ -61,6 +61,34 @@ const dataStore = {
     return res.data;
   },
 
+  async createDraftCat({ name, breed, color, avatar }) {
+    const now = Date.now();
+    const cat = {
+      id: `cat_${now}_${Math.random().toString(36).slice(2, 8)}`,
+      name: name || '小猫',
+      breed: breed || '未知',
+      color: color || '温暖色',
+      avatar: avatar || '/assets/logo.png',
+      source: 'created',
+      createdAt: now,
+      updatedAt: now,
+      generationStatus: 'pending',
+      videoPaths: {}
+    };
+
+    const cats = this.getCats();
+    this.saveCats([cat, ...cats]);
+    this.saveActiveCatId(cat.id);
+
+    try {
+      await this.saveCatToServer(cat);
+    } catch (error) {
+      console.warn('[native] save draft cat to server failed:', error);
+    }
+
+    return cat;
+  },
+
   async deleteCatFromServer(catId) {
     const res = await del(`/api/v1/cats/${encodeURIComponent(catId)}`, { timeout: 15000 });
     return res.data;

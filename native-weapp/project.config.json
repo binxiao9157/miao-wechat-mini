@@ -1,0 +1,24 @@
+{
+  "miniprogramRoot": "miniprogram/",
+  "projectname": "miao-weapp-native",
+  "description": "Miao native WeChat Mini Program MVP",
+  "appid": "wx4c0c312f5b762e8e",
+  "compileType": "miniprogram",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "newFeature": true,
+    "checkInvalidKey": true,
+    "checkSiteMap": true,
+    "minifyWXML": true,
+    "minifyWXSS": true
+  },
+  "condition": {},
+  "packOptions": {
+    "ignore": []
+  },
+  "editorSetting": {}
+}

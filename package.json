@@ -10,6 +10,7 @@
     "build:weapp": "cross-env NODE_OPTIONS=--openssl-legacy-provider taro build --type weapp",
     "build:h5": "cross-env NODE_OPTIONS=--openssl-legacy-provider taro build --type h5",
     "lint": "tsc --noEmit",
+    "check:native": "node native-weapp/scripts/check.js",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
     "dev:server": "cd ../Miao_remote && npm run dev",
     "install:server": "cd ../Miao_remote && npm install"

@@ -1,0 +1,45 @@
+page {
+  min-height: 100%;
+  background: #FFF9F5;
+  color: #633E1D;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+view,
+text,
+image,
+button,
+input,
+textarea {
+  box-sizing: border-box;
+}
+
+.miao-page {
+  min-height: 100vh;
+  background: #FFF9F5;
+}
+
+.miao-button-primary {
+  min-height: 96rpx;
+  border-radius: 48rpx;
+  background: #E89F71;
+  color: #FFFFFF;
+  font-size: 32rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.miao-button-secondary {
+  min-height: 96rpx;
+  border-radius: 48rpx;
+  background: #FEF6F0;
+  color: #633E1D;
+  font-size: 32rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

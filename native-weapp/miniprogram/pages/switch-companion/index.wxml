@@ -2,7 +2,13 @@
   <view class="header">
     <text class="back" bindtap="goBack">‹</text>
     <text class="header-title">切换猫咪</text>
-    <button class="icon-button" bindtap="addCat">＋</button>
+    <view class="points-badge">
+      <image class="points-icon" src="/assets/profile-icons/coins-primary.png" mode="aspectFit" />
+      <text class="points-text">{{effectivePoints || 0}}</text>
+    </view>
+    <button class="icon-button {{redeemActive ? '' : 'disabled'}}" bindtap="addCat">
+      <image class="icon-img" src="/assets/profile-icons/plus-white.png" mode="aspectFit" />
+    </button>
   </view>
 
   <scroll-view class="cat-scroll" scroll-y>
@@ -30,6 +36,22 @@
       </view>
     </view>
 
-    <button class="miao-button-primary add-action" bindtap="addCat">添加新猫咪</button>
+    <view class="add-card {{redeemActive ? 'enabled' : 'disabled'}}" bindtap="addCat">
+      <view class="add-icon-box">
+        <image class="add-icon" src="/assets/profile-icons/plus-white.png" mode="aspectFit" />
+      </view>
+      <view class="add-info">
+        <text class="add-title">添加新伙伴</text>
+        <view class="add-cost">
+          <image class="cost-icon" src="/assets/profile-icons/coins-primary.png" mode="aspectFit" />
+          <text class="cost-text">{{redeemThreshold || 0}} 积分</text>
+        </view>
+      </view>
+      <text class="add-status">{{redeemActive ? '去兑换' : '积分不足'}}</text>
+    </view>
+
+    <view wx:if="{{showRedeemGap}}" class="points-hint">
+      <text class="points-hint-text">还需要 {{redeemGap}} 积分即可开启一段新的缘分。可以通过每日登录、互动和在线时长获取积分。</text>
+    </view>
   </scroll-view>
 </view>

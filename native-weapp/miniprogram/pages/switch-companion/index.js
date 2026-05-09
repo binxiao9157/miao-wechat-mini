@@ -1,23 +1,44 @@
 const { dataStore } = require('../../services/data-store');
+const { contentStore } = require('../../services/content-store');
 const { safeBack, navigateTo, reLaunch } = require('../../utils/nav');
 
 Page({
   data: {
     cats: [],
-    activeId: ''
+    activeId: '',
+    points: 0,
+    effectivePoints: 0,
+    redeemThreshold: 0,
+    redeemActive: false,
+    redeemGap: 0,
+    showRedeemGap: false,
+    isPointsCheat: false
   },
 
   onShow() {
     this.refresh();
+    contentStore.syncPointsFromServer().catch((error) => {
+      console.warn('[native] sync points in switch page failed:', error);
+    }).finally(() => this.refresh());
     dataStore.syncCatsFromServer().catch((error) => {
       console.warn('[native] sync cats in switch page failed:', error);
     }).finally(() => this.refresh());
   },
 
   refresh() {
+    const points = contentStore.getPoints();
+    const redeemThreshold = contentStore.getUnlockThreshold();
+    const effectivePoints = contentStore.getEffectivePoints(redeemThreshold);
     this.setData({
       cats: dataStore.getCats(),
-      activeId: dataStore.getActiveCatId()
+      activeId: dataStore.getActiveCatId(),
+      points: points.total || 0,
+      effectivePoints,
+      redeemThreshold,
+      redeemActive: redeemThreshold > 0 && effectivePoints >= redeemThreshold,
+      redeemGap: Math.max(0, redeemThreshold - effectivePoints),
+      showRedeemGap: redeemThreshold > 0 && effectivePoints < redeemThreshold,
+      isPointsCheat: contentStore.getIsPointsCheat()
     });
   },
 
@@ -26,7 +47,16 @@ Page({
   },
 
   addCat() {
-    navigateTo('/pages/upload-material/index');
+    const threshold = this.data.redeemThreshold;
+    if (threshold <= 0) {
+      navigateTo('/pages/upload-material/index');
+      return;
+    }
+    if (contentStore.getEffectivePoints(threshold) < threshold) {
+      wx.showToast({ title: `还差 ${Math.max(0, threshold - this.data.effectivePoints)} 积分`, icon: 'none' });
+      return;
+    }
+    reLaunch(`/pages/empty-cat/index?isRedemption=1&redemptionAmount=${threshold}`);
   },
 
   switchCat(event) {

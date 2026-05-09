@@ -10,14 +10,30 @@
 
   <view wx:elif="{{phase === 'success'}}" class="center">
     <video class="preview-video" src="{{videoUrl}}" autoplay loop muted controls="{{false}}" object-fit="contain"></video>
-    <text class="title">猫咪苏醒了</text>
-    <button class="miao-button-primary action" bindtap="goHome">回到首页</button>
+    <image class="success-icon" src="/assets/profile-icons/checkcircle-green.png" mode="aspectFit" />
+    <text class="title">{{statusText || '生成完成'}}</text>
+    <text class="subtitle">你的数字猫咪已经准备好了。</text>
+    <button class="miao-button-primary action" bindtap="goHome">查看我的猫咪</button>
+  </view>
+
+  <view wx:elif="{{phase === 'confirm'}}" class="confirm-view">
+    <video class="confirm-video" src="{{videoUrl}}" autoplay loop muted controls="{{false}}" object-fit="contain"></video>
+    <view wx:if="{{showConfirmDialog}}" class="confirm-dialog">
+      <view class="dialog-icon">
+        <image class="dialog-icon-img" src="/assets/profile-icons/sparkles-primary.png" mode="aspectFit" />
+      </view>
+      <text class="dialog-title">我是你的梦中情猫吗？</text>
+      <text class="dialog-desc">形象已初步锁定，是否继续解锁摸头、踩奶、逗猫这些更多动作？</text>
+      <button class="dialog-button primary" loading="{{isUnlocking}}" bindtap="unlockAllActions">是，全部解锁</button>
+      <button class="dialog-button secondary" bindtap="keepBasic">否，就这样吧</button>
+    </view>
   </view>
 
   <view wx:else class="center">
     <text class="title">生成失败</text>
     <text class="error">{{error}}</text>
     <button class="miao-button-primary action" bindtap="retry">重试</button>
+    <button class="miao-button-secondary action" bindtap="backToEdit">返回修改材料</button>
     <button class="miao-button-secondary action" bindtap="goHome">稍后再说</button>
   </view>
 </view>

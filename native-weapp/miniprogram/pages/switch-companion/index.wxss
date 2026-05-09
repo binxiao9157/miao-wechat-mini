@@ -8,7 +8,7 @@
   height: 72rpx;
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: 16rpx;
 }
 
 .back {
@@ -34,6 +34,41 @@
   color: #FFFFFF;
   font-size: 40rpx;
   line-height: 68rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-button.disabled {
+  opacity: 0.5;
+}
+
+.icon-img {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.points-badge {
+  min-width: 104rpx;
+  height: 56rpx;
+  padding: 0 18rpx;
+  border-radius: 28rpx;
+  background: #FEF6F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.points-icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+.points-text {
+  color: #E89F71;
+  font-size: 24rpx;
+  font-weight: 900;
 }
 
 .cat-scroll {
@@ -110,6 +145,103 @@
   line-height: 56rpx;
 }
 
-.add-action {
-  margin-top: 28rpx;
+.add-card {
+  min-height: 148rpx;
+  padding: 24rpx;
+  border-radius: 28rpx;
+  border: 3rpx dashed rgba(232, 159, 113, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.add-card.enabled {
+  background: rgba(232, 159, 113, 0.08);
+}
+
+.add-card.disabled {
+  border-color: rgba(99, 62, 29, 0.12);
+  background: #FFFFFF;
+}
+
+.add-card:active {
+  transform: scale(0.985);
+}
+
+.add-icon-box {
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: 42rpx;
+  background: #E89F71;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.add-card.disabled .add-icon-box {
+  background: #D6C9BF;
+}
+
+.add-icon {
+  width: 34rpx;
+  height: 34rpx;
+}
+
+.add-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.add-title {
+  display: block;
+  color: #633E1D;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.add-cost {
+  margin-top: 10rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.cost-icon {
+  width: 22rpx;
+  height: 22rpx;
+}
+
+.cost-text {
+  color: #E89F71;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.add-status {
+  flex-shrink: 0;
+  padding: 10rpx 18rpx;
+  border-radius: 22rpx;
+  background: #FFFFFF;
+  color: #E89F71;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.add-card.disabled .add-status,
+.add-card.disabled .cost-text {
+  color: #9D9189;
+}
+
+.points-hint {
+  padding: 22rpx 24rpx;
+  border-radius: 24rpx;
+  background: #FEF6F0;
+}
+
+.points-hint-text {
+  color: #8A5B35;
+  font-size: 24rpx;
+  line-height: 1.6;
+  text-align: center;
 }

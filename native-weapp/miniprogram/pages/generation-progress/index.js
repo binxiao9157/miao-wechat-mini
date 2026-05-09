@@ -2,7 +2,7 @@ const { dataStore } = require('../../services/data-store');
 const { contentStore } = require('../../services/content-store');
 const { ACTION_PROMPTS, submitVideoTask, pollVideoResult, persistVideo } = require('../../services/volcano');
 const { generationTasks } = require('../../services/generation-tasks');
-const { reLaunch } = require('../../utils/nav');
+const { navigateTo, reLaunch } = require('../../utils/nav');
 
 const ACTIONS = [
   { key: 'idle', label: '苏醒' },
@@ -10,6 +10,7 @@ const ACTIONS = [
   { key: 'rubbing', label: '踩奶' },
   { key: 'blink', label: '逗猫' }
 ];
+const SECONDARY_ACTIONS = ACTIONS.filter((action) => action.key !== 'idle');
 
 Page({
   data: {
@@ -20,7 +21,9 @@ Page({
     videoUrl: '',
     actionLabel: '苏醒',
     currentIndex: 1,
-    totalCount: 1
+    totalCount: 1,
+    showConfirmDialog: false,
+    isUnlocking: false
   },
 
   onLoad(options = {}) {
@@ -42,6 +45,14 @@ Page({
       return ACTIONS.filter((action) => action.key === 'idle' || action.key === requestedAction);
     }
     return ACTIONS.filter((action) => action.key === requestedAction);
+  },
+
+  shouldOfferUnlockAll(cat) {
+    const requestedAction = this.options.action || 'idle';
+    const shouldGenerateAll = this.options.all === '1' || requestedAction === 'all';
+    if (shouldGenerateAll || requestedAction !== 'idle') return false;
+    const paths = cat.videoPaths || {};
+    return SECONDARY_ACTIONS.some((action) => !paths[action.key]);
   },
 
   async start() {
@@ -89,7 +100,19 @@ Page({
         generationUpdatedAt: Date.now()
       });
 
-      this.setData({ phase: 'success', progress: 100, statusText: '生成成功', videoUrl: latestVideoUrl });
+      const idleVideoUrl = (finishedCat.videoPaths && finishedCat.videoPaths.idle) || finishedCat.videoPath || latestVideoUrl;
+      if (hasIdleVideo && this.shouldOfferUnlockAll(finishedCat)) {
+        this.setData({
+          phase: 'confirm',
+          progress: 100,
+          statusText: '形象已初步锁定',
+          videoUrl: idleVideoUrl,
+          showConfirmDialog: true,
+          isUnlocking: false
+        });
+        return;
+      }
+      this.setData({ phase: 'success', progress: 100, statusText: '生成成功', videoUrl: latestVideoUrl || idleVideoUrl });
     } catch (error) {
       if (this.pointsSpent) {
         await contentStore.refundPoints(this.redemptionAmount, '生成失败退还').catch(() => undefined);
@@ -104,6 +127,80 @@ Page({
       }).catch(() => {});
       this.setData({ phase: 'error', error: error.message || '生成失败，请重试' });
     }
+  },
+
+  async unlockAllActions() {
+    if (this.data.isUnlocking) return;
+    const cat = dataStore.getActiveCat();
+    if (!cat) {
+      reLaunch('/pages/empty-cat/index');
+      return;
+    }
+    const existingPaths = cat.videoPaths || {};
+    const queue = SECONDARY_ACTIONS.filter((action) => !existingPaths[action.key]);
+    if (queue.length === 0) {
+      this.goHome();
+      return;
+    }
+
+    this.setData({
+      phase: 'generating',
+      progress: 5,
+      error: '',
+      isUnlocking: true,
+      showConfirmDialog: false,
+      actionLabel: queue[0].label,
+      currentIndex: 1,
+      totalCount: queue.length,
+      statusText: '正在解锁更多动作...'
+    });
+
+    try {
+      await dataStore.updateCatAndSync(cat.id, {
+        generationStatus: 'pending',
+        generationError: '',
+        generationUpdatedAt: Date.now()
+      });
+
+      let latestCat = cat;
+      let latestVideoUrl = '';
+      for (let index = 0; index < queue.length; index += 1) {
+        const action = queue[index];
+        latestVideoUrl = await this.generateAction(latestCat, action, index, queue.length);
+        latestCat = dataStore.getCatById(cat.id) || latestCat;
+      }
+
+      const finishedCat = dataStore.getCatById(cat.id) || latestCat;
+      await dataStore.updateCatAndSync(cat.id, {
+        generationStatus: 'ready',
+        generationError: '',
+        generationUpdatedAt: Date.now()
+      });
+      this.setData({
+        phase: 'success',
+        progress: 100,
+        statusText: '动作已全部解锁',
+        videoUrl: latestVideoUrl || (finishedCat.videoPaths && finishedCat.videoPaths.idle) || finishedCat.videoPath || '',
+        isUnlocking: false
+      });
+    } catch (error) {
+      const latestCat = dataStore.getCatById(cat.id) || cat;
+      const hasPlayableVideo = !!((latestCat.videoPaths && latestCat.videoPaths.idle) || latestCat.videoPath);
+      await dataStore.updateCatAndSync(cat.id, {
+        generationStatus: hasPlayableVideo ? 'ready' : 'failed',
+        generationError: error.message || '动作解锁失败',
+        generationUpdatedAt: Date.now()
+      }).catch(() => {});
+      this.setData({
+        phase: 'error',
+        error: error.message || '动作解锁失败，请重试',
+        isUnlocking: false
+      });
+    }
+  },
+
+  keepBasic() {
+    this.goHome();
   },
 
   async generateAction(cat, action, index, total) {
@@ -170,6 +267,18 @@ Page({
     this.started = false;
     this.setData({ phase: 'generating', progress: 5, error: '', statusText: '正在准备生成...' });
     this.start();
+  },
+
+  async backToEdit() {
+    const cat = dataStore.getActiveCat();
+    const source = (cat && cat.source) || this.options.source || 'created';
+    const hasPlayableVideo = !!(cat && ((cat.videoPaths && cat.videoPaths.idle) || cat.videoPath));
+    if (cat && !hasPlayableVideo) {
+      await dataStore.deleteCatById(cat.id).catch(() => undefined);
+    }
+    const redemptionQuery = this.redemptionAmount > 0 ? `?isRedemption=1&redemptionAmount=${this.redemptionAmount}` : '';
+    const target = source === 'uploaded' ? '/pages/upload-material/index' : '/pages/create-companion/index';
+    navigateTo(`${target}${redemptionQuery}`);
   },
 
   goHome() {

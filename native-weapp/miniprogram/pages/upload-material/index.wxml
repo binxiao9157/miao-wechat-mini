@@ -12,7 +12,11 @@
 
   <view class="picker" bindtap="choosePhoto">
     <image wx:if="{{imagePath}}" class="preview" src="{{imagePath}}" mode="aspectFill" />
+    <button wx:if="{{imagePath}}" class="remove-button" catchtap="removePhoto">
+      <image class="remove-icon" src="/assets/profile-icons/x-dark.png" mode="aspectFit" />
+    </button>
     <view wx:else class="placeholder">
+      <image class="placeholder-icon" src="/assets/profile-icons/upload-primary.png" mode="aspectFit" />
       <text class="placeholder-title">点击选择照片</text>
       <text class="placeholder-subtitle">支持相册或拍照</text>
     </view>
@@ -21,7 +25,29 @@
   <input class="input" value="{{name}}" placeholder="给猫咪起个名字" bindinput="onNameInput" />
   <text wx:if="{{error}}" class="error">{{error}}</text>
 
-  <button class="miao-button-primary action" loading="{{generating}}" bindtap="handleGenerateAnchor">
+  <button wx:if="{{!firstFrameUrl}}" class="miao-button-primary action" loading="{{generating}}" bindtap="handleGenerateAnchor">
     {{generating ? '生成形象中...' : '生成数字形象'}}
   </button>
+
+  <view wx:if="{{firstFrameUrl}}" class="result-card">
+    <view class="result-head">
+      <image class="result-head-icon" src="/assets/profile-icons/sparkles-primary.png" mode="aspectFit" />
+      <text class="result-title">AI 形象已生成</text>
+    </view>
+    <image class="result-image" src="{{firstFrameUrl}}" mode="aspectFill" show-menu-by-longpress />
+    <text class="result-desc">确认满意后，将以这张形象作为猫咪视频生成的首帧。</text>
+    <view class="result-actions">
+      <button class="result-btn secondary" loading="{{savingImage}}" bindtap="saveFirstFrame">
+        <image class="result-btn-icon" src="/assets/profile-icons/download-primary.png" mode="aspectFit" />
+        <text>保存首帧</text>
+      </button>
+      <button class="result-btn secondary" loading="{{generating}}" bindtap="regenerateAnchor">
+        <image class="result-btn-icon" src="/assets/profile-icons/refreshcw-primary.png" mode="aspectFit" />
+        <text>重新生成</text>
+      </button>
+    </view>
+    <button class="miao-button-primary action confirm-action" loading="{{generating}}" bindtap="confirmAndGenerate">
+      确认生成视频
+    </button>
+  </view>
 </view>

@@ -58,9 +58,108 @@
 
 .preview-video {
   width: 100%;
-  height: 760rpx;
+  height: 680rpx;
   border-radius: 28rpx;
   background: #000000;
+}
+
+.success-icon {
+  width: 92rpx;
+  height: 92rpx;
+  margin-top: 36rpx;
+}
+
+.confirm-view {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-video {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000000;
+}
+
+.confirm-dialog {
+  position: relative;
+  z-index: 2;
+  width: calc(100% - 96rpx);
+  max-width: 620rpx;
+  padding: 56rpx 42rpx 44rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+  border-radius: 36rpx;
+  background: rgba(23, 18, 16, 0.76);
+  box-shadow: 0 28rpx 90rpx rgba(0, 0, 0, 0.36);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dialog-icon {
+  width: 108rpx;
+  height: 108rpx;
+  border-radius: 54rpx;
+  background: rgba(232, 159, 113, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28rpx;
+}
+
+.dialog-icon-img {
+  width: 52rpx;
+  height: 52rpx;
+}
+
+.dialog-title {
+  color: #FFFFFF;
+  font-size: 36rpx;
+  font-weight: 900;
+  text-align: center;
+}
+
+.dialog-desc {
+  margin-top: 18rpx;
+  margin-bottom: 40rpx;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 26rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.dialog-button {
+  width: 100%;
+  min-height: 92rpx;
+  border-radius: 46rpx;
+  font-size: 30rpx;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog-button.primary {
+  background: #E89F71;
+  color: #FFFFFF;
+}
+
+.dialog-button.secondary {
+  margin-top: 20rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
 }
 
 .action {

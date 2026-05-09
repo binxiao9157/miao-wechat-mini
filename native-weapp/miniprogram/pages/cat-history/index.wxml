@@ -1,0 +1,37 @@
+<view class="history-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">猫咪历史</text>
+  </view>
+
+  <scroll-view class="history-scroll" scroll-y>
+    <view wx:if="{{cats.length}}" class="history-list">
+      <view
+        wx:for="{{cats}}"
+        wx:key="id"
+        class="history-item"
+        data-id="{{item.id}}"
+        bindtap="openCat"
+      >
+        <image class="thumb" src="{{item.avatar}}" mode="aspectFill" />
+        <view class="content">
+          <text class="name">{{item.name || '小猫'}}</text>
+          <text class="meta">{{item.createdDate}} · {{item.videoCount}} 个视频 · {{item.generationStatus || 'draft'}}</text>
+        </view>
+        <button
+          class="delete-button"
+          catchtap="deleteCat"
+          data-id="{{item.id}}"
+          data-name="{{item.name}}"
+        >删除</button>
+      </view>
+    </view>
+
+    <view wx:else class="empty">
+      <text class="empty-title">还没有生成记录</text>
+      <text class="empty-subtitle">上传照片后，猫咪会出现在这里。</text>
+    </view>
+
+    <button class="miao-button-primary add-action" bindtap="addCat">生成新猫咪</button>
+  </scroll-view>
+</view>

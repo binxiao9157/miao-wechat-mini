@@ -1,0 +1,38 @@
+<view class="profile-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">我的</text>
+  </view>
+
+  <view class="user-band">
+    <view class="avatar">{{avatarLetter}}</view>
+    <view class="user-info">
+      <text class="nickname">{{displayName}}</text>
+      <text class="username">{{username}}</text>
+    </view>
+  </view>
+
+  <view class="stats">
+    <view class="stat">
+      <text class="stat-value">{{stats.catCount}}</text>
+      <text class="stat-label">猫咪</text>
+    </view>
+    <view class="stat">
+      <text class="stat-value">{{stats.videoCount}}</text>
+      <text class="stat-label">视频</text>
+    </view>
+    <view class="stat">
+      <text class="stat-value">{{stats.days}}</text>
+      <text class="stat-label">陪伴天数</text>
+    </view>
+  </view>
+
+  <view class="menu">
+    <button class="menu-item" bindtap="goSwitch">切换猫咪</button>
+    <button class="menu-item" bindtap="goHistory">猫咪历史</button>
+    <button class="menu-item" bindtap="goCreate">生成新猫咪</button>
+    <button class="menu-item" bindtap="clearCache">清除缓存</button>
+  </view>
+
+  <button class="miao-button-secondary logout" bindtap="logout">退出登录</button>
+</view>

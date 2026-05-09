@@ -1,0 +1,115 @@
+.switch-page {
+  min-height: 100vh;
+  padding: 56rpx 36rpx;
+  background: #FFF9F5;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.back {
+  width: 64rpx;
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.header-title {
+  flex: 1;
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.icon-button {
+  width: 68rpx;
+  height: 68rpx;
+  border-radius: 34rpx;
+  padding: 0;
+  background: #E89F71;
+  color: #FFFFFF;
+  font-size: 40rpx;
+  line-height: 68rpx;
+}
+
+.cat-scroll {
+  height: calc(100vh - 150rpx);
+  margin-top: 32rpx;
+}
+
+.cat-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  padding-bottom: 48rpx;
+}
+
+.cat-card {
+  min-height: 164rpx;
+  padding: 22rpx;
+  border: 2rpx solid transparent;
+  border-radius: 24rpx;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  box-shadow: 0 16rpx 36rpx rgba(99, 62, 29, 0.08);
+}
+
+.cat-card.active {
+  border-color: #E89F71;
+}
+
+.avatar {
+  width: 116rpx;
+  height: 116rpx;
+  border-radius: 58rpx;
+  background: #FEF6F0;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  display: block;
+  color: #633E1D;
+  font-size: 32rpx;
+  font-weight: 900;
+}
+
+.meta {
+  display: block;
+  margin-top: 10rpx;
+  color: #8E8E8E;
+  font-size: 24rpx;
+}
+
+.active-mark {
+  padding: 8rpx 16rpx;
+  border-radius: 18rpx;
+  background: #FEF6F0;
+  color: #E89F71;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.delete-button {
+  min-width: 96rpx;
+  height: 56rpx;
+  padding: 0 18rpx;
+  border-radius: 28rpx;
+  background: #FFF1F1;
+  color: #D64B4B;
+  font-size: 24rpx;
+  line-height: 56rpx;
+}
+
+.add-action {
+  margin-top: 28rpx;
+}

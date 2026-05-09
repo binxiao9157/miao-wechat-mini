@@ -1,6 +1,14 @@
 const { dataStore } = require('../../services/data-store');
 const { ACTION_PROMPTS, submitVideoTask, pollVideoResult, persistVideo } = require('../../services/volcano');
+const { generationTasks } = require('../../services/generation-tasks');
 const { reLaunch } = require('../../utils/nav');
+
+const ACTIONS = [
+  { key: 'idle', label: '苏醒' },
+  { key: 'tail', label: '摸头' },
+  { key: 'rubbing', label: '踩奶' },
+  { key: 'blink', label: '逗猫' }
+];
 
 Page({
   data: {
@@ -8,12 +16,26 @@ Page({
     progress: 5,
     statusText: '正在准备生成...',
     error: '',
-    videoUrl: ''
+    videoUrl: '',
+    actionLabel: '苏醒',
+    currentIndex: 1,
+    totalCount: 1
   },
 
-  onLoad() {
+  onLoad(options = {}) {
     this.started = false;
+    this.options = options;
     this.start();
+  },
+
+  getActionQueue(cat) {
+    const requestedAction = this.options.action || 'idle';
+    const shouldGenerateAll = this.options.all === '1' || requestedAction === 'all';
+    const existingPaths = cat.videoPaths || {};
+    if (shouldGenerateAll) {
+      return ACTIONS.filter((action) => !existingPaths[action.key]);
+    }
+    return ACTIONS.filter((action) => action.key === requestedAction);
   },
 
   async start() {
@@ -26,9 +48,10 @@ Page({
       return;
     }
 
-    const idleVideo = cat.videoPaths && cat.videoPaths.idle;
-    if (idleVideo) {
-      this.setData({ phase: 'success', progress: 100, statusText: '生成成功', videoUrl: idleVideo });
+    const queue = this.getActionQueue(cat);
+    if (queue.length === 0) {
+      const videoUrl = cat.videoPaths?.idle || cat.videoPath || '';
+      this.setData({ phase: 'success', progress: 100, statusText: '动作已生成', videoUrl });
       return;
     }
 
@@ -39,29 +62,21 @@ Page({
         generationUpdatedAt: Date.now()
       });
 
-      this.setData({ phase: 'generating', progress: 10, statusText: '正在提交视频任务...' });
-      const task = await submitVideoTask(cat.avatar, ACTION_PROMPTS.idle);
-      this.setData({ progress: 30, statusText: '正在注入生命力...' });
+      let latestCat = cat;
+      let latestVideoUrl = '';
+      for (let index = 0; index < queue.length; index += 1) {
+        const action = queue[index];
+        latestVideoUrl = await this.generateAction(latestCat, action, index, queue.length);
+        latestCat = dataStore.getCatById(cat.id) || latestCat;
+      }
 
-      const rawVideoUrl = await pollVideoResult(task.id, (status) => {
-        const next = Math.min(this.data.progress + 5, 88);
-        this.setData({ progress: next, statusText: status === 'queued' ? '排队等待中...' : '正在生成动作视频...' });
-      });
-
-      this.setData({ progress: 92, statusText: '正在保存视频...' });
-      const permanentUrl = await persistVideo(rawVideoUrl, cat.id, 'idle');
       await dataStore.updateCatAndSync(cat.id, {
         generationStatus: 'ready',
         generationError: '',
-        generationUpdatedAt: Date.now(),
-        videoPath: permanentUrl,
-        videoPaths: {
-          ...(cat.videoPaths || {}),
-          idle: permanentUrl
-        }
+        generationUpdatedAt: Date.now()
       });
 
-      this.setData({ phase: 'success', progress: 100, statusText: '生成成功', videoUrl: permanentUrl });
+      this.setData({ phase: 'success', progress: 100, statusText: '生成成功', videoUrl: latestVideoUrl });
     } catch (error) {
       await dataStore.updateCatAndSync(cat.id, {
         generationStatus: 'failed',
@@ -69,6 +84,65 @@ Page({
         generationUpdatedAt: Date.now()
       }).catch(() => {});
       this.setData({ phase: 'error', error: error.message || '生成失败，请重试' });
+    }
+  },
+
+  async generateAction(cat, action, index, total) {
+    const existingUrl = cat.videoPaths && cat.videoPaths[action.key];
+    if (existingUrl) return existingUrl;
+
+    this.setData({
+      phase: 'generating',
+      progress: Math.round((index / total) * 100) + 5,
+      actionLabel: action.label,
+      currentIndex: index + 1,
+      totalCount: total,
+      statusText: `正在生成${action.label}动作...`
+    });
+
+    let taskRecord = generationTasks.get(cat.id, action.key);
+    if (!taskRecord || !taskRecord.taskId || taskRecord.status === 'failed') {
+      this.setData({ statusText: `正在提交${action.label}任务...` });
+      const task = await submitVideoTask(cat.avatar, ACTION_PROMPTS[action.key]);
+      taskRecord = generationTasks.upsert({
+        catId: cat.id,
+        action: action.key,
+        taskId: task.id,
+        status: task.status || 'submitted'
+      });
+    }
+
+    try {
+      const rawVideoUrl = await pollVideoResult(taskRecord.taskId, (status) => {
+        taskRecord = generationTasks.upsert({ ...taskRecord, status }) || taskRecord;
+        const base = Math.round((index / total) * 100);
+        const span = Math.floor(78 / total);
+        const next = Math.min(base + Math.round(span * 0.7), 88);
+        this.setData({
+          progress: Math.max(this.data.progress, next),
+          statusText: status === 'queued' ? `${action.label}动作排队中...` : `正在生成${action.label}动作...`
+        });
+      });
+
+      this.setData({ statusText: `正在保存${action.label}视频...`, progress: Math.min(92, 90 + index) });
+      const permanentUrl = await persistVideo(rawVideoUrl, cat.id, action.key);
+      const currentCat = dataStore.getCatById(cat.id) || cat;
+      await dataStore.updateCatAndSync(cat.id, {
+        generationStatus: action.key === 'idle' ? 'ready' : currentCat.generationStatus,
+        generationError: '',
+        generationUpdatedAt: Date.now(),
+        videoPath: action.key === 'idle' ? permanentUrl : currentCat.videoPath,
+        videoPaths: {
+          ...(currentCat.videoPaths || {}),
+          [action.key]: permanentUrl
+        }
+      });
+      generationTasks.upsert({ ...taskRecord, status: 'succeeded', videoUrl: permanentUrl });
+      generationTasks.clear(cat.id, action.key);
+      return permanentUrl;
+    } catch (error) {
+      generationTasks.upsert({ ...taskRecord, status: 'failed', error: error.message || '生成失败' });
+      throw error;
     }
   },
 

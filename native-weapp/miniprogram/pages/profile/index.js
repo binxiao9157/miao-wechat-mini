@@ -1,0 +1,102 @@
+const { authService } = require('../../services/auth');
+const { dataStore } = require('../../services/data-store');
+const { safeBack, navigateTo, reLaunch } = require('../../utils/nav');
+
+Page({
+  data: {
+    user: null,
+    displayName: 'Miao 用户',
+    username: '',
+    avatarLetter: 'M',
+    cat: null,
+    stats: {
+      days: 0,
+      videoCount: 0,
+      catCount: 0
+    }
+  },
+
+  onShow() {
+    this.refresh();
+  },
+
+  refresh() {
+    const user = authService.getCachedUser();
+    const cat = dataStore.getActiveCat();
+    const catStats = dataStore.getCatStats(cat);
+    this.setData({
+      user,
+      displayName: (user && (user.nickname || user.username)) || 'Miao 用户',
+      username: (user && user.username) || '未登录',
+      avatarLetter: ((user && (user.nickname || user.username)) || 'M').slice(0, 1).toUpperCase(),
+      cat,
+      stats: {
+        ...catStats,
+        catCount: dataStore.getCats().length
+      }
+    });
+  },
+
+  goBack() {
+    safeBack('/pages/home/index');
+  },
+
+  goSwitch() {
+    navigateTo('/pages/switch-companion/index');
+  },
+
+  goHistory() {
+    navigateTo('/pages/cat-history/index');
+  },
+
+  goCreate() {
+    navigateTo('/pages/upload-material/index');
+  },
+
+  clearCache() {
+    wx.showModal({
+      title: '清除缓存',
+      content: '将清理临时缓存，不会删除账号和猫咪数据。',
+      confirmText: '清除',
+      confirmColor: '#E89F71',
+      success: (res) => {
+        if (!res.confirm) return;
+        const preserve = [
+          'miao_auth_token',
+          'miao_current_user',
+          'miao_last_username',
+          'miao_cat_list',
+          'miao_active_cat_id',
+          'miao_generation_tasks'
+        ];
+        const info = wx.getStorageInfoSync();
+        let count = 0;
+        (info.keys || []).forEach((key) => {
+          if (preserve.some((item) => key.includes(item))) return;
+          try {
+            wx.removeStorageSync(key);
+            count += 1;
+          } catch {}
+        });
+        wx.showToast({ title: `已清理 ${count} 项`, icon: 'success' });
+      }
+    });
+  },
+
+  logout() {
+    wx.showModal({
+      title: '退出登录',
+      content: '确定要退出当前账号吗？',
+      confirmText: '退出',
+      confirmColor: '#D64B4B',
+      success: (res) => {
+        if (!res.confirm) return;
+        authService.logout();
+        const app = getApp();
+        app.globalData.user = null;
+        app.globalData.isAuthenticated = false;
+        reLaunch('/pages/login/index');
+      }
+    });
+  }
+});

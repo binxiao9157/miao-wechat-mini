@@ -1,0 +1,35 @@
+<view class="switch-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">切换猫咪</text>
+    <button class="icon-button" bindtap="addCat">＋</button>
+  </view>
+
+  <scroll-view class="cat-scroll" scroll-y>
+    <view class="cat-grid">
+      <view
+        wx:for="{{cats}}"
+        wx:key="id"
+        class="cat-card {{activeId === item.id ? 'active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="switchCat"
+      >
+        <image class="avatar" src="{{item.avatar}}" mode="aspectFill" />
+        <view class="info">
+          <text class="name">{{item.name || '小猫'}}</text>
+          <text class="meta">{{item.breed || '未知品种'}} · {{item.generationStatus || 'draft'}}</text>
+        </view>
+        <text wx:if="{{activeId === item.id}}" class="active-mark">当前</text>
+        <button
+          wx:if="{{cats.length > 1}}"
+          class="delete-button"
+          catchtap="deleteCat"
+          data-id="{{item.id}}"
+          data-name="{{item.name}}"
+        >删除</button>
+      </view>
+    </view>
+
+    <button class="miao-button-primary add-action" bindtap="addCat">添加新猫咪</button>
+  </scroll-view>
+</view>

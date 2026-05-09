@@ -40,6 +40,13 @@
   text-align: center;
 }
 
+.counter {
+  margin-top: 32rpx;
+  color: #E89F71;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
 .subtitle,
 .error {
   margin-top: 20rpx;

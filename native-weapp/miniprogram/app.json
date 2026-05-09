@@ -8,6 +8,9 @@
     "pages/create-companion/index",
     "pages/upload-material/index",
     "pages/generation-progress/index",
+    "pages/switch-companion/index",
+    "pages/cat-history/index",
+    "pages/profile/index",
     "pages/bootstrap/index"
   ],
   "window": {

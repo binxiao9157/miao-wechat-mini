@@ -1,28 +1,59 @@
 <view class="home-page">
-  <text class="eyebrow">Miao Native</text>
-  <text class="title">{{cat ? cat.name || 'Miao 首页' : 'Miao 首页'}}</text>
-  <text class="subtitle">{{statusText}}</text>
+  <view class="topbar">
+    <button class="tool-button" bindtap="goSwitch">切换</button>
+    <button class="tool-button" bindtap="goHistory">历史</button>
+    <button class="tool-button" bindtap="goProfile">我的</button>
+  </view>
 
-  <view wx:if="{{cat}}" class="cat-card">
+  <view
+    wx:if="{{cat}}"
+    class="stage"
+    bindtouchstart="onTouchStart"
+    bindtouchmove="onTouchMove"
+    bindtouchend="onTouchEnd"
+  >
     <video
-      wx:if="{{idleVideo}}"
+      wx:if="{{currentVideo && !videoError}}"
       class="cat-video"
-      src="{{idleVideo}}"
+      src="{{currentVideo}}"
+      poster="{{poster}}"
       autoplay
       loop
       muted
       controls="{{false}}"
-      object-fit="contain"
+      show-play-btn="{{false}}"
+      show-center-play-btn="{{false}}"
+      show-fullscreen-btn="{{false}}"
+      object-fit="cover"
+      binderror="handleVideoError"
     ></video>
-    <image wx:else class="cat-avatar" src="{{cat.avatar}}" mode="aspectFill" />
-    <view class="cat-info">
-      <text class="cat-name">{{cat.name || '小猫'}}</text>
-      <text class="cat-meta">{{cat.breed || '未知品种'}} · {{cat.generationStatus || 'draft'}}</text>
+    <image wx:else class="cat-avatar" src="{{poster}}" mode="aspectFill" />
+    <view class="bubble" wx:if="{{bubbleText}}">{{bubbleText}}</view>
+    <view class="cat-info-panel">
+      <text class="title">{{cat.name || 'Miao 首页'}}</text>
+      <text class="subtitle">{{statusText}}</text>
     </view>
   </view>
 
+  <view wx:if="{{cat}}" class="action-bar">
+    <button
+      wx:for="{{actionItems}}"
+      wx:key="key"
+      class="action-chip {{item.active ? 'active' : ''}} {{item.generated ? '' : 'missing'}}"
+      data-action="{{item.key}}"
+      bindtap="selectAction"
+    >
+      {{item.label}}
+    </button>
+  </view>
+
   <button wx:if="{{canContinueGeneration}}" class="miao-button-primary action" bindtap="continueGeneration">
-    继续生成视频
+    补齐互动动作
   </button>
-  <button class="miao-button-secondary action" bindtap="logout">退出登录</button>
+
+  <view wx:if="{{!cat}}" class="empty">
+    <text class="title">还没有猫咪</text>
+    <text class="subtitle">上传照片，生成你的第一只 AI 猫咪。</text>
+    <button class="miao-button-primary action" bindtap="createCat">开始生成</button>
+  </view>
 </view>

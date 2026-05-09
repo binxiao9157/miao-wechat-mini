@@ -22,6 +22,16 @@ for (const file of jsonFiles) {
   JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
+const appConfig = JSON.parse(fs.readFileSync('native-weapp/miniprogram/app.json', 'utf8'));
+for (const page of appConfig.pages || []) {
+  for (const ext of ['js', 'json', 'wxml', 'wxss']) {
+    const file = path.join('native-weapp/miniprogram', `${page}.${ext}`);
+    if (!fs.existsSync(file)) {
+      throw new Error(`missing page file: ${file}`);
+    }
+  }
+}
+
 global.wx = {
   getStorageSync: () => '',
   setStorageSync: () => {},

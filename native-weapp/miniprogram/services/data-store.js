@@ -3,6 +3,7 @@ const { getItem, setItem, removeItem } = require('../utils/storage');
 const { authService } = require('./auth');
 const { userScopedKey } = require('../types/models');
 const { events } = require('../utils/event-bus');
+const { generationTasks } = require('./generation-tasks');
 
 function parseJson(raw, fallback) {
   if (!raw) return fallback;
@@ -29,7 +30,12 @@ const dataStore = {
   },
 
   saveCats(cats) {
-    setItem(scopedKey('miao_cat_list'), JSON.stringify(Array.isArray(cats) ? cats : []));
+    const nextCats = Array.isArray(cats) ? cats : [];
+    setItem(scopedKey('miao_cat_list'), JSON.stringify(nextCats));
+    const activeId = getItem(scopedKey('miao_active_cat_id'));
+    if (activeId && !nextCats.some((cat) => cat.id === activeId)) {
+      this.saveActiveCatId(nextCats[0] ? nextCats[0].id : '');
+    }
     events.emit('cats:updated', { cats: this.getCats() });
   },
 
@@ -37,6 +43,10 @@ const dataStore = {
     const cats = this.getCats();
     const activeId = getItem(scopedKey('miao_active_cat_id'));
     return cats.find((cat) => cat.id === activeId) || cats[0] || null;
+  },
+
+  getActiveCatId() {
+    return getItem(scopedKey('miao_active_cat_id')) || '';
   },
 
   getCatById(catId) {
@@ -61,6 +71,7 @@ const dataStore = {
   saveActiveCatId(catId) {
     if (catId) setItem(scopedKey('miao_active_cat_id'), catId);
     else removeItem(scopedKey('miao_active_cat_id'));
+    events.emit('active-cat:updated', { catId });
   },
 
   async syncCatsFromServer() {
@@ -76,7 +87,7 @@ const dataStore = {
   },
 
   async saveCatToServer(cat) {
-    const res = await post('/api/v1/cats', cat, { timeout: 15000 });
+    const res = await post('/api/v1/cats', { cat }, { timeout: 15000 });
     return res.data;
   },
 
@@ -123,11 +134,41 @@ const dataStore = {
     return res.data;
   },
 
+  deleteCatLocal(catId) {
+    const remaining = this.getCats().filter((cat) => cat.id !== catId);
+    this.saveCats(remaining);
+    const activeId = this.getActiveCatId();
+    if (activeId === catId) {
+      this.saveActiveCatId(remaining[0] ? remaining[0].id : '');
+    }
+    generationTasks.clearCat(catId);
+    return remaining;
+  },
+
+  async deleteCatById(catId) {
+    const remaining = this.deleteCatLocal(catId);
+    try {
+      await this.deleteCatFromServer(catId);
+    } catch (error) {
+      console.warn('[native] delete cat from server failed:', error);
+    }
+    return remaining;
+  },
+
+  getCatStats(cat) {
+    if (!cat) return { days: 0, videoCount: 0 };
+    const start = cat.createdAt || Date.now();
+    const days = Math.max(1, Math.ceil((Date.now() - start) / 86400000));
+    const videoCount = Object.values(cat.videoPaths || {}).filter(Boolean).length;
+    return { days, videoCount };
+  },
+
   clearUserCache() {
     const username = currentUsername();
     if (!username) return;
     removeItem(userScopedKey(username, 'miao_cat_list'));
     removeItem(userScopedKey(username, 'miao_active_cat_id'));
+    generationTasks.clearUserCache();
   }
 };
 

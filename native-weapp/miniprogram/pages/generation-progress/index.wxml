@@ -3,8 +3,9 @@
     <view class="ring">
       <text class="percent">{{progress}}%</text>
     </view>
+    <text class="counter">{{currentIndex}} / {{totalCount}} · {{actionLabel}}</text>
     <text class="title">{{statusText}}</text>
-    <text class="subtitle">视频生成耗时较长，请保持页面打开。</text>
+    <text class="subtitle">视频生成耗时较长，离开后再次进入可继续查询任务。</text>
   </view>
 
   <view wx:elif="{{phase === 'success'}}" class="center">

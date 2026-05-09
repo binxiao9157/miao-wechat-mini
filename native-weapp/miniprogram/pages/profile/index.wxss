@@ -1,0 +1,125 @@
+.profile-page {
+  min-height: 100vh;
+  padding: 56rpx 36rpx;
+  background: #FFF9F5;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+}
+
+.back {
+  width: 72rpx;
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.header-title {
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.user-band {
+  margin-top: 42rpx;
+  padding: 32rpx;
+  border-radius: 28rpx;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  box-shadow: 0 16rpx 36rpx rgba(99, 62, 29, 0.08);
+}
+
+.avatar {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 52rpx;
+  background: #E89F71;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42rpx;
+  font-weight: 900;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.nickname {
+  display: block;
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.username {
+  display: block;
+  margin-top: 10rpx;
+  color: #8E8E8E;
+  font-size: 25rpx;
+}
+
+.stats {
+  margin-top: 28rpx;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18rpx;
+}
+
+.stat {
+  min-height: 140rpx;
+  border-radius: 24rpx;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12rpx 28rpx rgba(99, 62, 29, 0.06);
+}
+
+.stat-value {
+  color: #633E1D;
+  font-size: 38rpx;
+  font-weight: 900;
+}
+
+.stat-label {
+  margin-top: 8rpx;
+  color: #8E8E8E;
+  font-size: 23rpx;
+}
+
+.menu {
+  margin-top: 36rpx;
+  overflow: hidden;
+  border-radius: 24rpx;
+  background: #FFFFFF;
+  box-shadow: 0 16rpx 36rpx rgba(99, 62, 29, 0.08);
+}
+
+.menu-item {
+  height: 104rpx;
+  padding: 0 32rpx;
+  border-radius: 0;
+  background: transparent;
+  color: #633E1D;
+  font-size: 30rpx;
+  line-height: 104rpx;
+  text-align: left;
+}
+
+.menu-item::after {
+  border: 0;
+  border-bottom: 1rpx solid #F2E7DE;
+}
+
+.logout {
+  margin-top: 44rpx;
+}

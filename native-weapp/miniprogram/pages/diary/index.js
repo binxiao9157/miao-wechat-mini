@@ -5,6 +5,7 @@ const { dataStore } = require('../../services/data-store');
 const { chooseImage, chooseVideo, compressImage, saveMediaFile } = require('../../utils/media');
 const { safeBack, navigateTo } = require('../../utils/nav');
 const { generateShareCard } = require('../../utils/share-card');
+const { getHeaderSafeTop } = require('../../utils/layout');
 
 function formatTime(timestamp) {
   const date = new Date(timestamp || Date.now());
@@ -13,6 +14,10 @@ function formatTime(timestamp) {
   const hour = `${date.getHours()}`.padStart(2, '0');
   const minute = `${date.getMinutes()}`.padStart(2, '0');
   return `${month}-${day} ${hour}:${minute}`;
+}
+
+function isFriendDatasetValue(value) {
+  return value === true || value === 1 || value === '1';
 }
 
 Page({
@@ -37,10 +42,14 @@ Page({
     sharedError: '',
     shareCardPath: '',
     shareCardDiaryId: '',
-    saving: false
+    saving: false,
+    tabDirection: 'right',
+    commentAction: null,
+    headerSafeTop: ''
   },
 
   onLoad(options = {}) {
+    this.setData({ headerSafeTop: getHeaderSafeTop() });
     this.shareCardCache = {};
     this.shareCardPromises = {};
     this.sharedDiaryId = options.id ? decodeURIComponent(options.id) : '';
@@ -53,6 +62,7 @@ Page({
   },
 
   onShow() {
+    this.setData({ headerSafeTop: getHeaderSafeTop() });
     wx.showShareMenu({
       withShareTicket: true,
       menus: ['shareAppMessage', 'shareTimeline']
@@ -66,6 +76,10 @@ Page({
       return socialStore.getFriendDiariesLocal();
     }).finally(() => this.refresh());
     Promise.allSettled([diarySync, friendSync]).then(() => this.resolveSharedDiary());
+  },
+
+  onResize() {
+    this.setData({ headerSafeTop: getHeaderSafeTop() });
   },
 
   refresh() {
@@ -140,6 +154,7 @@ Page({
       canReplaceMedia: !isFriend && !!item.media && !!item.mediaType && !!item.mediaLoadError,
       comments: comments.map((comment) => ({
         ...comment,
+        displayAuthor: comment.authorId === username ? '我' : (comment.authorNickname || (isFriend ? item.authorNickname : '好友') || '好友'),
         canDelete: !isFriend || comment.authorId === username
       }))
     };
@@ -147,7 +162,9 @@ Page({
 
   switchTab(event) {
     const { tab } = event.currentTarget.dataset;
-    this.setData({ activeTab: tab }, () => this.refresh());
+    if (!tab || tab === this.data.activeTab) return;
+    const tabDirection = tab === 'friends' ? 'right' : 'left';
+    this.setData({ activeTab: tab, tabDirection }, () => this.refresh());
   },
 
   goBack() {
@@ -213,8 +230,9 @@ Page({
 
   async likeDiary(event) {
     const { id, friend } = event.currentTarget.dataset;
+    const isFriend = isFriendDatasetValue(friend);
     try {
-      if (friend) await socialStore.likeDiary(id);
+      if (isFriend) await socialStore.likeDiary(id);
       else await contentStore.likeDiary(id);
       this.refresh();
     } catch (error) {
@@ -224,7 +242,7 @@ Page({
 
   openComment(event) {
     const { id, friend } = event.currentTarget.dataset;
-    this.setData({ commentTarget: { id, friend: !!friend }, commentText: '' });
+    this.setData({ commentTarget: { id, friend: isFriendDatasetValue(friend) }, commentText: '' });
   },
 
   closeComment() {
@@ -253,7 +271,8 @@ Page({
   async deleteComment(event) {
     const { diaryId, commentId, friend } = event.currentTarget.dataset;
     if (!diaryId || !commentId) return;
-    const list = friend ? this.data.friendDiaries : this.data.diaries;
+    const isFriend = isFriendDatasetValue(friend);
+    const list = isFriend ? this.data.friendDiaries : this.data.diaries;
     const diary = list.find((item) => item.id === diaryId);
     const comment = diary && (diary.comments || []).find((item) => item.id === commentId);
     if (comment && !comment.canDelete) {
@@ -261,7 +280,7 @@ Page({
       return;
     }
     try {
-      if (friend) await socialStore.deleteComment(diaryId, commentId);
+      if (isFriend) await socialStore.deleteComment(diaryId, commentId);
       else await contentStore.deleteComment(diaryId, commentId);
       this.refresh();
     } catch (error) {
@@ -269,16 +288,60 @@ Page({
     }
   },
 
+  openCommentAction(event) {
+    const { diaryId, commentId, content, canDelete, friend } = event.currentTarget.dataset;
+    this.setData({
+      commentAction: {
+        diaryId,
+        commentId,
+        content,
+        canDelete: canDelete === true || canDelete === 'true',
+        friend: isFriendDatasetValue(friend)
+      }
+    });
+  },
+
+  closeCommentAction() {
+    this.setData({ commentAction: null });
+  },
+
+  noop() {},
+
+  copyComment() {
+    const action = this.data.commentAction;
+    if (!action || !action.content) return;
+    wx.setClipboardData({
+      data: action.content,
+      complete: () => this.closeCommentAction()
+    });
+  },
+
+  deleteCommentFromAction() {
+    const action = this.data.commentAction;
+    if (!action || !action.canDelete) return;
+    this.closeCommentAction();
+    this.deleteComment({
+      currentTarget: {
+        dataset: {
+          diaryId: action.diaryId,
+          commentId: action.commentId,
+          friend: action.friend ? 1 : 0
+        }
+      }
+    });
+  },
+
   handleMediaError(event) {
     const { id, friend } = event.currentTarget.dataset;
-    const source = friend ? this.data.friendDiaries : this.data.diaries;
+    const isFriend = isFriendDatasetValue(friend);
+    const source = isFriend ? this.data.friendDiaries : this.data.diaries;
     const item = source.find((entry) => entry.id === id);
     if (!item) return;
     const nextItem = item.remoteMedia && item.remoteMedia !== item.media
       ? { ...item, media: item.remoteMedia, mediaLoadError: false }
       : { ...item, mediaLoadError: true };
     const update = (list) => list.map((entry) => (entry.id === id ? nextItem : entry));
-    if (friend) {
+    if (isFriend) {
       const friendDiaries = update(this.data.friendDiaries);
       this.setData({
         friendDiaries,

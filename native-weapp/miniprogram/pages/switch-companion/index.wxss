@@ -165,16 +165,20 @@
 }
 
 .add-card {
+  width: calc(50% - 16rpx);
+  min-height: 320rpx;
   margin: 0 32rpx;
-  min-height: 164rpx;
   padding: 28rpx 32rpx;
   border-radius: 40rpx;
   border: 4rpx dashed rgba(255, 157, 118, 0.3);
   background: rgba(255, 157, 118, 0.05);
   color: var(--primary-strong);
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 20rpx;
+  text-align: center;
 }
 
 .add-card.disabled {
@@ -202,7 +206,6 @@
 }
 
 .add-info {
-  flex: 1;
   min-width: 0;
 }
 

@@ -1,6 +1,6 @@
 <view class="diary-page">
   <scroll-view class="diary-list" scroll-y scroll-into-view="{{scrollIntoView}}">
-    <view class="header">
+    <view class="header" style="padding-top: {{headerSafeTop}};">
       <view class="header-title">
         <text class="title-main">日常记录</text>
         <text class="title-sub">DAILY MOMENTS</text>
@@ -26,12 +26,15 @@
       </view>
     </view>
 
-    <view class="tab-content tab-slide-right">
+    <view class="tab-content tab-slide-{{tabDirection}}">
       <view wx:for="{{visibleDiaries}}" wx:key="id" id="diary-{{item.id}}" class="diary-item diary-card {{item.focused ? 'focused' : ''}}">
         <view class="author-row card-header">
           <image class="author-avatar cat-avatar" src="{{item.authorAvatar || item.catAvatar || '/assets/logo.png'}}" mode="aspectFill"></image>
           <view class="author-info">
-            <text class="author">{{item.authorName}}</text>
+            <view class="author-line">
+              <text class="author">{{item.authorName}}</text>
+              <text wx:if="{{item.isFriend && item.catName}}" class="friend-badge">{{item.catName}}</text>
+            </view>
             <text class="time">{{item.timeLabel}}</text>
           </view>
           <text wx:if="{{item.syncText}}" class="sync-badge">{{item.syncText}}</text>
@@ -48,19 +51,40 @@
           </view>
         </view>
         <view class="engage-row card-actions">
-          <button class="engage {{item.isLiked ? 'liked' : ''}}" data-id="{{item.id}}" data-friend="{{item.isFriend ? 1 : 0}}" bindtap="likeDiary">{{item.isLiked ? '已赞' : item.likesText}}</button>
-          <button class="engage" data-id="{{item.id}}" data-friend="{{item.isFriend ? 1 : 0}}" bindtap="openComment">评论 {{item.commentCount || ''}}</button>
-          <button class="engage" data-id="{{item.id}}" bindtap="prepareShare" open-type="share">分享</button>
+          <button class="engage {{item.isLiked ? 'liked' : ''}}" data-id="{{item.id}}" data-friend="{{item.isFriend ? 1 : 0}}" bindtap="likeDiary">
+            <image class="engage-icon" src="{{item.isLiked ? '/assets/profile-icons/heart-red.png' : '/assets/profile-icons/heart-gray.png'}}" mode="aspectFit" />
+            <text>{{item.likes || 0}}</text>
+          </button>
+          <button class="engage" data-id="{{item.id}}" data-friend="{{item.isFriend ? 1 : 0}}" bindtap="openComment">
+            <image class="engage-icon" src="/assets/profile-icons/message-gray.png" mode="aspectFit" />
+            <text>{{item.commentCount || 0}}</text>
+          </button>
+          <button class="engage" data-id="{{item.id}}" bindtap="prepareShare" open-type="share">
+            <image class="engage-icon" src="/assets/profile-icons/share-gray.png" mode="aspectFit" />
+          </button>
+          <button wx:if="{{!item.isFriend}}" class="engage delete-btn" data-id="{{item.id}}" bindtap="deleteDiary">
+            <image class="engage-icon delete-icon" src="/assets/profile-icons/trash2-gray.png" mode="aspectFit" />
+          </button>
         </view>
         <view wx:if="{{item.comments.length}}" class="comments">
-          <view wx:for="{{item.comments}}" wx:for-item="comment" wx:key="id" class="comment">
-            <text class="comment-text">{{comment.authorNickname || comment.authorId || '好友'}}：{{comment.content}}</text>
-            <button wx:if="{{comment.canDelete}}" class="comment-delete" data-diary-id="{{item.id}}" data-comment-id="{{comment.id}}" data-friend="{{item.isFriend ? 1 : 0}}" bindtap="deleteComment">删除</button>
+          <view
+            wx:for="{{item.comments}}"
+            wx:for-item="comment"
+            wx:key="id"
+            class="comment"
+            data-diary-id="{{item.id}}"
+            data-comment-id="{{comment.id}}"
+            data-content="{{comment.content}}"
+            data-can-delete="{{comment.canDelete}}"
+            data-friend="{{item.isFriend ? 1 : 0}}"
+            bindlongpress="openCommentAction"
+          >
+            <text class="comment-author">{{comment.displayAuthor}}</text>
+            <text class="comment-text">{{comment.content}}</text>
           </view>
         </view>
         <view class="meta-row">
           <text class="cat-name">{{item.catName || 'Miao'}}</text>
-          <button wx:if="{{!item.isFriend}}" class="delete" data-id="{{item.id}}" bindtap="deleteDiary">删除</button>
         </view>
       </view>
 
@@ -152,6 +176,17 @@
         </view>
         <view class="add-friend-back" bindtap="backAddFriendStep"><text>返回上一步</text></view>
       </block>
+    </view>
+  </view>
+
+  <view wx:if="{{commentAction}}" class="comment-tooltip-overlay" bindtap="closeCommentAction">
+    <view class="comment-tooltip" catchtap="noop">
+      <view class="comment-tooltip-row">
+        <view class="comment-tooltip-btn" bindtap="copyComment">复制</view>
+        <view wx:if="{{commentAction.canDelete}}" class="comment-tooltip-divider"></view>
+        <view wx:if="{{commentAction.canDelete}}" class="comment-tooltip-btn danger" bindtap="deleteCommentFromAction">删除</view>
+      </view>
+      <view class="comment-tooltip-arrow"></view>
     </view>
   </view>
 

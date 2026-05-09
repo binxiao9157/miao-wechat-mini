@@ -1,13 +1,13 @@
 <view class="points-page">
-  <view class="header">
-    <view class="header-title">
-      <text class="title-main">积分中心</text>
-      <text class="title-sub">POINTS CENTER</text>
-    </view>
-    <view class="header-actions"><view class="action-spacer"></view></view>
-  </view>
-
   <scroll-view class="points-scroll" scroll-y>
+    <view class="header" style="padding-top: {{headerSafeTop}};">
+      <view class="header-title">
+        <text class="title-main">积分中心</text>
+        <text class="title-sub">POINTS CENTER</text>
+      </view>
+      <view class="header-actions"><view class="action-spacer"></view></view>
+    </view>
+
     <view class="points-content">
       <view class="points-card" bindtap="openHistory">
         <view class="points-card-glow"></view>

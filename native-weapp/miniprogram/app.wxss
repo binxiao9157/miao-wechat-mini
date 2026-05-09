@@ -35,7 +35,7 @@ page {
   --shadow-sm: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
   --shadow-md: 0 12rpx 34rpx rgba(99, 62, 29, 0.08);
   --shadow-lg: 0 18rpx 48rpx rgba(99, 62, 29, 0.11);
-  --nav-top: calc(env(safe-area-inset-top) + 16rpx);
+  --nav-top: calc(env(safe-area-inset-top) + var(--wechat-capsule-safe-top-gap) + 16rpx);
   --nav-height: 64rpx;
   --nav-side: 42rpx;
   --wechat-capsule-safe-right: 184rpx;

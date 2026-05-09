@@ -1,6 +1,6 @@
 .message-page {
   min-height: 100vh;
-  padding: 56rpx 36rpx;
+  padding: var(--nav-top) 36rpx 56rpx;
   background: #FFF9F5;
 }
 

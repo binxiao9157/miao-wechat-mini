@@ -160,6 +160,11 @@
   background: linear-gradient(to top, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.42), transparent);
 }
 
+.info-panel {
+  padding-left: 48rpx;
+  padding-right: 48rpx;
+}
+
 .meta-row {
   margin-bottom: 16rpx;
   display: flex;

@@ -4,7 +4,7 @@
   </view>
 
   <view wx:if="{{view === 'list'}}" class="time-letters-page">
-    <view class="page-header">
+    <view class="page-header" style="padding-top: {{headerSafeTop}};">
       <view class="header-title">
         <text class="title-main">时光信件</text>
         <text class="title-sub">TIME CAPSULES</text>
@@ -104,7 +104,7 @@
 
   <view wx:if="{{view === 'write'}}" class="write-page">
     <scroll-view class="write-scroll" scroll-y>
-      <view class="write-header">
+      <view class="write-header" style="padding-top: {{headerSafeTop}};">
         <view class="back-btn" bindtap="closeWrite">
           <image class="icon-img" src="/assets/profile-icons/arrowleft-dark.png" mode="aspectFit"></image>
         </view>
@@ -168,7 +168,7 @@
       <image class="detail-bg-image" src="{{selectedLetter.catAvatar}}" mode="aspectFill"></image>
       <view class="detail-bg-overlay"></view>
     </view>
-    <view class="detail-header">
+    <view class="detail-header" style="padding-top: {{headerSafeTop}};">
       <view class="detail-back" bindtap="closeDetail">
         <image class="icon-img" src="/assets/profile-icons/arrowleft-white.png" mode="aspectFit"></image>
       </view>

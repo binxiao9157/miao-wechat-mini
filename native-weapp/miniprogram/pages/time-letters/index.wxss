@@ -33,7 +33,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding: calc(env(safe-area-inset-top) + var(--wechat-capsule-safe-top-gap)) 44rpx 34rpx;
+  padding: calc(var(--nav-top) + 96rpx) 44rpx 34rpx;
   background: transparent;
 }
 
@@ -81,8 +81,8 @@
 }
 
 .add-btn .icon-img {
-  width: 56rpx;
-  height: 56rpx;
+  width: 48rpx;
+  height: 48rpx;
 }
 
 .cat-filter {
@@ -392,7 +392,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 48rpx;
-  padding-top: calc(env(safe-area-inset-top) + var(--wechat-capsule-safe-top-gap));
+  padding-top: calc(var(--nav-top) + 96rpx);
 }
 
 .back-btn,
@@ -651,7 +651,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(env(safe-area-inset-top) + var(--wechat-capsule-safe-top-gap)) 32rpx 0;
+  padding: calc(var(--nav-top) + 96rpx) 32rpx 0;
 }
 
 .detail-back {

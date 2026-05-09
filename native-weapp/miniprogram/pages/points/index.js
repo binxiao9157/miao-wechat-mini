@@ -1,6 +1,7 @@
 const { contentStore } = require('../../services/content-store');
 const { dataStore } = require('../../services/data-store');
 const { safeBack, navigateTo } = require('../../utils/nav');
+const { getHeaderSafeTop } = require('../../utils/layout');
 
 function formatTime(timestamp) {
   const date = new Date(timestamp || Date.now());
@@ -25,14 +26,24 @@ Page({
     redeemGap: 0,
     showRedeemGap: false,
     isPointsCheat: false,
-    showHistory: false
+    showHistory: false,
+    headerSafeTop: ''
+  },
+
+  onLoad() {
+    this.setData({ headerSafeTop: getHeaderSafeTop() });
   },
 
   onShow() {
+    this.setData({ headerSafeTop: getHeaderSafeTop() });
     this.refresh();
     contentStore.syncPointsFromServer().catch(() => undefined).finally(() => {
       contentStore.grantDailyLogin().finally(() => this.refresh());
     });
+  },
+
+  onResize() {
+    this.setData({ headerSafeTop: getHeaderSafeTop() });
   },
 
   refresh() {

@@ -1,6 +1,6 @@
 .download-page {
   min-height: 100vh;
-  padding: var(--nav-top, calc(env(safe-area-inset-top) + 56rpx)) 36rpx calc(56rpx + env(safe-area-inset-bottom));
+  padding: var(--nav-top, calc(env(safe-area-inset-top) + 56rpx)) 40rpx calc(56rpx + env(safe-area-inset-bottom));
   background: linear-gradient(180deg, var(--background) 0%, #FFFFFF 100%);
 }
 
@@ -145,7 +145,7 @@
 }
 
 .content {
-  padding: 0 36rpx;
+  padding: 0 40rpx;
 }
 
 .android {

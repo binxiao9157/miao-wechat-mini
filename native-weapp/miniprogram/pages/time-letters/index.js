@@ -2,6 +2,7 @@ const { contentStore } = require('../../services/content-store');
 const { dataStore } = require('../../services/data-store');
 const { safeBack } = require('../../utils/nav');
 const { getItem } = require('../../utils/storage');
+const { getHeaderSafeTop } = require('../../utils/layout');
 
 function formatDate(timestamp) {
   const date = new Date(timestamp || Date.now());
@@ -51,14 +52,24 @@ Page({
     draft: '',
     days: 1,
     dayOptions: [1, 3, 7, 30, 100],
-    saving: false
+    saving: false,
+    headerSafeTop: ''
+  },
+
+  onLoad() {
+    this.setData({ headerSafeTop: getHeaderSafeTop() });
   },
 
   onShow() {
+    this.setData({ headerSafeTop: getHeaderSafeTop() });
     this.refresh();
     contentStore.syncLettersFromServer().catch((error) => {
       console.warn('[native] sync letters failed:', error);
     }).finally(() => this.refresh());
+  },
+
+  onResize() {
+    this.setData({ headerSafeTop: getHeaderSafeTop() });
   },
 
   refresh() {

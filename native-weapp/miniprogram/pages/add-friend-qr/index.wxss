@@ -7,7 +7,7 @@
 
 .page-header {
   min-height: 120rpx;
-  padding: calc(env(safe-area-inset-top) + 20rpx) 32rpx 20rpx;
+  padding: var(--nav-top) 32rpx 20rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;

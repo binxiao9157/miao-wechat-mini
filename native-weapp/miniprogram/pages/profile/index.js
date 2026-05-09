@@ -4,6 +4,7 @@ const { contentStore } = require('../../services/content-store');
 const { del } = require('../../utils/request');
 const { clear } = require('../../utils/storage');
 const { safeBack, navigateTo, reLaunch } = require('../../utils/nav');
+const { getHeaderSafeTop } = require('../../utils/layout');
 
 const ADMIN_TAP_WINDOW_MS = 1800;
 
@@ -22,20 +23,27 @@ Page({
       entries: 0
     },
     unreadCount: 0,
-    messageLabel: '消息中心'
+    messageLabel: '消息中心',
+    headerSafeTop: ''
   },
 
   onLoad() {
     this.adminTapCount = 0;
+    this.setData({ headerSafeTop: getHeaderSafeTop() });
   },
 
   onShow() {
+    this.setData({ headerSafeTop: getHeaderSafeTop() });
     this.refresh();
     Promise.allSettled([
       contentStore.syncNotificationsFromServer(),
       contentStore.syncLettersFromServer(),
       contentStore.syncPointsFromServer()
     ]).finally(() => this.refresh());
+  },
+
+  onResize() {
+    this.setData({ headerSafeTop: getHeaderSafeTop() });
   },
 
   refresh() {

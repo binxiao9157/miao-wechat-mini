@@ -1,0 +1,21 @@
+<view class="player-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">{{cat.name || '猫咪播放'}}</text>
+  </view>
+
+  <view class="player">
+    <video wx:if="{{videoUrl}}" class="video" src="{{videoUrl}}" autoplay loop muted controls object-fit="contain"></video>
+    <image wx:else class="poster" src="{{cat.avatar}}" mode="aspectFill" />
+  </view>
+
+  <view class="actions">
+    <button
+      wx:for="{{actions}}"
+      wx:key="key"
+      class="chip {{item.active ? 'active' : ''}} {{item.generated ? '' : 'missing'}}"
+      data-action="{{item.key}}"
+      bindtap="selectAction"
+    >{{item.label}}</button>
+  </view>
+</view>

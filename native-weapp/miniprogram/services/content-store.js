@@ -162,6 +162,28 @@ const contentStore = {
     return next;
   },
 
+  async spendPoints(amount, reason) {
+    const cost = Number(amount || 0);
+    const points = this.getPoints();
+    if (cost <= 0) return points;
+    if ((points.total || 0) < cost) throw new Error('积分不足');
+    const next = {
+      ...points,
+      total: (points.total || 0) - cost,
+      history: [
+        { id: nowId('points'), type: 'spend', amount: -cost, reason: reason || '积分消耗', createdAt: Date.now() },
+        ...(points.history || [])
+      ].slice(0, 50)
+    };
+    this.savePoints(next);
+    try {
+      await post('/api/v1/points', { data: next }, { timeout: 15000 });
+    } catch (error) {
+      console.warn('[native] sync spent points failed:', error);
+    }
+    return next;
+  },
+
   getNotifications() {
     return parseJson(getItem(scopedKey('miao_notifications')), []);
   },

@@ -1,0 +1,17 @@
+<view class="join-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">加入好友</text>
+  </view>
+
+  <view class="form">
+    <input class="input" value="{{code}}" placeholder="输入好友邀请码" bindinput="onInput" />
+    <button class="miao-button-secondary action" loading="{{loading}}" bindtap="lookup">查看邀请</button>
+  </view>
+
+  <view wx:if="{{invite}}" class="invite-card">
+    <text class="title">{{invite.inviter.nickname || invite.ownerId}}</text>
+    <text class="desc">邀请你认识 {{invite.catName || '小猫'}}。</text>
+    <button class="miao-button-primary action" loading="{{loading}}" bindtap="accept">接受邀请</button>
+  </view>
+</view>

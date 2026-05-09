@@ -1,8 +1,8 @@
-const { get } = require('../utils/request');
 const { events } = require('../utils/event-bus');
 const { authService } = require('./auth');
 const { dataStore } = require('./data-store');
 const { contentStore } = require('./content-store');
+const { socialStore } = require('./social-store');
 
 class SyncManager {
   constructor() {
@@ -27,7 +27,7 @@ class SyncManager {
         contentStore.syncLettersFromServer(),
         contentStore.syncPointsFromServer(),
         contentStore.syncNotificationsFromServer(),
-        get('/api/v1/friends')
+        socialStore.syncFriends()
       ]);
       events.emit('data:synced', { timestamp: now, results });
     } finally {

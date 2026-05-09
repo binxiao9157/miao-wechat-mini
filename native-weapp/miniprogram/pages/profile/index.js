@@ -45,8 +45,16 @@ Page({
     navigateTo('/pages/switch-companion/index');
   },
 
+  goEditProfile() {
+    navigateTo('/pages/edit-profile/index');
+  },
+
   goHistory() {
     navigateTo('/pages/cat-history/index');
+  },
+
+  goMilestone() {
+    navigateTo('/pages/accompany-milestone/index');
   },
 
   goCreate() {
@@ -69,8 +77,32 @@ Page({
     navigateTo('/pages/notifications/index');
   },
 
+  goNotificationList() {
+    navigateTo('/pages/notification-list/index');
+  },
+
   goPrivacy() {
     navigateTo('/pages/privacy-settings/index');
+  },
+
+  goFriends() {
+    navigateTo('/pages/scan-friend/index');
+  },
+
+  goInvite() {
+    navigateTo('/pages/add-friend-qr/index');
+  },
+
+  goFeedback() {
+    navigateTo('/pages/feedback/index');
+  },
+
+  goPrivacyPolicy() {
+    navigateTo('/pages/privacy-policy/index');
+  },
+
+  goTerms() {
+    navigateTo('/pages/terms-of-service/index');
   },
 
   clearCache() {

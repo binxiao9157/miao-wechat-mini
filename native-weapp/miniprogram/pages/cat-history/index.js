@@ -49,7 +49,7 @@ Page({
   openCat(event) {
     const { id } = event.currentTarget.dataset;
     dataStore.saveActiveCatId(id);
-    reLaunch('/pages/home/index');
+    navigateTo(`/pages/cat-player/index?id=${encodeURIComponent(id)}`);
   },
 
   deleteCat(event) {

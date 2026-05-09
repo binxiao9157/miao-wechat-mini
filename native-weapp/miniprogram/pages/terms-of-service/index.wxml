@@ -1,0 +1,12 @@
+<view class="doc-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">服务条款</text>
+  </view>
+  <scroll-view class="doc" scroll-y>
+    <text class="title">Miao 服务条款</text>
+    <text class="p">Miao 提供 AI 猫咪形象生成、视频生成、日记、时光信和好友互动等功能。</text>
+    <text class="p">请勿上传违法、侵权或不适宜的内容。AI 生成结果可能存在不稳定性，请以实际生成结果为准。</text>
+    <text class="p">继续使用本服务即表示你理解并接受当前功能仍可能迭代优化。</text>
+  </scroll-view>
+</view>

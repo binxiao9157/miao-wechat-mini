@@ -1,6 +1,6 @@
 const { authService } = require('../../services/auth');
 const { routeAfterAuth } = require('../../services/session-router');
-const { safeBack } = require('../../utils/nav');
+const { safeBack, navigateTo } = require('../../utils/nav');
 
 Page({
   data: {
@@ -30,6 +30,14 @@ Page({
 
   goBack() {
     safeBack('/pages/login/index');
+  },
+
+  goPrivacyPolicy() {
+    navigateTo('/pages/privacy-policy/index');
+  },
+
+  goTerms() {
+    navigateTo('/pages/terms-of-service/index');
   },
 
   validate() {

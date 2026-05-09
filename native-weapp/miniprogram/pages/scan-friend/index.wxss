@@ -1,0 +1,88 @@
+.friends-page {
+  min-height: 100vh;
+  padding: 56rpx 36rpx;
+  background: #FFF9F5;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+}
+
+.back {
+  width: 72rpx;
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.header-title {
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.actions {
+  margin-top: 32rpx;
+}
+
+.action {
+  margin-top: 18rpx;
+}
+
+.section-title {
+  display: block;
+  margin-top: 42rpx;
+  color: #633E1D;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.friend-item,
+.diary-item {
+  margin-top: 18rpx;
+  padding: 22rpx;
+  border-radius: 22rpx;
+  background: #FFFFFF;
+  box-shadow: 0 12rpx 28rpx rgba(99, 62, 29, 0.06);
+}
+
+.friend-item {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.avatar {
+  width: 86rpx;
+  height: 86rpx;
+  border-radius: 43rpx;
+  background: #FEF6F0;
+}
+
+.friend-info {
+  flex: 1;
+}
+
+.name {
+  display: block;
+  color: #633E1D;
+  font-size: 28rpx;
+  font-weight: 900;
+}
+
+.meta,
+.diary {
+  display: block;
+  margin-top: 8rpx;
+  color: #6E5844;
+  font-size: 25rpx;
+  line-height: 1.55;
+}
+
+.empty {
+  margin-top: 18rpx;
+  color: #8E8E8E;
+  font-size: 26rpx;
+}

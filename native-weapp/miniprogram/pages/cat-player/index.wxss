@@ -1,0 +1,64 @@
+.player-page {
+  min-height: 100vh;
+  padding: 56rpx 36rpx;
+  background: #111111;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+}
+
+.back {
+  width: 72rpx;
+  color: #FFFFFF;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.header-title {
+  color: #FFFFFF;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.player {
+  margin-top: 36rpx;
+  height: 920rpx;
+  border-radius: 28rpx;
+  overflow: hidden;
+  background: #000000;
+}
+
+.video,
+.poster {
+  width: 100%;
+  height: 100%;
+}
+
+.actions {
+  margin-top: 28rpx;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14rpx;
+}
+
+.chip {
+  height: 72rpx;
+  padding: 0;
+  border-radius: 36rpx;
+  background: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+  font-size: 25rpx;
+  font-weight: 800;
+  line-height: 72rpx;
+}
+
+.chip.active {
+  background: #E89F71;
+}
+
+.chip.missing {
+  color: rgba(255, 255, 255, 0.42);
+}

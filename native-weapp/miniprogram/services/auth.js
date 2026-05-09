@@ -1,4 +1,4 @@
-const { request } = require('../utils/request');
+const { request, patch } = require('../utils/request');
 const { getItem, setItem, removeItem } = require('../utils/storage');
 const { STORAGE_KEYS } = require('../types/models');
 
@@ -145,6 +145,35 @@ const authService = {
     const user = normalizeUser(res.data.user);
     persistAuth(token, user);
     return { ...user, isNewUser: res.data.isNewUser };
+  },
+
+  async updateProfile(profile = {}) {
+    const res = await patch('/api/v1/me', profile, { timeout: 15000 });
+    const user = normalizeUser(res.data && res.data.user);
+    persistAuth(this.getToken() || '', user);
+    return user;
+  },
+
+  async setPassword(currentPassword, password) {
+    const res = await request({
+      url: '/api/v1/auth/set-password',
+      method: 'POST',
+      data: { currentPassword, password },
+      timeout: 15000
+    });
+    const user = this.getCachedUser();
+    if (user) persistAuth(this.getToken() || '', { ...user, passwordSet: true });
+    return res.data;
+  },
+
+  async resetPassword(username, newPassword) {
+    const res = await request({
+      url: '/api/v1/auth/reset-password',
+      method: 'POST',
+      data: { username, newPassword },
+      timeout: 15000
+    });
+    return res.data;
   },
 
   logout() {

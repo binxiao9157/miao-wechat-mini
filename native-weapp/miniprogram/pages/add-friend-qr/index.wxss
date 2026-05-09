@@ -1,0 +1,59 @@
+.invite-page {
+  min-height: 100vh;
+  padding: 56rpx 36rpx;
+  background: #FFF9F5;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+}
+
+.back {
+  width: 72rpx;
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.header-title {
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.invite-card {
+  margin-top: 60rpx;
+  padding: 42rpx 30rpx;
+  border-radius: 28rpx;
+  background: #FFFFFF;
+  text-align: center;
+  box-shadow: 0 16rpx 36rpx rgba(99, 62, 29, 0.08);
+}
+
+.label {
+  color: #8E8E8E;
+  font-size: 26rpx;
+}
+
+.code {
+  display: block;
+  margin-top: 24rpx;
+  color: #633E1D;
+  font-size: 50rpx;
+  font-weight: 900;
+  word-break: break-all;
+}
+
+.desc {
+  display: block;
+  margin-top: 26rpx;
+  color: #6E5844;
+  font-size: 27rpx;
+  line-height: 1.6;
+}
+
+.action {
+  margin-top: 28rpx;
+}

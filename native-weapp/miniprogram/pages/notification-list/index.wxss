@@ -1,0 +1,59 @@
+.message-page {
+  min-height: 100vh;
+  padding: 56rpx 36rpx;
+  background: #FFF9F5;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+}
+
+.back {
+  width: 72rpx;
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.header-title {
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.list {
+  height: calc(100vh - 150rpx);
+  margin-top: 32rpx;
+}
+
+.item {
+  margin-bottom: 18rpx;
+  padding: 26rpx;
+  border-radius: 22rpx;
+  background: #FFFFFF;
+  box-shadow: 0 12rpx 28rpx rgba(99, 62, 29, 0.06);
+}
+
+.title {
+  display: block;
+  color: #633E1D;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.content {
+  display: block;
+  margin-top: 10rpx;
+  color: #6E5844;
+  font-size: 26rpx;
+  line-height: 1.55;
+}
+
+.empty {
+  padding-top: 160rpx;
+  color: #8E8E8E;
+  text-align: center;
+  font-size: 28rpx;
+}

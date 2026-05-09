@@ -1,0 +1,28 @@
+<view class="friends-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">好友</text>
+  </view>
+
+  <view class="actions">
+    <button class="miao-button-primary action" bindtap="invite">邀请好友</button>
+    <button class="miao-button-secondary action" bindtap="join">输入邀请码</button>
+    <button class="miao-button-secondary action" bindtap="scan">扫码加入</button>
+  </view>
+
+  <text class="section-title">好友列表</text>
+  <view wx:for="{{friends}}" wx:key="friendId" class="friend-item">
+    <image class="avatar" src="{{item.avatar || item.catAvatar}}" mode="aspectFill" />
+    <view class="friend-info">
+      <text class="name">{{item.nickname || item.friendId}}</text>
+      <text class="meta">{{item.catName || '小猫'}}</text>
+    </view>
+  </view>
+  <view wx:if="{{!friends.length}}" class="empty">还没有好友</view>
+
+  <text class="section-title">好友日记</text>
+  <view wx:for="{{diaries}}" wx:key="id" class="diary-item">
+    <text class="name">{{item.authorNickname || item.authorId}}</text>
+    <text class="diary">{{item.content}}</text>
+  </view>
+</view>

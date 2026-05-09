@@ -1,0 +1,44 @@
+.doc-page {
+  min-height: 100vh;
+  padding: 56rpx 36rpx;
+  background: #FFF9F5;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+}
+
+.back {
+  width: 72rpx;
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.header-title {
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.doc {
+  height: calc(100vh - 150rpx);
+  margin-top: 32rpx;
+}
+
+.title {
+  display: block;
+  color: #633E1D;
+  font-size: 42rpx;
+  font-weight: 900;
+}
+
+.p {
+  display: block;
+  margin-top: 28rpx;
+  color: #6E5844;
+  font-size: 28rpx;
+  line-height: 1.75;
+}

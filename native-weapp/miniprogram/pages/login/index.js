@@ -79,5 +79,17 @@ Page({
 
   goRegister() {
     navigateTo('/pages/register/index');
+  },
+
+  goResetPassword() {
+    navigateTo('/pages/reset-password/index');
+  },
+
+  goPrivacyPolicy() {
+    navigateTo('/pages/privacy-policy/index');
+  },
+
+  goTerms() {
+    navigateTo('/pages/terms-of-service/index');
   }
 });

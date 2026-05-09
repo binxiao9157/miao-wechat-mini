@@ -9,6 +9,7 @@
     <text class="total-value">{{points.total || 0}}</text>
     <text class="total-note">每日登录会自动获得 10 积分。</text>
   </view>
+  <button class="miao-button-primary redeem" bindtap="redeemCat">100 积分兑换新猫咪</button>
 
   <scroll-view class="history" scroll-y>
     <view wx:for="{{points.history}}" wx:key="id" class="history-item">

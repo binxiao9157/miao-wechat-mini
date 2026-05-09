@@ -1,0 +1,24 @@
+<view class="milestone-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">陪伴里程碑</text>
+  </view>
+
+  <view class="hero">
+    <text class="cat-name">{{catName}}</text>
+    <text class="days">{{days}} 天</text>
+    <text class="subtitle">你们已经一起走过这些小小节点。</text>
+  </view>
+
+  <view class="stats">
+    <view class="stat"><text class="value">{{diaryCount}}</text><text class="label">日记</text></view>
+    <view class="stat"><text class="value">{{videoCount}}</text><text class="label">视频</text></view>
+  </view>
+
+  <view class="list">
+    <view wx:for="{{milestones}}" wx:key="label" class="item {{item.done ? 'done' : ''}}">
+      <text class="mark">{{item.done ? '✓' : '○'}}</text>
+      <text class="text">{{item.label}}</text>
+    </view>
+  </view>
+</view>

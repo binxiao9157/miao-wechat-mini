@@ -1,0 +1,12 @@
+<view class="doc-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">隐私政策</text>
+  </view>
+  <scroll-view class="doc" scroll-y>
+    <text class="title">Miao 隐私政策</text>
+    <text class="p">我们会保存账号资料、猫咪资料、日记、时光信、积分和好友关系，用于提供 AI 猫咪陪伴体验。</text>
+    <text class="p">上传的猫咪照片和生成的视频会发送到后端服务与 AI 服务，用于完成形象和动作生成。</text>
+    <text class="p">你可以在个人中心清理缓存、退出登录，或通过反馈入口联系我们处理账号与数据问题。</text>
+  </scroll-view>
+</view>

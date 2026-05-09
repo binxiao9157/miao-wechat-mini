@@ -52,8 +52,12 @@
 }
 
 .history {
-  height: calc(100vh - 430rpx);
+  height: calc(100vh - 540rpx);
   margin-top: 28rpx;
+}
+
+.redeem {
+  margin-top: 24rpx;
 }
 
 .history-item {

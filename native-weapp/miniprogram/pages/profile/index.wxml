@@ -28,14 +28,22 @@
   </view>
 
   <view class="menu">
+    <button class="menu-item" bindtap="goEditProfile">个人资料设置</button>
     <button class="menu-item" bindtap="goSwitch">切换猫咪</button>
     <button class="menu-item" bindtap="goHistory">猫咪历史</button>
+    <button class="menu-item" bindtap="goMilestone">陪伴里程碑</button>
     <button class="menu-item" bindtap="goCreate">生成新猫咪</button>
     <button class="menu-item" bindtap="goDiary">日记</button>
     <button class="menu-item" bindtap="goLetters">时光信</button>
     <button class="menu-item" bindtap="goPoints">积分</button>
+    <button class="menu-item" bindtap="goFriends">好友</button>
+    <button class="menu-item" bindtap="goInvite">邀请好友</button>
+    <button class="menu-item" bindtap="goNotificationList">消息中心</button>
     <button class="menu-item" bindtap="goNotifications">通知</button>
     <button class="menu-item" bindtap="goPrivacy">隐私设置</button>
+    <button class="menu-item" bindtap="goFeedback">意见反馈</button>
+    <button class="menu-item" bindtap="goPrivacyPolicy">隐私政策</button>
+    <button class="menu-item" bindtap="goTerms">服务条款</button>
     <button class="menu-item" bindtap="clearCache">清除缓存</button>
   </view>
 

@@ -1,5 +1,5 @@
 const { contentStore } = require('../../services/content-store');
-const { safeBack } = require('../../utils/nav');
+const { safeBack, navigateTo } = require('../../utils/nav');
 
 function formatTime(timestamp) {
   const date = new Date(timestamp || Date.now());
@@ -38,5 +38,13 @@ Page({
 
   goBack() {
     safeBack('/pages/profile/index');
+  },
+
+  redeemCat() {
+    if ((this.data.points.total || 0) < 100) {
+      wx.showToast({ title: '积分不足', icon: 'none' });
+      return;
+    }
+    navigateTo('/pages/upload-material/index?isRedemption=1&redemptionAmount=100');
   }
 });

@@ -1,6 +1,7 @@
 const { chooseImage, compressImage } = require('../../utils/media');
 const { safeBack, navigateTo } = require('../../utils/nav');
 const { dataStore } = require('../../services/data-store');
+const { contentStore } = require('../../services/content-store');
 const { IMAGE_PROMPTS, submitImageTask, pollImageResult } = require('../../services/volcano');
 
 Page({
@@ -9,6 +10,10 @@ Page({
     name: '',
     generating: false,
     error: ''
+  },
+
+  onLoad(options = {}) {
+    this.redemptionAmount = Number(options.redemptionAmount || 0);
   },
 
   async choosePhoto() {
@@ -47,6 +52,9 @@ Page({
         color: '上传照片',
         avatar: imageUrl
       });
+      if (this.redemptionAmount > 0) {
+        await contentStore.spendPoints(this.redemptionAmount, '兑换新猫咪');
+      }
       navigateTo('/pages/generation-progress/index');
     } catch (error) {
       this.setData({ error: error.message || '形象生成失败，请重试' });

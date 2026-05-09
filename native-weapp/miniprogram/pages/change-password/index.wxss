@@ -1,0 +1,47 @@
+.form-page {
+  min-height: 100vh;
+  padding: 56rpx 36rpx;
+  background: #FFF9F5;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+}
+
+.back {
+  width: 72rpx;
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.header-title {
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.form {
+  margin-top: 38rpx;
+  padding: 28rpx;
+  border-radius: 24rpx;
+  background: #FFFFFF;
+  box-shadow: 0 16rpx 36rpx rgba(99, 62, 29, 0.08);
+}
+
+.input {
+  width: 100%;
+  height: 92rpx;
+  margin-bottom: 22rpx;
+  padding: 0 26rpx;
+  border-radius: 20rpx;
+  background: #FEF6F0;
+  color: #633E1D;
+  font-size: 28rpx;
+}
+
+.submit {
+  margin-top: 8rpx;
+}

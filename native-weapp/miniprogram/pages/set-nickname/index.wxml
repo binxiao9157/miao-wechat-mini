@@ -1,0 +1,7 @@
+<view class="nickname-page">
+  <text class="title">怎么称呼你？</text>
+  <text class="subtitle">设置一个昵称，让猫咪知道你是谁。</text>
+  <input class="input" maxlength="12" placeholder="输入昵称" bindinput="onInput" />
+  <button class="miao-button-primary action" loading="{{saving}}" bindtap="submit">保存昵称</button>
+  <button class="miao-button-secondary action" bindtap="skip">稍后再说</button>
+</view>

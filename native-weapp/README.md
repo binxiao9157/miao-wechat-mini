@@ -10,6 +10,8 @@ remains in `src/` and is not modified by this native scaffold.
 - Native app shell
 - Welcome, login, register, empty-cat, upload, generation progress, home, switch,
   history, profile, diary, time letters, points, notifications, and privacy pages
+- Account profile, password reset/change, feedback, legal document, friend invite/join,
+  cat player, milestone, and message center pages
 - Shared API config
 - Promise wrappers for request, upload, storage, navigation, and events
 - Auth and sync service skeletons wired to the existing `/api/v1` backend
@@ -26,5 +28,8 @@ remains in `src/` and is not modified by this native scaffold.
   in place.
 - Phase 4: diary, time letters, points, notifications, privacy settings, and sync cache
   foundations are in place.
-- Phase 5 next: run WeChat DevTools/manual QA and decide whether to deepen social/friend
-  workflows beyond the native migration baseline.
+- Phase 5: account settings, friend invite/join, friend diary feed, cat player,
+  milestones, feedback, legal documents, message center, and points redemption are in
+  place.
+- Phase 6 next: run WeChat DevTools/manual QA and polish visual parity against the
+  existing Taro version.

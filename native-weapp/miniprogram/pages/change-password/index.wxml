@@ -1,0 +1,12 @@
+<view class="form-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">修改密码</text>
+  </view>
+  <view class="form">
+    <input class="input" password placeholder="当前密码，可为空" data-field="currentPassword" bindinput="onInput" />
+    <input class="input" password placeholder="新密码" data-field="password" bindinput="onInput" />
+    <input class="input" password placeholder="确认新密码" data-field="confirmPassword" bindinput="onInput" />
+    <button class="miao-button-primary submit" loading="{{saving}}" bindtap="save">保存密码</button>
+  </view>
+</view>

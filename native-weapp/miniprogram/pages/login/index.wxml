@@ -18,7 +18,10 @@
       <view class="checkbox {{agreed ? 'checked' : ''}}">
         <text wx:if="{{agreed}}">✓</text>
       </view>
-      <text class="agreement-text">我已阅读并同意 Miao 服务条款和隐私政策</text>
+      <text class="agreement-text">我已阅读并同意 </text>
+      <text class="agreement-link" catchtap="goTerms">服务条款</text>
+      <text class="agreement-text"> 和 </text>
+      <text class="agreement-link" catchtap="goPrivacyPolicy">隐私政策</text>
     </view>
 
     <button class="miao-button-primary action" loading="{{loading}}" bindtap="handlePasswordLogin">
@@ -28,5 +31,6 @@
       微信登录
     </button>
     <button class="link-button" bindtap="goRegister">创建新账号</button>
+    <button class="link-button" bindtap="goResetPassword">忘记密码</button>
   </view>
 </view>

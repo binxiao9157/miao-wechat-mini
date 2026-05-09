@@ -1,0 +1,15 @@
+<view class="form-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">个人资料</text>
+  </view>
+
+  <view class="form">
+    <text class="label">昵称</text>
+    <input class="input" value="{{nickname}}" maxlength="12" placeholder="输入昵称" bindinput="onNicknameInput" />
+    <text class="label">头像 URL</text>
+    <input class="input" value="{{avatar}}" placeholder="可选，粘贴头像地址" bindinput="onAvatarInput" />
+    <button class="miao-button-primary submit" loading="{{saving}}" bindtap="save">保存资料</button>
+    <button class="miao-button-secondary submit" bindtap="changePassword">修改密码</button>
+  </view>
+</view>

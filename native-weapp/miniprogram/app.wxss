@@ -20,6 +20,10 @@ textarea {
   background: #FFF9F5;
 }
 
+.miao-tab-safe {
+  padding-bottom: calc(166rpx + env(safe-area-inset-bottom));
+}
+
 .miao-button-primary {
   min-height: 96rpx;
   border-radius: 48rpx;

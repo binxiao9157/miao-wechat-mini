@@ -1,6 +1,6 @@
 .diary-page {
   min-height: 100vh;
-  padding: 56rpx 36rpx 166rpx;
+  padding: 56rpx 36rpx calc(166rpx + env(safe-area-inset-bottom));
   background: #FFF9F5;
 }
 

@@ -41,6 +41,17 @@
   line-height: 1.6;
 }
 
+.redemption {
+  display: inline-flex;
+  margin-top: 18rpx;
+  padding: 8rpx 18rpx;
+  border-radius: 20rpx;
+  background: #FEF6F0;
+  color: #E89F71;
+  font-size: 24rpx;
+  font-weight: 900;
+}
+
 .picker {
   margin-top: 48rpx;
   width: 100%;

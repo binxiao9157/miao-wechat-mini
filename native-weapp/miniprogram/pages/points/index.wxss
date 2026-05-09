@@ -1,6 +1,6 @@
 .points-page {
   min-height: 100vh;
-  padding: 56rpx 36rpx 166rpx;
+  padding: 56rpx 36rpx calc(166rpx + env(safe-area-inset-bottom));
   background: #FFF9F5;
 }
 
@@ -89,6 +89,10 @@
   color: #E89F71;
   font-size: 32rpx;
   font-weight: 900;
+}
+
+.amount.spend {
+  color: #8E8E8E;
 }
 
 .empty {

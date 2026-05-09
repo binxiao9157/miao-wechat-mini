@@ -9,11 +9,17 @@ Page({
     imagePath: '',
     name: '',
     generating: false,
-    error: ''
+    error: '',
+    isRedemption: false,
+    redemptionText: ''
   },
 
   onLoad(options = {}) {
     this.redemptionAmount = Number(options.redemptionAmount || 0);
+    this.setData({
+      isRedemption: this.redemptionAmount > 0,
+      redemptionText: this.redemptionAmount > 0 ? `${this.redemptionAmount} 积分兑换` : ''
+    });
   },
 
   async choosePhoto() {
@@ -40,21 +46,25 @@ Page({
       this.setData({ error: '请输入猫咪名字并上传照片' });
       return;
     }
+    if (this.redemptionAmount > 0 && (contentStore.getPoints().total || 0) < this.redemptionAmount) {
+      this.setData({ error: '积分不足，无法兑换新猫咪' });
+      return;
+    }
 
     this.setData({ generating: true, error: '' });
     try {
       const prompt = IMAGE_PROMPTS.anchor('未知', '上传照片');
       const task = await submitImageTask(prompt, this.data.imagePath);
       const imageUrl = await pollImageResult(task.id, task.image_url);
+      if (this.redemptionAmount > 0) {
+        await contentStore.spendPoints(this.redemptionAmount, '兑换新猫咪');
+      }
       await dataStore.createDraftCat({
         name,
         breed: 'AI 生成',
         color: '上传照片',
         avatar: imageUrl
       });
-      if (this.redemptionAmount > 0) {
-        await contentStore.spendPoints(this.redemptionAmount, '兑换新猫咪');
-      }
       navigateTo('/pages/generation-progress/index');
     } catch (error) {
       this.setData({ error: error.message || '形象生成失败，请重试' });

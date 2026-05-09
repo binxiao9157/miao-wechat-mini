@@ -30,7 +30,9 @@ Page({
         ...points,
         history: (points.history || []).map((item) => ({
           ...item,
-          timeLabel: formatTime(item.createdAt || item.timestamp)
+          timeLabel: formatTime(item.createdAt || item.timestamp),
+          amountText: `${Number(item.amount || 0) >= 0 ? '+' : ''}${item.amount || 0}`,
+          kind: Number(item.amount || 0) >= 0 ? 'earn' : 'spend'
         }))
       }
     });

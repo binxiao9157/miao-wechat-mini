@@ -2,7 +2,7 @@
   position: fixed;
   left: 24rpx;
   right: 24rpx;
-  bottom: 24rpx;
+  bottom: calc(24rpx + env(safe-area-inset-bottom));
   z-index: 50;
   height: 104rpx;
   padding: 10rpx;

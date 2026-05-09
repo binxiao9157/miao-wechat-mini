@@ -14,6 +14,7 @@
   >
     <video
       wx:if="{{currentVideo && !videoError}}"
+      id="catVideo-{{videoRetryKey}}"
       class="cat-video"
       src="{{currentVideo}}"
       poster="{{poster}}"
@@ -28,6 +29,10 @@
       binderror="handleVideoError"
     ></video>
     <image wx:else class="cat-avatar" src="{{poster}}" mode="aspectFill" />
+    <view wx:if="{{videoError}}" class="video-error">
+      <text class="video-error-title">视频暂时无法播放</text>
+      <button class="retry-button" bindtap="retryVideo">重试</button>
+    </view>
     <view class="bubble" wx:if="{{bubbleText}}">{{bubbleText}}</view>
     <view class="cat-info-panel">
       <text class="title">{{cat.name || 'Miao 首页'}}</text>

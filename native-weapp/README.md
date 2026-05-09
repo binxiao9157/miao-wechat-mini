@@ -5,6 +5,8 @@ This directory is the native WeChat Mini Program migration track.
 Open `native-weapp/project.config.json` in WeChat DevTools. The existing Taro app
 remains in `src/` and is not modified by this native scaffold.
 
+Use `docs/qa-checklist.md` for WeChat DevTools and real-device verification.
+
 ## Current scope
 
 - Native app shell
@@ -34,5 +36,7 @@ remains in `src/` and is not modified by this native scaffold.
   place.
 - Phase 6: native bottom navigation and stronger static checks for routes/components are
   in place.
-- Phase 7 next: run WeChat DevTools/manual QA and polish visual parity against the
-  existing Taro version on device.
+- Phase 6B: pre-device QA hardening for safe-area navigation, video retry, invite copy,
+  invite deep links, and points redemption consistency is in place.
+- Phase 7 next: run WeChat DevTools/manual QA with the checklist and polish visual parity
+  against the existing Taro version on device.

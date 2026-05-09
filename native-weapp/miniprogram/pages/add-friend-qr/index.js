@@ -30,6 +30,17 @@ Page({
   copyCode() {
     const code = this.data.invite && this.data.invite.code;
     if (!code) return;
-    wx.setClipboardData({ data: code });
+    wx.setClipboardData({
+      data: code,
+      success: () => wx.showToast({ title: '已复制', icon: 'success' })
+    });
+  },
+
+  onShareAppMessage() {
+    const code = this.data.invite && this.data.invite.code;
+    return {
+      title: '来 Miao 认识我的猫咪',
+      path: code ? `/pages/join-friend/index?invite=${encodeURIComponent(code)}` : '/pages/home/index'
+    };
   }
 });

@@ -11,7 +11,7 @@ Page({
   onLoad(options = {}) {
     if (options.invite) {
       this.setData({ code: options.invite });
-      this.lookup();
+      this.lookup(options.invite);
     }
   },
 
@@ -23,12 +23,13 @@ Page({
     this.setData({ code: event.detail.value.trim() });
   },
 
-  async lookup() {
-    if (!this.data.code) return;
+  async lookup(codeOverride) {
+    const code = String(codeOverride || this.data.code || '').trim();
+    if (!code) return;
     this.setData({ loading: true });
     try {
-      const invite = await socialStore.getInvite(this.data.code);
-      this.setData({ invite });
+      const invite = await socialStore.getInvite(code);
+      this.setData({ invite, code });
     } catch (error) {
       wx.showToast({ title: error.message || '邀请码无效', icon: 'none' });
     } finally {
@@ -37,10 +38,11 @@ Page({
   },
 
   async accept() {
-    if (!this.data.code) return;
+    const code = String(this.data.code || '').trim();
+    if (!code) return;
     this.setData({ loading: true });
     try {
-      await socialStore.acceptInvite(this.data.code);
+      await socialStore.acceptInvite(code);
       wx.showToast({ title: '已添加好友', icon: 'success' });
       safeBack('/pages/profile/index');
     } catch (error) {

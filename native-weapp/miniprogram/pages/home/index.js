@@ -24,6 +24,7 @@ Page({
     actionItems: [],
     bubbleText: '',
     videoError: false,
+    videoRetryKey: 0,
     statusText: '已进入原生首页。',
     canContinueGeneration: false
   },
@@ -154,5 +155,13 @@ Page({
 
   handleVideoError() {
     this.setData({ videoError: true, statusText: '视频暂时无法播放，请稍后重试。' });
+  },
+
+  retryVideo() {
+    this.setData({
+      videoError: false,
+      videoRetryKey: this.data.videoRetryKey + 1,
+      statusText: '正在重新加载视频...'
+    });
   }
 });

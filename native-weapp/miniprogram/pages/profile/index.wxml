@@ -1,8 +1,8 @@
 <view class="profile-page">
   <view class="header">
     <view class="header-title">
-      <text class="title">我的</text>
-      <text class="subtitle">MIAO PROFILE</text>
+      <text class="title">Miao</text>
+      <text class="subtitle">MIAO SANCTUARY</text>
     </view>
     <view class="header-actions">
       <button class="header-btn" bindtap="goNotificationList">
@@ -25,21 +25,28 @@
   </view>
 
   <view class="stats-row">
-    <view class="stat-card">
-      <text class="stat-value">{{stats.catCount}}</text>
-      <text class="stat-label">猫咪</text>
-    </view>
-    <view class="stat-card">
-      <text class="stat-value">{{stats.videoCount}}</text>
-      <text class="stat-label">视频</text>
-    </view>
-    <view class="stat-card">
+    <view class="stat-card" bindtap="goMilestone">
+      <image class="stat-icon" src="/assets/profile-icons/calendar-stat.png" mode="aspectFit"></image>
       <text class="stat-value">{{stats.days}}</text>
       <text class="stat-label">陪伴天数</text>
     </view>
+    <view class="stat-card" bindtap="goDiary">
+      <image class="stat-icon" src="/assets/profile-icons/image-gray.png" mode="aspectFit"></image>
+      <text class="stat-value">{{stats.entries}}</text>
+      <text class="stat-label">记录瞬间</text>
+    </view>
   </view>
 
-  <view class="quick-grid">
+  <view class="cat-entry" bindtap="goSwitch">
+    <view class="cat-entry-icon"><image src="/assets/profile-icons/heart-cat.png" mode="aspectFit"></image></view>
+    <view class="cat-entry-text">
+      <text class="cat-entry-label">我的伙伴</text>
+      <text class="cat-entry-value">当前：{{cat.name || '未选择'}}</text>
+    </view>
+    <text class="cat-entry-arrow">›</text>
+  </view>
+
+  <view class="quick-grid hidden-quick-grid">
     <button class="quick-item" bindtap="goHistory"><view class="quick-icon"><image class="quick-icon-img" src="/assets/profile-icons/play-white.png" mode="aspectFit" /></view><text>猫咪历史</text></button>
     <button class="quick-item" bindtap="goDiary"><view class="quick-icon"><image class="quick-icon-img" src="/assets/profile-icons/bookopen-active.png" mode="aspectFit" /></view><text>日记</text></button>
     <button class="quick-item" bindtap="goPoints"><view class="quick-icon"><image class="quick-icon-img" src="/assets/profile-icons/coins-primary.png" mode="aspectFit" /></view><text>积分</text></button>

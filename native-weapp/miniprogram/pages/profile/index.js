@@ -18,7 +18,8 @@ Page({
     stats: {
       days: 0,
       videoCount: 0,
-      catCount: 0
+      catCount: 0,
+      entries: 0
     },
     unreadCount: 0,
     messageLabel: '消息中心'
@@ -51,7 +52,8 @@ Page({
       cat,
       stats: {
         ...catStats,
-        catCount: dataStore.getCats().length
+        catCount: dataStore.getCats().length,
+        entries: contentStore.getDiaries().length
       },
       unreadCount,
       messageLabel: unreadCount > 0

@@ -1,9 +1,40 @@
 const TABS = [
-  { key: 'home', label: '首页', icon: '⌂', url: '/pages/home/index' },
-  { key: 'diary', label: '日记', icon: '✎', url: '/pages/diary/index' },
-  { key: 'letters', label: '时光信', icon: '✉', url: '/pages/time-letters/index' },
-  { key: 'points', label: '积分', icon: '◆', url: '/pages/points/index' },
-  { key: 'profile', label: '我的', icon: '◉', url: '/pages/profile/index' }
+  {
+    key: 'diary',
+    label: '日志',
+    url: '/pages/diary/index',
+    activeIcon: '/assets/profile-icons/bookopen-active.png',
+    inactiveIcon: '/assets/profile-icons/bookopen-inactive.png'
+  },
+  {
+    key: 'letters',
+    label: '时光',
+    url: '/pages/time-letters/index',
+    activeIcon: '/assets/profile-icons/mail-active.png',
+    inactiveIcon: '/assets/profile-icons/mail-inactive.png'
+  },
+  {
+    key: 'home',
+    label: '首页',
+    url: '/pages/home/index',
+    center: true,
+    activeIcon: '/assets/profile-icons/home-white.png',
+    inactiveIcon: '/assets/profile-icons/home-white.png'
+  },
+  {
+    key: 'points',
+    label: '积分',
+    url: '/pages/points/index',
+    activeIcon: '/assets/profile-icons/star-active.png',
+    inactiveIcon: '/assets/profile-icons/star-inactive.png'
+  },
+  {
+    key: 'profile',
+    label: 'MIAO',
+    url: '/pages/profile/index',
+    activeIcon: '/assets/profile-icons/user-active.png',
+    inactiveIcon: '/assets/profile-icons/user-inactive.png'
+  }
 ];
 
 Component({
@@ -35,7 +66,8 @@ Component({
       this.setData({
         tabs: TABS.map((item) => ({
           ...item,
-          active: item.key === this.properties.active
+          active: item.key === this.properties.active,
+          iconSrc: item.key === this.properties.active ? item.activeIcon : item.inactiveIcon
         }))
       });
     },

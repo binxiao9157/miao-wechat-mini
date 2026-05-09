@@ -32,10 +32,14 @@
     <view wx:if="{{videoError}}" class="video-error-overlay">
       <text class="video-error-title">视频暂时无法播放</text>
       <text class="video-error-desc">网络波动，请稍后重试</text>
-      <button class="retry-btn" bindtap="retryVideo">重试播放</button>
+      <button class="retry-btn" bindtap="retryVideo"><text class="retry-btn-text">重试播放</text></button>
     </view>
-    <view class="bubble" wx:if="{{bubbleText}}">{{bubbleText}}</view>
-    <view class="points-toast" wx:if="{{pointsToast}}">{{pointsToast}}</view>
+    <view class="bubble frosted-glass-bubble bubble-enter" wx:if="{{bubbleText}}">
+      <view class="bubble-glow"></view>
+      <view class="bubble-body"><text class="bubble-text">{{bubbleText}}</text></view>
+      <view class="bubble-border-overlay"></view>
+    </view>
+    <view class="points-toast" wx:if="{{pointsToast}}"><text class="points-toast-text">{{pointsToast}}</text></view>
   </view>
 
   <view wx:if="{{cat}}" class="action-bar">
@@ -45,7 +49,7 @@
 
   <view wx:if="{{!cat}}" class="no-cat-screen">
     <text class="no-cat-text">还没有猫咪</text>
-    <button class="add-cat-btn" bindtap="createCat">领养一只</button>
+    <button class="add-cat-btn" bindtap="createCat"><text class="add-cat-btn-text">领养一只</text></button>
   </view>
 
   <native-tab-bar active="home" />

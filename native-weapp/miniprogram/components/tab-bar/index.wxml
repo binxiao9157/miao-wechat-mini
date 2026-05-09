@@ -1,13 +1,16 @@
-<view class="tab-shell">
+<view class="tab-shell {{active === 'home' ? 'on-home' : ''}}">
   <view
     wx:for="{{tabs}}"
     wx:key="key"
-    class="tab-item {{item.key === 'home' ? 'center' : ''}} {{item.active ? 'active' : ''}}"
+    class="tab-item {{item.center ? 'center' : ''}} {{item.active ? 'active' : ''}}"
     data-url="{{item.url}}"
     data-key="{{item.key}}"
     bindtap="go"
   >
-    <text class="tab-icon">{{item.icon}}</text>
+    <view class="tab-icon">
+      <image class="tab-icon-img" src="{{item.iconSrc}}" mode="aspectFit"></image>
+    </view>
     <text class="tab-label">{{item.label}}</text>
+    <view wx:if="{{item.active}}" class="tab-dot"></view>
   </view>
 </view>

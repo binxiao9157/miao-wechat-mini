@@ -165,11 +165,17 @@
 .generate-btn {
   width: 100%;
   min-height: 108rpx;
+  padding: 0 32rpx;
+  box-sizing: border-box;
   border-radius: 999rpx;
   background: var(--primary-strong);
   color: #FFFFFF;
   font-size: 34rpx;
   font-weight: 900;
+  line-height: 108rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   box-shadow: 0 24rpx 48rpx rgba(255, 157, 118, 0.3);
 }
-.toast{position:fixed;left:50%;bottom:180rpx;z-index:1500;transform:translateX(-50%);padding:18rpx 30rpx;border-radius:999rpx;background:rgba(0,0,0,.72)}.toast-text{color:#fff;font-size:24rpx;font-weight:900}.disabled{opacity:.45}.btn-icon,.icon-img{width:48rpx;height:48rpx}.btn-label{font-size:28rpx;font-weight:900}
+.toast{position:fixed;left:50%;bottom:180rpx;z-index:1500;transform:translateX(-50%);padding:18rpx 30rpx;border-radius:999rpx;background:rgba(0,0,0,.72)}.toast-text{color:#fff;font-size:24rpx;font-weight:900}.disabled{opacity:.45}.btn-icon,.icon-img{width:48rpx;height:48rpx}.btn-label{font-size:28rpx;font-weight:900;white-space:nowrap}

@@ -1,0 +1,15 @@
+<view class="home-page">
+  <text class="eyebrow">Miao Native</text>
+  <text class="title">首页占位</text>
+  <text class="subtitle">已检测到猫咪缓存。阶段 2 会迁移视频播放、手势互动和积分奖励。</text>
+
+  <view wx:if="{{cat}}" class="cat-card">
+    <image class="cat-avatar" src="{{cat.avatar}}" mode="aspectFill" />
+    <view class="cat-info">
+      <text class="cat-name">{{cat.name || '小猫'}}</text>
+      <text class="cat-meta">{{cat.breed || '未知品种'}}</text>
+    </view>
+  </view>
+
+  <button class="miao-button-secondary action" bindtap="logout">退出登录</button>
+</view>

@@ -1,0 +1,30 @@
+<view class="register-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">加入 Miao</text>
+  </view>
+
+  <view class="hero">
+    <image class="logo" src="../../assets/logo.png" mode="aspectFit" />
+    <text class="subtitle">开启您与猫咪的精致陪伴之旅</text>
+  </view>
+
+  <view class="form">
+    <input class="input" value="{{username}}" placeholder="用户名，3-32 位" bindinput="onUsernameInput" />
+    <input class="input" value="{{password}}" placeholder="密码，6-20 位" password="{{true}}" bindinput="onPasswordInput" />
+    <input class="input" value="{{confirmPassword}}" placeholder="确认密码" password="{{true}}" bindinput="onConfirmInput" />
+
+    <text wx:if="{{error}}" class="error">{{error}}</text>
+
+    <view class="agreement" bindtap="toggleAgreement">
+      <view class="checkbox {{agreed ? 'checked' : ''}}">
+        <text wx:if="{{agreed}}">✓</text>
+      </view>
+      <text class="agreement-text">我已阅读并同意 Miao 服务条款和隐私政策</text>
+    </view>
+
+    <button class="miao-button-primary action" loading="{{loading}}" bindtap="handleRegister">
+      立即注册
+    </button>
+  </view>
+</view>

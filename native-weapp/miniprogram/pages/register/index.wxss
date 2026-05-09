@@ -1,0 +1,99 @@
+.register-page {
+  min-height: 100vh;
+  padding: 56rpx 48rpx;
+  background: #FFF9F5;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+}
+
+.back {
+  width: 72rpx;
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.header-title {
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.hero {
+  margin-top: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo {
+  width: 132rpx;
+  height: 132rpx;
+}
+
+.subtitle {
+  margin-top: 20rpx;
+  color: #8E8E8E;
+  font-size: 28rpx;
+}
+
+.form {
+  margin-top: 56rpx;
+}
+
+.input {
+  width: 100%;
+  min-height: 96rpx;
+  margin-top: 24rpx;
+  padding: 0 32rpx;
+  border-radius: 48rpx;
+  background: #FFFFFF;
+  color: #633E1D;
+  font-size: 30rpx;
+}
+
+.error {
+  display: block;
+  margin-top: 20rpx;
+  color: #D64B4B;
+  font-size: 26rpx;
+}
+
+.agreement {
+  margin-top: 28rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.checkbox {
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 50%;
+  border: 2rpx solid #E5D5C8;
+  color: #FFFFFF;
+  font-size: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox.checked {
+  border-color: #E89F71;
+  background: #E89F71;
+}
+
+.agreement-text {
+  flex: 1;
+  color: #8E8E8E;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.action {
+  margin-top: 32rpx;
+}

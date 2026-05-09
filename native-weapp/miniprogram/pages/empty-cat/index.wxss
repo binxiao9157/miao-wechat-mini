@@ -1,0 +1,33 @@
+.empty-page {
+  min-height: 100vh;
+  padding: 120rpx 48rpx 56rpx;
+  background: #FFF9F5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo {
+  width: 160rpx;
+  height: 160rpx;
+}
+
+.title {
+  margin-top: 48rpx;
+  color: #633E1D;
+  font-size: 42rpx;
+  font-weight: 900;
+}
+
+.subtitle {
+  margin-top: 20rpx;
+  color: #8E8E8E;
+  font-size: 28rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.action {
+  width: 100%;
+  margin-top: 32rpx;
+}

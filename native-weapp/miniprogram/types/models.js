@@ -9,9 +9,15 @@
 const STORAGE_KEYS = {
   TOKEN: 'miao_auth_token',
   CURRENT_USER: 'miao_current_user',
-  PENDING_SYNC_TASKS: 'miao_pending_sync_tasks'
+  PENDING_SYNC_TASKS: 'miao_pending_sync_tasks',
+  LAST_USERNAME: 'miao_last_username'
 };
 
+function userScopedKey(username, key) {
+  return `u_${username}_${key}`;
+}
+
 module.exports = {
-  STORAGE_KEYS
+  STORAGE_KEYS,
+  userScopedKey
 };

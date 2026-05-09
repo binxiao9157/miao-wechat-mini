@@ -1,10 +1,21 @@
 const fs = require('fs');
+const path = require('path');
+
+function walk(dir, predicate, out = []) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      walk(fullPath, predicate, out);
+    } else if (predicate(fullPath)) {
+      out.push(fullPath);
+    }
+  }
+  return out;
+}
 
 const jsonFiles = [
   'native-weapp/project.config.json',
-  'native-weapp/miniprogram/app.json',
-  'native-weapp/miniprogram/sitemap.json',
-  'native-weapp/miniprogram/pages/bootstrap/index.json'
+  ...walk('native-weapp/miniprogram', (file) => file.endsWith('.json'))
 ];
 
 for (const file of jsonFiles) {
@@ -24,6 +35,8 @@ global.wx = {
   switchTab: () => {},
   reLaunch: () => {},
   navigateBack: () => {},
+  login: () => {},
+  showModal: () => {},
   getSystemInfoSync: () => ({ statusBarHeight: 0 }),
   showToast: () => {}
 };
@@ -35,28 +48,29 @@ global.App = (config) => {
 };
 
 global.Page = (config) => {
-  if (!config || !config.data) {
+  if (!config || typeof config !== 'object') {
     throw new Error('invalid page config');
   }
 };
 
 global.getCurrentPages = () => [];
+global.getApp = () => ({
+  globalData: {
+    user: null,
+    isAuthenticated: false,
+    isInitializing: false
+  }
+});
 
-const modules = [
-  '../miniprogram/utils/storage.js',
-  '../miniprogram/utils/event-bus.js',
-  '../miniprogram/utils/request.js',
-  '../miniprogram/utils/upload.js',
-  '../miniprogram/utils/nav.js',
-  '../miniprogram/services/auth.js',
-  '../miniprogram/services/sync-queue.js',
-  '../miniprogram/services/sync-manager.js',
-  '../miniprogram/app.js',
-  '../miniprogram/pages/bootstrap/index.js'
-];
+const modules = walk('native-weapp/miniprogram', (file) => file.endsWith('.js'))
+  .sort((a, b) => {
+    if (a.endsWith('app.js')) return -1;
+    if (b.endsWith('app.js')) return 1;
+    return a.localeCompare(b);
+  });
 
 for (const file of modules) {
-  require(file);
+  require(path.resolve(file));
 }
 
 console.log(`native scaffold ok: ${jsonFiles.length} json files, ${modules.length} modules`);

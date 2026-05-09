@@ -8,9 +8,13 @@ remains in `src/` and is not modified by this native scaffold.
 ## Current scope
 
 - Native app shell
-- Bootstrap page
+- Welcome, login, register, empty-cat placeholder, and home placeholder pages
 - Shared API config
 - Promise wrappers for request, upload, storage, navigation, and events
 - Auth and sync service skeletons wired to the existing `/api/v1` backend
 
-Next pages to migrate are `login`, `welcome`, and the cat creation/home MVP flow.
+## Phase status
+
+- Phase 0: scaffold and base adapters are in place.
+- Phase 1: auth and startup routing are in place.
+- Phase 2 next: migrate cat creation/upload, AI generation progress, and the real home player.

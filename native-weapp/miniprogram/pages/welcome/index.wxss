@@ -1,0 +1,42 @@
+.welcome-page {
+  min-height: 100vh;
+  padding: 0 48rpx;
+  background: #FFF9F5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  width: 172rpx;
+  height: 172rpx;
+  margin-bottom: 28rpx;
+}
+
+.brand {
+  color: #633E1D;
+  font-size: 52rpx;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.subtitle {
+  margin-top: 20rpx;
+  color: #8E8E8E;
+  font-size: 28rpx;
+}
+
+.loading-dot {
+  margin-top: 56rpx;
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background: #E89F71;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.15); }
+}

@@ -1,0 +1,6 @@
+<view class="welcome-page">
+  <image class="logo" src="../../assets/logo.png" mode="aspectFit" />
+  <text class="brand">Miao</text>
+  <text class="subtitle">以喵星之名，开启治愈之旅</text>
+  <view class="loading-dot"></view>
+</view>

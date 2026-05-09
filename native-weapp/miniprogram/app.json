@@ -1,5 +1,10 @@
 {
   "pages": [
+    "pages/welcome/index",
+    "pages/login/index",
+    "pages/register/index",
+    "pages/home/index",
+    "pages/empty-cat/index",
     "pages/bootstrap/index"
   ],
   "window": {

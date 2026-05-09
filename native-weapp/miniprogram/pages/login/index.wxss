@@ -1,0 +1,117 @@
+.login-page {
+  min-height: 100vh;
+  padding: 96rpx 48rpx 56rpx;
+  background: #FFF9F5;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo {
+  width: 136rpx;
+  height: 136rpx;
+  margin-bottom: 28rpx;
+}
+
+.title {
+  color: #633E1D;
+  font-size: 44rpx;
+  font-weight: 900;
+}
+
+.subtitle {
+  margin-top: 16rpx;
+  color: #8E8E8E;
+  font-size: 26rpx;
+}
+
+.form {
+  margin-top: 64rpx;
+}
+
+.input {
+  width: 100%;
+  min-height: 96rpx;
+  padding: 0 32rpx;
+  border-radius: 48rpx;
+  background: #FFFFFF;
+  color: #633E1D;
+  font-size: 30rpx;
+}
+
+.password-line {
+  position: relative;
+  margin-top: 24rpx;
+}
+
+.password {
+  padding-right: 112rpx;
+}
+
+.toggle {
+  position: absolute;
+  right: 32rpx;
+  top: 0;
+  height: 96rpx;
+  line-height: 96rpx;
+  color: #E89F71;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.error {
+  display: block;
+  margin-top: 20rpx;
+  color: #D64B4B;
+  font-size: 26rpx;
+}
+
+.agreement {
+  margin-top: 28rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.checkbox {
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 50%;
+  border: 2rpx solid #E5D5C8;
+  color: #FFFFFF;
+  font-size: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox.checked {
+  border-color: #E89F71;
+  background: #E89F71;
+}
+
+.agreement-text {
+  flex: 1;
+  color: #8E8E8E;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.action {
+  margin-top: 28rpx;
+}
+
+.link-button {
+  margin-top: 28rpx;
+  background: transparent;
+  color: #E89F71;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.link-button::after {
+  border: 0;
+}

@@ -10,6 +10,11 @@ App({
   },
 
   async onLaunch() {
+    events.on('auth:unauthorized', () => {
+      this.globalData.user = null;
+      this.globalData.isAuthenticated = false;
+      wx.reLaunch({ url: '/pages/login/index' });
+    });
     await this.bootstrapSession();
   },
 

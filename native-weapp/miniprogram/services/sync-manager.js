@@ -1,6 +1,7 @@
 const { get } = require('../utils/request');
 const { events } = require('../utils/event-bus');
 const { authService } = require('./auth');
+const { dataStore } = require('./data-store');
 
 class SyncManager {
   constructor() {
@@ -20,7 +21,7 @@ class SyncManager {
     this.syncing = true;
     try {
       const results = await Promise.allSettled([
-        get('/api/v1/cats'),
+        dataStore.syncCatsFromServer(),
         get('/api/v1/diaries'),
         get('/api/v1/letters'),
         get('/api/v1/points'),

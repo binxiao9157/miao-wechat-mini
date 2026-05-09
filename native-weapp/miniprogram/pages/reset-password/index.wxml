@@ -4,7 +4,8 @@
     <text class="header-title">重置密码</text>
   </view>
   <view class="form">
-    <input class="input" placeholder="用户名" data-field="username" bindinput="onInput" />
+    <input class="input" type="number" placeholder="手机号" data-field="phone" bindinput="onInput" />
+    <input class="input" type="number" maxlength="6" placeholder="验证码，开发环境任意 6 位数字" data-field="code" bindinput="onInput" />
     <input class="input" password placeholder="新密码" data-field="password" bindinput="onInput" />
     <button class="miao-button-primary submit" loading="{{saving}}" bindtap="submit">重置密码</button>
   </view>

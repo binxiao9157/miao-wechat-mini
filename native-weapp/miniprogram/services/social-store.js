@@ -19,6 +19,26 @@ function scopedKey(key) {
 }
 
 const socialStore = {
+  extractInviteCode(raw) {
+    const text = String(raw || '').trim();
+    if (!text) return '';
+
+    const inviteMatch = text.match(/[?&]invite=([^&#]+)/);
+    if (inviteMatch) return decodeURIComponent(inviteMatch[1]);
+
+    const codeMatch = text.match(/[?&]code=([^&#]+)/);
+    if (codeMatch) return decodeURIComponent(codeMatch[1]);
+
+    const pathMatch = text.match(/join-friend\/index[^\s?]*\?([^#\s]+)/);
+    if (pathMatch) {
+      const params = pathMatch[1];
+      const nestedInvite = params.match(/(?:^|&)invite=([^&]+)/);
+      if (nestedInvite) return decodeURIComponent(nestedInvite[1]);
+    }
+
+    return text;
+  },
+
   getFriends() {
     return parseJson(getItem(scopedKey('miao_friends')), []);
   },

@@ -10,8 +10,9 @@ Page({
 
   onLoad(options = {}) {
     if (options.invite) {
-      this.setData({ code: options.invite });
-      this.lookup(options.invite);
+      const code = socialStore.extractInviteCode(options.invite);
+      this.setData({ code });
+      this.lookup(code);
     }
   },
 
@@ -24,7 +25,7 @@ Page({
   },
 
   async lookup(codeOverride) {
-    const code = String(codeOverride || this.data.code || '').trim();
+    const code = socialStore.extractInviteCode(codeOverride || this.data.code);
     if (!code) return;
     this.setData({ loading: true });
     try {

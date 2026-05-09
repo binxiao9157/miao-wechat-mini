@@ -32,7 +32,7 @@ Page({
   scan() {
     wx.scanCode({
       success: (res) => {
-        const code = String(res.result || '').trim();
+        const code = socialStore.extractInviteCode(res.result);
         if (code) navigateTo(`/pages/join-friend/index?invite=${encodeURIComponent(code)}`);
       }
     });

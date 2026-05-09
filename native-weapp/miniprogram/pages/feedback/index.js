@@ -25,14 +25,14 @@ Page({
     }
     this.setData({ saving: true });
     try {
-      await post('/api/v1/notifications', {
-        recipientId: 'admin',
-        type: 'feedback',
-        title: '用户反馈',
+      await post('/api/v1/feedback', {
+        type: '用户反馈',
         content: `${content}${this.data.contact ? `\n联系方式：${this.data.contact}` : ''}`
-      }, { timeout: 15000 }).catch(() => undefined);
+      }, { timeout: 15000 });
       wx.showToast({ title: '已提交', icon: 'success' });
       this.setData({ content: '', contact: '' });
+    } catch (error) {
+      wx.showToast({ title: error.message || '提交失败', icon: 'none' });
     } finally {
       this.setData({ saving: false });
     }

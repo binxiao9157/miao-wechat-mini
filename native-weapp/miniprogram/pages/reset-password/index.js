@@ -3,7 +3,8 @@ const { safeBack } = require('../../utils/nav');
 
 Page({
   data: {
-    username: '',
+    phone: '',
+    code: '',
     password: '',
     saving: false
   },
@@ -18,13 +19,15 @@ Page({
   },
 
   async submit() {
-    if (!this.data.username.trim() || this.data.password.length < 6) {
-      wx.showToast({ title: '请输入账号和新密码', icon: 'none' });
+    const phone = this.data.phone.trim();
+    const code = this.data.code.trim();
+    if (!phone || !code || this.data.password.length < 6) {
+      wx.showToast({ title: '请输入手机号、验证码和新密码', icon: 'none' });
       return;
     }
     this.setData({ saving: true });
     try {
-      await authService.resetPassword(this.data.username.trim(), this.data.password);
+      await authService.resetPassword(phone, code, this.data.password);
       wx.showToast({ title: '已重置', icon: 'success' });
       safeBack('/pages/login/index');
     } catch (error) {

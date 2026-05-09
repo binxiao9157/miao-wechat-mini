@@ -52,12 +52,14 @@ Page({
     }
 
     this.setData({ generating: true, error: '' });
+    let pointsSpent = false;
     try {
       const prompt = IMAGE_PROMPTS.anchor('未知', '上传照片');
       const task = await submitImageTask(prompt, this.data.imagePath);
       const imageUrl = await pollImageResult(task.id, task.image_url);
       if (this.redemptionAmount > 0) {
         await contentStore.spendPoints(this.redemptionAmount, '兑换新猫咪');
+        pointsSpent = true;
       }
       await dataStore.createDraftCat({
         name,
@@ -67,6 +69,9 @@ Page({
       });
       navigateTo('/pages/generation-progress/index');
     } catch (error) {
+      if (pointsSpent) {
+        await contentStore.refundPoints(this.redemptionAmount, '兑换失败返还').catch(() => undefined);
+      }
       this.setData({ error: error.message || '形象生成失败，请重试' });
     } finally {
       this.setData({ generating: false });

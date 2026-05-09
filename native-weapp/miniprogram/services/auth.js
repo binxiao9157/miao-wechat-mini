@@ -166,11 +166,11 @@ const authService = {
     return res.data;
   },
 
-  async resetPassword(username, newPassword) {
+  async resetPassword(phone, code, newPassword) {
     const res = await request({
       url: '/api/v1/auth/reset-password',
       method: 'POST',
-      data: { username, newPassword },
+      data: { phone, code, newPassword },
       timeout: 15000
     });
     return res.data;

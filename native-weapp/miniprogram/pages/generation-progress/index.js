@@ -78,8 +78,10 @@ Page({
 
       this.setData({ phase: 'success', progress: 100, statusText: '生成成功', videoUrl: latestVideoUrl });
     } catch (error) {
+      const latestCat = dataStore.getCatById(cat.id) || cat;
+      const hasPlayableVideo = !!(latestCat.videoPaths && latestCat.videoPaths.idle) || !!latestCat.videoPath;
       await dataStore.updateCatAndSync(cat.id, {
-        generationStatus: 'failed',
+        generationStatus: hasPlayableVideo ? 'ready' : 'failed',
         generationError: error.message || '生成失败',
         generationUpdatedAt: Date.now()
       }).catch(() => {});

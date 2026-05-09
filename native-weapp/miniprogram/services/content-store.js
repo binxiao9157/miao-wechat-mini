@@ -184,6 +184,27 @@ const contentStore = {
     return next;
   },
 
+  async refundPoints(amount, reason) {
+    const value = Number(amount || 0);
+    const points = this.getPoints();
+    if (value <= 0) return points;
+    const next = {
+      ...points,
+      total: (points.total || 0) + value,
+      history: [
+        { id: nowId('points'), type: 'refund', amount: value, reason: reason || '积分返还', createdAt: Date.now() },
+        ...(points.history || [])
+      ].slice(0, 50)
+    };
+    this.savePoints(next);
+    try {
+      await post('/api/v1/points', { data: next }, { timeout: 15000 });
+    } catch (error) {
+      console.warn('[native] sync refunded points failed:', error);
+    }
+    return next;
+  },
+
   getNotifications() {
     return parseJson(getItem(scopedKey('miao_notifications')), []);
   },

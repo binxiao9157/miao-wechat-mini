@@ -1,0 +1,93 @@
+.diary-page {
+  min-height: 100vh;
+  padding: 56rpx 36rpx;
+  background: #FFF9F5;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+}
+
+.back {
+  width: 72rpx;
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.header-title {
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.composer {
+  margin-top: 34rpx;
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background: #FFFFFF;
+  box-shadow: 0 16rpx 36rpx rgba(99, 62, 29, 0.08);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 190rpx;
+  color: #633E1D;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.submit {
+  margin-top: 20rpx;
+}
+
+.list {
+  height: calc(100vh - 470rpx);
+  margin-top: 28rpx;
+}
+
+.diary-item {
+  margin-bottom: 22rpx;
+  padding: 26rpx;
+  border-radius: 22rpx;
+  background: #FFFFFF;
+  box-shadow: 0 12rpx 28rpx rgba(99, 62, 29, 0.06);
+}
+
+.content {
+  color: #633E1D;
+  font-size: 28rpx;
+  line-height: 1.7;
+}
+
+.meta-row {
+  margin-top: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.time {
+  color: #8E8E8E;
+  font-size: 23rpx;
+}
+
+.delete {
+  min-width: 86rpx;
+  height: 50rpx;
+  padding: 0 16rpx;
+  border-radius: 25rpx;
+  background: #FFF1F1;
+  color: #D64B4B;
+  font-size: 22rpx;
+  line-height: 50rpx;
+}
+
+.empty {
+  padding-top: 120rpx;
+  color: #8E8E8E;
+  font-size: 28rpx;
+  text-align: center;
+}

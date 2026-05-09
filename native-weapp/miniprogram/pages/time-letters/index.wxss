@@ -1,0 +1,99 @@
+.letters-page {
+  min-height: 100vh;
+  padding: 56rpx 36rpx;
+  background: #FFF9F5;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+}
+
+.back {
+  width: 72rpx;
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.header-title {
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.composer,
+.letter-item {
+  border-radius: 24rpx;
+  background: #FFFFFF;
+  box-shadow: 0 16rpx 36rpx rgba(99, 62, 29, 0.08);
+}
+
+.composer {
+  margin-top: 34rpx;
+  padding: 24rpx;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 180rpx;
+  color: #633E1D;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.date-picker {
+  margin-top: 16rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 18rpx;
+  background: #FEF6F0;
+  color: #633E1D;
+  font-size: 26rpx;
+}
+
+.submit {
+  margin-top: 20rpx;
+}
+
+.list {
+  height: calc(100vh - 550rpx);
+  margin-top: 28rpx;
+}
+
+.letter-item {
+  margin-bottom: 22rpx;
+  padding: 26rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.letter-item.locked {
+  opacity: 0.72;
+}
+
+.letter-date {
+  color: #E89F71;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.letter-content {
+  margin-top: 14rpx;
+  color: #633E1D;
+  font-size: 28rpx;
+  line-height: 1.65;
+}
+
+.letter-status {
+  margin-top: 16rpx;
+  color: #8E8E8E;
+  font-size: 23rpx;
+}
+
+.empty {
+  padding-top: 120rpx;
+  color: #8E8E8E;
+  text-align: center;
+  font-size: 28rpx;
+}

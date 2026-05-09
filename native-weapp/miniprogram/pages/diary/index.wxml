@@ -1,0 +1,22 @@
+<view class="diary-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">日记</text>
+  </view>
+
+  <view class="composer">
+    <textarea class="textarea" value="{{draft}}" maxlength="500" placeholder="记录今天和猫咪的瞬间" bindinput="onInput" />
+    <button class="miao-button-primary submit" loading="{{saving}}" bindtap="submit">保存日记</button>
+  </view>
+
+  <scroll-view class="list" scroll-y>
+    <view wx:for="{{diaries}}" wx:key="id" class="diary-item">
+      <text class="content">{{item.content}}</text>
+      <view class="meta-row">
+        <text class="time">{{item.timeLabel}}</text>
+        <button class="delete" data-id="{{item.id}}" bindtap="deleteDiary">删除</button>
+      </view>
+    </view>
+    <view wx:if="{{!diaries.length}}" class="empty">还没有日记</view>
+  </scroll-view>
+</view>

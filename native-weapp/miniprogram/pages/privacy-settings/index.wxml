@@ -1,0 +1,32 @@
+<view class="privacy-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">隐私设置</text>
+  </view>
+
+  <view class="settings">
+    <view class="setting-row">
+      <view>
+        <text class="title">允许分享猫咪</text>
+        <text class="desc">控制分享入口是否携带猫咪资料。</text>
+      </view>
+      <switch data-key="allowShare" checked="{{settings.allowShare}}" color="#E89F71" bindchange="setSwitch" />
+    </view>
+
+    <view class="setting-row">
+      <view>
+        <text class="title">好友可见日记</text>
+        <text class="desc">开启后，好友功能可展示你的公开日记。</text>
+      </view>
+      <switch data-key="allowFriendView" checked="{{settings.allowFriendView}}" color="#E89F71" bindchange="setSwitch" />
+    </view>
+
+    <view class="setting-row">
+      <view>
+        <text class="title">媒体优先本地缓存</text>
+        <text class="desc">保留本地媒体引用，减少重复下载。</text>
+      </view>
+      <switch data-key="localOnlyMedia" checked="{{settings.localOnlyMedia}}" color="#E89F71" bindchange="setSwitch" />
+    </view>
+  </view>
+</view>

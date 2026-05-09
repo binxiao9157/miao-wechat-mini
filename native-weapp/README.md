@@ -9,7 +9,7 @@ remains in `src/` and is not modified by this native scaffold.
 
 - Native app shell
 - Welcome, login, register, empty-cat, upload, generation progress, home, switch,
-  history, and profile pages
+  history, profile, diary, time letters, points, notifications, and privacy pages
 - Shared API config
 - Promise wrappers for request, upload, storage, navigation, and events
 - Auth and sync service skeletons wired to the existing `/api/v1` backend
@@ -24,5 +24,7 @@ remains in `src/` and is not modified by this native scaffold.
 - Phase 2C: multi-action video generation and task recovery are in place.
 - Phase 3: native cat switch, history, delete, profile, and home interaction flows are
   in place.
-- Phase 4 next: run WeChat DevTools/manual QA, then migrate lower-priority modules such
-  as diary, letters, friends, points, notifications, and privacy settings as needed.
+- Phase 4: diary, time letters, points, notifications, privacy settings, and sync cache
+  foundations are in place.
+- Phase 5 next: run WeChat DevTools/manual QA and decide whether to deepen social/friend
+  workflows beyond the native migration baseline.

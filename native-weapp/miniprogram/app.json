@@ -11,6 +11,11 @@
     "pages/switch-companion/index",
     "pages/cat-history/index",
     "pages/profile/index",
+    "pages/diary/index",
+    "pages/time-letters/index",
+    "pages/points/index",
+    "pages/notifications/index",
+    "pages/privacy-settings/index",
     "pages/bootstrap/index"
   ],
   "window": {

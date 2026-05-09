@@ -31,6 +31,11 @@
     <button class="menu-item" bindtap="goSwitch">切换猫咪</button>
     <button class="menu-item" bindtap="goHistory">猫咪历史</button>
     <button class="menu-item" bindtap="goCreate">生成新猫咪</button>
+    <button class="menu-item" bindtap="goDiary">日记</button>
+    <button class="menu-item" bindtap="goLetters">时光信</button>
+    <button class="menu-item" bindtap="goPoints">积分</button>
+    <button class="menu-item" bindtap="goNotifications">通知</button>
+    <button class="menu-item" bindtap="goPrivacy">隐私设置</button>
     <button class="menu-item" bindtap="clearCache">清除缓存</button>
   </view>
 

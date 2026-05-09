@@ -1,0 +1,23 @@
+<view class="points-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">积分</text>
+  </view>
+
+  <view class="total-panel">
+    <text class="total-label">当前积分</text>
+    <text class="total-value">{{points.total || 0}}</text>
+    <text class="total-note">每日登录会自动获得 10 积分。</text>
+  </view>
+
+  <scroll-view class="history" scroll-y>
+    <view wx:for="{{points.history}}" wx:key="id" class="history-item">
+      <view>
+        <text class="reason">{{item.reason || '积分变化'}}</text>
+        <text class="time">{{item.timeLabel}}</text>
+      </view>
+      <text class="amount">+{{item.amount}}</text>
+    </view>
+    <view wx:if="{{!points.history.length}}" class="empty">还没有积分记录</view>
+  </scroll-view>
+</view>

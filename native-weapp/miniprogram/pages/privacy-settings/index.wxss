@@ -1,0 +1,57 @@
+.privacy-page {
+  min-height: 100vh;
+  padding: 56rpx 36rpx;
+  background: #FFF9F5;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+}
+
+.back {
+  width: 72rpx;
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.header-title {
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.settings {
+  margin-top: 36rpx;
+  border-radius: 24rpx;
+  overflow: hidden;
+  background: #FFFFFF;
+  box-shadow: 0 16rpx 36rpx rgba(99, 62, 29, 0.08);
+}
+
+.setting-row {
+  min-height: 142rpx;
+  padding: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+  border-bottom: 1rpx solid #F2E7DE;
+}
+
+.title {
+  display: block;
+  color: #633E1D;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.desc {
+  display: block;
+  margin-top: 8rpx;
+  color: #8E8E8E;
+  font-size: 24rpx;
+  line-height: 1.45;
+}

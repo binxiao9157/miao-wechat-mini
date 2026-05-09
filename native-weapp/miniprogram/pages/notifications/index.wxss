@@ -1,0 +1,97 @@
+.notifications-page {
+  min-height: 100vh;
+  padding: 56rpx 36rpx;
+  background: #FFF9F5;
+}
+
+.header {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.back {
+  width: 72rpx;
+  color: #633E1D;
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.header-title {
+  flex: 1;
+  color: #633E1D;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.read-button {
+  min-width: 92rpx;
+  height: 56rpx;
+  padding: 0 18rpx;
+  border-radius: 28rpx;
+  background: #FFFFFF;
+  color: #633E1D;
+  font-size: 24rpx;
+  line-height: 56rpx;
+}
+
+.list {
+  height: calc(100vh - 150rpx);
+  margin-top: 32rpx;
+}
+
+.notification {
+  position: relative;
+  margin-bottom: 18rpx;
+  padding: 26rpx;
+  border-radius: 22rpx;
+  background: #FFFFFF;
+  box-shadow: 0 12rpx 28rpx rgba(99, 62, 29, 0.06);
+}
+
+.notification.read {
+  opacity: 0.72;
+}
+
+.dot {
+  position: absolute;
+  right: 24rpx;
+  top: 24rpx;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 8rpx;
+  background: #E89F71;
+}
+
+.content {
+  padding-right: 30rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  color: #633E1D;
+  font-size: 30rpx;
+  font-weight: 900;
+}
+
+.body {
+  margin-top: 12rpx;
+  color: #6E5844;
+  font-size: 26rpx;
+  line-height: 1.55;
+}
+
+.time {
+  margin-top: 16rpx;
+  color: #8E8E8E;
+  font-size: 22rpx;
+}
+
+.empty {
+  padding-top: 160rpx;
+  color: #8E8E8E;
+  text-align: center;
+  font-size: 28rpx;
+}

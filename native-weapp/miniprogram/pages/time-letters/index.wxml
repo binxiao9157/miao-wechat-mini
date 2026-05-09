@@ -1,0 +1,29 @@
+<view class="letters-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">时光信</text>
+  </view>
+
+  <view class="composer">
+    <textarea class="textarea" value="{{draft}}" maxlength="600" placeholder="写给未来的自己和猫咪" bindinput="onInput" />
+    <picker mode="date" value="{{unlockDate}}" bindchange="onDateChange">
+      <view class="date-picker">开启日期：{{unlockDate}}</view>
+    </picker>
+    <button class="miao-button-primary submit" loading="{{saving}}" bindtap="submit">寄出时光信</button>
+  </view>
+
+  <scroll-view class="list" scroll-y>
+    <view
+      wx:for="{{letters}}"
+      wx:key="id"
+      class="letter-item {{item.unlocked ? '' : 'locked'}}"
+      data-id="{{item.id}}"
+      bindtap="markRead"
+    >
+      <text class="letter-date">{{item.unlockLabel}}</text>
+      <text class="letter-content">{{item.displayContent}}</text>
+      <text class="letter-status">{{item.unlocked ? (item.read ? '已读' : '可查看') : '未开启'}}</text>
+    </view>
+    <view wx:if="{{!letters.length}}" class="empty">还没有时光信</view>
+  </scroll-view>
+</view>

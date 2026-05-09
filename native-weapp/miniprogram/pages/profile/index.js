@@ -53,6 +53,26 @@ Page({
     navigateTo('/pages/upload-material/index');
   },
 
+  goDiary() {
+    navigateTo('/pages/diary/index');
+  },
+
+  goLetters() {
+    navigateTo('/pages/time-letters/index');
+  },
+
+  goPoints() {
+    navigateTo('/pages/points/index');
+  },
+
+  goNotifications() {
+    navigateTo('/pages/notifications/index');
+  },
+
+  goPrivacy() {
+    navigateTo('/pages/privacy-settings/index');
+  },
+
   clearCache() {
     wx.showModal({
       title: '清除缓存',

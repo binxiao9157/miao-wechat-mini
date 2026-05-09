@@ -56,4 +56,6 @@
     <text class="subtitle">上传照片，生成你的第一只 AI 猫咪。</text>
     <button class="miao-button-primary action" bindtap="createCat">开始生成</button>
   </view>
+
+  <native-tab-bar active="home" />
 </view>

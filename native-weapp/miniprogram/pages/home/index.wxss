@@ -1,6 +1,6 @@
 .home-page {
   min-height: 100vh;
-  padding: 72rpx 32rpx 44rpx;
+  padding: 72rpx 32rpx 166rpx;
   background: #FFF9F5;
 }
 

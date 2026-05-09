@@ -48,4 +48,6 @@
   </view>
 
   <button class="miao-button-secondary logout" bindtap="logout">退出登录</button>
+
+  <native-tab-bar active="profile" />
 </view>

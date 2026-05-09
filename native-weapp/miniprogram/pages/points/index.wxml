@@ -21,4 +21,6 @@
     </view>
     <view wx:if="{{!points.history.length}}" class="empty">还没有积分记录</view>
   </scroll-view>
+
+  <native-tab-bar active="points" />
 </view>

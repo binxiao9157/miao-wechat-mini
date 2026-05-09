@@ -1,6 +1,6 @@
 .points-page {
   min-height: 100vh;
-  padding: 56rpx 36rpx;
+  padding: 56rpx 36rpx 166rpx;
   background: #FFF9F5;
 }
 
@@ -52,7 +52,7 @@
 }
 
 .history {
-  height: calc(100vh - 540rpx);
+  height: calc(100vh - 660rpx);
   margin-top: 28rpx;
 }
 

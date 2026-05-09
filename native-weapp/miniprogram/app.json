@@ -39,6 +39,9 @@
     "backgroundColor": "#FFF9F5",
     "backgroundTextStyle": "light"
   },
+  "usingComponents": {
+    "native-tab-bar": "/components/tab-bar/index"
+  },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"

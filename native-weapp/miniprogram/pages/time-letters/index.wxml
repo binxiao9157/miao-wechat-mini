@@ -26,4 +26,6 @@
     </view>
     <view wx:if="{{!letters.length}}" class="empty">还没有时光信</view>
   </scroll-view>
+
+  <native-tab-bar active="letters" />
 </view>

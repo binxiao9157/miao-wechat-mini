@@ -19,4 +19,6 @@
     </view>
     <view wx:if="{{!diaries.length}}" class="empty">还没有日记</view>
   </scroll-view>
+
+  <native-tab-bar active="diary" />
 </view>

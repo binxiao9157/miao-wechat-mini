@@ -23,6 +23,7 @@ for (const file of jsonFiles) {
 }
 
 const appConfig = JSON.parse(fs.readFileSync('native-weapp/miniprogram/app.json', 'utf8'));
+const declaredPages = new Set(appConfig.pages || []);
 for (const page of appConfig.pages || []) {
   for (const ext of ['js', 'json', 'wxml', 'wxss']) {
     const file = path.join('native-weapp/miniprogram', `${page}.${ext}`);
@@ -32,7 +33,30 @@ for (const page of appConfig.pages || []) {
   }
 }
 
+for (const componentPath of Object.values(appConfig.usingComponents || {})) {
+  const normalized = componentPath.replace(/^\//, '');
+  for (const ext of ['js', 'json', 'wxml', 'wxss']) {
+    const file = path.join('native-weapp/miniprogram', `${normalized}.${ext}`);
+    if (!fs.existsSync(file)) {
+      throw new Error(`missing component file: ${file}`);
+    }
+  }
+}
+
+const routePattern = /\/pages\/[A-Za-z0-9_-]+\/index/g;
+for (const file of walk('native-weapp/miniprogram', (item) => /\.(js|wxml)$/.test(item))) {
+  const content = fs.readFileSync(file, 'utf8');
+  const routes = content.match(routePattern) || [];
+  for (const route of routes) {
+    const page = route.replace(/^\//, '');
+    if (!declaredPages.has(page)) {
+      throw new Error(`undeclared route ${route} in ${file}`);
+    }
+  }
+}
+
 global.wx = {
+  env: { USER_DATA_PATH: '/tmp' },
   getStorageSync: () => '',
   setStorageSync: () => {},
   removeStorageSync: () => {},
@@ -46,6 +70,8 @@ global.wx = {
   reLaunch: () => {},
   navigateBack: () => {},
   login: () => {},
+  setClipboardData: () => {},
+  scanCode: () => {},
   showModal: () => {},
   getSystemInfoSync: () => ({ statusBarHeight: 0 }),
   showToast: () => {}
@@ -60,6 +86,12 @@ global.App = (config) => {
 global.Page = (config) => {
   if (!config || typeof config !== 'object') {
     throw new Error('invalid page config');
+  }
+};
+
+global.Component = (config) => {
+  if (!config || typeof config !== 'object') {
+    throw new Error('invalid component config');
   }
 };
 

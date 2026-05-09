@@ -39,6 +39,25 @@ const dataStore = {
     return cats.find((cat) => cat.id === activeId) || cats[0] || null;
   },
 
+  getCatById(catId) {
+    return this.getCats().find((cat) => cat.id === catId) || null;
+  },
+
+  saveCat(cat) {
+    if (!cat || !cat.id) return null;
+    const cats = this.getCats();
+    const idx = cats.findIndex((item) => item.id === cat.id);
+    const nextCat = {
+      ...cat,
+      updatedAt: Date.now()
+    };
+    if (idx >= 0) cats[idx] = { ...cats[idx], ...nextCat };
+    else cats.unshift(nextCat);
+    this.saveCats(cats);
+    this.saveActiveCatId(nextCat.id);
+    return nextCat;
+  },
+
   saveActiveCatId(catId) {
     if (catId) setItem(scopedKey('miao_active_cat_id'), catId);
     else removeItem(scopedKey('miao_active_cat_id'));
@@ -76,9 +95,7 @@ const dataStore = {
       videoPaths: {}
     };
 
-    const cats = this.getCats();
-    this.saveCats([cat, ...cats]);
-    this.saveActiveCatId(cat.id);
+    this.saveCat(cat);
 
     try {
       await this.saveCatToServer(cat);
@@ -87,6 +104,18 @@ const dataStore = {
     }
 
     return cat;
+  },
+
+  async updateCatAndSync(catId, updates) {
+    const current = this.getCatById(catId);
+    if (!current) throw new Error('未找到猫咪数据');
+    const updated = this.saveCat({ ...current, ...updates });
+    try {
+      await this.saveCatToServer(updated);
+    } catch (error) {
+      console.warn('[native] sync updated cat failed:', error);
+    }
+    return updated;
   },
 
   async deleteCatFromServer(catId) {

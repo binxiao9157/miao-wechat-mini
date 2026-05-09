@@ -6,6 +6,8 @@
     "pages/home/index",
     "pages/empty-cat/index",
     "pages/create-companion/index",
+    "pages/upload-material/index",
+    "pages/generation-progress/index",
     "pages/bootstrap/index"
   ],
   "window": {

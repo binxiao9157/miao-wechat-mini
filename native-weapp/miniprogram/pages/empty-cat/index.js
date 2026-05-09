@@ -6,6 +6,10 @@ Page({
     navigateTo('/pages/create-companion/index');
   },
 
+  goUpload() {
+    navigateTo('/pages/upload-material/index');
+  },
+
   logout() {
     authService.logout();
     const app = getApp();

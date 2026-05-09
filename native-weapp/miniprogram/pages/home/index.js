@@ -1,14 +1,29 @@
 const { dataStore } = require('../../services/data-store');
 const { authService } = require('../../services/auth');
-const { reLaunch } = require('../../utils/nav');
+const { navigateTo, reLaunch } = require('../../utils/nav');
 
 Page({
   data: {
-    cat: null
+    cat: null,
+    idleVideo: '',
+    statusText: '已进入原生首页。',
+    canContinueGeneration: false
   },
 
   onShow() {
-    this.setData({ cat: dataStore.getActiveCat() });
+    const cat = dataStore.getActiveCat();
+    const idleVideo = cat && cat.videoPaths && cat.videoPaths.idle ? cat.videoPaths.idle : '';
+    const ready = !!idleVideo || (cat && cat.generationStatus === 'ready');
+    this.setData({
+      cat,
+      idleVideo,
+      statusText: ready ? '你的小猫已经苏醒。' : '猫咪已创建，等待生成视频。',
+      canContinueGeneration: !!cat && !ready
+    });
+  },
+
+  continueGeneration() {
+    navigateTo('/pages/generation-progress/index');
   },
 
   logout() {

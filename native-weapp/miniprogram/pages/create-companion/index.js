@@ -1,5 +1,5 @@
 const { dataStore } = require('../../services/data-store');
-const { reLaunch, safeBack } = require('../../utils/nav');
+const { navigateTo, safeBack } = require('../../utils/nav');
 
 Page({
   data: {
@@ -51,7 +51,7 @@ Page({
         avatar: '/assets/logo.png'
       });
       wx.showToast({ title: '已创建草稿', icon: 'success' });
-      reLaunch('/pages/home/index');
+      navigateTo('/pages/generation-progress/index');
     } catch (error) {
       this.setData({ error: error.message || '创建失败，请稍后重试' });
     } finally {

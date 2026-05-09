@@ -1,0 +1,26 @@
+<view class="upload-page">
+  <view class="header">
+    <text class="back" bindtap="goBack">‹</text>
+    <text class="header-title">上传猫咪</text>
+  </view>
+
+  <view class="hero">
+    <text class="title">上传照片生成数字形象</text>
+    <text class="subtitle">先生成猫咪锚点图，再进入视频生成流程。</text>
+  </view>
+
+  <view class="picker" bindtap="choosePhoto">
+    <image wx:if="{{imagePath}}" class="preview" src="{{imagePath}}" mode="aspectFill" />
+    <view wx:else class="placeholder">
+      <text class="placeholder-title">点击选择照片</text>
+      <text class="placeholder-subtitle">支持相册或拍照</text>
+    </view>
+  </view>
+
+  <input class="input" value="{{name}}" placeholder="给猫咪起个名字" bindinput="onNameInput" />
+  <text wx:if="{{error}}" class="error">{{error}}</text>
+
+  <button class="miao-button-primary action" loading="{{generating}}" bindtap="handleGenerateAnchor">
+    {{generating ? '生成形象中...' : '生成数字形象'}}
+  </button>
+</view>

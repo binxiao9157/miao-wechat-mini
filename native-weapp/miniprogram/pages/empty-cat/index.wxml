@@ -3,5 +3,6 @@
   <text class="title">还没有猫咪伙伴</text>
   <text class="subtitle">认证链路已完成。下一阶段会迁移创建、上传和 AI 生成主流程。</text>
   <button class="miao-button-primary action" bindtap="goCreate">创建猫咪草稿</button>
+  <button class="miao-button-secondary action" bindtap="goUpload">上传猫咪照片</button>
   <button class="miao-button-secondary action" bindtap="logout">退出登录</button>
 </view>

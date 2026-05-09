@@ -1,0 +1,22 @@
+<view class="generation-page">
+  <view wx:if="{{phase === 'generating'}}" class="center">
+    <view class="ring">
+      <text class="percent">{{progress}}%</text>
+    </view>
+    <text class="title">{{statusText}}</text>
+    <text class="subtitle">视频生成耗时较长，请保持页面打开。</text>
+  </view>
+
+  <view wx:elif="{{phase === 'success'}}" class="center">
+    <video class="preview-video" src="{{videoUrl}}" autoplay loop muted controls="{{false}}" object-fit="contain"></video>
+    <text class="title">猫咪苏醒了</text>
+    <button class="miao-button-primary action" bindtap="goHome">回到首页</button>
+  </view>
+
+  <view wx:else class="center">
+    <text class="title">生成失败</text>
+    <text class="error">{{error}}</text>
+    <button class="miao-button-primary action" bindtap="retry">重试</button>
+    <button class="miao-button-secondary action" bindtap="goHome">稍后再说</button>
+  </view>
+</view>

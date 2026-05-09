@@ -128,6 +128,7 @@ button.skip-btn {
 button.save-btn {
   background: var(--primary);
   color: #fff;
+  font-weight: 600;
 }
 
 button.skip-btn {
@@ -139,4 +140,9 @@ button.skip-btn {
 button.save-btn::after,
 button.skip-btn::after {
   border: 0;
+}
+
+button.save-btn.disabled,
+button.save-btn[disabled] {
+  opacity: 0.6;
 }

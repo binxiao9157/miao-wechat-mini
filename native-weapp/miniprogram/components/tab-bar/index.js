@@ -1,3 +1,5 @@
+const { events } = require('../../utils/event-bus');
+
 const TABS = [
   {
     key: 'diary',
@@ -46,7 +48,8 @@ Component({
   },
 
   data: {
-    tabs: []
+    tabs: [],
+    hidden: false
   },
 
   observers: {
@@ -57,7 +60,16 @@ Component({
 
   lifetimes: {
     attached() {
+      this.onHideTabbar = () => this.setData({ hidden: true });
+      this.onShowTabbar = () => this.setData({ hidden: false });
+      events.on('tabbar:hide', this.onHideTabbar);
+      events.on('tabbar:show', this.onShowTabbar);
       this.syncTabs();
+    },
+
+    detached() {
+      events.off('tabbar:hide', this.onHideTabbar);
+      events.off('tabbar:show', this.onShowTabbar);
     }
   },
 
@@ -75,7 +87,13 @@ Component({
     go(event) {
       const { url, key } = event.currentTarget.dataset;
       if (key === this.properties.active) return;
-      wx.reLaunch({ url });
+      wx.switchTab({
+        url,
+        fail: () => wx.redirectTo({
+          url,
+          fail: () => wx.reLaunch({ url })
+        })
+      });
     }
   }
 });

@@ -26,10 +26,14 @@
   height: 64rpx;
   border-radius: 32rpx;
   background: var(--surface-container);
-  color: var(--color-warm-brown);
-  font-size: 52rpx;
-  line-height: 58rpx;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-icon {
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .page-title {
@@ -79,7 +83,7 @@
   margin-bottom: 12rpx;
   color: var(--color-warm-brown);
   font-size: 36rpx;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .success-desc {
@@ -103,7 +107,7 @@
 .notice-text {
   color: var(--primary);
   font-size: 24rpx;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.6;
 }
 
@@ -121,7 +125,7 @@
   margin-bottom: 20rpx;
   color: var(--color-warm-brown);
   font-size: 28rpx;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.5;
 }
 
@@ -237,7 +241,8 @@
   margin-bottom: 20rpx;
   color: rgba(93, 64, 55, 0.4);
   font-size: 22rpx;
-  font-weight: 900;
+  font-weight: 700;
+  text-transform: uppercase;
   letter-spacing: 4rpx;
 }
 
@@ -263,7 +268,7 @@
 .type-btn-text {
   color: var(--color-warm-brown-muted);
   font-size: 24rpx;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .type-btn-text.active {
@@ -294,7 +299,10 @@ button.submit-btn::after {
 
 .footer-text {
   display: block;
-  color: var(--text-hint);
-  font-size: 22rpx;
+  padding-top: 40rpx;
+  color: rgba(93, 64, 55, 0.3);
+  font-size: 20rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
   text-align: center;
 }

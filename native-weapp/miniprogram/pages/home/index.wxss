@@ -17,6 +17,12 @@
   gap: 12rpx;
 }
 
+/* 旧版首页是纯沉浸视频交互，不显示原生迁移期工具栏。 */
+.topbar,
+.action-bar {
+  display: none;
+}
+
 .tool-button {
   min-width: 84rpx;
   height: 56rpx;
@@ -148,6 +154,36 @@
   pointer-events: none;
 }
 
+.bubble-enter {
+  animation: bubbleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.bubble-exit {
+  animation: bubbleOut 0.3s ease forwards;
+}
+
+@keyframes bubbleIn {
+  from {
+    opacity: 0;
+    transform: translateX(-80rpx) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes bubbleOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-40rpx) scale(0.9);
+  }
+}
+
 .points-toast {
   position: absolute;
   left: 50%;
@@ -161,7 +197,30 @@
   -webkit-backdrop-filter: blur(8px);
   color: #FFFFFF;
   box-shadow: none;
+  animation: pointsToastIn 0.3s ease forwards, pointsToastOut 0.3s ease 1.5s forwards;
   pointer-events: none;
+}
+
+@keyframes pointsToastIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20rpx) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes pointsToastOut {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20rpx) scale(0.9);
+  }
 }
 
 .action-bar {
@@ -173,6 +232,10 @@
   display: flex;
   justify-content: center;
   gap: 12rpx;
+}
+
+.home-page .action-bar {
+  display: none;
 }
 
 .action-chip {

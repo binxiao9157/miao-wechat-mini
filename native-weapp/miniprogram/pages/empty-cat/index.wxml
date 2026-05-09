@@ -1,29 +1,36 @@
 <view class="welcome-page">
+  <view class="back-btn" bindtap="goBack">
+    <image class="icon-img" src="/assets/profile-icons/arrowleft-dark.png" mode="aspectFit" />
+  </view>
+
   <view class="logo-section">
-    <image class="logo-icon" src="../../assets/logo.png" mode="aspectFit" />
+    <view class="logo-icon-wrapper">
+      <image class="logo-icon" src="/assets/logo.png" mode="aspectFit" />
+    </view>
     <text class="logo-text">Miao</text>
   </view>
-  <text class="main-title">遇见你的数字猫咪伙伴</text>
-  <text class="main-desc">上传真实照片生成专属形象，或选择预设猫咪快速开始陪伴。</text>
-  <text wx:if="{{isRedemption}}" class="redemption">{{redemptionText}}</text>
+  <text class="main-title">遇见你的
+数字猫咪</text>
+  <text class="main-desc">开启一段温暖的治愈旅程，记录你与毛
+孩子的每一个瞬间。</text>
   <view class="option-cards">
     <view class="option-card" bindtap="goUpload">
       <view class="card-header">
-        <view class="card-icon-box"><image class="card-icon" src="/assets/profile-icons/upload-primary.png" mode="aspectFit" /></view>
+        <view class="card-icon-box"><image class="card-icon" src="/assets/profile-icons/camera-primary.png" mode="aspectFit" /></view>
         <text class="card-arrow">›</text>
       </view>
-      <text class="card-title">上传猫咪照片</text>
-      <text class="card-desc">AI 捕捉猫咪特征，生成更贴近真实猫咪的数字形象。</text>
-      <view class="upload-hint"><text class="upload-hint-text">RECOMMENDED</text></view>
+      <text class="card-title">我有猫咪</text>
+      <text class="card-desc">上传照片，由 AI 为你的真实猫咪生成专属数字形象。</text>
+      <view class="upload-hint"><text class="upload-hint-text">点击上传照片或视频</text></view>
     </view>
     <view class="option-card" bindtap="goCreate">
       <view class="card-header">
-        <view class="card-icon-box"><image class="card-icon" src="/assets/profile-icons/sparkles-primary.png" mode="aspectFit" /></view>
+        <view class="card-icon-box"><image class="card-icon paw-icon" src="/assets/logo.png" mode="aspectFit" /></view>
         <text class="card-arrow">›</text>
       </view>
-      <text class="card-title">选择预设猫咪</text>
-      <text class="card-desc">先用预设形象创建伙伴，快速体验视频生成流程。</text>
+      <text class="card-title">我想养猫</text>
+      <text class="card-desc">选择你心仪的品种，在数字世界领养你的第一只猫咪。</text>
     </view>
   </view>
-  <view class="footer" bindtap="logout"><text class="footer-text">退出登录</text></view>
+  <view class="footer" bindlongtap="logout"><text class="footer-text">© 2026 MIAO · 纯粹的猫咪生活</text></view>
 </view>

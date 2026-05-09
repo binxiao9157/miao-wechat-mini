@@ -1,140 +1,162 @@
 .milestone-page {
-  min-height: 100vh;
-  padding: calc(env(safe-area-inset-top) + 36rpx) 44rpx 64rpx;
-  box-sizing: border-box;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background: var(--background);
 }
 
-.header {
-  display: flex;
+.page-header {
+  padding: var(--nav-top, calc(env(safe-area-inset-top) + 36rpx)) 32rpx 0;
+  min-height: calc(var(--nav-height, 64rpx) + var(--nav-top, calc(env(safe-area-inset-top) + 36rpx)));
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 80rpx 1fr 80rpx;
   align-items: center;
-  padding-bottom: 42rpx;
 }
 
-.back {
-  width: 84rpx;
-  height: 84rpx;
-  border-radius: 30rpx;
-  background: #fff;
-  color: var(--on-primary-container);
-  font-size: 58rpx;
-  line-height: 76rpx;
-  text-align: center;
-  box-shadow: 0 8rpx 24rpx rgba(99, 62, 29, 0.08);
+.back-btn {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+.icon-img {
+  width: 48rpx;
+  height: 48rpx;
 }
 
 .header-title {
-  margin-left: 20rpx;
   color: var(--on-primary-container);
-  font-size: 42rpx;
-  font-weight: 900;
+  font-size: 36rpx;
+  font-weight: 700;
+  text-align: center;
 }
 
-.hero {
+.header-spacer {
+  width: 80rpx;
+  height: 80rpx;
+}
+
+.milestone-scroll {
+  flex: 1;
+  height: 0;
+}
+
+.days-card {
+  margin: 48rpx 32rpx;
   padding: 56rpx 32rpx;
   border-radius: 40rpx;
-  background: linear-gradient(135deg, var(--primary-strong) 0%, #ff6b3d 100%);
+  background: linear-gradient(135deg, var(--primary-strong) 0%, #FF6B3D 100%);
   text-align: center;
   box-shadow: 0 16rpx 48rpx rgba(255, 107, 61, 0.3);
 }
 
-.cat-name {
+.days-label {
   display: block;
-  color: rgba(255, 255, 255, 0.82);
+  margin-bottom: 16rpx;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 28rpx;
-  font-weight: 800;
 }
 
-.days {
+.days-number {
   display: block;
-  margin-top: 16rpx;
-  color: #fff;
-  font-size: 92rpx;
-  font-weight: 900;
+  color: #FFFFFF;
+  font-size: 96rpx;
+  font-weight: 800;
   line-height: 1.1;
 }
 
-.subtitle {
+.days-unit {
   display: block;
-  margin-top: 10rpx;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 26rpx;
-  line-height: 1.6;
-}
-
-.stats {
-  margin-top: 28rpx;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18rpx;
-}
-
-.stat {
-  min-height: 148rpx;
-  border-radius: 30rpx;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(99, 62, 29, 0.05);
-}
-
-.value {
-  color: var(--on-primary-container);
-  font-size: 42rpx;
-  font-weight: 900;
-}
-
-.label {
   margin-top: 8rpx;
-  color: var(--on-surface-variant);
-  font-size: 24rpx;
-  font-weight: 800;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 32rpx;
 }
 
-.list {
-  margin-top: 36rpx;
-  padding: 30rpx;
+.calendar-section {
+  margin: 0 32rpx;
+  padding: 32rpx;
   border-radius: 32rpx;
-  background: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(99, 62, 29, 0.05);
+  background: #FFFFFF;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 }
 
-.item {
-  min-height: 76rpx;
-  padding: 12rpx 0;
-  display: flex;
-  align-items: center;
-  gap: 18rpx;
-  border-bottom: 1rpx solid rgba(93, 64, 55, 0.08);
-}
-
-.item:last-child {
-  border-bottom: 0;
-}
-
-.item.done .mark {
-  background: rgba(255, 157, 118, 0.14);
-  color: var(--primary-strong);
-}
-
-.mark {
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 24rpx;
-  background: var(--color-warm-cream);
-  color: rgba(93, 64, 55, 0.38);
+.calendar-title {
+  display: block;
+  margin-bottom: 24rpx;
+  color: var(--color-warm-brown);
   font-size: 28rpx;
-  font-weight: 900;
-  line-height: 48rpx;
+  font-weight: 700;
   text-align: center;
 }
 
-.text {
-  flex: 1;
-  color: var(--on-primary-container);
-  font-size: 28rpx;
-  font-weight: 800;
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
 }
-.milestone-scroll{height:100vh}.days-card{margin:32rpx;padding:48rpx;border-radius:40rpx;background:#fff;box-shadow:0 12rpx 34rpx rgba(99,62,29,.08);text-align:center}.days-label{color:var(--on-surface-variant);font-size:24rpx}.days-number{display:block;color:var(--primary);font-size:96rpx;font-weight:900;line-height:1}.days-unit{color:var(--text-primary);font-size:28rpx;font-weight:900}.calendar-section,.message-section{margin:32rpx;padding:32rpx;border-radius:32rpx;background:#fff}.calendar-title{font-size:32rpx;font-weight:900;color:var(--text-primary)}.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10rpx;margin-top:24rpx}.calendar-weekday,.calendar-cell{display:flex;align-items:center;justify-content:center;aspect-ratio:1}.weekday-text{font-size:22rpx;color:var(--on-surface-variant)}.calendar-cell.empty{opacity:.25}.calendar-cell.today{box-shadow:0 0 0 3rpx var(--primary)}.calendar-cell.accompanied{background:var(--color-warm-cream);border-radius:18rpx}.cell-text{font-size:22rpx}.cell-paw{font-size:18rpx}.message-text{color:var(--on-surface-variant);font-size:26rpx;line-height:1.7}
+
+.calendar-weekday {
+  padding: 8rpx 0;
+  margin-bottom: 8rpx;
+  text-align: center;
+}
+
+.weekday-text {
+  color: rgba(93, 64, 55, 0.4);
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.calendar-cell {
+  aspect-ratio: 1;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-cell.empty {
+  background: transparent;
+}
+
+.calendar-cell.today {
+  border: 2rpx solid var(--primary-strong);
+  background: rgba(255, 157, 118, 0.1);
+}
+
+.calendar-cell.accompanied {
+  background: rgba(255, 157, 118, 0.08);
+}
+
+.cell-text {
+  color: rgba(93, 64, 55, 0.6);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.cell-paw-img {
+  width: 28rpx;
+  height: 28rpx;
+  opacity: 0.72;
+}
+
+.message-section {
+  margin: 48rpx 32rpx;
+  padding: 32rpx;
+  border: 1rpx solid rgba(255, 157, 118, 0.1);
+  border-radius: 24rpx;
+  background: rgba(255, 157, 118, 0.05);
+}
+
+.message-text {
+  color: rgba(93, 64, 55, 0.5);
+  font-size: 26rpx;
+  line-height: 1.8;
+  text-align: center;
+}

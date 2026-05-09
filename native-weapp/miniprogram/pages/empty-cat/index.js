@@ -1,7 +1,11 @@
 const { authService } = require('../../services/auth');
-const { navigateTo, reLaunch } = require('../../utils/nav');
+const { navigateTo, reLaunch, safeBack } = require('../../utils/nav');
 
 Page({
+  goBack() {
+    safeBack('/pages/cat-start/index');
+  },
+
   goCreate() {
     navigateTo(`/pages/create-companion/index${this.getRedemptionQuery()}`);
   },

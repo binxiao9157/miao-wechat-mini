@@ -1,6 +1,12 @@
 <view class="reset-password-page">
+  <view wx:if="{{showSuccessToast}}" class="toast">
+    <text class="toast-text">密码重置成功！</text>
+  </view>
+
   <view class="page-header">
-    <text class="back-btn" bindtap="goBack">‹</text>
+    <view class="back-btn" bindtap="goBack">
+      <image class="back-icon" src="/assets/profile-icons/arrowleft-dark.png" mode="aspectFit" />
+    </view>
     <text class="page-title">重置密码</text>
   </view>
 
@@ -32,6 +38,10 @@
             <image class="icon-img" src="{{showPassword ? '/assets/profile-icons/eyeoff-dark.png' : '/assets/profile-icons/eye-dark.png'}}" mode="aspectFit" />
           </view>
         </view>
+      </view>
+
+      <view wx:if="{{error}}" class="error-box">
+        <text class="error-text">{{error}}</text>
       </view>
 
       <button class="submit-btn" loading="{{saving}}" bindtap="submit">

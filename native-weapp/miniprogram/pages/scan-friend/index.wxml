@@ -9,7 +9,6 @@
     </view>
     <view class="header-title">
       <text class="title-main">扫码添加好友</text>
-      <text class="title-sub">SCAN FRIEND QR</text>
     </view>
     <view class="placeholder"></view>
   </view>

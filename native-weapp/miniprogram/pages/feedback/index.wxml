@@ -9,11 +9,13 @@
 
   <block wx:else>
     <view class="page-header">
-      <text class="back-btn" bindtap="goBack">‹</text>
+      <view class="back-btn" bindtap="goBack">
+        <image class="back-icon" src="/assets/profile-icons/arrowleft-dark.png" mode="aspectFit" />
+      </view>
       <text class="page-title">反馈</text>
     </view>
 
-    <scroll-view class="feedback-scroll content-scroll" scroll-y>
+    <scroll-view class="feedback-scroll content-scroll" scroll-y enhanced show-scrollbar="{{false}}">
       <view wx:if="{{!hasSubmittedSurvey}}" class="survey-section">
         <view class="survey-notice">
           <text class="notice-text">为了给喵星人提供更好的陪伴，请花 2 分钟完成以下调研。您的反馈对我们至关重要！</text>
@@ -53,19 +55,19 @@
 
       <view wx:else class="simple-section">
         <view class="feedback-card">
-          <text class="section-label">反馈类型</text>
+          <text class="section-label">问题类型</text>
           <view class="type-grid">
             <view wx:for="{{feedbackTypes}}" wx:key="label" class="type-btn {{item.active ? 'active' : ''}}" data-value="{{item.label}}" bindtap="selectType">
               <text class="type-btn-text {{item.active ? 'active' : ''}}">{{item.label}}</text>
             </view>
           </view>
           <text class="section-label">反馈内容</text>
-          <textarea class="feedback-textarea" value="{{feedbackText}}" maxlength="800" placeholder="告诉我们哪里不好用，或者你想要什么功能" placeholder-style="color: #8E8E8E" bindinput="onFeedbackInput" />
+          <textarea class="feedback-textarea" value="{{feedbackText}}" maxlength="500" placeholder="请详细描述您遇到的问题或建议...（至少 10 个字）" placeholder-style="color: #8E8E8E" bindinput="onFeedbackInput" />
         </view>
         <button class="submit-btn" loading="{{saving}}" bindtap="submitFeedback">
-          <text class="submit-btn-text">提交反馈</text>
+          <text class="submit-btn-text">发送反馈</text>
         </button>
-        <text class="footer-text">我们会认真阅读每一条反馈。</text>
+        <text class="footer-text">感谢您的支持，Miao 正在变更好</text>
       </view>
     </scroll-view>
   </block>

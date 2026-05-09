@@ -12,11 +12,11 @@
       <text class="subtitle">2-12个字符，不支持emoji</text>
     </view>
     <view class="input-section">
-      <input class="nickname-input" maxlength="12" placeholder="输入昵称" placeholder-style="color: #8E8E8E" bindinput="onInput" />
+      <input class="nickname-input" maxlength="12" placeholder="输入昵称" placeholder-style="color: #8E8E8E" value="{{nickname}}" focus bindinput="onInput" />
       <text class="char-count">{{nickname.length || 0}}/12</text>
     </view>
     <view class="buttons">
-      <button class="save-btn" loading="{{saving}}" bindtap="submit">保存昵称</button>
+      <button class="save-btn {{canSave ? '' : 'disabled'}}" disabled="{{saving || !canSave}}" loading="{{saving}}" bindtap="submit">保存昵称</button>
       <button class="skip-btn" bindtap="skip">跳过，使用默认昵称</button>
     </view>
   </view>

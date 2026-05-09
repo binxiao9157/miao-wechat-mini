@@ -176,6 +176,16 @@ const authService = {
     return res.data;
   },
 
+  async sendResetCode(phone) {
+    const res = await request({
+      url: '/api/v1/auth/send-reset-code',
+      method: 'POST',
+      data: { phone },
+      timeout: 15000
+    });
+    return res.data;
+  },
+
   logout() {
     removeItem(STORAGE_KEYS.TOKEN);
     removeItem(STORAGE_KEYS.CURRENT_USER);

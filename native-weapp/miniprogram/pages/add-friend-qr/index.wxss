@@ -17,10 +17,16 @@
 .back-btn {
   width: 72rpx;
   height: 72rpx;
-  color: var(--color-warm-brown);
-  font-size: 56rpx;
-  line-height: 64rpx;
-  text-align: center;
+  border-radius: 36rpx;
+  background: var(--surface-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-icon {
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .header-title-wrap {
@@ -277,6 +283,10 @@ button.action-btn::after {
   gap: 16rpx;
 }
 
+.legacy-hidden {
+  display: none;
+}
+
 button.copy-btn {
   height: 72rpx;
   margin: 0;
@@ -322,10 +332,14 @@ button.copy-btn::after {
   margin-bottom: 28rpx;
   border-radius: 48rpx;
   background: #fff1ec;
-  color: #ef6f5e;
-  font-size: 52rpx;
-  font-weight: 900;
-  line-height: 128rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-icon-img {
+  width: 80rpx;
+  height: 80rpx;
 }
 
 .error-title {
@@ -396,27 +410,16 @@ button.copy-btn::after {
   z-index: 1600;
   display: flex;
   align-items: center;
-  gap: 12rpx;
   transform: translateX(-50%);
   padding: 18rpx 30rpx;
-  border-radius: 999rpx;
-  background: rgba(42, 31, 24, 0.86);
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.12);
+  border-radius: 24rpx;
+  background: rgba(0, 0, 0, 0.8);
 }
 
-.toast.success {
-  background: rgba(51, 139, 90, 0.92);
-}
-
-.toast.error {
-  background: rgba(217, 76, 66, 0.92);
-}
-
-.toast-icon,
 .toast-message {
   color: #fff;
-  font-size: 24rpx;
-  font-weight: 900;
+  font-size: 26rpx;
+  font-weight: 400;
 }
 
 .preview-modal {

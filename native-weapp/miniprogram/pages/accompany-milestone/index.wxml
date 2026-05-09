@@ -1,24 +1,36 @@
 <view class="milestone-page">
-  <view class="header">
-    <text class="back" bindtap="goBack">‹</text>
-    <text class="header-title">陪伴里程碑</text>
-  </view>
-
-  <view class="hero">
-    <text class="cat-name">{{catName}}</text>
-    <text class="days">{{days}} 天</text>
-    <text class="subtitle">你们已经一起走过这些小小节点。</text>
-  </view>
-
-  <view class="stats">
-    <view class="stat"><text class="value">{{diaryCount}}</text><text class="label">日记</text></view>
-    <view class="stat"><text class="value">{{videoCount}}</text><text class="label">视频</text></view>
-  </view>
-
-  <view class="list">
-    <view wx:for="{{milestones}}" wx:key="label" class="item {{item.done ? 'done' : ''}}">
-      <text class="mark">{{item.done ? '✓' : '○'}}</text>
-      <text class="text">{{item.label}}</text>
+  <view class="page-header">
+    <view class="back-btn" bindtap="goBack">
+      <image class="icon-img" src="/assets/profile-icons/arrowleft-dark.png" mode="aspectFit" />
     </view>
+    <text class="header-title">陪伴里程碑</text>
+    <view class="header-spacer"></view>
   </view>
+
+  <scroll-view class="milestone-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="days-card">
+      <text class="days-label">与 {{catName}} 相遇的第</text>
+      <text class="days-number">{{days}}</text>
+      <text class="days-unit">天</text>
+    </view>
+
+    <view class="calendar-section">
+      <text class="calendar-title">{{calendarTitle}}</text>
+      <view class="calendar-grid">
+        <view wx:for="{{weekDays}}" wx:key="*this" class="calendar-weekday">
+          <text class="weekday-text">{{item}}</text>
+        </view>
+        <view wx:for="{{calendarBlanks}}" wx:key="id" class="calendar-cell empty"></view>
+        <view wx:for="{{calendarDays}}" wx:key="day" class="calendar-cell {{item.isToday ? 'today' : ''}} {{item.isAccompanied ? 'accompanied' : ''}}">
+          <image wx:if="{{item.isAccompanied}}" class="cell-paw-img" src="/assets/logo.png" mode="aspectFit" />
+          <text wx:else class="cell-text">{{item.day}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="message-section">
+      <text class="message-text">每一天的陪伴都是最珍贵的礼物，
+愿你和 {{catName}} 的故事继续温暖下去。</text>
+    </view>
+  </scroll-view>
 </view>

@@ -1,4 +1,4 @@
-<view class="tab-shell {{active === 'home' ? 'on-home' : ''}}">
+<view wx:if="{{!hidden}}" class="tab-shell {{active === 'home' ? 'on-home' : ''}}">
   <view
     wx:for="{{tabs}}"
     wx:key="key"

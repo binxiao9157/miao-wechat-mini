@@ -1,14 +1,29 @@
 <view class="cat-start-page">
-  <view class="header">
-    <text class="back" bindtap="goBack">‹</text>
+  <view class="back-btn" bindtap="goBack">
+    <image class="icon-img" src="/assets/profile-icons/arrowleft-dark.png" mode="aspectFit" />
   </view>
+
+  <view class="bg-decoration bg-decoration-1"></view>
+  <view class="bg-decoration bg-decoration-2"></view>
 
   <view class="content">
-    <image class="logo" src="/assets/logo.png" mode="aspectFit" />
-    <text class="title">还没有猫咪伙伴</text>
-    <text class="desc">开启一段专属缘分，领养你的第一只数字猫咪。</text>
-    <button class="miao-button-primary start" bindtap="start">开启缘分</button>
+    <view class="illustration">
+      <view class="illustration-bg">
+        <image class="paw-layer paw-back" src="/assets/logo.png" mode="aspectFit" />
+        <image class="paw-layer paw-front" src="/assets/logo.png" mode="aspectFit" />
+        <text class="sparkle sparkle-1">✨</text>
+        <text class="sparkle sparkle-2">✨</text>
+      </view>
+    </view>
+
+    <text class="main-title">还没有猫咪伙伴</text>
+    <text class="main-desc">每一个温暖的灵魂都在等待相遇。
+开启一段专属缘分，领养你的第一只数字猫咪吧。</text>
+    <view class="start-btn" bindtap="start">
+      <text class="start-btn-text">开启缘分</text>
+      <text class="start-btn-arrow">→</text>
+    </view>
   </view>
 
-  <text class="footer">MIAO SANCTUARY · PURE COMPANIONSHIP</text>
+  <view class="footer"><text class="footer-text">MIAO SANCTUARY · PURE COMPANIONSHIP</text></view>
 </view>

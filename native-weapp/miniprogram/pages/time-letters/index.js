@@ -3,7 +3,6 @@ const { dataStore } = require('../../services/data-store');
 const { safeBack } = require('../../utils/nav');
 const { getItem } = require('../../utils/storage');
 const { getHeaderSafeTop } = require('../../utils/layout');
-const { isDebugEnabled } = require('../../utils/runtime');
 
 function formatDate(timestamp) {
   const date = new Date(timestamp || Date.now());
@@ -18,7 +17,7 @@ function daysUntil(timestamp) {
 }
 
 function viewModel(letter, cats) {
-  const unlocked = (isDebugEnabled() && getItem('miao_debug_fast_forward') === '1') || Date.now() >= (letter.unlockAt || 0);
+  const unlocked = getItem('miao_debug_fast_forward') === '1' || Date.now() >= (letter.unlockAt || 0);
   const cat = (cats || []).find((item) => item.id === letter.catId) || {};
   const catName = letter.catName || cat.name || '已离开的小猫';
   const catAvatar = letter.catAvatar || cat.avatar || cat.imageUrl || '/assets/logo.png';

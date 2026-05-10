@@ -17,6 +17,20 @@ const BUBBLES = {
   blink: '小羽毛，抓不到~'
 };
 
+function getCatRenderSignature(cat, action = 'idle') {
+  if (!cat) return 'empty';
+  const paths = normalizeVideoPaths(cat.videoPaths);
+  const currentAction = paths[action] ? action : 'idle';
+  return JSON.stringify({
+    id: cat.id || '',
+    action: currentAction,
+    video: getCatVideoUrl(cat, currentAction),
+    poster: normalizeMediaUrl(cat.avatar || cat.imageUrl || cat.placeholderImage || cat.anchorFrame || ''),
+    pathKeys: ACTIONS.map((item) => `${item.key}:${paths[item.key] || ''}`),
+    generationStatus: cat.generationStatus || ''
+  });
+}
+
 Page({
   data: {
     cat: null,
@@ -35,6 +49,8 @@ Page({
   },
 
   onShow() {
+    const syncToken = Date.now();
+    this.homeSyncToken = syncToken;
     this.touchStart = null;
     this.longPressFired = false;
     this.startOnlineTimer();
@@ -46,17 +62,23 @@ Page({
     dataStore.syncCatsFromServer().catch((error) => {
       console.warn('[native] sync cats in home failed:', error);
     }).finally(() => {
-      this.applyCat(dataStore.getActiveCat(), this.data.currentAction);
+      if (this.homeSyncToken !== syncToken) return;
+      const latestCat = dataStore.getActiveCat();
+      const signature = getCatRenderSignature(latestCat, this.data.currentAction);
+      if (signature === this.lastCatRenderSignature) return;
+      this.applyCat(latestCat, this.data.currentAction);
     });
   },
 
   onUnload() {
+    this.homeSyncToken = null;
     clearTimeout(this.longPressTimer);
     clearTimeout(this.pointsToastTimer);
     clearInterval(this.onlineTimer);
   },
 
   onHide() {
+    this.homeSyncToken = null;
     clearTimeout(this.longPressTimer);
     clearTimeout(this.pointsToastTimer);
     clearInterval(this.onlineTimer);
@@ -72,6 +94,8 @@ Page({
   },
 
   applyCat(cat, preferredAction) {
+    const signature = getCatRenderSignature(cat, preferredAction);
+    if (signature === this.lastCatRenderSignature) return;
     const paths = normalizeVideoPaths(cat && cat.videoPaths);
     const idleVideo = getCatVideoUrl(cat, 'idle');
     const currentAction = paths[preferredAction] ? preferredAction : 'idle';
@@ -102,6 +126,7 @@ Page({
       delete nextData.videoErrorDesc;
       delete nextData.videoReady;
     }
+    this.lastCatRenderSignature = signature;
     this.setData(nextData);
   },
 

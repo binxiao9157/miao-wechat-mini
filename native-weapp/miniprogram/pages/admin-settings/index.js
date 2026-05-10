@@ -4,7 +4,6 @@ const { aiConfig, DEFAULT_AI_PROFILES } = require('../../services/ai-config');
 const { safeBack } = require('../../utils/nav');
 const { getItem, setItem } = require('../../utils/storage');
 const { chooseImage, saveMediaFile } = require('../../utils/media');
-const { isDebugEnabled } = require('../../utils/runtime');
 
 Page({
   data: {
@@ -21,14 +20,7 @@ Page({
     uploadingPreset: false
   },
 
-  onLoad() {
-    if (!isDebugEnabled()) {
-      safeBack('/pages/profile/index');
-    }
-  },
-
   onShow() {
-    if (!isDebugEnabled()) return;
     this.setData({
       pointsCheat: contentStore.getIsPointsCheat(),
       fastForward: getItem('miao_debug_fast_forward') === '1',
@@ -42,14 +34,12 @@ Page({
   },
 
   togglePointsCheat(event) {
-    if (!isDebugEnabled()) return;
     const enabled = !!event.detail.value;
     contentStore.setIsPointsCheat(enabled);
     this.setData({ pointsCheat: enabled });
   },
 
   toggleFastForward(event) {
-    if (!isDebugEnabled()) return;
     const enabled = !!event.detail.value;
     setItem('miao_debug_fast_forward', enabled ? '1' : '0');
     this.setData({ fastForward: enabled });
@@ -94,14 +84,12 @@ Page({
   },
 
   saveConfig() {
-    if (!isDebugEnabled()) return;
     aiConfig.saveProfile(this.data.profile);
     dataStore.savePresetCats(this.data.presets);
     wx.showToast({ title: '配置已保存', icon: 'success' });
   },
 
   resetConfig() {
-    if (!isDebugEnabled()) return;
     aiConfig.reset();
     this.setData({ profile: aiConfig.getProfile() });
     wx.showToast({ title: '已恢复默认', icon: 'success' });

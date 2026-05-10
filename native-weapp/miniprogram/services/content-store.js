@@ -4,7 +4,6 @@ const { authService } = require('./auth');
 const { dataStore } = require('./data-store');
 const { userScopedKey } = require('../types/models');
 const { isDataUrl, readFileAsDataUrl, saveDataUrlToFile } = require('../utils/media');
-const { isDebugEnabled } = require('../utils/runtime');
 
 function parseJson(raw, fallback) {
   if (!raw) return fallback;
@@ -645,11 +644,10 @@ const contentStore = {
   },
 
   getIsPointsCheat() {
-    return isDebugEnabled() && getItem(scopedKey('miao_debug_points_cheat')) === '1';
+    return getItem(scopedKey('miao_debug_points_cheat')) === '1';
   },
 
   setIsPointsCheat(enabled) {
-    if (!isDebugEnabled()) return;
     setItem(scopedKey('miao_debug_points_cheat'), enabled ? '1' : '0');
   },
 

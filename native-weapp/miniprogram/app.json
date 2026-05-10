@@ -31,8 +31,7 @@
     "pages/scan-friend/index",
     "pages/cat-player/index",
     "pages/accompany-milestone/index",
-    "pages/notification-list/index",
-    "pages/bootstrap/index"
+    "pages/notification-list/index"
   ],
   "window": {
     "navigationStyle": "custom",

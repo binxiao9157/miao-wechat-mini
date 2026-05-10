@@ -1,6 +1,6 @@
 const { contentStore } = require('../../services/content-store');
 const { dataStore } = require('../../services/data-store');
-const { safeBack, navigateTo } = require('../../utils/nav');
+const { safeBack, navigateTo, reLaunch } = require('../../utils/nav');
 const { getHeaderSafeTop } = require('../../utils/layout');
 
 function formatTime(timestamp) {
@@ -95,10 +95,7 @@ Page({
   tapTask(event) {
     const { action, completed } = event.currentTarget.dataset;
     if (completed || action !== 'home') return;
-    wx.switchTab({
-      url: '/pages/home/index',
-      fail: () => navigateTo('/pages/home/index')
-    });
+    reLaunch('/pages/home/index');
   },
 
   openHistory() {

@@ -3,6 +3,7 @@ const { authService } = require('../../services/auth');
 const { getItem, setItem } = require('../../utils/storage');
 const { safeBack, navigateTo, reLaunch } = require('../../utils/nav');
 const { userScopedKey } = require('../../types/models');
+const { getCatVideoUrl, normalizeVideoPaths } = require('../../utils/media-url');
 
 const ACTIONS = [
   { key: 'idle', label: '苏醒' },
@@ -53,9 +54,9 @@ Page({
   },
 
   applyCat(cat, action) {
-    const paths = cat.videoPaths || {};
-    const fallback = paths.idle || cat.videoPath || cat.remoteVideoUrl || '';
-    const videoUrl = paths[action] || fallback;
+    const paths = normalizeVideoPaths(cat.videoPaths);
+    const fallback = getCatVideoUrl(cat, 'idle');
+    const videoUrl = action === 'idle' ? fallback : paths[action];
     this.setData({
       cat,
       currentAction: action,
@@ -67,7 +68,7 @@ Page({
       actions: ACTIONS.map((item) => ({
         ...item,
         active: item.key === action,
-        generated: !!paths[item.key] || (item.key === 'idle' && !!fallback)
+        generated: item.key === 'idle' ? !!fallback : !!paths[item.key]
       }))
     });
   },

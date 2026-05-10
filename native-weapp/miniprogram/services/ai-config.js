@@ -6,6 +6,7 @@ const {
   VIDEO_RESOLUTION,
   VIDEO_DURATION
 } = require('../config/env');
+const { isDebugEnabled } = require('../utils/runtime');
 
 const STORAGE_KEYS = {
   PROVIDER: 'MIAO_AI_PROVIDER',
@@ -72,7 +73,7 @@ const aiConfig = {
     const defaults = DEFAULT_AI_PROFILES[provider];
     const imageKey = provider === 'dashscope' ? STORAGE_KEYS.DASHSCOPE_IMAGE_MODEL : STORAGE_KEYS.VOLC_IMAGE_MODEL;
     const videoKey = provider === 'dashscope' ? STORAGE_KEYS.DASHSCOPE_VIDEO_MODEL : STORAGE_KEYS.VOLC_VIDEO_MODEL;
-    return {
+    const profile = {
       ...defaults,
       imageModel: (getItem(imageKey) || defaults.imageModel).trim(),
       videoModel: (getItem(videoKey) || defaults.videoModel).trim(),
@@ -81,6 +82,10 @@ const aiConfig = {
       seed: readNumber(STORAGE_KEYS.SEED, defaults.seed),
       promptExtend: readBool(STORAGE_KEYS.PROMPT_EXTEND, defaults.promptExtend),
       mockMode: readBool(STORAGE_KEYS.MOCK_MODE, defaults.mockMode)
+    };
+    return {
+      ...profile,
+      mockMode: isDebugEnabled() ? profile.mockMode : false
     };
   },
 
@@ -93,7 +98,7 @@ const aiConfig = {
     setItem(STORAGE_KEYS.DURATION, String(Number(profile.duration) || DEFAULT_AI_PROFILES[provider].duration));
     setItem(STORAGE_KEYS.SEED, String(Number(profile.seed) || DEFAULT_AI_PROFILES[provider].seed));
     setItem(STORAGE_KEYS.PROMPT_EXTEND, String(!!profile.promptExtend));
-    setItem(STORAGE_KEYS.MOCK_MODE, String(!!profile.mockMode));
+    setItem(STORAGE_KEYS.MOCK_MODE, String(isDebugEnabled() && !!profile.mockMode));
   },
 
   reset() {

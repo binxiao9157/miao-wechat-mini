@@ -5,6 +5,7 @@ const { del } = require('../../utils/request');
 const { clear } = require('../../utils/storage');
 const { safeBack, navigateTo, reLaunch } = require('../../utils/nav');
 const { getHeaderSafeTop } = require('../../utils/layout');
+const { isDebugEnabled } = require('../../utils/runtime');
 
 const ADMIN_TAP_WINDOW_MS = 1800;
 
@@ -139,6 +140,7 @@ Page({
   },
 
   handleAdminTap() {
+    if (!isDebugEnabled()) return;
     this.adminTapCount = (this.adminTapCount || 0) + 1;
     clearTimeout(this.adminTapTimer);
     if (this.adminTapCount >= 5) {
@@ -178,8 +180,6 @@ Page({
           'miao_settings',
           'miao_ai_config',
           'miao_has_submitted_survey',
-          'miao_debug_fast_forward',
-          'miao_debug_points_cheat',
           'miao_last_cat_image',
           'miao_last_cat_breed',
           'app_preset_cats',

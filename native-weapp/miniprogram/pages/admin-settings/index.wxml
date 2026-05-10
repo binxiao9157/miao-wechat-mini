@@ -1,106 +1,156 @@
-<view class="admin-page">
-  <view class="header">
+<view class="admin-settings-page">
+  <view class="page-header">
     <text class="back" bindtap="goBack">‹</text>
-    <text class="header-title">后台配置</text>
+    <view class="header-title-wrap">
+      <text class="header-title">后台配置</text>
+      <text class="header-subtitle">AI PROVIDER PROFILE</text>
+    </view>
+    <view class="header-spacer"></view>
   </view>
 
-  <view class="section">
-    <text class="section-title">AI 模型配置</text>
-    <view class="provider-tabs">
-      <button
-        wx:for="{{providerOptions}}"
-        wx:key="key"
-        class="provider-tab {{profile.provider === item.key ? 'active' : ''}}"
-        data-provider="{{item.key}}"
-        bindtap="selectProvider"
-      >
-        {{item.label}}
-      </button>
+  <scroll-view class="admin-settings-scroll" scroll-y="{{true}}" show-scrollbar="{{false}}">
+    <view class="section ai-section">
+      <view class="section-head">
+        <view class="section-icon">
+          <image class="icon-img section-icon-img" src="../../assets/profile-icons/settings-dark.png" mode="aspectFit" />
+        </view>
+        <text class="section-title">AI 模型配置</text>
+      </view>
+
+      <view class="provider-tabs">
+        <view
+          wx:for="{{providerOptions}}"
+          wx:key="key"
+          class="provider-tab {{profile.provider === item.key ? 'active' : ''}}"
+          data-provider="{{item.key}}"
+          bindtap="selectProvider"
+        >
+          <text class="provider-text">{{item.label}}</text>
+        </view>
+      </view>
+
+      <view class="form-list">
+        <view class="field">
+          <text class="label">图片模型</text>
+          <input class="input" value="{{profile.imageModel}}" data-field="imageModel" bindinput="onProfileInput" />
+        </view>
+
+        <view class="field">
+          <text class="label">视频模型</text>
+          <input class="input" value="{{profile.videoModel}}" data-field="videoModel" bindinput="onProfileInput" />
+        </view>
+
+        <view class="field-row">
+          <view class="field compact">
+            <text class="label">清晰度</text>
+            <input class="input compact-input" value="{{profile.resolution}}" data-field="resolution" bindinput="onProfileInput" />
+          </view>
+          <view class="field compact">
+            <text class="label">时长</text>
+            <input class="input compact-input" type="number" value="{{profile.duration}}" data-field="duration" bindinput="onProfileInput" />
+          </view>
+          <view class="field compact">
+            <text class="label">Seed</text>
+            <input class="input compact-input" type="number" value="{{profile.seed}}" data-field="seed" bindinput="onProfileInput" />
+          </view>
+        </view>
+
+        <view class="switch-row">
+          <view class="switch-item">
+            <text class="switch-label">Prompt 扩展</text>
+            <switch checked="{{profile.promptExtend}}" data-field="promptExtend" bindchange="toggleProfileBool" color="#FF8C5A" />
+          </view>
+          <view class="switch-item">
+            <text class="switch-label">Mock 模式</text>
+            <switch checked="{{profile.mockMode}}" data-field="mockMode" bindchange="toggleProfileBool" color="#FF8C5A" />
+          </view>
+        </view>
+      </view>
     </view>
 
-    <view class="field">
-      <text class="field-label">图片模型</text>
-      <input class="input" value="{{profile.imageModel}}" data-field="imageModel" bindinput="onProfileInput" />
-    </view>
-    <view class="field">
-      <text class="field-label">视频模型</text>
-      <input class="input" value="{{profile.videoModel}}" data-field="videoModel" bindinput="onProfileInput" />
-    </view>
-    <view class="field-grid">
-      <view class="field compact">
-        <text class="field-label">清晰度</text>
-        <input class="input" value="{{profile.resolution}}" data-field="resolution" bindinput="onProfileInput" />
+    <view class="section">
+      <view class="section-head">
+        <view class="section-icon">
+          <image class="icon-img section-icon-img" src="../../assets/profile-icons/settings-dark.png" mode="aspectFit" />
+        </view>
+        <view class="section-title-stack">
+          <text class="section-title">预设猫咪</text>
+          <text class="section-desc">管理“我想养猫”页面的品种预设</text>
+        </view>
       </view>
-      <view class="field compact">
-        <text class="field-label">时长</text>
-        <input class="input" type="number" value="{{profile.duration}}" data-field="duration" bindinput="onProfileInput" />
-      </view>
-      <view class="field compact">
-        <text class="field-label">Seed</text>
-        <input class="input" type="number" value="{{profile.seed}}" data-field="seed" bindinput="onProfileInput" />
-      </view>
-    </view>
-    <view class="setting-row">
-      <view>
-        <text class="setting-title">Prompt 扩展</text>
-        <text class="setting-desc">提交生成任务时传递 prompt_extend 参数。</text>
-      </view>
-      <switch checked="{{profile.promptExtend}}" data-field="promptExtend" bindchange="toggleProfileBool" color="#E89F71" />
-    </view>
-    <view class="setting-row">
-      <view>
-        <text class="setting-title">Mock 模式</text>
-        <text class="setting-desc">用于本地 QA，不调用真实 AI 生成接口。</text>
-      </view>
-      <switch checked="{{profile.mockMode}}" data-field="mockMode" bindchange="toggleProfileBool" color="#E89F71" />
-    </view>
-    <view class="action-row">
-      <button class="secondary-btn" bindtap="resetConfig">恢复默认</button>
-      <button class="primary-btn" bindtap="saveConfig">保存配置</button>
-    </view>
-  </view>
 
-  <view class="section">
-    <view class="section-head">
-      <text class="section-title">预设猫咪</text>
-      <button class="mini-btn" bindtap="resetPresets">重置</button>
-    </view>
-    <view class="preset-list">
-      <view wx:for="{{presets}}" wx:key="id" class="preset-item">
-        <image class="preset-avatar" src="{{item.imageUrl}}" mode="aspectFill" />
-        <text class="preset-name">{{item.name}}</text>
-        <button class="remove-btn" data-id="{{item.id}}" bindtap="removePreset">删除</button>
+      <view class="preset-list">
+        <view wx:for="{{presets}}" wx:key="id" class="preset-item">
+          <image class="preset-avatar" src="{{item.imageUrl}}" mode="aspectFill" />
+          <text class="preset-name">{{item.name}}</text>
+          <view class="preset-remove" data-id="{{item.id}}" bindtap="removePreset">
+            <image class="icon-img preset-remove-icon" src="../../assets/profile-icons/x-gray.png" mode="aspectFit" />
+          </view>
+        </view>
+        <text wx:if="{{!presets.length}}" class="preset-empty">暂无预设猫咪</text>
       </view>
-      <view wx:if="{{!presets.length}}" class="preset-empty">暂无预设猫咪</view>
-    </view>
-    <view class="preset-add">
-      <view class="preset-upload" bindtap="choosePresetImage">
-        <image wx:if="{{newPresetImage}}" class="preset-upload-image" src="{{newPresetImage}}" mode="aspectFill" />
-        <text wx:elif="{{uploadingPreset}}" class="preset-upload-text">处理中</text>
-        <text wx:else class="preset-upload-text">选择图片</text>
-      </view>
-      <view class="preset-form">
-        <input class="input" value="{{newPresetName}}" placeholder="品种名称" bindinput="onPresetNameInput" />
-        <button class="primary-btn add-btn" bindtap="addPreset">添加预设</button>
-      </view>
-    </view>
-  </view>
 
-  <view class="section">
-    <text class="section-title">调试开关</text>
-    <view class="setting-row">
-      <view>
-        <text class="setting-title">积分兑换调试</text>
-        <text class="setting-desc">开启后积分中心按兑换门槛展示可兑换状态。</text>
+      <view class="preset-add-card">
+        <view class="preset-upload" bindtap="choosePresetImage">
+          <image wx:if="{{newPresetImage}}" class="preset-upload-preview" src="{{newPresetImage}}" mode="aspectFill" />
+          <view wx:else class="preset-upload-empty">
+            <image class="icon-img preset-upload-icon" src="../../assets/profile-icons/upload-primary.png" mode="aspectFit" />
+          </view>
+          <view wx:if="{{uploadingPreset}}" class="preset-upload-mask">
+            <text class="preset-upload-mask-text">处理中</text>
+          </view>
+        </view>
+        <view class="preset-add-fields">
+          <input
+            class="input preset-name-input"
+            value="{{newPresetName}}"
+            placeholder="品种名称"
+            placeholder-style="color: #8E8E8E"
+            bindinput="onPresetNameInput"
+          />
+          <view class="preset-add-btn" bindtap="addPreset">
+            <image class="icon-img preset-add-icon" src="../../assets/profile-icons/plus-white.png" mode="aspectFit" />
+            <text class="preset-add-text">添加预设</text>
+          </view>
+        </view>
       </view>
-      <switch checked="{{pointsCheat}}" bindchange="togglePointsCheat" color="#E89F71" />
     </view>
-    <view class="setting-row">
-      <view>
-        <text class="setting-title">时光信快进</text>
-        <text class="setting-desc">保留旧版调试入口，供后续 QA 使用。</text>
+
+    <view class="section debug-section">
+      <view class="section-head">
+        <view class="section-icon">
+          <image class="icon-img section-icon-img" src="../../assets/profile-icons/settings-dark.png" mode="aspectFit" />
+        </view>
+        <view class="section-title-stack">
+          <text class="section-title">调试工具</text>
+          <text class="section-desc">5连击隐藏入口进入</text>
+        </view>
       </view>
-      <switch checked="{{fastForward}}" bindchange="toggleFastForward" color="#E89F71" />
+
+      <view class="switch-row">
+        <view class="switch-item">
+          <text class="switch-label">积分作弊</text>
+          <switch checked="{{pointsCheat}}" bindchange="togglePointsCheat" color="#FF8C5A" />
+        </view>
+        <view class="switch-item">
+          <text class="switch-label">时光快进</text>
+          <switch checked="{{fastForward}}" bindchange="toggleFastForward" color="#FF8C5A" />
+        </view>
+      </view>
+    </view>
+
+    <view class="tips">
+      <text class="tips-title">说明</text>
+      <text class="tips-text">API Key 仍只保存在服务端环境变量中。这里仅切换 provider、模型名和生成参数，小程序不会保存密钥。</text>
+    </view>
+  </scroll-view>
+
+  <view class="bottom-actions">
+    <view class="reset-btn" bindtap="resetConfig">
+      <text class="reset-btn-text">恢复默认</text>
+    </view>
+    <view class="save-btn" bindtap="saveConfig">
+      <text class="save-btn-text">保存配置</text>
     </view>
   </view>
 </view>

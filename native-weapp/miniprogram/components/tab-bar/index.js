@@ -87,12 +87,9 @@ Component({
     go(event) {
       const { url, key } = event.currentTarget.dataset;
       if (key === this.properties.active) return;
-      wx.switchTab({
+      wx.redirectTo({
         url,
-        fail: () => wx.redirectTo({
-          url,
-          fail: () => wx.reLaunch({ url })
-        })
+        fail: () => wx.reLaunch({ url })
       });
     }
   }

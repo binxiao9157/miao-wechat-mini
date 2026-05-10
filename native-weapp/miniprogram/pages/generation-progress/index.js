@@ -3,6 +3,7 @@ const { contentStore } = require('../../services/content-store');
 const { ACTION_PROMPTS, submitVideoTask, pollVideoResult, persistVideo } = require('../../services/volcano');
 const { generationTasks } = require('../../services/generation-tasks');
 const { navigateTo, reLaunch } = require('../../utils/nav');
+const { getCatVideoUrl, normalizeVideoPaths } = require('../../utils/media-url');
 
 const ACTIONS = [
   { key: 'idle', label: '苏醒' },
@@ -11,6 +12,11 @@ const ACTIONS = [
   { key: 'blink', label: '逗猫' }
 ];
 const SECONDARY_ACTIONS = ACTIONS.filter((action) => action.key !== 'idle');
+
+function getActionVideoUrl(cat, action = 'idle') {
+  const paths = normalizeVideoPaths(cat && cat.videoPaths);
+  return action === 'idle' ? getCatVideoUrl(cat, 'idle') : (paths[action] || '');
+}
 
 Page({
   data: {
@@ -37,11 +43,11 @@ Page({
   getActionQueue(cat) {
     const requestedAction = this.options.action || 'idle';
     const shouldGenerateAll = this.options.all === '1' || requestedAction === 'all';
-    const existingPaths = cat.videoPaths || {};
+    const existingPaths = normalizeVideoPaths(cat.videoPaths);
     if (shouldGenerateAll) {
       return ACTIONS.filter((action) => !existingPaths[action.key]);
     }
-    if (requestedAction !== 'idle' && !existingPaths.idle && !cat.videoPath) {
+    if (requestedAction !== 'idle' && !getActionVideoUrl(cat, 'idle')) {
       return ACTIONS.filter((action) => action.key === 'idle' || action.key === requestedAction);
     }
     return ACTIONS.filter((action) => action.key === requestedAction);
@@ -51,7 +57,7 @@ Page({
     const requestedAction = this.options.action || 'idle';
     const shouldGenerateAll = this.options.all === '1' || requestedAction === 'all';
     if (shouldGenerateAll || requestedAction !== 'idle') return false;
-    const paths = cat.videoPaths || {};
+    const paths = normalizeVideoPaths(cat.videoPaths);
     return SECONDARY_ACTIONS.some((action) => !paths[action.key]);
   },
 
@@ -67,7 +73,7 @@ Page({
 
     const queue = this.getActionQueue(cat);
     if (queue.length === 0) {
-      const videoUrl = cat.videoPaths?.idle || cat.videoPath || '';
+      const videoUrl = getActionVideoUrl(cat, 'idle');
       this.setData({ phase: 'success', progress: 100, statusText: '动作已生成', videoUrl });
       return;
     }
@@ -93,14 +99,14 @@ Page({
       }
 
       const finishedCat = dataStore.getCatById(cat.id) || latestCat;
-      const hasIdleVideo = !!(finishedCat.videoPaths && finishedCat.videoPaths.idle) || !!finishedCat.videoPath;
+      const hasIdleVideo = !!getActionVideoUrl(finishedCat, 'idle');
       await dataStore.updateCatAndSync(cat.id, {
         generationStatus: hasIdleVideo ? 'ready' : 'pending',
         generationError: '',
         generationUpdatedAt: Date.now()
       });
 
-      const idleVideoUrl = (finishedCat.videoPaths && finishedCat.videoPaths.idle) || finishedCat.videoPath || latestVideoUrl;
+      const idleVideoUrl = getActionVideoUrl(finishedCat, 'idle') || latestVideoUrl;
       if (hasIdleVideo && this.shouldOfferUnlockAll(finishedCat)) {
         this.setData({
           phase: 'confirm',
@@ -119,7 +125,7 @@ Page({
         this.pointsSpent = false;
       }
       const latestCat = dataStore.getCatById(cat.id) || cat;
-      const hasPlayableVideo = !!(latestCat.videoPaths && latestCat.videoPaths.idle) || !!latestCat.videoPath;
+      const hasPlayableVideo = !!getActionVideoUrl(latestCat, 'idle');
       await dataStore.updateCatAndSync(cat.id, {
         generationStatus: hasPlayableVideo ? 'ready' : 'failed',
         generationError: error.message || '生成失败',
@@ -136,7 +142,7 @@ Page({
       reLaunch('/pages/empty-cat/index');
       return;
     }
-    const existingPaths = cat.videoPaths || {};
+    const existingPaths = normalizeVideoPaths(cat.videoPaths);
     const queue = SECONDARY_ACTIONS.filter((action) => !existingPaths[action.key]);
     if (queue.length === 0) {
       this.goHome();
@@ -180,12 +186,12 @@ Page({
         phase: 'success',
         progress: 100,
         statusText: '动作已全部解锁',
-        videoUrl: latestVideoUrl || (finishedCat.videoPaths && finishedCat.videoPaths.idle) || finishedCat.videoPath || '',
+        videoUrl: latestVideoUrl || getActionVideoUrl(finishedCat, 'idle'),
         isUnlocking: false
       });
     } catch (error) {
       const latestCat = dataStore.getCatById(cat.id) || cat;
-      const hasPlayableVideo = !!((latestCat.videoPaths && latestCat.videoPaths.idle) || latestCat.videoPath);
+      const hasPlayableVideo = !!getActionVideoUrl(latestCat, 'idle');
       await dataStore.updateCatAndSync(cat.id, {
         generationStatus: hasPlayableVideo ? 'ready' : 'failed',
         generationError: error.message || '动作解锁失败',
@@ -204,7 +210,7 @@ Page({
   },
 
   async generateAction(cat, action, index, total) {
-    const existingUrl = cat.videoPaths && cat.videoPaths[action.key];
+    const existingUrl = getActionVideoUrl(cat, action.key);
     if (existingUrl) return existingUrl;
 
     this.setData({
@@ -250,7 +256,7 @@ Page({
         generationUpdatedAt: Date.now(),
         videoPath: action.key === 'idle' ? permanentUrl : currentCat.videoPath,
         videoPaths: {
-          ...(currentCat.videoPaths || {}),
+          ...normalizeVideoPaths(currentCat.videoPaths),
           [action.key]: permanentUrl
         }
       });
@@ -272,7 +278,7 @@ Page({
   async backToEdit() {
     const cat = dataStore.getActiveCat();
     const source = (cat && cat.source) || this.options.source || 'created';
-    const hasPlayableVideo = !!(cat && ((cat.videoPaths && cat.videoPaths.idle) || cat.videoPath));
+    const hasPlayableVideo = !!getActionVideoUrl(cat, 'idle');
     if (cat && !hasPlayableVideo) {
       await dataStore.deleteCatById(cat.id).catch(() => undefined);
     }

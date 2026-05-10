@@ -4,6 +4,7 @@ const { authService } = require('./auth');
 const { dataStore } = require('./data-store');
 const { userScopedKey } = require('../types/models');
 const { isDataUrl, readFileAsDataUrl, saveDataUrlToFile } = require('../utils/media');
+const { isDebugEnabled } = require('../utils/runtime');
 
 function parseJson(raw, fallback) {
   if (!raw) return fallback;
@@ -506,13 +507,7 @@ const contentStore = {
   },
 
   getPoints() {
-    const points = normalizePoints(parseJson(getItem(scopedKey('miao_points')), DEFAULT_POINTS));
-    const expectedMinimum = this.getExpectedDailyMinimum(points);
-    if ((points.total || 0) < expectedMinimum) {
-      points.total = expectedMinimum;
-      setItem(scopedKey('miao_points'), JSON.stringify(points));
-    }
-    return points;
+    return normalizePoints(parseJson(getItem(scopedKey('miao_points')), DEFAULT_POINTS));
   },
 
   savePoints(points) {
@@ -525,16 +520,6 @@ const contentStore = {
     const res = await get('/api/v1/points', { timeout: 15000 });
     if (res.data) this.savePoints(res.data);
     return this.getPoints();
-  },
-
-  getExpectedDailyMinimum(points) {
-    const p = normalizePoints(points);
-    const date = today();
-    let expected = 0;
-    if (p.lastLoginDate === date) expected += 10;
-    if (p.lastInteractionDate === date) expected += Number(p.dailyInteractionPoints || 0);
-    if (Number(p.onlineMinutes || 0) >= 10) expected += 10;
-    return expected;
   },
 
   async syncPoints(points) {
@@ -660,10 +645,11 @@ const contentStore = {
   },
 
   getIsPointsCheat() {
-    return getItem(scopedKey('miao_debug_points_cheat')) === '1';
+    return isDebugEnabled() && getItem(scopedKey('miao_debug_points_cheat')) === '1';
   },
 
   setIsPointsCheat(enabled) {
+    if (!isDebugEnabled()) return;
     setItem(scopedKey('miao_debug_points_cheat'), enabled ? '1' : '0');
   },
 

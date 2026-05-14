@@ -2,6 +2,7 @@ const { get, post, del, put } = require('../utils/request');
 const { getItem, setItem } = require('../utils/storage');
 const { authService } = require('./auth');
 const { dataStore } = require('./data-store');
+const { syncQueue } = require('./sync-queue');
 const { userScopedKey } = require('../types/models');
 const { isDataUrl, readFileAsDataUrl, saveDataUrlToFile } = require('../utils/media');
 
@@ -465,11 +466,77 @@ const contentStore = {
     setItem(scopedKey('miao_time_letters'), JSON.stringify(Array.isArray(letters) ? letters : []));
   },
 
+  getDeletedLetterIds() {
+    return parseJson(getItem(scopedKey('miao_deleted_letters')), []);
+  },
+
+  saveDeletedLetterIds(ids) {
+    setItem(scopedKey('miao_deleted_letters'), JSON.stringify(Array.isArray(ids) ? ids.slice(0, 100) : []));
+  },
+
+  rememberDeletedLetter(id) {
+    if (!id) return;
+    const ids = this.getDeletedLetterIds();
+    if (!ids.includes(id)) this.saveDeletedLetterIds([id, ...ids]);
+  },
+
+  forgetDeletedLetter(id) {
+    if (!id) return;
+    this.saveDeletedLetterIds(this.getDeletedLetterIds().filter((item) => item !== id));
+  },
+
   async syncLettersFromServer() {
     const res = await get('/api/v1/letters', { timeout: 15000 });
-    const letters = Array.isArray(res.data) ? res.data : [];
+    const deleted = new Set(this.getDeletedLetterIds());
+    const serverLetters = Array.isArray(res.data) ? res.data : [];
+    const letters = serverLetters.filter((letter) => {
+      const id = letter && letter.id;
+      if (!id || !deleted.has(id)) return true;
+      this.syncLetterDelete(id).catch(() => undefined);
+      return false;
+    });
     this.saveLetters(letters);
     return letters;
+  },
+
+  async syncLetterDelete(id) {
+    if (!id) return;
+    try {
+      await del(`/api/v1/letters/${encodeURIComponent(id)}`, { timeout: 15000 });
+    } catch (error) {
+      const status = error.response && error.response.status;
+      if (status !== 404) throw error;
+    }
+    this.forgetDeletedLetter(id);
+    syncQueue.remove({ type: 'letter', action: 'delete', id });
+  },
+
+  async deleteLetter(id) {
+    if (!id) return { synced: true };
+    this.rememberDeletedLetter(id);
+    this.saveLetters(this.getLetters().filter((letter) => letter.id !== id));
+    this.saveReadNotificationIds(this.getReadNotificationIds().filter((item) => item !== `letter_${id}`));
+    try {
+      await this.syncLetterDelete(id);
+      return { synced: true };
+    } catch (error) {
+      syncQueue.enqueue({
+        type: 'letter',
+        action: 'delete',
+        id,
+        lastError: error.message || '信件删除同步失败'
+      });
+      console.warn('[native] sync letter delete failed:', error);
+      return { synced: false, error };
+    }
+  },
+
+  processPendingSyncTasks() {
+    return syncQueue.process({
+      'letter:delete': async (task) => {
+        await this.syncLetterDelete(task.id);
+      }
+    });
   },
 
   async addLetter(content, unlockAt, meta = {}) {

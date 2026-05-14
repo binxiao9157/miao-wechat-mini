@@ -91,8 +91,9 @@ const socialStore = {
     return friends;
   },
 
-  async createInvite() {
-    const cat = dataStore.getActiveCat();
+  async createInvite(catId) {
+    const targetCatId = String(catId || '').trim();
+    const cat = targetCatId ? (dataStore.getCatById(targetCatId) || dataStore.getActiveCat()) : dataStore.getActiveCat();
     const res = await post('/api/v1/friend-invites', {
       catId: cat && cat.id,
       catName: cat && cat.name,

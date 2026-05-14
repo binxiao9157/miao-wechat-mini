@@ -20,6 +20,8 @@ function taskKey(catId, action) {
   return `${catId}:${action}`;
 }
 
+const REDEMPTION_ACTION = '__redemption__';
+
 const generationTasks = {
   getAll() {
     return parseJson(getItem(scopedKey('miao_generation_tasks')), {});
@@ -53,6 +55,43 @@ const generationTasks = {
     this.saveAll(tasks);
   },
 
+  getRedemption(catId) {
+    return this.get(catId, REDEMPTION_ACTION);
+  },
+
+  markRedemptionSpent(catId, amount, reason) {
+    if (!catId || Number(amount || 0) <= 0) return null;
+    return this.upsert({
+      catId,
+      action: REDEMPTION_ACTION,
+      amount: Number(amount || 0),
+      reason: reason || '解锁新伙伴',
+      status: 'spent',
+      spentAt: Date.now()
+    });
+  },
+
+  markRedemptionCompleted(catId) {
+    const record = this.getRedemption(catId);
+    if (!record) return null;
+    return this.upsert({
+      ...record,
+      status: 'completed',
+      completedAt: Date.now()
+    });
+  },
+
+  markRedemptionRefunded(catId, reason) {
+    const record = this.getRedemption(catId);
+    if (!record) return null;
+    return this.upsert({
+      ...record,
+      status: 'refunded',
+      refundReason: reason || '生成失败退还',
+      refundedAt: Date.now()
+    });
+  },
+
   clearCat(catId) {
     const tasks = this.getAll();
     Object.keys(tasks).forEach((key) => {
@@ -63,7 +102,10 @@ const generationTasks = {
 
   getPendingForCat(catId) {
     return Object.values(this.getAll()).filter((task) => {
-      return task.catId === catId && task.status !== 'succeeded' && task.status !== 'failed';
+      return task.catId === catId &&
+        task.action !== REDEMPTION_ACTION &&
+        task.status !== 'succeeded' &&
+        task.status !== 'failed';
     });
   },
 
@@ -73,5 +115,6 @@ const generationTasks = {
 };
 
 module.exports = {
-  generationTasks
+  generationTasks,
+  REDEMPTION_ACTION
 };

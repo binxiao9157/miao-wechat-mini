@@ -20,6 +20,11 @@ const SURVEY_QUESTIONS = [
 
 const FEEDBACK_TYPES = ['Bug反馈', '功能建议', '界面优化', '其他'];
 
+function submitErrorTitle(error, fallback) {
+  const message = error && error.message ? String(error.message).trim() : '';
+  return message && message.length <= 18 ? message : fallback;
+}
+
 function buildQuestions(answers = {}) {
   return SURVEY_QUESTIONS.map((question) => {
     const answer = answers[question.id];
@@ -96,6 +101,11 @@ Page({
     this.setData({ feedbackText: event.detail.value });
   },
 
+  showSubmitError(error, fallback) {
+    console.warn('[native] submit feedback failed:', error);
+    wx.showToast({ title: submitErrorTitle(error, fallback), icon: 'none' });
+  },
+
   async submitSurvey() {
     const answers = this.data.surveyAnswers;
     for (const question of SURVEY_QUESTIONS.slice(0, 10)) {
@@ -108,10 +118,13 @@ Page({
     this.setData({ saving: true });
     try {
       await post('/api/v1/feedback', { type: 'survey', answers }, { timeout: 15000 });
-    } catch (error) {}
-    setItem(SURVEY_KEY, '1');
-    this.setData({ hasSubmittedSurvey: true, success: true, saving: false });
-    setTimeout(() => safeBack('/pages/profile/index'), 2000);
+      setItem(SURVEY_KEY, '1');
+      this.setData({ hasSubmittedSurvey: true, success: true, saving: false });
+      setTimeout(() => safeBack('/pages/profile/index'), 2000);
+    } catch (error) {
+      this.showSubmitError(error, '问卷提交失败');
+      this.setData({ saving: false });
+    }
   },
 
   async submitFeedback() {
@@ -123,8 +136,11 @@ Page({
     this.setData({ saving: true });
     try {
       await post('/api/v1/feedback', { type: this.data.feedbackType, content }, { timeout: 15000 });
-    } catch (error) {}
-    this.setData({ feedbackText: '', success: true, saving: false });
-    setTimeout(() => safeBack('/pages/profile/index'), 2000);
+      this.setData({ feedbackText: '', success: true, saving: false });
+      setTimeout(() => safeBack('/pages/profile/index'), 2000);
+    } catch (error) {
+      this.showSubmitError(error, '发送失败');
+      this.setData({ saving: false });
+    }
   }
 });

@@ -61,6 +61,49 @@ Page({
     return SECONDARY_ACTIONS.some((action) => !paths[action.key]);
   },
 
+  async ensureRedemptionSpent(catId) {
+    const amount = Number(this.redemptionAmount || 0);
+    if (!catId || amount <= 0) return false;
+
+    const existing = generationTasks.getRedemption(catId);
+    if (existing && existing.status === 'spent') {
+      this.redemptionAmount = Number(existing.amount || amount);
+      this.pointsSpent = true;
+      return true;
+    }
+    if (existing && existing.status === 'completed') {
+      this.pointsSpent = false;
+      return false;
+    }
+
+    await contentStore.spendPoints(amount, '解锁新伙伴');
+    generationTasks.markRedemptionSpent(catId, amount, '解锁新伙伴');
+    this.pointsSpent = true;
+    return true;
+  },
+
+  completeRedemption(catId) {
+    const amount = Number(this.redemptionAmount || 0);
+    if (!catId || amount <= 0) return;
+    const existing = generationTasks.getRedemption(catId);
+    if (existing && existing.status === 'spent') {
+      generationTasks.markRedemptionCompleted(catId);
+    }
+    this.pointsSpent = false;
+  },
+
+  async refundRedemption(catId, reason) {
+    const amount = Number(this.redemptionAmount || 0);
+    if (!catId || amount <= 0) return;
+    const existing = generationTasks.getRedemption(catId);
+    const shouldRefund = existing ? existing.status === 'spent' : this.pointsSpent;
+    const refundAmount = Number((existing && existing.amount) || amount);
+    if (!shouldRefund || refundAmount <= 0) return;
+    await contentStore.refundPoints(refundAmount, reason || '生成失败退还');
+    generationTasks.markRedemptionRefunded(catId, reason || '生成失败退还');
+    this.pointsSpent = false;
+  },
+
   async start() {
     if (this.started) return;
     this.started = true;
@@ -74,15 +117,13 @@ Page({
     const queue = this.getActionQueue(cat);
     if (queue.length === 0) {
       const videoUrl = getActionVideoUrl(cat, 'idle');
+      this.completeRedemption(cat.id);
       this.setData({ phase: 'success', progress: 100, statusText: '动作已生成', videoUrl });
       return;
     }
 
     try {
-      if (this.redemptionAmount > 0 && !this.pointsSpent) {
-        await contentStore.spendPoints(this.redemptionAmount, '解锁新伙伴');
-        this.pointsSpent = true;
-      }
+      await this.ensureRedemptionSpent(cat.id);
 
       await dataStore.updateCatAndSync(cat.id, {
         generationStatus: 'pending',
@@ -107,6 +148,7 @@ Page({
       });
 
       const idleVideoUrl = getActionVideoUrl(finishedCat, 'idle') || latestVideoUrl;
+      if (hasIdleVideo) this.completeRedemption(cat.id);
       if (hasIdleVideo && this.shouldOfferUnlockAll(finishedCat)) {
         this.setData({
           phase: 'confirm',
@@ -120,12 +162,13 @@ Page({
       }
       this.setData({ phase: 'success', progress: 100, statusText: '生成成功', videoUrl: latestVideoUrl || idleVideoUrl });
     } catch (error) {
-      if (this.pointsSpent) {
-        await contentStore.refundPoints(this.redemptionAmount, '生成失败退还').catch(() => undefined);
-        this.pointsSpent = false;
-      }
       const latestCat = dataStore.getCatById(cat.id) || cat;
       const hasPlayableVideo = !!getActionVideoUrl(latestCat, 'idle');
+      if (hasPlayableVideo) {
+        this.completeRedemption(cat.id);
+      } else {
+        await this.refundRedemption(cat.id, '生成失败退还').catch(() => undefined);
+      }
       await dataStore.updateCatAndSync(cat.id, {
         generationStatus: hasPlayableVideo ? 'ready' : 'failed',
         generationError: error.message || '生成失败',
@@ -280,6 +323,7 @@ Page({
     const source = (cat && cat.source) || this.options.source || 'created';
     const hasPlayableVideo = !!getActionVideoUrl(cat, 'idle');
     if (cat && !hasPlayableVideo) {
+      await this.refundRedemption(cat.id, '返回创建页退还').catch(() => undefined);
       await dataStore.deleteCatById(cat.id).catch(() => undefined);
     }
     const redemptionQuery = this.redemptionAmount > 0 ? `?isRedemption=1&redemptionAmount=${this.redemptionAmount}` : '';

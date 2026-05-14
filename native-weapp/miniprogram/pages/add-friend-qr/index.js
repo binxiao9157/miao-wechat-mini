@@ -2,6 +2,14 @@ const { socialStore } = require('../../services/social-store');
 const { safeBack } = require('../../utils/nav');
 const { drawQROnCanvas } = require('../../utils/qr-canvas');
 
+function decodeQueryValue(value) {
+  try {
+    return decodeURIComponent(value || '');
+  } catch {
+    return value || '';
+  }
+}
+
 Page({
   data: {
     invite: null,
@@ -11,7 +19,14 @@ Page({
     loading: false,
     errorText: '',
     toastText: '',
-    toastType: ''
+    toastType: '',
+    catId: ''
+  },
+
+  onLoad(options = {}) {
+    this.setData({
+      catId: decodeQueryValue(options.catId)
+    });
   },
 
   onShow() {
@@ -29,7 +44,7 @@ Page({
   async createInvite() {
     this.setData({ loading: true, errorText: '' });
     try {
-      const invite = await socialStore.createInvite();
+      const invite = await socialStore.createInvite(this.data.catId);
       const invitePayload = invite && invite.code ? `miao://friend?invite=${encodeURIComponent(invite.code)}` : '';
       this.setData({ invite, invitePayload, qrImageUrl: '', qrReady: false }, () => this.drawQr());
     } catch (error) {

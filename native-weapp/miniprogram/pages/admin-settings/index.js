@@ -84,9 +84,14 @@ Page({
   },
 
   saveConfig() {
-    aiConfig.saveProfile(this.data.profile);
-    dataStore.savePresetCats(this.data.presets);
-    wx.showToast({ title: '配置已保存', icon: 'success' });
+    try {
+      const profile = aiConfig.saveProfile(this.data.profile);
+      dataStore.savePresetCats(this.data.presets);
+      this.setData({ profile });
+      wx.showToast({ title: '配置已保存', icon: 'success' });
+    } catch (error) {
+      wx.showToast({ title: error.message || '配置无效', icon: 'none' });
+    }
   },
 
   resetConfig() {

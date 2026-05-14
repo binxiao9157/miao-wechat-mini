@@ -21,6 +21,10 @@ class SyncManager {
 
     this.syncing = true;
     try {
+      const pendingSyncResults = await contentStore.processPendingSyncTasks().catch((error) => {
+        console.warn('[native] process pending sync tasks failed:', error);
+        return [];
+      });
       const results = await Promise.allSettled([
         dataStore.syncCatsFromServer(),
         contentStore.syncDiariesFromServer(),
@@ -29,7 +33,7 @@ class SyncManager {
         contentStore.syncNotificationsFromServer(),
         socialStore.syncFriends()
       ]);
-      events.emit('data:synced', { timestamp: now, results });
+      events.emit('data:synced', { timestamp: now, results, pendingSyncResults });
     } finally {
       this.lastSyncTime = Date.now();
       this.syncing = false;

@@ -7,6 +7,6 @@ module.exports = {
   AI_PROVIDER: 'volcengine',
   IMAGE_MODEL: 'doubao-seedream-4-5-251128',
   VIDEO_MODEL: 'doubao-seedance-1-5-pro-251215',
-  VIDEO_RESOLUTION: '720p',
+  VIDEO_RESOLUTION: '480P',
   VIDEO_DURATION: 5
 };

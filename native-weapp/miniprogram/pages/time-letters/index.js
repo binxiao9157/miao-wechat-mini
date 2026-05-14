@@ -207,13 +207,20 @@ Page({
     this.setData({ deletingLetter: null });
   },
 
-  confirmDelete() {
+  async confirmDelete() {
     const deletingLetter = this.data.deletingLetter;
     if (!deletingLetter) return;
-    const next = contentStore.getLetters().filter((item) => item.id !== deletingLetter.id);
-    contentStore.saveLetters(next);
     this.setData({ deletingLetter: null });
-    this.refresh();
-    this.showToastText('信件已永久删除');
+    try {
+      const result = await contentStore.deleteLetter(deletingLetter.id);
+      if (this.data.selectedLetter && this.data.selectedLetter.id === deletingLetter.id) {
+        this.setData({ selectedLetter: null, view: 'list' });
+      }
+      this.refresh();
+      this.showToastText(result && result.synced ? '信件已永久删除' : '信件已删除，稍后同步');
+    } catch (error) {
+      this.refresh();
+      wx.showToast({ title: error.message || '删除失败', icon: 'none' });
+    }
   }
 });

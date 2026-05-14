@@ -44,6 +44,21 @@ function getUploadPath(image) {
   return isLocalPath(image) ? image : '';
 }
 
+function buildVideoPrompt(prompt, profile) {
+  const text = String(prompt || '').trim();
+  const hints = [
+    '竖屏 9:16',
+    profile.resolution,
+    `${profile.duration}秒`,
+    '无音频',
+    `种子值 ${profile.seed}`
+  ].filter((item) => item && !text.includes(item));
+  if (!hints.length) return text;
+  if (!text) return `${hints.join('，')}。`;
+  const suffix = /[。！？.!?]$/.test(text) ? '' : '。';
+  return `${text}${suffix}${hints.join('，')}。`;
+}
+
 async function submitImageTask(prompt, imagePath) {
   const profile = getProfile();
   if (profile.mockMode) {
@@ -118,6 +133,7 @@ async function submitVideoTask(image, prompt) {
     await sleep(800);
     return { id: `mock_video_task_${Date.now()}`, status: 'submitted' };
   }
+  const videoPrompt = buildVideoPrompt(prompt, profile);
   const uploadPath = getUploadPath(image);
   if (uploadPath) {
     const data = await uploadFile({
@@ -128,7 +144,7 @@ async function submitVideoTask(image, prompt) {
         type: 'video',
         provider: profile.provider,
         model: profile.videoModel,
-        prompt,
+        prompt: videoPrompt,
         seed: String(profile.seed),
         resolution: profile.resolution,
         duration: String(profile.duration),
@@ -149,7 +165,7 @@ async function submitVideoTask(image, prompt) {
       type: 'video',
       provider: profile.provider,
       model: profile.videoModel,
-      prompt,
+      prompt: videoPrompt,
       image_base64: image,
       parameters: {
         seed: profile.seed,

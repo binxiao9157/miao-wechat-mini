@@ -2,6 +2,7 @@ import Taro from '@tarojs/taro';
 import { getItem, setItem, removeItem, getAllKeys } from '../utils/storageAdapter';
 import { trigger } from '../utils/eventAdapter';
 import { request as taroRequest } from '../utils/httpAdapter';
+import type { ServerSyncApi } from './storage/serverSync';
 
 // Lazy import to avoid circular dependency
 let _syncQueue: any = null;
@@ -1428,4 +1429,14 @@ export const storage = {
   _deleteCatFromServer: deleteCatFromServer,
   _deleteDiaryFromServer: deleteDiaryFromServer,
   _deleteLetterFromServer: deleteLetterFromServer,
+};
+
+export const serverSync: ServerSyncApi = {
+  syncCatToServer,
+  deleteCatFromServer,
+  syncDiaryToServer,
+  deleteDiaryFromServer,
+  syncLetterToServer,
+  deleteLetterFromServer,
+  syncPointsToServer,
 };

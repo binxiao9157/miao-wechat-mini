@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro';
-import { storage } from './storage';
+import { serverSync, storage } from './storage';
 import { getItem, removeItem, setItem } from '../utils/storageAdapter';
 
 type SyncTask = {
@@ -124,26 +124,26 @@ class SyncQueue {
     switch (task.type) {
       case 'diary':
         if (task.action === 'delete') {
-          await (storage as any)._deleteDiaryFromServer(username, task.id);
+          await serverSync.deleteDiaryFromServer(username, task.id || '');
         } else {
-          await (storage as any)._syncDiaryToServer(username, task.payload);
+          await serverSync.syncDiaryToServer(username, task.payload);
         }
         break;
       case 'letter':
         if (task.action === 'delete') {
-          await (storage as any)._deleteLetterFromServer(username, task.id);
+          await serverSync.deleteLetterFromServer(username, task.id || '');
         } else {
-          await (storage as any)._syncLetterToServer(username, task.payload);
+          await serverSync.syncLetterToServer(username, task.payload);
         }
         break;
       case 'points':
-        await (storage as any)._syncPointsToServer(username, task.payload);
+        await serverSync.syncPointsToServer(username, task.payload);
         break;
       case 'cat':
         if (task.action === 'delete') {
-          await (storage as any)._deleteCatFromServer(username, task.id);
+          await serverSync.deleteCatFromServer(username, task.id || '');
         } else {
-          await (storage as any)._syncCatToServer(username, task.payload);
+          await serverSync.syncCatToServer(username, task.payload);
         }
         break;
     }

@@ -4,6 +4,16 @@ The mini-program and H5 build use the canonical backend in `../Miao_remote`.
 The old `miao-wechat-mini/server` copy was removed because it only implemented
 legacy `/api/*` routes and did not match the current `/api/v1/*` client.
 
+## Active Build Commands
+
+- Install: `npm install`
+- Type check: `npm run lint`
+- WeChat mini-program build: `npm run build:weapp`
+- WeChat mini-program watch build: `npm run dev:weapp`
+
+The active Taro config is `config/index.js`. The root `taro.config.js` is
+historical and should not be edited for normal mini-program changes.
+
 ## Start the backend
 
 ```bash

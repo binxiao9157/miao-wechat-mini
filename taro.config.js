@@ -1,3 +1,5 @@
+// This file is kept for historical reference. The active Taro configuration
+// for npm scripts is config/index.js.
 const path = require('path');
 
 const config = {

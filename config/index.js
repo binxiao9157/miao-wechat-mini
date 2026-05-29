@@ -5,6 +5,9 @@ const DEFAULT_API_BASE_URL = 'https://www.mmdd10.tech';
 const config = {
   projectName: 'miao-wechat-mini',
   framework: 'react',
+  compiler: {
+    type: 'webpack5',
+  },
   date: '2024-1-1',
   designWidth: 375,
   deviceRatio: {

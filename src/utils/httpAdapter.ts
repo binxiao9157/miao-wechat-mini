@@ -45,10 +45,10 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
   } = options;
 
   const isMini = isMiniProgram();
-  // 小程序环境需要完整域名，Web/H5 环境保留调用方传入的 /api 路径。
+  // 小程序环境需要完整域名，Web/H5 环境可选配置 API 域名。
   const baseURL = isMini
     ? (process.env.TARO_APP_API_BASE_URL || 'https://www.mmdd10.tech')
-    : '';
+    : (process.env.TARO_APP_API_BASE_URL || '').replace(/\/$/, '');
   const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`;
   const token = getItem('miao_auth_token');
   const requestHeaders = {

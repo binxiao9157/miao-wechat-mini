@@ -59,13 +59,15 @@
 - Modify: `package-lock.json`
 
 - [x] Inspect current/latest Taro versions with `npm outdated` and `npm view`.
-- [ ] Attempt Taro 4 upgrade in a separate change.
-- [ ] Keep the dependency upgrade only if `npm test`, `npm run lint`, `npm run build:weapp`, and audit verification are acceptable.
+- [x] Attempt Taro 4 upgrade in a separate change.
+- [x] Do not keep the dependency upgrade because `npm run build:weapp` fails under Taro 4.2.0/webpack5 runner with `ProgressPlugin` schema validation, and production audit still reports `swiper` critical through `@tarojs/components`.
+
+**Outcome:** Taro 3.6.40 is the latest Taro 3 line available from npm. A safe dependency-only audit cleanup is not available in this project shape; clearing the remaining production audit issues needs a dedicated Taro 4 migration that updates the runner/compiler stack and validates generated mini-program output.
 
 ### Task 6: Final Verification And Commit
 
-- [ ] Run `npm test`.
-- [ ] Run `npm run lint`.
-- [ ] Run `npm run build:weapp`.
-- [ ] Run dependency audit.
+- [x] Run `npm test`.
+- [x] Run `npm run lint`.
+- [x] Run `npm run build:weapp`.
+- [x] Run dependency audit.
 - [ ] Commit and push verified changes.

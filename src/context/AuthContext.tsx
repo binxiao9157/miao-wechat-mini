@@ -33,9 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasCat = useMemo(() => catCount > 0, [catCount]);
 
-  const refreshCatStatus = () => {
+  const refreshCatStatus = useCallback(() => {
     setCatCount(storage.getCatList().length);
-  };
+  }, []);
 
   useEffect(() => {
     const token = authService.getToken();
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       setIsInitializing(false);
     }
-  }, []);
+  }, [refreshCatStatus]);
 
   // 401 自动登出：httpAdapter 检测到 401 时派发 auth:unauthorized 事件
   useEffect(() => {
@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       return { success: false, error: '登录失败，请检查用户名密码或服务器状态' };
     }
-  }, []);
+  }, [refreshCatStatus]);
 
   const register = useCallback(async (userInfo: UserInfo) => {
     const remoteUser = await authService.register(userInfo);
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(remoteUser);
     setIsAuthenticated(true);
     refreshCatStatus();
-  }, []);
+  }, [refreshCatStatus]);
 
   const wechatLogin = useCallback(async () => {
     try {
@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (e: any) {
       return { success: false, error: e.message || '微信登录失败' };
     }
-  }, []);
+  }, [refreshCatStatus]);
 
   const phoneLogin = useCallback(async (phoneCode: string) => {
     try {
@@ -150,7 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (e: any) {
       return { success: false, error: e.message || '手机号登录失败' };
     }
-  }, []);
+  }, [refreshCatStatus]);
 
   const logout = useCallback(() => {
     authService.logout();

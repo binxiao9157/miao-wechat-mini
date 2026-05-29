@@ -6,7 +6,7 @@
 
 **Architecture:** Keep React 18 and the current Taro app/page structure. Replace the webpack4 runner stack with Taro 4.2's webpack5 runner, explicitly set `compiler.type = 'webpack5'`, align all Taro packages to the same version, and keep the share-timeline post-build plugin working against the generated `dist` files.
 
-**Tech Stack:** Taro 4.2.0, React 18, webpack 5.91.0, TypeScript, Vitest/jsdom, WeChat mini-program output.
+**Tech Stack:** Taro 4.2.0, React 18, webpack 5.104.1, TypeScript, Vitest/jsdom, WeChat mini-program output.
 
 ---
 
@@ -39,7 +39,7 @@ Remove `@tarojs/mini-runner` and `@tarojs/webpack-runner`. Add:
 "@tarojs/webpack5-runner": "4.2.0",
 "babel-preset-taro": "4.2.0",
 "eslint-config-taro": "4.2.0",
-"webpack": "5.91.0"
+"webpack": "5.104.1"
 ```
 
 - [x] **Step 3: Add explicit test peer dependency**
@@ -59,7 +59,7 @@ npm install
 node -e "const p=require('./package-lock.json'); for (const n of ['node_modules/@tarojs/taro','node_modules/@tarojs/components','node_modules/@tarojs/runtime','node_modules/@tarojs/webpack5-runner','node_modules/webpack']) console.log(n, p.packages?.[n]?.version)"
 ```
 
-Expected versions: Taro packages `4.2.0`, webpack `5.91.0`.
+Expected versions: Taro packages `4.2.0`, webpack `5.104.1`.
 
 ### Task 2: Compiler Configuration
 
@@ -182,7 +182,63 @@ Run:
 npm audit --omit=dev --audit-level=high
 ```
 
-Result: `npm audit --omit=dev --audit-level=high` still reports upstream advisories after the Taro 4 migration: `swiper` via `@tarojs/components`, `esbuild` via `@tarojs/helper`, `webpack-dev-server`/`uuid` via Taro's dev server chain, and `webpack@5.91.0`. The migration still reduces the old Taro 3 dependency shape and moves the build stack to Taro 4/webpack5, but the remaining advisories require upstream Taro/webpack-compatible releases rather than an in-project code change.
+Result after the follow-up hardening: `npm audit --omit=dev --audit-level=high` exits `0` with `found 0 vulnerabilities`. The fix keeps Taro at `4.2.0`, uses the smallest webpack security line that still avoids the previous `ProgressPlugin` schema failure (`webpack@5.104.1`), and pins vulnerable transitive packages through npm `overrides`: `swiper@12.1.2`, `esbuild@0.28.0`, `webpack-dev-server@5.2.4`, and `sockjs > uuid@11.1.1`.
+
+### Task 6: Audit Hardening Follow-Up
+
+**Files:**
+- Modify: `package.json`
+- Modify: `package-lock.json`
+- Modify: `docs/superpowers/plans/2026-05-30-taro4-architecture-upgrade.md`
+
+- [x] **Step 1: Resolve production audit findings without downgrading Taro**
+
+Use npm `overrides` for Taro's transitive dependency advisories:
+
+```json
+"overrides": {
+  "swiper": "12.1.2",
+  "esbuild": "0.28.0",
+  "webpack": "5.104.1",
+  "webpack-dev-server": "5.2.4",
+  "sockjs": {
+    "uuid": "11.1.1"
+  }
+}
+```
+
+- [x] **Step 2: Verify resolved dependency graph**
+
+Run:
+
+```bash
+npm ls swiper webpack esbuild uuid webpack-dev-server --all
+```
+
+Expected: command exits `0` and shows the override versions above.
+
+- [x] **Step 3: Verify production audit is clean**
+
+Run:
+
+```bash
+npm audit --omit=dev --audit-level=high
+```
+
+Expected: exits `0` with `found 0 vulnerabilities`.
+
+- [x] **Step 4: Verify builds and tests after overrides**
+
+Run:
+
+```bash
+npm test
+npm run lint
+npm run build:weapp
+npm run build:h5
+```
+
+Expected: tests, TypeScript check, and builds exit `0`. H5 may still print bundle-size warnings from the existing app bundle.
 
 - [x] **Step 2: Final git verification**
 

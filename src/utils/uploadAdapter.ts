@@ -63,6 +63,8 @@ function uploadFileOnce(options: UploadOptions, fullUrl: string, token: string):
           } catch {}
           if (res.statusCode === 401 && code === 'UNAUTHORIZED') {
             removeItem('miao_auth_token');
+            removeItem('miao_current_user');
+            Taro.eventCenter.trigger('auth:unauthorized');
             return reject(new Error('登录已过期，请重新登录'));
           }
           const error: any = new Error(message);

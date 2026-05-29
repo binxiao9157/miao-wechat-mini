@@ -20,11 +20,29 @@ class SyncQueue {
   private readonly DEBOUNCE_MS = 5000;
   private readonly MAX_RETRIES = 3;
   private flushing = false;
-  private flushResolve: (() => void) | null = null;
+  private flushWaiters: Array<() => void> = [];
   private hydrated = false;
 
   private getTaskKey(task: SyncTask) {
     return task.id ? `${task.type}:${task.id}` : task.type;
+  }
+
+  private isValidTask(task: any): task is SyncTask {
+    if (!task || typeof task !== 'object') return false;
+    if (!['diary', 'letter', 'points', 'cat'].includes(task.type)) return false;
+    if (!['upsert', 'delete'].includes(task.action)) return false;
+
+    const hasId = typeof task.id === 'string' && task.id.trim().length > 0;
+    if (task.action === 'delete') {
+      return task.type !== 'points' && hasId;
+    }
+    if (task.type === 'points') return task.payload !== undefined;
+    return hasId && task.payload !== undefined;
+  }
+
+  private resolveFlushWaiters() {
+    const waiters = this.flushWaiters.splice(0);
+    for (const resolve of waiters) resolve();
   }
 
   private hydrate() {
@@ -36,7 +54,7 @@ class SyncQueue {
       const tasks = JSON.parse(raw) as SyncTask[];
       if (!Array.isArray(tasks)) return;
       for (const task of tasks) {
-        if (!task?.type || !task.action) continue;
+        if (!this.isValidTask(task)) continue;
         this.dirty.set(this.getTaskKey(task), task);
       }
     } catch {
@@ -55,6 +73,7 @@ class SyncQueue {
 
   enqueue(task: SyncTask) {
     this.hydrate();
+    if (!this.isValidTask(task)) return;
     const key = this.getTaskKey(task);
     this.dirty.set(key, { ...task, retries: task.retries ?? 0 });
     this.persist();
@@ -69,7 +88,7 @@ class SyncQueue {
   async flush() {
     this.hydrate();
     if (this.flushing) {
-      await new Promise<void>(resolve => { this.flushResolve = resolve; });
+      await new Promise<void>(resolve => { this.flushWaiters.push(resolve); });
       return;
     }
     const tasks = Array.from(this.dirty.values()).filter(task => (task.retries ?? 0) < this.MAX_RETRIES);
@@ -89,8 +108,7 @@ class SyncQueue {
       }
       this.persist();
       this.flushing = false;
-      this.flushResolve?.();
-      this.flushResolve = null;
+      this.resolveFlushWaiters();
       return;
     }
 
@@ -111,8 +129,7 @@ class SyncQueue {
     }
     this.persist();
     this.flushing = false;
-    this.flushResolve?.();
-    this.flushResolve = null;
+    this.resolveFlushWaiters();
 
     // 如果 flush 期间有新任务入队，再调度一次
     if (Array.from(this.dirty.values()).some(task => (task.retries ?? 0) < this.MAX_RETRIES)) {
@@ -124,14 +141,14 @@ class SyncQueue {
     switch (task.type) {
       case 'diary':
         if (task.action === 'delete') {
-          await serverSync.deleteDiaryFromServer(username, task.id || '');
+          await serverSync.deleteDiaryFromServer(username, task.id!);
         } else {
           await serverSync.syncDiaryToServer(username, task.payload);
         }
         break;
       case 'letter':
         if (task.action === 'delete') {
-          await serverSync.deleteLetterFromServer(username, task.id || '');
+          await serverSync.deleteLetterFromServer(username, task.id!);
         } else {
           await serverSync.syncLetterToServer(username, task.payload);
         }
@@ -141,7 +158,7 @@ class SyncQueue {
         break;
       case 'cat':
         if (task.action === 'delete') {
-          await serverSync.deleteCatFromServer(username, task.id || '');
+          await serverSync.deleteCatFromServer(username, task.id!);
         } else {
           await serverSync.syncCatToServer(username, task.payload);
         }

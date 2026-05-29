@@ -1,5 +1,6 @@
 export default defineAppConfig({
   pages: [
+    'pages/welcome/index',
     'pages/login/index',
     'pages/register/index',
     'pages/home/index',
@@ -17,7 +18,6 @@ export default defineAppConfig({
     'pages/change-password/index',
     'pages/empty-cat/index',
     'pages/cat-start/index',
-    'pages/welcome/index',
     'pages/upload-material/index',
     'pages/cat-player/index',
     'pages/cat-history/index',

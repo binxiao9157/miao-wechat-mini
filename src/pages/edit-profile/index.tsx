@@ -8,8 +8,8 @@ const CHECKCIRCLE_PNG = require('../../assets/profile-icons/checkcircle-green.pn
 const IMAGEICON_PNG = require('../../assets/profile-icons/image-primary.png');
 const X_GRAY_PNG = require('../../assets/profile-icons/x-gray.png');
 import { useAuthContext } from '../../context/AuthContext';
-import { storage } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
+import { uploadFile } from '../../utils/uploadAdapter';
 import { DEFAULT_AVATAR } from '../../utils/constants';
 import './index.less';
 
@@ -31,17 +31,14 @@ export default function EditProfile() {
     try {
       let avatarUrl = avatar;
       if (avatar && (avatar.startsWith('wxfile://') || avatar.startsWith('http://tmp') || avatar.includes('tmp'))) {
-        try {
-          const uploadRes = await Taro.uploadFile({
-            url: (process.env.TARO_APP_API_BASE_URL || '') + '/api/v1/upload',
-            filePath: avatar,
-            name: 'file',
-            header: { Authorization: `Bearer ${storage.getToken()}` },
-          });
-          const uploadData = JSON.parse(uploadRes.data);
-          avatarUrl = uploadData.url || uploadData.data?.url || avatar;
-        } catch {
-          // upload failed, use local path as fallback
+        const uploadData = await uploadFile({
+          url: '/api/v1/upload',
+          filePath: avatar,
+          name: 'file',
+        });
+        avatarUrl = uploadData?.url || uploadData?.data?.url;
+        if (!avatarUrl) {
+          throw new Error('头像上传失败，请重试');
         }
       }
       const res = await request({

@@ -52,4 +52,53 @@ describe('syncQueue', () => {
 
     expect(serverSync.syncPointsToServer).toHaveBeenCalledWith('alice', { total: 10 });
   });
+
+  it('resolves every concurrent flush caller when a flush is already running', async () => {
+    const { syncQueue } = await import('../syncQueue');
+    const { serverSync } = await import('../storage');
+    let releaseSync!: () => void;
+    vi.mocked(serverSync.syncDiaryToServer).mockImplementationOnce(
+      () => new Promise<void>(resolve => { releaseSync = resolve; }),
+    );
+
+    syncQueue.enqueue({
+      type: 'diary',
+      action: 'upsert',
+      id: 'd1',
+      payload: { id: 'd1', content: 'hello' },
+    });
+
+    const firstFlush = syncQueue.flushNow();
+    await vi.waitFor(() => {
+      expect(serverSync.syncDiaryToServer).toHaveBeenCalled();
+    });
+    let secondResolved = false;
+    let thirdResolved = false;
+    const secondFlush = syncQueue.flushNow().then(() => { secondResolved = true; });
+    const thirdFlush = syncQueue.flushNow().then(() => { thirdResolved = true; });
+
+    releaseSync();
+    await firstFlush;
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(secondResolved).toBe(true);
+    expect(thirdResolved).toBe(true);
+    await Promise.all([secondFlush, thirdFlush]);
+  });
+
+  it('drops malformed persisted delete tasks instead of deleting with an empty id', async () => {
+    setItem('miao_pending_sync_tasks', JSON.stringify([
+      { type: 'diary', action: 'delete' },
+      { type: 'letter', action: 'delete', id: '' },
+      { type: 'cat', action: 'delete' },
+    ]));
+    const { syncQueue } = await import('../syncQueue');
+    const { serverSync } = await import('../storage');
+
+    await syncQueue.flushNow();
+
+    expect(serverSync.deleteDiaryFromServer).not.toHaveBeenCalled();
+    expect(serverSync.deleteLetterFromServer).not.toHaveBeenCalled();
+    expect(serverSync.deleteCatFromServer).not.toHaveBeenCalled();
+  });
 });

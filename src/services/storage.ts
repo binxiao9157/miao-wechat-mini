@@ -3,6 +3,31 @@ import { getItem, setItem, removeItem, getAllKeys } from '../utils/storageAdapte
 import { trigger } from '../utils/eventAdapter';
 import { request as taroRequest } from '../utils/httpAdapter';
 import type { ServerSyncApi } from './storage/serverSync';
+export type {
+  AppSettings,
+  CatInfo,
+  Comment,
+  DiaryEntry,
+  FriendDiaryEntry,
+  FriendInfo,
+  PointsInfo,
+  PointTransaction,
+  PresetCat,
+  TimeLetter,
+  UserInfo,
+} from './storage/types';
+import type {
+  AppSettings,
+  CatInfo,
+  DiaryEntry,
+  FriendDiaryEntry,
+  FriendInfo,
+  PointsInfo,
+  PointTransaction,
+  PresetCat,
+  TimeLetter,
+  UserInfo,
+} from './storage/types';
 
 // Lazy import to avoid circular dependency
 let _syncQueue: any = null;
@@ -157,116 +182,6 @@ async function readLocalMediaAsDataUrl(id: string): Promise<string | null> {
   });
 }
 
-export interface UserInfo {
-  username: string;
-  nickname: string;
-  avatar: string;
-  password?: string;
-  passwordSet?: boolean;
-  openidBound?: boolean;
-  phone?: string;
-  isNewUser?: boolean;
-}
-
-export interface CatInfo {
-  id: string;
-  name: string;
-  breed: string;
-  color: string;
-  avatar: string;
-  source: 'created' | 'uploaded';
-  createdAt?: number;
-  generationStatus?: 'pending' | 'failed' | 'ready';
-  generationError?: string;
-  generationUpdatedAt?: number;
-  videoPath?: string;
-  videoPaths?: Record<string, string | undefined> & {
-    idle?: string;
-    tail?: string;
-    rubbing?: string;
-    blink?: string;
-    petting?: string;
-    feeding?: string;
-    teasing?: string;
-  };
-  remoteVideoUrl?: string;
-  placeholderImage?: string;
-  anchorFrame?: string;
-  isUnlocking?: boolean;
-  updatedAt?: number;
-}
-
-export interface AppSettings {
-  greetingsEnabled: boolean;
-  pushNotifications: boolean;
-  timeLetterReminder: boolean;
-}
-
-export interface Comment {
-  id: string;
-  content: string;
-  authorId?: string;
-  authorNickname?: string;
-  createdAt?: number;
-}
-
-export interface DiaryEntry {
-  id: string;
-  catId: string;
-  content: string;
-  media?: string;
-  mediaType?: 'image' | 'video';
-  createdAt: number;
-  likes: number;
-  isLiked: boolean;
-  comments: Comment[];
-}
-
-export interface FriendDiaryEntry extends DiaryEntry {
-  authorId: string;
-  authorNickname: string;
-  authorAvatar: string;
-  catName: string;
-}
-
-export interface TimeLetter {
-  id: string;
-  catId: string;
-  catAvatar: string;
-  title?: string;
-  content: string;
-  unlockAt: number;
-  createdAt: number;
-}
-
-export interface PointTransaction {
-  id: string;
-  type: 'earn' | 'spend';
-  amount: number;
-  reason: string;
-  timestamp: number;
-}
-
-export interface FriendInfo {
-  id: string;
-  nickname: string;
-  avatar: string;
-  catName: string;
-  catAvatar: string;
-  addedAt: number;
-}
-
-export interface PointsInfo {
-  total: number;
-  lastLoginDate: string | null;
-  dailyInteractionPoints: number;
-  lastInteractionDate: string | null;
-  onlineMinutes: number;
-  lastOnlineUpdate: number;
-  updatedAt?: number;
-  history: PointTransaction[];
-}
-
 type CustomNotification = {
   id: string;
   type: string;
@@ -276,12 +191,6 @@ type CustomNotification = {
   read: boolean;
   catAvatar?: string;
 };
-
-export interface PresetCat {
-  id: string;
-  name: string;
-  imageUrl: string;
-}
 
 const STORAGE_KEYS = {
   USERS: 'miao_users',

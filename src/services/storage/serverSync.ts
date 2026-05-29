@@ -1,4 +1,4 @@
-import type { CatInfo, DiaryEntry, PointsInfo, TimeLetter } from '../storage';
+import type { CatInfo, DiaryEntry, PointsInfo, TimeLetter } from './types';
 
 export interface ServerSyncApi {
   syncCatToServer(userId: string, cat: CatInfo): Promise<void>;

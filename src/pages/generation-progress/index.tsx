@@ -51,12 +51,32 @@ export default function GenerationProgress() {
   const unlockStartedRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const confirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const runIdRef = useRef(0);
+
+  const clearConfirmTimer = () => {
+    if (confirmTimerRef.current) {
+      clearTimeout(confirmTimerRef.current);
+      confirmTimerRef.current = null;
+    }
+  };
+
+  const beginGenerationRun = () => {
+    abortControllerRef.current?.abort();
+    clearConfirmTimer();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    runIdRef.current += 1;
+    return { controller, runId: runIdRef.current };
+  };
+
+  const isActiveRun = (runId: number, signal?: AbortSignal) => {
+    return runIdRef.current === runId && !signal?.aborted;
+  };
 
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
+    const { controller, runId } = beginGenerationRun();
     const activeCat = storage.getActiveCat();
     if (!activeCat) {
       safeBack();
@@ -76,13 +96,11 @@ export default function GenerationProgress() {
     };
 
     setAnchorImage(activeCat.avatar);
-    startGeneration(activeCat, controller.signal);
+    startGeneration(activeCat, controller.signal, runId);
     return () => {
       controller.abort();
-      if (confirmTimerRef.current) {
-        clearTimeout(confirmTimerRef.current);
-        confirmTimerRef.current = null;
-      }
+      clearConfirmTimer();
+      runIdRef.current += 1;
       if (abortControllerRef.current === controller) {
         abortControllerRef.current = null;
       }
@@ -98,10 +116,10 @@ export default function GenerationProgress() {
     }
   }, [progress, phase]);
 
-  const startGeneration = async (cat: NonNullable<typeof catRef.current>, signal?: AbortSignal) => {
+  const startGeneration = async (cat: NonNullable<typeof catRef.current>, signal: AbortSignal | undefined, runId: number) => {
     let pointsDeducted = 0;
     try {
-      if (signal?.aborted) return;
+      if (!isActiveRun(runId, signal)) return;
       const currentCat = storage.getCatById(cat.id);
       storage.saveCatInfo({
         ...(currentCat || cat),
@@ -131,6 +149,7 @@ export default function GenerationProgress() {
 
       // 提交视频生成任务
       const task = await VolcanoService.submitTask(imageUrl, ACTION_PROMPTS.idle);
+      if (!isActiveRun(runId, signal)) return;
 
       setProgress(30);
       setStatusText(getImmersiveStatus(30));
@@ -139,7 +158,7 @@ export default function GenerationProgress() {
       const videoUrl = await VolcanoService.pollTaskResult(
         task.id,
         (s) => {
-          if (signal?.aborted) return;
+          if (!isActiveRun(runId, signal)) return;
           const statusMap: Record<string, string> = {
             'running': getImmersiveStatus(50),
             'processing': getImmersiveStatus(60),
@@ -152,7 +171,7 @@ export default function GenerationProgress() {
         },
         signal
       );
-      if (signal?.aborted) return;
+      if (!isActiveRun(runId, signal)) return;
 
       setProgress(90);
       setStatusText('正在开启次元通道...');
@@ -171,6 +190,8 @@ export default function GenerationProgress() {
           anchorFrame: cat.avatar,
         }
       );
+      if (!isActiveRun(runId, signal)) return;
+
       const playableIdleVideoUrl = finalVideoPaths.idle || videoUrl;
       setIdleVideoUrl(playableIdleVideoUrl);
 
@@ -186,11 +207,12 @@ export default function GenerationProgress() {
 
       // 短暂延迟后显示确认对话框
       confirmTimerRef.current = setTimeout(() => {
+        if (!isActiveRun(runId, signal)) return;
         setShowConfirmDialog(true);
       }, 1500);
 
     } catch (err: any) {
-      if (signal?.aborted) return;
+      if (!isActiveRun(runId, signal)) return;
       const message = err.message || '生成失败，请重试';
       // 生成失败时退还积分
       if (pointsDeducted > 0) {
@@ -274,9 +296,11 @@ export default function GenerationProgress() {
     setErrorMsg('');
     setIdleVideoUrl(null);
     setShowConfirmDialog(false);
+    clearConfirmTimer();
 
     if (catRef.current) {
-      startGeneration(catRef.current, abortControllerRef.current?.signal);
+      const { controller, runId } = beginGenerationRun();
+      startGeneration(catRef.current, controller.signal, runId);
     } else {
       safeBack();
     }

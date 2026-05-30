@@ -1,0 +1,149 @@
+{
+  "checks": {
+    "C000": {
+      "blocking_gaps": [],
+      "body_path": "problems/P000/checks/C000.md",
+      "created_at": "2026-05-30T04:37:01+00:00",
+      "criteria_map": [
+        "覆盖工程主要模块：满足。",
+        "每个问题点说明风险、证据文件、建议动作：满足。",
+        "明确本轮实施范围：满足。",
+        "未在巡检阶段修改业务行为：满足。"
+      ],
+      "evidence": [
+        "`findings.md` 包含 2026-05-30 工程稳定性巡检发现。",
+        "`docs/plans/result_task01_engineering_audit.md` 记录扫描命令、验证结果和问题点。",
+        "基线验证包含测试、类型检查和生产依赖 audit。"
+      ],
+      "execution_map": [
+        "任务 01 不负责实施修复；修复进入任务 02/03。"
+      ],
+      "followup_problem_id": null,
+      "id": "C000",
+      "problem_id": "P000",
+      "residual_risk": [
+        "尚未运行双端构建；双端构建将在实施任务完成后作为交付验证执行。"
+      ],
+      "result_ids": [
+        "R000"
+      ],
+      "root_id": "P000",
+      "status": "success",
+      "stress_test": [
+        "用现有命令验证基线没有已知红灯：`npm test`、`npm run lint`、`npm audit --omit=dev --audit-level=high` 均通过。"
+      ],
+      "summary": "任务 01 的目标是完成工程遍历并输出可实施问题清单。结果 R000 已覆盖结构扫描、风险模式扫描、关键文件阅读和基线验证，并将本轮建议实施项写入 `findings.md`。"
+    }
+  },
+  "counters": {
+    "check": 1,
+    "event": 12,
+    "problem": 1,
+    "result": 1,
+    "ticket": 1
+  },
+  "created_at": "2026-05-30T04:32:10+00:00",
+  "effort": "medium",
+  "language": "zh",
+  "ledger_id": "L20260530-123210-01",
+  "problems": {
+    "P000": {
+      "body_path": "problems/P000/README.md",
+      "check_ids": [
+        "C000"
+      ],
+      "created_at": "2026-05-30T04:32:10+00:00",
+      "created_from_check_id": null,
+      "created_from_ticket_id": null,
+      "created_from_ticket_mode": null,
+      "description": "Close the Lodestar task represented by `/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_01_工程遍历与风险识别.md` using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 工程遍历与风险识别",
+      "followup_ids": [],
+      "id": "P000",
+      "package_path": "problems/P000",
+      "parent_id": null,
+      "result_ids": [
+        "R000"
+      ],
+      "root_id": "P000",
+      "status": "done",
+      "subproblem_ids": [],
+      "success_criteria": [
+        "Recursive ledger reaches `next_action=none` or the task explicitly records why no ledger is needed.",
+        "Implementation satisfies this task's context and scope.",
+        "Verification evidence is recorded in recursive result/check bodies and summarized in `progress.md`."
+      ],
+      "ticket_ids": [
+        "T000"
+      ],
+      "title": "工程遍历与风险识别",
+      "updated_at": "2026-05-30T04:37:01+00:00"
+    }
+  },
+  "results": {
+    "R000": {
+      "artifacts": [
+        "1. `src/utils/httpAdapter.ts` 和 `src/utils/uploadAdapter.ts` 的 401 清理条件依赖 `code === 'UNAUTHORIZED'`，应扩展为所有 401 都触发统一登出。",
+        "2. `src/utils/httpAdapter.ts` H5 分支 timeout timer 只在 fetch 成功后清理，应使用 `finally`。",
+        "3. `src/app.tsx` 前台同步没有统一 catch，建议抽函数集中兜底。",
+        "4. `src/pages/.tsx` 是未引用隐藏模板文件，建议删除。"
+      ],
+      "body_path": "problems/P000/results/R000.md",
+      "created_at": "2026-05-30T04:36:37+00:00",
+      "done": [
+        "文件结构：`rg --files`、`find src -maxdepth 3 -type f`。",
+        "风险模式：`rg -n \"TODO|FIXME|@ts-ignore|console\\\\.|any\\\\b|Taro\\\\.request|Taro\\\\.uploadFile|setTimeout|setInterval|Promise\\\\.all\" src config scripts package.json`。",
+        "关键文件阅读：`src/utils/httpAdapter.ts`、`src/utils/uploadAdapter.ts`、`src/services/syncQueue.ts`、`src/context/AuthContext.tsx`、`src/app.tsx`、`src/services/storage.ts`。",
+        "基线验证：",
+        "`npm test`：7 个测试文件、15 个用例通过。",
+        "`npm run lint`：通过。",
+        "`npm audit --omit=dev --audit-level=high`：`found 0 vulnerabilities`。"
+      ],
+      "id": "R000",
+      "known_gaps": [],
+      "problem_id": "P000",
+      "root_id": "P000",
+      "summary": "已完成工程结构、关键链路和高风险模式巡检。当前基线测试、类型检查和生产依赖 audit 均通过。巡检发现 4 个适合本轮小范围修复的问题：401 统一登出条件过窄、H5 fetch timeout 清理不完整、前台同步缺少统一错误兜底、隐藏模板页面文件残留。",
+      "ticket_id": "T000",
+      "verification": [
+        "巡检结果已同步到 `findings.md`。后续任务将把这些发现转成开发计划并实施。"
+      ]
+    }
+  },
+  "root_id": "P000",
+  "schema_version": 6,
+  "tickets": {
+    "T000": {
+      "acceptance_criteria": [
+        "形成一份覆盖工程主要模块的巡检记录。",
+        "每个问题点说明风险、证据文件、建议动作和优先级。",
+        "明确本轮实施范围，避免把大规模重构混入稳定性修复。",
+        "不修改业务行为，除非问题能通过清晰证据证明会影响稳定性或健壮性。"
+      ],
+      "assumptions": [
+        "本轮主要目标是提升稳定性和健壮性，不做视觉重设计。",
+        "当前 `master` 是用户希望继续推进的主线分支。"
+      ],
+      "body_path": "problems/P000/tickets/T000.md",
+      "classification": "one_go",
+      "classification_reason": "本任务只产出工程巡检证据和问题清单，不直接改业务代码；范围虽宽但可通过静态扫描和现有验证命令一次性完成，并在后续 Lodestar 任务中拆分实施。",
+      "created_at": "2026-05-30T04:33:02+00:00",
+      "id": "T000",
+      "problem_definition": "需要对当前 Taro 小程序工程做一次面向稳定性、健壮性、维护性的系统巡检。巡检范围包括工程结构、依赖与构建配置、入口与路由、认证与网络请求、上传链路、本地存储与同步队列、关键页面状态处理、测试覆盖和已知构建告警。输出必须是可实施的问题清单，而不是泛泛建议。",
+      "problem_id": "P000",
+      "proposed_solution": "通过静态扫描和现有验证命令建立工程风险图谱：\n\n1. 扫描目录结构、配置、脚本、依赖锁和测试文件，确认工程边界。\n2. 遍历 `src` 下 services、utils、store、hooks、pages、components 的关键调用链。\n3. 使用 `rg` 查找高风险模式，例如未捕获 Promise、裸 `Taro.request`、存储键重复、上传/认证边界、队列并发、TODO/FIXME、console、any/ts-ignore、动态 import 魔法注释等。\n4. 结合 `npm test`、`npm run lint`、`npm run build:weapp`、`npm run build:h5`、`npm audit --omit=dev --audit-level=high` 的结果，把问题分为本轮应修复、需后续专项、仅观察三类。",
+      "result_ids": [
+        "R000"
+      ],
+      "risks": [
+        "代码面较宽，容易把优化建议扩大成重构；需要限定到高确定性、小改动、高收益问题。",
+        "某些告警来自上游依赖或 H5 bundle 体积，不应被误判为必须立即修复的业务 bug。"
+      ],
+      "root_id": "P000",
+      "status": "done",
+      "title": "工程遍历与风险识别 Ticket",
+      "updated_at": "2026-05-30T04:36:37+00:00",
+      "verification_plan": "- 运行 `git status --short --branch` 确认基线。\n- 运行结构/模式扫描命令并记录关键发现。\n- 运行测试、类型检查、双端构建和生产 audit 作为基线。\n- 将巡检结论同步到 Lodestar `findings.md` 和后续计划任务。"
+    }
+  },
+  "updated_at": "2026-05-30T04:37:01+00:00"
+}

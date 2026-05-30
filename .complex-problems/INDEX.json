@@ -1,0 +1,39 @@
+{
+  "active_ledger_id": "L20260530-123210-03b",
+  "ledgers": [
+    {
+      "active_count": 0,
+      "blocked_count": 0,
+      "ledger_id": "L20260530-123210-01",
+      "path": "L20260530-123210-01",
+      "root_id": "P000",
+      "schema_version": 6,
+      "status": "done",
+      "title": "工程遍历与风险识别",
+      "updated_at": "2026-05-30T04:37:01+00:00"
+    },
+    {
+      "active_count": 0,
+      "blocked_count": 0,
+      "ledger_id": "L20260530-123210-02",
+      "path": "L20260530-123210-02",
+      "root_id": "P000",
+      "schema_version": 6,
+      "status": "done",
+      "title": "开发计划与范围确认",
+      "updated_at": "2026-05-30T04:39:03+00:00"
+    },
+    {
+      "active_count": 0,
+      "blocked_count": 0,
+      "ledger_id": "L20260530-123210-03b",
+      "path": "L20260530-123210-03b",
+      "root_id": "P000",
+      "schema_version": 6,
+      "status": "done",
+      "title": "实施与验证闭环",
+      "updated_at": "2026-05-30T06:30:14+00:00"
+    }
+  ],
+  "updated_at": "2026-05-30T06:30:22+00:00"
+}

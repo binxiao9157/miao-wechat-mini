@@ -38,6 +38,12 @@ function normalizeUploadError(message: string): string {
   return message || '文件上传失败';
 }
 
+function handleUnauthorizedUpload() {
+  removeItem('miao_auth_token');
+  removeItem('miao_current_user');
+  Taro.eventCenter.trigger('auth:unauthorized');
+}
+
 function uploadFileOnce(options: UploadOptions, fullUrl: string, token: string): Promise<any> {
   return new Promise((resolve, reject) => {
     Taro.uploadFile({
@@ -55,16 +61,12 @@ function uploadFileOnce(options: UploadOptions, fullUrl: string, token: string):
       success: (res) => {
         if (res.statusCode < 200 || res.statusCode >= 300) {
           let message = `上传失败: HTTP ${res.statusCode}`;
-          let code = '';
           try {
             const data = JSON.parse(res.data || '{}');
-            code = data.code || '';
             message = data.message || data.error || message;
           } catch {}
-          if (res.statusCode === 401 && code === 'UNAUTHORIZED') {
-            removeItem('miao_auth_token');
-            removeItem('miao_current_user');
-            Taro.eventCenter.trigger('auth:unauthorized');
+          if (res.statusCode === 401) {
+            handleUnauthorizedUpload();
             return reject(new Error('登录已过期，请重新登录'));
           }
           const error: any = new Error(message);

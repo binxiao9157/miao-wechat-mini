@@ -1,0 +1,35 @@
+{
+  "created_at": "2026-05-30T12:32:07+08:00",
+  "goal": "遍历 miao-wechat-mini 工程，识别稳定性/健壮性/维护性优化点，形成详细开发计划并逐步实施验证",
+  "schema_version": 1,
+  "tasks": {
+    "docs/plans/task_01_工程遍历与风险识别.md": {
+      "ledger_id": "L20260530-123210-01",
+      "ledger_path": ".complex-problems/L20260530-123210-01",
+      "next_action": "none",
+      "status": "complete",
+      "task_file": "docs/plans/task_01_工程遍历与风险识别.md",
+      "title": "工程遍历与风险识别",
+      "updated_at": "2026-05-30T12:37:08+08:00"
+    },
+    "docs/plans/task_02_开发计划与范围确认.md": {
+      "ledger_id": "L20260530-123210-02",
+      "ledger_path": ".complex-problems/L20260530-123210-02",
+      "next_action": "none",
+      "status": "complete",
+      "task_file": "docs/plans/task_02_开发计划与范围确认.md",
+      "title": "开发计划与范围确认",
+      "updated_at": "2026-05-30T12:39:14+08:00"
+    },
+    "docs/plans/task_03_实施与验证闭环.md": {
+      "ledger_id": "L20260530-123210-03b",
+      "ledger_path": ".complex-problems/L20260530-123210-03b",
+      "next_action": "none",
+      "status": "complete",
+      "task_file": "docs/plans/task_03_实施与验证闭环.md",
+      "title": "实施与验证闭环",
+      "updated_at": "2026-05-30T14:30:29+08:00"
+    }
+  },
+  "updated_at": "2026-05-30T14:30:29+08:00"
+}

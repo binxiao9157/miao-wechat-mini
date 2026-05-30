@@ -72,6 +72,42 @@ describe('httpAdapter in H5 mode', () => {
     expect(Taro.eventCenter.trigger).toHaveBeenCalledWith('auth:unauthorized');
   });
 
+  it('clears cached auth after any 401 response', async () => {
+    setItem('miao_auth_token', 'abc123');
+    setItem('miao_current_user', JSON.stringify({ id: 'user-1' }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        status: 401,
+        json: async () => ({ message: 'session expired' }),
+      })),
+    );
+
+    await expect(request({ url: '/api/v1/me' })).rejects.toThrow('session expired');
+
+    expect(getItem('miao_auth_token')).toBeNull();
+    expect(getItem('miao_current_user')).toBeNull();
+    expect(Taro.eventCenter.trigger).toHaveBeenCalledWith('auth:unauthorized');
+  });
+
+  it('clears the H5 timeout timer when fetch rejects', async () => {
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+    try {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => {
+          throw new Error('network down');
+        }),
+      );
+
+      await expect(request({ url: '/api/v1/me' })).rejects.toThrow('网络请求失败: network down');
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+    } finally {
+      clearTimeoutSpy.mockRestore();
+    }
+  });
+
   it('uses TARO_APP_API_BASE_URL for H5 when configured', async () => {
     process.env.TARO_APP_API_BASE_URL = 'https://api.example.com/';
 

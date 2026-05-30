@@ -16,20 +16,24 @@ interface AppProps {
   children?: ReactNode;
 }
 
+async function runForegroundSync() {
+  try {
+    await syncQueue.flushNow();
+    await syncManager.syncAll();
+  } catch (error) {
+    console.warn('[App] foreground sync failed:', error);
+  }
+}
+
 function App({ children }: AppProps) {
   useLaunch(() => {
     console.log('App launched.');
-    Taro.onAppShow(async () => {
-      await syncQueue.flushNow();
-      syncManager.syncAll();
-    });
+    Taro.onAppShow(runForegroundSync);
     // PWA: 监听页面切回前台时同步数据
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-          syncQueue.flushNow().then(() => {
-            syncManager.syncAll();
-          });
+          runForegroundSync();
         }
       });
     }

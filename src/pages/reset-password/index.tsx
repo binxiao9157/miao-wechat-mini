@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Input, Image, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
@@ -20,10 +20,20 @@ export default function ResetPassword() {
   const [countdown, setCountdown] = useState(0);
   const [showToast, setShowToast] = useState(false);
   const codeRef = useRef('');
+  const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  let countdownTimer: ReturnType<typeof setInterval>;
+  const clearCountdownTimer = () => {
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+  };
+
+  useEffect(() => clearCountdownTimer, []);
 
   const handleSendCode = async () => {
+    if (countdown > 0) return;
+
     if (!phone || phone.length !== 11) {
       setError('请输入正确的手机号');
       return;
@@ -48,10 +58,11 @@ export default function ResetPassword() {
     }
 
     setCountdown(60);
-    countdownTimer = setInterval(() => {
+    clearCountdownTimer();
+    countdownTimerRef.current = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) {
-          clearInterval(countdownTimer);
+          clearCountdownTimer();
           return 0;
         }
         return prev - 1;

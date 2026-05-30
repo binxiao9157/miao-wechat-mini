@@ -3,6 +3,7 @@ import { getItem, setItem, removeItem, getAllKeys } from '../utils/storageAdapte
 import { trigger } from '../utils/eventAdapter';
 import { request as taroRequest } from '../utils/httpAdapter';
 import type { ServerSyncApi } from './storage/serverSync';
+import { safeClone, safeJsonStringify } from './storage/jsonUtils';
 export type {
   AppSettings,
   CatInfo,
@@ -232,8 +233,27 @@ const USER_DATA_KEYS = {
   DELETE_TOMBSTONES: 'miao_delete_tombstones',
 };
 
-type TombstoneType = 'cat' | 'diary' | 'letter';
+export type TombstoneType = 'cat' | 'diary' | 'letter';
 type DeleteTombstones = Record<string, number>;
+const DELETE_TOMBSTONE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+type StorageSyncSectionName = 'cats' | 'diaries' | 'letters' | 'points';
+
+export interface StorageSyncSectionResult {
+  name: StorageSyncSectionName;
+  success: boolean;
+  error?: string;
+}
+
+export interface StorageSyncResult {
+  success: boolean;
+  sections: StorageSyncSectionResult[];
+}
+
+function toSyncErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return JSON.stringify(error ?? 'unknown');
+}
 
 function getTombstoneKey(type: TombstoneType, id: string): string {
   return `${type}:${id}`;
@@ -242,7 +262,17 @@ function getTombstoneKey(type: TombstoneType, id: string): string {
 function getDeleteTombstones(): DeleteTombstones {
   try {
     const raw = getItem(getUserKey(USER_DATA_KEYS.DELETE_TOMBSTONES));
-    return raw ? JSON.parse(raw) : {};
+    const tombstones: DeleteTombstones = raw ? JSON.parse(raw) : {};
+    const now = Date.now();
+    let pruned = false;
+    for (const [key, deletedAt] of Object.entries(tombstones)) {
+      if (!Number.isFinite(deletedAt) || now - deletedAt > DELETE_TOMBSTONE_TTL_MS) {
+        delete tombstones[key];
+        pruned = true;
+      }
+    }
+    if (pruned) saveDeleteTombstones(tombstones);
+    return tombstones;
   } catch {
     return {};
   }
@@ -273,6 +303,10 @@ function forgetDeleted(type: TombstoneType, id?: string) {
 function isDeleted(type: TombstoneType, id?: string): boolean {
   if (!id) return false;
   return getTombstoneKey(type, id) in getDeleteTombstones();
+}
+
+function clearDeleteTombstone(type: TombstoneType, id?: string) {
+  forgetDeleted(type, id);
 }
 
 function getCurrentUsername(): string | null {
@@ -394,11 +428,6 @@ const MAX_TIME_LETTERS = 100;
 let cachedUserPrefix: string = 'guest';
 let cachedCurrentUserRaw: string | null = null;
 const memCache = new Map<string, { raw: string | null; parsed: unknown }>();
-
-function safeClone<T>(value: T): T {
-  if (typeof structuredClone === 'function') return structuredClone(value);
-  return JSON.parse(JSON.stringify(value));
-}
 
 function cachedRead<T>(storageKey: string, defaultValue: T): T {
   const raw = getItem(storageKey);
@@ -807,16 +836,18 @@ export const storage = {
     return merged;
   },
 
-  syncFromServer: async (username: string): Promise<void> => {
-    const syncCats = async () => {
+  syncFromServer: async (username: string): Promise<StorageSyncResult> => {
+    const syncCats = async (): Promise<StorageSyncSectionResult> => {
       try {
         await storage.syncCatsFromServer();
+        return { name: 'cats', success: true };
       } catch (error) {
         console.warn('[storage] sync cats failed:', error);
+        return { name: 'cats', success: false, error: toSyncErrorMessage(error) };
       }
     };
 
-    const syncDiaries = async () => {
+    const syncDiaries = async (): Promise<StorageSyncSectionResult> => {
       try {
         const resp = await request('/api/v1/diaries');
         if (resp) {
@@ -850,12 +881,14 @@ export const storage = {
           storage.setItem(key, JSON.stringify(merged.slice(0, MAX_DIARIES)));
           invalidateCache(key);
         }
+        return { name: 'diaries', success: true };
       } catch (error) {
         console.warn('[storage] sync diaries failed:', error);
+        return { name: 'diaries', success: false, error: toSyncErrorMessage(error) };
       }
     };
 
-    const syncLetters = async () => {
+    const syncLetters = async (): Promise<StorageSyncSectionResult> => {
       try {
         const resp = await request('/api/v1/letters');
         if (resp) {
@@ -881,12 +914,14 @@ export const storage = {
           storage.setItem(key, JSON.stringify(merged.slice(0, MAX_TIME_LETTERS)));
           invalidateCache(key);
         }
+        return { name: 'letters', success: true };
       } catch (error) {
         console.warn('[storage] sync letters failed:', error);
+        return { name: 'letters', success: false, error: toSyncErrorMessage(error) };
       }
     };
 
-    const syncPoints = async () => {
+    const syncPoints = async (): Promise<StorageSyncSectionResult> => {
       try {
         const resp = await request('/api/v1/points');
         if (resp) {
@@ -904,12 +939,18 @@ export const storage = {
             }
           }
         }
+        return { name: 'points', success: true };
       } catch (error) {
         console.warn('[storage] sync points failed:', error);
+        return { name: 'points', success: false, error: toSyncErrorMessage(error) };
       }
     };
 
-    await Promise.allSettled([syncCats(), syncDiaries(), syncLetters(), syncPoints()]);
+    const sections = await Promise.all([syncCats(), syncDiaries(), syncLetters(), syncPoints()]);
+    return {
+      success: sections.every(section => section.success),
+      sections,
+    };
   },
 
   saveCatInfo: (cat: CatInfo) => {
@@ -1028,11 +1069,14 @@ export const storage = {
     if (userId) getSyncQueue().enqueue({ type: 'points', action: 'upsert', payload: nextPoints });
   },
 
-  addPoints: (amount: number, reason: string = '系统奖励') => {
+  addPoints: (amount: number, reason: string = '系统奖励', transactionId?: string) => {
     const points = storage.getPoints();
+    if (transactionId && points.history.some(item => item.id === transactionId)) {
+      return points.total;
+    }
     points.total += amount;
     points.history.unshift({
-      id: 'tx_' + Date.now() + Math.random().toString(36).substring(2, 7),
+      id: transactionId || 'tx_' + Date.now() + Math.random().toString(36).substring(2, 7),
       type: 'earn',
       amount,
       reason,
@@ -1048,12 +1092,15 @@ export const storage = {
     return cats.length * 200;
   },
 
-  deductPoints: (amount: number, reason: string = '积分消耗') => {
+  deductPoints: (amount: number, reason: string = '积分消耗', transactionId?: string) => {
     const points = storage.getPoints();
+    if (transactionId && points.history.some(item => item.id === transactionId)) {
+      return true;
+    }
     if (points.total >= amount) {
       points.total -= amount;
       points.history.unshift({
-        id: 'tx_' + Date.now() + Math.random().toString(36).substring(2, 7),
+        id: transactionId || 'tx_' + Date.now() + Math.random().toString(36).substring(2, 7),
         type: 'spend',
         amount,
         reason,
@@ -1098,7 +1145,7 @@ export const storage = {
       for (const d of trimmed) {
         forgetDeleted('diary', d.id);
         const previousDiary = previousMap.get(d.id);
-        if (!previousDiary || JSON.stringify(previousDiary) !== JSON.stringify(d)) {
+        if (!previousDiary || safeJsonStringify(previousDiary) !== safeJsonStringify(d)) {
           getSyncQueue().enqueue({ type: 'diary', id: d.id, action: 'upsert', payload: d });
         }
       }
@@ -1155,7 +1202,7 @@ export const storage = {
       for (const l of trimmed) {
         forgetDeleted('letter', l.id);
         const previousLetter = previousMap.get(l.id);
-        if (!previousLetter || JSON.stringify(previousLetter) !== JSON.stringify(l)) {
+        if (!previousLetter || safeJsonStringify(previousLetter) !== safeJsonStringify(l)) {
           getSyncQueue().enqueue({ type: 'letter', id: l.id, action: 'upsert', payload: l });
         }
       }
@@ -1214,6 +1261,12 @@ export const storage = {
       }
     }
   },
+
+  hasDeleteTombstone: (type: TombstoneType, id: string): boolean => {
+    return isDeleted(type, id);
+  },
+
+  clearDeleteTombstone,
 
   deleteAllDiaries: () => {
     const diaries = storage.getDiaries();

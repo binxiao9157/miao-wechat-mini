@@ -1,6 +1,7 @@
 import Taro from '@tarojs/taro';
 import { serverSync, storage } from './storage';
 import { getItem, removeItem, setItem } from '../utils/storageAdapter';
+import { safeClone } from './storage/jsonUtils';
 
 export type SyncTask = {
   type: 'diary' | 'letter' | 'points' | 'cat';
@@ -35,8 +36,7 @@ class SyncQueue {
   }
 
   private clonePayload<T>(payload: T): T {
-    if (typeof structuredClone === 'function') return structuredClone(payload);
-    return JSON.parse(JSON.stringify(payload));
+    return safeClone(payload);
   }
 
   private getTasksSnapshot(predicate: (task: SyncTask) => boolean): SyncTask[] {
@@ -197,6 +197,7 @@ class SyncQueue {
       case 'diary':
         if (task.action === 'delete') {
           await serverSync.deleteDiaryFromServer(username, task.id!);
+          storage.clearDeleteTombstone('diary', task.id!);
         } else {
           await serverSync.syncDiaryToServer(username, task.payload);
         }
@@ -204,6 +205,7 @@ class SyncQueue {
       case 'letter':
         if (task.action === 'delete') {
           await serverSync.deleteLetterFromServer(username, task.id!);
+          storage.clearDeleteTombstone('letter', task.id!);
         } else {
           await serverSync.syncLetterToServer(username, task.payload);
         }
@@ -214,6 +216,7 @@ class SyncQueue {
       case 'cat':
         if (task.action === 'delete') {
           await serverSync.deleteCatFromServer(username, task.id!);
+          storage.clearDeleteTombstone('cat', task.id!);
         } else {
           await serverSync.syncCatToServer(username, task.payload);
         }

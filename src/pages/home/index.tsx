@@ -48,6 +48,10 @@ export default function Home() {
   const [bubbleExiting, setBubbleExiting] = useState(false);
   const [pointsToast, setPointsToast] = useState('');
   const bubbleTimerRef = useRef<any>(null);
+  const bubbleExitTimerRef = useRef<any>(null);
+  const pointsToastTimerRef = useRef<any>(null);
+  const greetingTimerRef = useRef<any>(null);
+  const interactionHintTimerRef = useRef<any>(null);
 
   // 手势状态
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
@@ -59,13 +63,14 @@ export default function Home() {
 
   const showFloatingBubble = useCallback((text: string, duration = 3000) => {
     if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
+    if (bubbleExitTimerRef.current) clearTimeout(bubbleExitTimerRef.current);
     setBubbleExiting(false);
     setBubbleText(text);
     setBubbleVisible(true);
 
     bubbleTimerRef.current = setTimeout(() => {
       setBubbleExiting(true);
-      setTimeout(() => {
+      bubbleExitTimerRef.current = setTimeout(() => {
         setBubbleVisible(false);
         setBubbleExiting(false);
       }, 300);
@@ -73,8 +78,9 @@ export default function Home() {
   }, []);
 
   const showPointsToast = useCallback((amount: number, label?: string) => {
+    if (pointsToastTimerRef.current) clearTimeout(pointsToastTimerRef.current);
     setPointsToast(label ? `+${amount} ${label}` : `+${amount}`);
-    setTimeout(() => setPointsToast(''), 2000);
+    pointsToastTimerRef.current = setTimeout(() => setPointsToast(''), 2000);
   }, []);
 
   const loadCat = useCallback(() => {
@@ -101,7 +107,7 @@ export default function Home() {
     // 进入页面时显示时间问候
     const greeting = getGreetingText();
     if (greeting) {
-      setTimeout(() => showFloatingBubble(greeting, 4000), 1000);
+      greetingTimerRef.current = setTimeout(() => showFloatingBubble(greeting, 4000), 1000);
     }
 
     const handler = (data?: any) => {
@@ -115,7 +121,8 @@ export default function Home() {
 
     // 从其他页面切换回来时显示互动提示
     const interactionHandler = () => {
-      setTimeout(() => showFloatingBubble('快来和猫咪互动吧~', 3000), 500);
+      if (interactionHintTimerRef.current) clearTimeout(interactionHintTimerRef.current);
+      interactionHintTimerRef.current = setTimeout(() => showFloatingBubble('快来和猫咪互动吧~', 3000), 500);
     };
     on('home:show-interaction-hint', interactionHandler);
 
@@ -125,6 +132,10 @@ export default function Home() {
       off('home:show-interaction-hint', interactionHandler);
       if (onlineTimerRef.current) clearInterval(onlineTimerRef.current);
       if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
+      if (bubbleExitTimerRef.current) clearTimeout(bubbleExitTimerRef.current);
+      if (pointsToastTimerRef.current) clearTimeout(pointsToastTimerRef.current);
+      if (greetingTimerRef.current) clearTimeout(greetingTimerRef.current);
+      if (interactionHintTimerRef.current) clearTimeout(interactionHintTimerRef.current);
     };
   }, [loadCat, refreshCatsFromCloud, showFloatingBubble]);
 

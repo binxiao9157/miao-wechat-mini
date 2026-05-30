@@ -4,6 +4,7 @@ import { setItem } from '../../utils/storageAdapter';
 vi.mock('../storage', () => ({
   storage: {
     getUserInfo: vi.fn(() => ({ username: 'alice' })),
+    clearDeleteTombstone: vi.fn(),
   },
   serverSync: {
     syncDiaryToServer: vi.fn(async () => undefined),
@@ -221,5 +222,21 @@ describe('syncQueue', () => {
         payload: { total: 10 },
       },
     ]);
+  });
+
+  it('clears delete tombstone after remote delete succeeds', async () => {
+    const { syncQueue } = await import('../syncQueue');
+    const { serverSync, storage } = await import('../storage');
+
+    syncQueue.enqueue({
+      type: 'diary',
+      action: 'delete',
+      id: 'd1',
+    });
+
+    await syncQueue.flushNow();
+
+    expect(serverSync.deleteDiaryFromServer).toHaveBeenCalledWith('alice', 'd1');
+    expect(storage.clearDeleteTombstone).toHaveBeenCalledWith('diary', 'd1');
   });
 });

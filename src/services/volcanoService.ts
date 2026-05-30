@@ -81,6 +81,22 @@ function getUploadPath(image: string): string | null {
   return null;
 }
 
+function abortableDelay(ms: number, signal?: AbortSignal, abortMessage = '任务中止'): Promise<void> {
+  if (signal?.aborted) return Promise.reject(new Error(abortMessage));
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    const onAbort = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', onAbort);
+      reject(new Error(abortMessage));
+    };
+    signal?.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
 export class VolcanoService {
   public static async submitTask(imageBase64: string, prompt?: string, retries: number = 2) {
     if (VolcanoConfig.MOCK_MODE) {
@@ -236,7 +252,7 @@ export class VolcanoService {
       } catch (error: any) {
         if (signal?.aborted) throw new Error("任务中止");
         console.warn("Polling encountered network/server error, retrying...", error.message);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await abortableDelay(delay, signal, '任务中止');
         delay = Math.min(delay * 1.5, maxDelay);
         continue;
       }
@@ -250,7 +266,7 @@ export class VolcanoService {
         throw new Error(`图片生成失败: ${typeof errorInfo === 'string' ? errorInfo : JSON.stringify(errorInfo)}`);
       }
 
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await abortableDelay(delay, signal, '任务中止');
       delay = Math.min(delay * 1.5, maxDelay);
     }
   }
@@ -280,7 +296,7 @@ export class VolcanoService {
       } catch (error: any) {
         if (signal?.aborted) throw new Error("任务轮询已中止");
         console.warn("Polling encountered error, retrying...", error.message);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await abortableDelay(delay, signal, '任务轮询已中止');
         delay = Math.min(delay * 1.5, maxDelay);
         continue;
       }
@@ -306,7 +322,7 @@ export class VolcanoService {
         throw new Error(`任务失败 (${status}): ${typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail)}`);
       }
 
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await abortableDelay(delay, signal, '任务轮询已中止');
       delay = Math.min(delay * 1.5, maxDelay);
     }
   }

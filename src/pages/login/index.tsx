@@ -48,6 +48,12 @@ export default function Login() {
     if (lastUsername) {
       setUsername(lastUsername);
     }
+    return () => {
+      if (phoneLoginTimerRef.current) {
+        clearTimeout(phoneLoginTimerRef.current);
+        phoneLoginTimerRef.current = null;
+      }
+    };
   }, []);
 
   const handleLogin = async () => {

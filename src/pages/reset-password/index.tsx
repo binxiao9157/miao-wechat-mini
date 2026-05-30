@@ -5,6 +5,7 @@ import { safeBack } from '../../utils/navigateAdapter';
 import { storage } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
 import PageHeader from '../../components/layout/PageHeader';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 import './index.less';
 
 const EYE_DARK = require('../../assets/profile-icons/eye-dark.png');
@@ -21,6 +22,7 @@ export default function ResetPassword() {
   const [showToast, setShowToast] = useState(false);
   const codeRef = useRef('');
   const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { clearManagedTimeouts, setManagedTimeout } = useManagedTimeout();
 
   const clearCountdownTimer = () => {
     if (countdownTimerRef.current) {
@@ -29,7 +31,16 @@ export default function ResetPassword() {
     }
   };
 
-  useEffect(() => clearCountdownTimer, []);
+  const scheduleSafeBack = () => {
+    clearManagedTimeouts();
+    setManagedTimeout(() => {
+      safeBack();
+    }, 1500);
+  };
+
+  useEffect(() => () => {
+    clearCountdownTimer();
+  }, []);
 
   const handleSendCode = async () => {
     if (countdown > 0) return;
@@ -92,17 +103,13 @@ export default function ResetPassword() {
         data: resetData,
       });
       setShowToast(true);
-      setTimeout(() => {
-        safeBack();
-      }, 1500);
+      scheduleSafeBack();
     } catch (e: any) {
       // 服务端 API 未就绪时，回退到开发模式验证
       if (process.env.NODE_ENV === 'development' && codeRef.current && code === codeRef.current) {
         storage.updatePassword(phone);
         setShowToast(true);
-        setTimeout(() => {
-          safeBack();
-        }, 1500);
+        scheduleSafeBack();
         return;
       }
       setError(e?.message || '重置密码失败，请重试');

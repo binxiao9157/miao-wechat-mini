@@ -5,6 +5,7 @@ import PageHeader from '../../components/layout/PageHeader';
 const SPARKLES_WHITE = require('../../assets/profile-icons/sparkles-white.png');
 import { storage, PresetCat } from '../../services/storage';
 import { DEFAULT_AVATAR } from '../../utils/constants';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 import './index.less';
 
 export default function CreateCompanion() {
@@ -18,6 +19,7 @@ export default function CreateCompanion() {
   const [showToast, setShowToast] = useState<string | null>(null);
   const [catName, setCatName] = useState('');
   const [failedPresetImages, setFailedPresetImages] = useState<Record<string, boolean>>({});
+  const { setManagedTimeout } = useManagedTimeout();
 
   useEffect(() => {
     setPresets(storage.getPresetCats());
@@ -25,7 +27,7 @@ export default function CreateCompanion() {
 
   const triggerToast = (msg: string) => {
     setShowToast(msg);
-    setTimeout(() => setShowToast(null), 3000);
+    setManagedTimeout(() => setShowToast(null), 3000);
   };
 
   const handleGenerate = () => {

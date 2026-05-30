@@ -9,6 +9,7 @@ import { generateShareCard } from '../../utils/shareCard';
 import ShareSheet from '../../components/common/ShareSheet';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import DiaryCard from '../../components/common/DiaryCard';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 
 // Lucide-style PNG icons
 const USERPLUS_GRAY = require('../../assets/profile-icons/userplus-gray.png');
@@ -53,6 +54,7 @@ export default function Diary() {
   const [sharingDiary, setSharingDiary] = useState<DiaryWithMedia | null>(null);
   const [showShareSheet, setShowShareSheet] = useState(false);
   const [shareCardPath, setShareCardPath] = useState('');
+  const { setManagedTimeout } = useManagedTimeout();
 
   // 用 ref 持久化分享数据，确保 useShareTimeline/useShareAppMessage 在 ShareSheet 关闭后仍能读取
   const sharingDiaryRef = useRef<DiaryWithMedia | null>(null);
@@ -597,7 +599,7 @@ export default function Diary() {
   // 评论弹窗关闭后重置 ScrollView 滚动位置，防止布局错位
   const resetScrollView = () => {
     setScrollTop(1);
-    setTimeout(() => setScrollTop(0), 50);
+    setManagedTimeout(() => setScrollTop(0), 50);
   };
 
   // 分享功能
@@ -934,7 +936,7 @@ export default function Diary() {
         url="/pages/diary/index"
         isTabPage={true}
         shareImagePath={shareCardPath}
-        onClose={() => { setShowShareSheet(false); setShareCardPath(''); setTimeout(() => updateSharingDiary(null), 5000); }}
+        onClose={() => { setShowShareSheet(false); setShareCardPath(''); setManagedTimeout(() => updateSharingDiary(null), 5000); }}
       />
 
       {/* 分享卡片 Canvas（不可见，用于生成朋友圈分享图） */}

@@ -5,6 +5,7 @@ import { useAuthContext } from '../../context/AuthContext';
 import { storage } from '../../services/storage';
 import { authService } from '../../services/authService';
 import PageHeader from '../../components/layout/PageHeader';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 import './index.less';
 
 const EYE_DARK = require('../../assets/profile-icons/eye-dark.png');
@@ -21,6 +22,7 @@ export default function ChangePassword() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const { setManagedTimeout } = useManagedTimeout();
 
   const localUser = user?.username ? storage.findUser(user.username) : null;
   const requiresCurrentPassword = !!(user?.passwordSet || localUser?.passwordSet);
@@ -57,7 +59,7 @@ export default function ChangePassword() {
         }
       }
       setShowToast(true);
-      setTimeout(() => {
+      setManagedTimeout(() => {
         safeBack();
       }, 1500);
     } catch (e: any) {

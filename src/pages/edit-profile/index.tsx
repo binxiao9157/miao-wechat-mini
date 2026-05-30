@@ -11,6 +11,7 @@ import { useAuthContext } from '../../context/AuthContext';
 import { request } from '../../utils/httpAdapter';
 import { uploadFile } from '../../utils/uploadAdapter';
 import { DEFAULT_AVATAR } from '../../utils/constants';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 import './index.less';
 
 export default function EditProfile() {
@@ -20,6 +21,7 @@ export default function EditProfile() {
   const [isSaving, setIsSaving] = useState(false);
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const { setManagedTimeout } = useManagedTimeout();
 
   const handleSave = async () => {
     if (!nickname.trim()) {
@@ -50,7 +52,7 @@ export default function EditProfile() {
         updateProfile({ nickname: res.data.user.nickname, avatar: res.data.user.avatar });
       }
       setShowSuccessToast(true);
-      setTimeout(() => safeBack(), 1500);
+      setManagedTimeout(() => safeBack(), 1500);
     } catch (e: any) {
       Taro.showToast({ title: e.message || '保存失败', icon: 'none' });
     } finally {

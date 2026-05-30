@@ -6,6 +6,7 @@ import PageHeader from '../../components/layout/PageHeader';
 const SCAN_PNG = require('../../assets/profile-icons/scan-primary.png');
 import { FriendInfo } from '../../services/storage';
 import { friendService } from '../../services/friendService';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 import './index.less';
 
 export default function ScanFriend() {
@@ -14,6 +15,7 @@ export default function ScanFriend() {
   const [friendInfo, setFriendInfo] = useState<FriendInfo | null>(null);
   const [inviteCode, setInviteCode] = useState('');
   const [showToast, setShowToast] = useState<string | null>(null);
+  const { setManagedTimeout } = useManagedTimeout();
 
   useEffect(() => {
     // 自动启动扫码
@@ -66,7 +68,7 @@ export default function ScanFriend() {
       await friendService.acceptInvite(inviteCode);
       setShowConfirm(false);
       triggerToast('添加好友成功！');
-      setTimeout(() => {
+      setManagedTimeout(() => {
         safeBack();
       }, 1500);
     } catch (error: any) {
@@ -76,7 +78,7 @@ export default function ScanFriend() {
 
   const triggerToast = (msg: string) => {
     setShowToast(msg);
-    setTimeout(() => setShowToast(null), 2500);
+    setManagedTimeout(() => setShowToast(null), 2500);
   };
 
   return (

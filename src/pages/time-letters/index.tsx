@@ -6,6 +6,7 @@ import { storage, TimeLetter, CatInfo } from '../../services/storage';
 import CatAvatar from '../../components/common/CatAvatar';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import { formatTimeLetterCountdown, isTimeLetterUnlocked } from '../../utils/timeLetterUnlock';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 import './index.less';
 
 // Lucide-style PNG icons
@@ -58,6 +59,10 @@ function LetterCard({ letter, targetCat, isUnlocked, fastForward, onDelete, onCl
   const handleTouchMove = () => {
     clearTimeout(longPressTimerRef.current);
   };
+
+  useEffect(() => () => {
+    clearTimeout(longPressTimerRef.current);
+  }, []);
 
   useEffect(() => {
     if (isUnlocked) return;
@@ -152,6 +157,7 @@ export default function TimeLettersPage() {
   const [letterToDelete, setLetterToDelete] = useState<TimeLetter | null>(null);
   const [filterCatId, setFilterCatId] = useState<string>('all');
   const [toast, setToast] = useState<string | null>(null);
+  const { setManagedTimeout } = useManagedTimeout();
 
   useShareAppMessage(() => ({
     title: 'Miao - 给未来的自己和猫咪写一封时光信',
@@ -242,8 +248,8 @@ export default function TimeLettersPage() {
   // 显示提示
   const showToast = useCallback((msg: string) => {
     setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  }, []);
+    setManagedTimeout(() => setToast(null), 3000);
+  }, [setManagedTimeout]);
 
   // 点击信件
   const handleLetterClick = useCallback((letter: TimeLetter) => {

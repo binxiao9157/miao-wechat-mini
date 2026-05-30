@@ -45,7 +45,6 @@ function ensureForegroundSyncListeners() {
 
 function App({ children }: AppProps) {
   useLaunch(() => {
-    console.log('App launched.');
     ensureForegroundSyncListeners();
   });
 

@@ -10,6 +10,7 @@ const ALERTCIRCLE_PNG = require('../../assets/profile-icons/alertcircle-primary.
 import { storage } from '../../services/storage';
 import { friendService, FriendInvite } from '../../services/friendService';
 import { drawQROnCanvas } from '../../utils/qrCanvas';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 import './index.less';
 
 export default function AddFriendQR() {
@@ -24,6 +25,7 @@ export default function AddFriendQR() {
   const [qrReady, setQrReady] = useState(false);
   const [qrImageUrl, setQrImageUrl] = useState('');
   const [pageReady, setPageReady] = useState(false);
+  const { setManagedTimeout } = useManagedTimeout();
 
   const canvasRef = useRef<any>(null);
 
@@ -60,7 +62,7 @@ export default function AddFriendQR() {
 
   // 等页面动画完成后再开始创建邀请码，避免 Canvas 原生组件在页面跳转动画中提前渲染
   useDidShow(() => {
-    setTimeout(() => setPageReady(true), 300);
+    setManagedTimeout(() => setPageReady(true), 300);
   });
 
   useEffect(() => {
@@ -85,7 +87,7 @@ export default function AddFriendQR() {
     if (!invitePayload) return;
 
     Taro.nextTick(() => {
-      setTimeout(() => {
+      setManagedTimeout(() => {
         const page = Taro.getCurrentInstance().page;
         const query = page ? Taro.createSelectorQuery().in(page) : Taro.createSelectorQuery();
         query.select('#qrCanvas')
@@ -121,7 +123,7 @@ export default function AddFriendQR() {
   const showToastMessage = (message: string) => {
     setToastMessage(message);
     setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    setManagedTimeout(() => setShowToast(false), 3000);
   };
 
   // 保存二维码图片

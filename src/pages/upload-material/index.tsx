@@ -3,6 +3,7 @@ import { View, Text, Image, Input, ScrollView } from '@tarojs/components';
 import Taro, { navigateTo } from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const X_DARK = require('../../assets/profile-icons/x-dark.png');
@@ -25,10 +26,11 @@ export default function UploadMaterial() {
   const [showToast, setShowToast] = useState<string | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [firstFrameUrl, setFirstFrameUrl] = useState<string | null>(null);
+  const { setManagedTimeout } = useManagedTimeout();
 
   const triggerToast = (msg: string) => {
     setShowToast(msg);
-    setTimeout(() => setShowToast(null), 2500);
+    setManagedTimeout(() => setShowToast(null), 2500);
   };
 
   const prepareSelectedImage = async (filePath: string): Promise<string> => {

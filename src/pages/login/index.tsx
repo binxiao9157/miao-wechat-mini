@@ -5,6 +5,7 @@ import PawLogo from '../../components/common/PawLogo';
 import { storage } from '../../services/storage';
 import { useAuthContext } from '../../context/AuthContext';
 import { routeAfterCatSync } from '../../services/catLifecycle';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 import './index.less';
 
 const EYE_DARK = require('../../assets/profile-icons/eye-dark.png');
@@ -37,6 +38,7 @@ export default function Login() {
   const [isAgreed, setIsAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const phoneLoginTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { setManagedTimeout } = useManagedTimeout();
 
   useEffect(() => {
     const lastImage = storage.getLastCatImage();
@@ -57,7 +59,7 @@ export default function Login() {
   }, []);
 
   const handleLogin = async () => {
-    if (!checkAgreement(isAgreed, () => { setShakeAgreement(true); setTimeout(() => setShakeAgreement(false), 500); })) return;
+    if (!checkAgreement(isAgreed, () => { setShakeAgreement(true); setManagedTimeout(() => setShakeAgreement(false), 500); })) return;
 
     const trimmedU = username.trim();
     const trimmedP = password.trim();
@@ -89,7 +91,7 @@ export default function Login() {
   };
 
   const handleWechatLogin = async () => {
-    if (!checkAgreement(isAgreed, () => { setShakeAgreement(true); setTimeout(() => setShakeAgreement(false), 500); })) return;
+    if (!checkAgreement(isAgreed, () => { setShakeAgreement(true); setManagedTimeout(() => setShakeAgreement(false), 500); })) return;
     setIsLoading(true);
     setError('');
     try {
@@ -136,7 +138,7 @@ export default function Login() {
       phoneLoginTimerRef.current = null;
     }
 
-    if (!checkAgreement(isAgreed, () => { setShakeAgreement(true); setTimeout(() => setShakeAgreement(false), 500); })) return;
+    if (!checkAgreement(isAgreed, () => { setShakeAgreement(true); setManagedTimeout(() => setShakeAgreement(false), 500); })) return;
 
     if (e.detail?.errMsg?.includes('fail')) {
       const errMsg = e.detail.errMsg;

@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import { useEffect } from 'react';
 import { reLaunch } from '@tarojs/taro';
 import { storage } from '../../services/storage';
 import { routeAfterCatSync } from '../../services/catLifecycle';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 
 export default function Welcome() {
+  const { setManagedTimeout } = useManagedTimeout();
+
   useEffect(() => {
     const bootstrap = async () => {
       // 检查是否已登录
@@ -25,10 +27,10 @@ export default function Welcome() {
       }
     };
 
-    setTimeout(() => {
+    setManagedTimeout(() => {
       bootstrap();
     }, 500);
-  }, []);
+  }, [setManagedTimeout]);
 
   return (
     <View style={{

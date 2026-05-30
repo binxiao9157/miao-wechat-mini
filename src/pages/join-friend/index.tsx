@@ -8,6 +8,7 @@ import { useNavSpace } from '../../hooks/useNavSpace';
 import { useAuthContext } from '../../context/AuthContext';
 import { friendService } from '../../services/friendService';
 import CatAvatar from '../../components/common/CatAvatar';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 import './index.less';
 
 export default function JoinFriend() {
@@ -20,6 +21,7 @@ export default function JoinFriend() {
   const [catAvatar, setCatAvatar] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const { setManagedTimeout } = useManagedTimeout();
 
   useEffect(() => {
     const code = router.params.invite || router.params.code || '';
@@ -43,7 +45,7 @@ export default function JoinFriend() {
     try {
       await friendService.acceptInvite(inviteCode);
       setShowSuccess(true);
-      setTimeout(() => safeBack(), 2000);
+      setManagedTimeout(() => safeBack(), 2000);
     } catch (error: any) {
       Taro.showToast({ title: error?.message || '添加好友失败', icon: 'none' });
     }

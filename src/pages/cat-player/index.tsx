@@ -15,6 +15,7 @@ const ALERTCIRCLE_RED2 = require('../../assets/profile-icons/alertcircle-red2.pn
 import { storage, CatInfo } from '../../services/storage';
 import { FileManager } from '../../services/fileManager';
 import { getPrimaryVideoUrl } from '../../services/catLifecycle';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 import './index.less';
 
 export default function CatPlayer() {
@@ -30,6 +31,7 @@ export default function CatPlayer() {
   const [liked, setLiked] = useState(() => catId ? storage.isCatLiked(catId) : false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
+  const { setManagedTimeout } = useManagedTimeout();
 
   useShareAppMessage(() => ({
     title: cat ? `来看看${cat.name}的AI猫咪视频！` : 'Miao - AI猫咪视频',
@@ -119,7 +121,7 @@ export default function CatPlayer() {
 
   const triggerToast = (msg: string) => {
     setShowToast(msg);
-    setTimeout(() => setShowToast(null), 2500);
+    setManagedTimeout(() => setShowToast(null), 2500);
   };
 
   const handleRetry = () => {

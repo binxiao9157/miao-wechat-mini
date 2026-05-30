@@ -109,6 +109,16 @@ export default function SwitchCompanion() {
               </View>
             )}
 
+            {cat.isUnlocking && (
+              <View className="unlock-badge">
+                <Text className="unlock-badge-text">
+                  {cat.unlockProgress
+                    ? `${cat.unlockProgress.completed}/${cat.unlockProgress.total}`
+                    : '解锁中'}
+                </Text>
+              </View>
+            )}
+
             {/* 头像 */}
             <View className="cat-avatar-box">
               <CatAvatar src={cat.avatar} name={cat.name} className="cat-avatar" />

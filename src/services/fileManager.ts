@@ -1,4 +1,5 @@
 import { storage, CatInfo } from './storage';
+import type { CatUnlockProgress } from './storage';
 import { trigger } from '../utils/eventAdapter';
 import { post } from '../utils/httpAdapter';
 
@@ -124,7 +125,8 @@ export class FileManager {
   public static async updateCatVideos(
     catId: string,
     newVideoUrls: { [key: string]: string },
-    isUnlocking: boolean = false
+    isUnlocking: boolean = false,
+    unlockProgress?: Omit<CatUnlockProgress, 'updatedAt'>
   ): Promise<void> {
     const cat = storage.getCatById(catId);
     if (!cat) return;
@@ -137,6 +139,17 @@ export class FileManager {
     entries.forEach(([action], i) => {
       persistedUrls[action] = persisted[i];
     });
+    const nextUnlockProgress: CatUnlockProgress | undefined = unlockProgress
+      ? {
+          completed: unlockProgress.completed,
+          total: unlockProgress.total,
+          currentAction: unlockProgress.currentAction,
+          failed: unlockProgress.failed,
+          updatedAt: Date.now(),
+        }
+      : isUnlocking
+        ? cat.unlockProgress
+        : undefined;
 
     const updatedCat: CatInfo = {
       ...cat,
@@ -147,6 +160,7 @@ export class FileManager {
       videoPath: persistedUrls.idle || cat.videoPath || cat.remoteVideoUrl,
       remoteVideoUrl: persistedUrls.idle || cat.remoteVideoUrl || cat.videoPath,
       isUnlocking,
+      unlockProgress: nextUnlockProgress,
       generationStatus: getPrimaryStatus(cat.generationStatus, persistedUrls.idle || cat.videoPath || cat.remoteVideoUrl),
       generationError: undefined,
       generationUpdatedAt: Date.now(),

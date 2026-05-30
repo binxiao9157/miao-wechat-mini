@@ -34,7 +34,16 @@ export interface CatInfo {
   placeholderImage?: string;
   anchorFrame?: string;
   isUnlocking?: boolean;
+  unlockProgress?: CatUnlockProgress;
   updatedAt?: number;
+}
+
+export interface CatUnlockProgress {
+  completed: number;
+  total: number;
+  currentAction?: string;
+  failed?: number;
+  updatedAt: number;
 }
 
 export interface AppSettings {

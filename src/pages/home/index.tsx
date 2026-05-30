@@ -385,6 +385,17 @@ export default function Home() {
               <Text className="points-toast-text">{pointsToast}</Text>
             </View>
           )}
+
+          {cat.isUnlocking && (
+            <View className="unlock-progress-badge">
+              <Text className="unlock-progress-title">正在解锁更多动作</Text>
+              <Text className="unlock-progress-text">
+                {cat.unlockProgress
+                  ? `${cat.unlockProgress.completed}/${cat.unlockProgress.total} 已完成`
+                  : '后台生成中'}
+              </Text>
+            </View>
+          )}
         </View>
       )}
 

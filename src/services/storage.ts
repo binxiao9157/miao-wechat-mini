@@ -7,6 +7,7 @@ import { safeClone, safeJsonStringify } from './storage/jsonUtils';
 export type {
   AppSettings,
   CatInfo,
+  CatUnlockProgress,
   Comment,
   DiaryEntry,
   FriendDiaryEntry,
@@ -20,6 +21,7 @@ export type {
 import type {
   AppSettings,
   CatInfo,
+  CatUnlockProgress,
   DiaryEntry,
   FriendDiaryEntry,
   FriendInfo,

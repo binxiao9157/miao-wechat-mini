@@ -235,16 +235,44 @@ export default function GenerationProgress() {
 
   const runSecondaryUnlock = async (cat: NonNullable<typeof catRef.current>, signal?: AbortSignal) => {
     const secondaryActions: (keyof typeof ACTION_PROMPTS)[] = ['tail', 'rubbing', 'blink'];
+    let completed = 0;
+    let failed = 0;
     try {
       const anchorFrame = anchorImage || cat.avatar;
+      await FileManager.updateCatVideos(cat.id, {}, true, {
+        completed,
+        total: secondaryActions.length,
+        currentAction: secondaryActions[0],
+        failed,
+      });
+
       for (const action of secondaryActions) {
         if (signal?.aborted) return;
         try {
+          await FileManager.updateCatVideos(cat.id, {}, true, {
+            completed,
+            total: secondaryActions.length,
+            currentAction: action,
+            failed,
+          });
           const task = await VolcanoService.submitTask(anchorFrame, ACTION_PROMPTS[action]);
           const videoUrl = await VolcanoService.pollTaskResult(task.id, undefined, signal);
-          await FileManager.updateCatVideos(cat.id, { [action]: videoUrl }, true);
+          completed += 1;
+          await FileManager.updateCatVideos(cat.id, { [action]: videoUrl }, true, {
+            completed,
+            total: secondaryActions.length,
+            currentAction: action,
+            failed,
+          });
           await new Promise(resolve => setTimeout(resolve, 3000));
         } catch (e) {
+          failed += 1;
+          await FileManager.updateCatVideos(cat.id, {}, true, {
+            completed,
+            total: secondaryActions.length,
+            currentAction: action,
+            failed,
+          });
           console.error(`动作 ${action} 生成失败:`, e);
         }
       }

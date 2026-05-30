@@ -31,6 +31,10 @@ import type {
 
 // Lazy import to avoid circular dependency
 let _syncQueue: any = null;
+export function setSyncQueueForTesting(queue: any | null) {
+  _syncQueue = queue;
+}
+
 function getSyncQueue() {
   if (!_syncQueue) {
     const mod = require('./syncQueue');
@@ -414,8 +418,9 @@ function cachedRead<T>(storageKey: string, defaultValue: T): T {
     } else {
       parsed = raw;
     }
-    memCache.set(storageKey, { raw, parsed });
-    return parsed ?? safeClone(defaultValue);
+    const value = parsed ?? safeClone(defaultValue);
+    memCache.set(storageKey, { raw, parsed: value });
+    return safeClone(value);
   } catch {
     memCache.set(storageKey, { raw, parsed: defaultValue });
     return safeClone(defaultValue);
@@ -1141,6 +1146,7 @@ export const storage = {
 
   saveTimeLetters: (letters: TimeLetter[]) => {
     const previous = storage.getTimeLetters();
+    const previousMap = new Map(previous.map(l => [l.id, l]));
     const trimmed = letters.length > MAX_TIME_LETTERS ? letters.slice(0, MAX_TIME_LETTERS) : letters;
     const trimmedIds = new Set(trimmed.map(l => l.id));
     storage.setItem(getUserKey(USER_DATA_KEYS.TIME_LETTERS), JSON.stringify(trimmed));
@@ -1148,7 +1154,10 @@ export const storage = {
     if (userId) {
       for (const l of trimmed) {
         forgetDeleted('letter', l.id);
-        getSyncQueue().enqueue({ type: 'letter', id: l.id, action: 'upsert', payload: l });
+        const previousLetter = previousMap.get(l.id);
+        if (!previousLetter || JSON.stringify(previousLetter) !== JSON.stringify(l)) {
+          getSyncQueue().enqueue({ type: 'letter', id: l.id, action: 'upsert', payload: l });
+        }
       }
       for (const prev of previous) {
         if (!trimmedIds.has(prev.id)) {

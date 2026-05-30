@@ -2,7 +2,7 @@ import Taro from '@tarojs/taro';
 import { serverSync, storage } from './storage';
 import { getItem, removeItem, setItem } from '../utils/storageAdapter';
 
-type SyncTask = {
+export type SyncTask = {
   type: 'diary' | 'letter' | 'points' | 'cat';
   id?: string;
   action: 'upsert' | 'delete';
@@ -25,6 +25,25 @@ class SyncQueue {
 
   private getTaskKey(task: SyncTask) {
     return task.id ? `${task.type}:${task.id}` : task.type;
+  }
+
+  private cloneTask(task: SyncTask): SyncTask {
+    return {
+      ...task,
+      payload: task.payload === undefined ? undefined : this.clonePayload(task.payload),
+    };
+  }
+
+  private clonePayload<T>(payload: T): T {
+    if (typeof structuredClone === 'function') return structuredClone(payload);
+    return JSON.parse(JSON.stringify(payload));
+  }
+
+  private getTasksSnapshot(predicate: (task: SyncTask) => boolean): SyncTask[] {
+    this.hydrate();
+    return Array.from(this.dirty.values())
+      .filter(predicate)
+      .map(task => this.cloneTask(task));
   }
 
   private isValidTask(task: any): task is SyncTask {
@@ -78,6 +97,42 @@ class SyncQueue {
     this.dirty.set(key, { ...task, retries: task.retries ?? 0 });
     this.persist();
     this.scheduleFlush();
+  }
+
+  getPendingTasks(): SyncTask[] {
+    return this.getTasksSnapshot(task => (task.retries ?? 0) < this.MAX_RETRIES);
+  }
+
+  getExhaustedTasks(): SyncTask[] {
+    return this.getTasksSnapshot(task => (task.retries ?? 0) >= this.MAX_RETRIES);
+  }
+
+  clearExhaustedTasks(): void {
+    this.hydrate();
+    for (const task of Array.from(this.dirty.values())) {
+      if ((task.retries ?? 0) >= this.MAX_RETRIES) {
+        this.dirty.delete(this.getTaskKey(task));
+      }
+    }
+    this.persist();
+  }
+
+  retryExhaustedTasks(): void {
+    this.hydrate();
+    let hasRetriedTask = false;
+    for (const task of Array.from(this.dirty.values())) {
+      if ((task.retries ?? 0) >= this.MAX_RETRIES) {
+        hasRetriedTask = true;
+        this.dirty.set(this.getTaskKey(task), {
+          ...task,
+          retries: 0,
+          lastError: undefined,
+          lastTriedAt: undefined,
+        });
+      }
+    }
+    this.persist();
+    if (hasRetriedTask) this.scheduleFlush();
   }
 
   private scheduleFlush() {

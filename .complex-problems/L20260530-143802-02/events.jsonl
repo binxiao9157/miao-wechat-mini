@@ -1,0 +1,12 @@
+{"at": "2026-05-30T06:38:02+00:00", "id": "E000", "payload": {"ledger_id": "L20260530-143802-02", "root_id": "P000", "title": "代码实施"}, "root_id": "P000", "type": "ledger_initialized"}
+{"at": "2026-05-30T06:40:04+00:00", "id": "E001", "payload": {"problem_id": "P000", "ticket_id": "T000", "title": "Storage/Sync 代码实施 Ticket"}, "root_id": "P000", "type": "ticket_created"}
+{"at": "2026-05-30T06:40:04+00:00", "id": "E002", "payload": {"from": "created", "id": "T000", "to": "defined"}, "root_id": "P000", "type": "ticket_status_changed"}
+{"at": "2026-05-30T06:40:04+00:00", "id": "E003", "payload": {"from": "defined", "id": "T000", "to": "classified"}, "root_id": "P000", "type": "ticket_status_changed"}
+{"at": "2026-05-30T06:40:04+00:00", "id": "E004", "payload": {"classification": "one_go", "reason": "代码实施范围已限制在两个服务文件和测试文件，改动可由单元测试与类型检查直接验证。", "ticket_id": "T000"}, "root_id": "P000", "type": "ticket_classified"}
+{"at": "2026-05-30T06:40:04+00:00", "id": "E005", "payload": {"from": "todo", "id": "P000", "to": "doing"}, "root_id": "P000", "type": "problem_status_changed"}
+{"at": "2026-05-30T06:40:05+00:00", "id": "E006", "payload": {"from": "classified", "id": "T000", "to": "executing"}, "root_id": "P000", "type": "ticket_status_changed"}
+{"at": "2026-05-30T06:44:26+00:00", "id": "E007", "payload": {"from": "executing", "id": "T000", "to": "done"}, "root_id": "P000", "type": "ticket_status_changed"}
+{"at": "2026-05-30T06:44:26+00:00", "id": "E008", "payload": {"result_id": "R000", "ticket_id": "T000"}, "root_id": "P000", "type": "result_recorded"}
+{"at": "2026-05-30T06:44:26+00:00", "id": "E009", "payload": {"from": "doing", "id": "P000", "to": "checking"}, "root_id": "P000", "type": "problem_status_changed"}
+{"at": "2026-05-30T06:44:26+00:00", "id": "E010", "payload": {"from": "checking", "id": "P000", "to": "done"}, "root_id": "P000", "type": "problem_status_changed"}
+{"at": "2026-05-30T06:44:26+00:00", "id": "E011", "payload": {"check_id": "C000", "followup_id": null, "problem_id": "P000", "status": "success"}, "root_id": "P000", "type": "check_recorded"}

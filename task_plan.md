@@ -2,10 +2,10 @@
 
 ## STATUS
 
-- **Goal:** 遍历 miao-wechat-mini 工程，识别稳定性/健壮性/维护性优化点，形成详细开发计划并逐步实施验证
+- **Goal:** 按 storage/sync 稳定性专项计划完成代码修复，提升数据一致性、重试可观测性和前台同步健壮性，不改变现有业务流程
 - **Mode:** Review
-- **Phase:** Final verification complete
-- **Task:** docs/plans/task_03_实施与验证闭环.md
+- **Phase:** Ready for commit
+- **Task:** docs/plans/task_03_验证交付.md
 - **Blockers:** None
 
 ## Key Decisions
@@ -15,7 +15,10 @@
 
 ## Scope
 
-To be refined in docs/plans/task_N.md files.
+- SyncQueue failed-task visibility and recovery APIs.
+- TimeLetter unchanged save deduplication.
+- cachedRead defensive copies.
+- Validation and delivery closure.
 
 ## Recovery
 

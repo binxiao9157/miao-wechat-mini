@@ -101,4 +101,125 @@ describe('syncQueue', () => {
     expect(serverSync.deleteLetterFromServer).not.toHaveBeenCalled();
     expect(serverSync.deleteCatFromServer).not.toHaveBeenCalled();
   });
+
+  it('exposes exhausted tasks after retry limit is reached', async () => {
+    const { syncQueue } = await import('../syncQueue');
+    const { serverSync } = await import('../storage');
+    vi.mocked(serverSync.syncDiaryToServer).mockRejectedValue(new Error('offline'));
+
+    syncQueue.enqueue({
+      type: 'diary',
+      action: 'upsert',
+      id: 'd1',
+      payload: { id: 'd1', content: 'hello' },
+    });
+
+    await syncQueue.flushNow();
+    await syncQueue.flushNow();
+    await syncQueue.flushNow();
+
+    expect(syncQueue.getPendingTasks()).toHaveLength(0);
+    expect(syncQueue.getExhaustedTasks()).toMatchObject([
+      {
+        type: 'diary',
+        action: 'upsert',
+        id: 'd1',
+        retries: 3,
+        lastError: 'offline',
+      },
+    ]);
+  });
+
+  it('can retry exhausted tasks without exposing internal mutable state', async () => {
+    const { syncQueue } = await import('../syncQueue');
+    const { serverSync } = await import('../storage');
+    vi.mocked(serverSync.syncDiaryToServer).mockRejectedValue(new Error('offline'));
+
+    syncQueue.enqueue({
+      type: 'diary',
+      action: 'upsert',
+      id: 'd1',
+      payload: { id: 'd1', content: 'hello' },
+    });
+    await syncQueue.flushNow();
+    await syncQueue.flushNow();
+    await syncQueue.flushNow();
+
+    const exhausted = syncQueue.getExhaustedTasks();
+    exhausted[0].payload.content = 'mutated outside';
+
+    syncQueue.retryExhaustedTasks();
+
+    expect(syncQueue.getExhaustedTasks()).toHaveLength(0);
+    expect(syncQueue.getPendingTasks()).toMatchObject([
+      {
+        type: 'diary',
+        action: 'upsert',
+        id: 'd1',
+        retries: 0,
+        payload: { id: 'd1', content: 'hello' },
+      },
+    ]);
+  });
+
+  it('schedules a flush after retrying exhausted tasks', async () => {
+    vi.useFakeTimers();
+    try {
+      const { syncQueue } = await import('../syncQueue');
+      const { serverSync } = await import('../storage');
+      const syncDiaryToServer = vi.mocked(serverSync.syncDiaryToServer);
+      syncDiaryToServer.mockRejectedValue(new Error('offline'));
+
+      syncQueue.enqueue({
+        type: 'diary',
+        action: 'upsert',
+        id: 'd1',
+        payload: { id: 'd1', content: 'hello' },
+      });
+      await syncQueue.flushNow();
+      await syncQueue.flushNow();
+      await syncQueue.flushNow();
+
+      syncDiaryToServer.mockResolvedValue(undefined);
+      syncQueue.retryExhaustedTasks();
+      await vi.advanceTimersByTimeAsync(5000);
+
+      expect(syncDiaryToServer).toHaveBeenCalledTimes(4);
+      expect(syncQueue.getPendingTasks()).toHaveLength(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('clears only exhausted tasks', async () => {
+    const { syncQueue } = await import('../syncQueue');
+    const { serverSync } = await import('../storage');
+    vi.mocked(serverSync.syncDiaryToServer).mockRejectedValue(new Error('offline'));
+
+    syncQueue.enqueue({
+      type: 'diary',
+      action: 'upsert',
+      id: 'd1',
+      payload: { id: 'd1', content: 'hello' },
+    });
+    await syncQueue.flushNow();
+    await syncQueue.flushNow();
+    await syncQueue.flushNow();
+    syncQueue.enqueue({
+      type: 'points',
+      action: 'upsert',
+      payload: { total: 10 },
+    });
+
+    syncQueue.clearExhaustedTasks();
+
+    expect(syncQueue.getExhaustedTasks()).toHaveLength(0);
+    expect(syncQueue.getPendingTasks()).toMatchObject([
+      {
+        type: 'points',
+        action: 'upsert',
+        payload: { total: 10 },
+      },
+    ]);
+  });
 });

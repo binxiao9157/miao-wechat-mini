@@ -31,6 +31,20 @@ const config = {
   h5: {
     devServer: {
       port: 10086
+    },
+    webpackChain: (chain) => {
+      chain.merge({
+        ignoreWarnings: [
+          {
+            module: /@tarojs[\\/]components[\\/]dist[\\/]components[\\/]taro-video-core\.js/,
+            message: /webpackExports/,
+          },
+        ],
+        performance: {
+          maxAssetSize: 1024 * 1024,
+          maxEntrypointSize: 1024 * 1024,
+        },
+      });
     }
   },
   alias: {

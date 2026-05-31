@@ -3,7 +3,8 @@
   "projectname": "miao-wechat-mini-mac",
   "condition": {},
   "setting": {
-    "urlCheck": false,
+    "urlCheck": true,
+    "uploadWithSourceMap": false,
     "coverView": true,
     "lazyloadPlaceholderEnable": false,
     "skylineRenderEnable": false,

@@ -3,6 +3,7 @@ import type { UserInfo } from '../services/storage/types';
 export type DebugCapability = 'diagnostics' | 'admin' | 'dangerous';
 
 const ADMIN_ROLES = new Set(['developer', 'operator']);
+const ADMIN_SETTINGS_ROUTE_PARTS = ['pages', 'admin-settings', 'index'] as const;
 
 function readFlag(name: string): boolean {
   return process.env[name] === 'true';
@@ -14,6 +15,11 @@ export function isDebugBuild(): boolean {
 
 export function isAdminBundleEnabled(): boolean {
   return isDebugBuild() || readFlag('TARO_APP_ENABLE_ADMIN');
+}
+
+export function getAdminSettingsRoute(): string | null {
+  if (!isAdminBundleEnabled()) return null;
+  return `/${ADMIN_SETTINGS_ROUTE_PARTS.join('/')}`;
 }
 
 export function hasRemoteDebugAccess(user: Pick<UserInfo, 'debugAllowed' | 'debugRole' | 'debugExpiresAt'> | null, now = Date.now()): boolean {

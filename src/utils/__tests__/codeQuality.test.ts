@@ -105,9 +105,10 @@ describe('code quality guardrails', () => {
 
   it('routes hidden profile debug gesture to diagnostics instead of admin settings', () => {
     const profileSource = fs.readFileSync(path.join(srcRoot, 'pages/profile/index.tsx'), 'utf8');
+    const adminRoute = ['', 'pages', 'admin-settings', 'index'].join('/');
 
     expect(profileSource).toContain("navigateTo('/pages/diagnostics/index')");
-    expect(profileSource).not.toContain("navigateTo('/pages/admin-settings/index')");
+    expect(profileSource).not.toContain(`navigateTo('${adminRoute}')`);
   });
 
   it('does not register admin settings as an unconditional release page', () => {
@@ -120,10 +121,29 @@ describe('code quality guardrails', () => {
   });
 
   it('guards admin settings with debug access policy', () => {
-    const adminSource = fs.readFileSync(path.join(srcRoot, 'pages/admin-settings/index.tsx'), 'utf8');
+    const adminSource = fs.readFileSync(path.join(srcRoot, 'pages', 'admin-settings', 'index.tsx'), 'utf8');
 
     expect(adminSource).toContain('canAccessAdminConsole');
     expect(adminSource).toContain('canUseDangerousDebug');
+  });
+
+  it('keeps production diagnostics free of user identifiers and admin route literals', () => {
+    const diagnosticsSource = fs.readFileSync(path.join(srcRoot, 'pages/diagnostics/index.tsx'), 'utf8');
+    const adminRoute = ['', 'pages', 'admin-settings', 'index'].join('/');
+    const sensitiveLabels = ["label: '接口域名'", "label: '用户'", "label: '调试角色'", "label: '当前猫'"];
+
+    expect(diagnosticsSource).not.toContain(`'${adminRoute}'`);
+    expect(diagnosticsSource).not.toContain(`"${adminRoute}"`);
+    sensitiveLabels.forEach(label => {
+      expect(diagnosticsSource).not.toContain(label);
+    });
+  });
+
+  it('does not print reset-password development verification codes to console', () => {
+    const resetPasswordSource = fs.readFileSync(path.join(srcRoot, 'pages/reset-password/index.tsx'), 'utf8');
+
+    expect(resetPasswordSource).not.toMatch(/console\.(log|info|warn|error)\s*\(/);
+    expect(resetPasswordSource).not.toContain('重置密码验证码');
   });
 
   it('does not keep third-party demo media URLs in volcano service', () => {
@@ -136,9 +156,77 @@ describe('code quality guardrails', () => {
 
   it('uses release-safe WeChat project settings', () => {
     const projectConfig = JSON.parse(fs.readFileSync(path.join(projectRoot, 'project.config.json'), 'utf8'));
+    const projectPrivateConfig = JSON.parse(fs.readFileSync(path.join(projectRoot, 'project.private.config.json'), 'utf8'));
 
     expect(projectConfig.setting.urlCheck).toBe(true);
     expect(projectConfig.setting.uploadWithSourceMap).toBe(false);
+    expect(projectPrivateConfig.setting.urlCheck).toBe(true);
+    expect(projectPrivateConfig.setting.uploadWithSourceMap).not.toBe(true);
+  });
+
+  it('documents local urlCheck overrides without weakening committed project settings', () => {
+    const localDevelopmentDoc = fs.readFileSync(path.join(projectRoot, 'docs/LOCAL-DEVELOPMENT.md'), 'utf8');
+
+    expect(localDevelopmentDoc).toContain('project.private.config.json');
+    expect(localDevelopmentDoc).toContain('urlCheck');
+    expect(localDevelopmentDoc).toContain('npm test');
+  });
+
+  it('does not keep unused H5-only dependencies in the app package', () => {
+    const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
+    const dependencies = packageJson.dependencies || {};
+
+    expect(dependencies['lucide-react']).toBeUndefined();
+    expect(dependencies['qrcode.react']).toBeUndefined();
+  });
+
+  it('keeps safe audit overrides scoped to known build-tool transitive dependencies', () => {
+    const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
+    const overrides = packageJson.overrides || {};
+
+    expect(overrides['@typescript-eslint/typescript-estree']?.minimatch).toBe('9.0.7');
+    expect(overrides['@tarojs/plugin-doctor']?.glob).toBe('10.5.0');
+    expect(overrides['@tarojs/webpack5-runner']).toBeUndefined();
+    expect(overrides['@tarojs/plugin-platform-h5']).toBeUndefined();
+  });
+
+  it('provides a release check script that runs full release verification', () => {
+    const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
+    const scripts = packageJson.scripts || {};
+
+    expect(scripts['release:scan']).toBe('node scripts/release-static-scan.mjs');
+    expect(scripts['release:check']).toContain('npm test');
+    expect(scripts['release:check']).toContain('npm run lint');
+    expect(scripts['release:check']).toContain('npm audit --omit=dev --audit-level=high');
+    expect(scripts['release:check']).toContain('npm run build:weapp');
+    expect(scripts['release:check']).toContain('npm run build:h5');
+    expect(scripts['release:check']).toContain('npm run release:scan');
+  });
+
+  it('keeps release static scan coverage aligned with publication risks', () => {
+    const scanPath = path.join(projectRoot, 'scripts/release-static-scan.mjs');
+    const scanSource = fs.existsSync(scanPath) ? fs.readFileSync(scanPath, 'utf8') : '';
+    const expectedChecks = [
+      'dist/app.json',
+      'pages/diagnostics/index',
+      'pages/admin-settings/index',
+      'project.config.json',
+      'project.private.config.json',
+      'urlCheck',
+      'uploadWithSourceMap',
+      'w3schools',
+      'picsum',
+      'images.unsplash',
+      'source.unsplash',
+      'lucide-react',
+      'qrcode.react',
+      '重置密码验证码',
+    ];
+
+    expect(fs.existsSync(scanPath)).toBe(true);
+    expectedChecks.forEach(check => {
+      expect(scanSource).toContain(check);
+    });
   });
 
   it('does not keep third-party demo media domains in production source', () => {

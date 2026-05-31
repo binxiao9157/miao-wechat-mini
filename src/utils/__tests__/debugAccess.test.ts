@@ -29,9 +29,10 @@ describe('debug access policy', () => {
   });
 
   it('blocks admin console when the admin bundle is not enabled', async () => {
-    const { canAccessAdminConsole, isAdminBundleEnabled } = await importDebugAccess();
+    const { canAccessAdminConsole, getAdminSettingsRoute, isAdminBundleEnabled } = await importDebugAccess();
 
     expect(isAdminBundleEnabled()).toBe(false);
+    expect(getAdminSettingsRoute()).toBeNull();
     expect(canAccessAdminConsole({
       username: 'ops',
       nickname: 'Ops',
@@ -43,11 +44,13 @@ describe('debug access policy', () => {
   });
 
   it('allows admin and dangerous flags in explicit debug builds', async () => {
-    const { canAccessAdminConsole, canUseDangerousDebug, isDangerousDebugStorageEnabled } =
+    const { canAccessAdminConsole, canUseDangerousDebug, getAdminSettingsRoute, isDangerousDebugStorageEnabled } =
       await importDebugAccess({ TARO_APP_DEBUG_BUILD: 'true' });
+    const adminRoute = ['', 'pages', 'admin-settings', 'index'].join('/');
 
     expect(canAccessAdminConsole(null)).toBe(true);
     expect(canUseDangerousDebug(null)).toBe(true);
+    expect(getAdminSettingsRoute()).toBe(adminRoute);
     expect(isDangerousDebugStorageEnabled()).toBe(true);
   });
 

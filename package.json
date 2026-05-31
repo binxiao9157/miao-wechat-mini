@@ -12,6 +12,8 @@
     "build:weapp:debug": "cross-env TARO_APP_ENABLE_ADMIN=true TARO_APP_DEBUG_BUILD=true taro build --type weapp",
     "build:h5": "taro build --type h5",
     "lint": "tsc --noEmit",
+    "release:scan": "node scripts/release-static-scan.mjs",
+    "release:check": "npm test && npm run lint && npm audit --omit=dev --audit-level=high && npm run build:h5 && npm run build:weapp && npm run release:scan",
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
@@ -28,8 +30,6 @@
     "@tarojs/react": "4.2.0",
     "@tarojs/runtime": "4.2.0",
     "@tarojs/taro": "4.2.0",
-    "lucide-react": "^0.546.0",
-    "qrcode.react": "^4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -65,6 +65,12 @@
     "esbuild": "0.28.0",
     "webpack": "5.104.1",
     "webpack-dev-server": "5.2.4",
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "9.0.7"
+    },
+    "@tarojs/plugin-doctor": {
+      "glob": "10.5.0"
+    },
     "sockjs": {
       "uuid": "11.1.1"
     }

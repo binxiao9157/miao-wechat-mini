@@ -1,15 +1,15 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import PageHeader from '../../components/layout/PageHeader';
 import { useAuthContext } from '../../context/AuthContext';
-import { storage } from '../../services/storage';
 import { syncQueue } from '../../services/syncQueue';
 import { getAllKeys } from '../../utils/storageAdapter';
 import { navigateTo, safeBack } from '../../utils/navigateAdapter';
 import {
   canAccessAdminConsole,
   canUseDangerousDebug,
+  getAdminSettingsRoute,
   isAdminBundleEnabled,
   isDebugBuild,
 } from '../../utils/debugAccess';
@@ -24,12 +24,6 @@ function formatBool(value: boolean): string {
   return value ? '是' : '否';
 }
 
-function maskId(value?: string): string {
-  if (!value) return '无';
-  if (value.length <= 6) return value;
-  return `${value.slice(0, 3)}...${value.slice(-3)}`;
-}
-
 export default function Diagnostics() {
   const { user, isAuthenticated, hasCat, catCount } = useAuthContext();
   const [pendingCount, setPendingCount] = useState(() => syncQueue.getPendingTasks().length);
@@ -39,21 +33,17 @@ export default function Diagnostics() {
 
   const adminAllowed = canAccessAdminConsole(user);
   const dangerousAllowed = canUseDangerousDebug(user);
+  const adminRoute = getAdminSettingsRoute();
 
-  const activeCatId = useMemo(() => storage.getActiveCat()?.id || storage.getActiveCatId() || '', []);
   const rows: DiagnosticRow[] = [
     { label: '版本', value: '1.0.0' },
     { label: '运行环境', value: process.env.NODE_ENV || 'unknown' },
-    { label: '接口域名', value: process.env.TARO_APP_API_BASE_URL || 'https://www.mmdd10.tech' },
     { label: 'Debug 构建', value: formatBool(isDebugBuild()) },
     { label: 'Admin Bundle', value: formatBool(isAdminBundleEnabled()) },
     { label: 'Admin 权限', value: formatBool(adminAllowed) },
     { label: '高危调试', value: formatBool(dangerousAllowed) },
     { label: '登录状态', value: formatBool(isAuthenticated) },
-    { label: '用户', value: user?.username || 'guest' },
-    { label: '调试角色', value: user?.debugRole || 'none' },
     { label: '猫咪数量', value: catCount },
-    { label: '当前猫', value: maskId(activeCatId) },
     { label: '有伙伴', value: formatBool(hasCat) },
     { label: '本地 Key', value: storageKeyCount },
     { label: '待同步任务', value: pendingCount },
@@ -93,11 +83,11 @@ export default function Diagnostics() {
   };
 
   const handleOpenAdmin = () => {
-    if (!adminAllowed) {
+    if (!adminAllowed || !adminRoute) {
       Taro.showToast({ title: '无调试权限', icon: 'none' });
       return;
     }
-    navigateTo('/pages/admin-settings/index');
+    navigateTo(adminRoute);
   };
 
   return (
@@ -123,7 +113,7 @@ export default function Diagnostics() {
           <View className="diagnostics-action secondary" onClick={handleClearExhausted}>
             <Text className="diagnostics-action-text secondary">清理坏任务</Text>
           </View>
-          {adminAllowed && (
+          {adminAllowed && adminRoute && (
             <View className="diagnostics-action admin" onClick={handleOpenAdmin}>
               <Text className="diagnostics-action-text">后台调试</Text>
             </View>

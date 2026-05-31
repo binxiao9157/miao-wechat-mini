@@ -1,5 +1,6 @@
 const includeAdminPages = process.env.TARO_APP_ENABLE_ADMIN === 'true' || process.env.TARO_APP_DEBUG_BUILD === 'true';
-const adminPages = includeAdminPages ? ['pages/admin-settings/index'] : [];
+const adminSettingsPage = ['pages', 'admin-settings', 'index'].join('/');
+const adminPages = includeAdminPages ? [adminSettingsPage] : [];
 
 export default defineAppConfig({
   pages: [

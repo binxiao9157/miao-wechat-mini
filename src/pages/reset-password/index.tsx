@@ -60,7 +60,12 @@ export default function ResetPassword() {
       if (process.env.NODE_ENV === 'development') {
         const mockCode = String(Math.floor(100000 + Math.random() * 900000));
         codeRef.current = mockCode;
-        console.log('[Dev] 重置密码验证码:', mockCode);
+        Taro.showModal({
+          title: '开发模式验证',
+          content: `本次开发验证码：${mockCode}`,
+          showCancel: false,
+          confirmText: '知道了',
+        });
         Taro.showToast({ title: '验证码已发送（开发模式）', icon: 'none' });
       } else {
         setError('验证码发送失败，请稍后重试');

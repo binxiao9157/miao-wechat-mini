@@ -40,3 +40,21 @@ TARO_APP_API_BASE_URL=http://localhost:3000
 ```
 
 Do not commit `.env`; it is intentionally ignored.
+
+## WeChat DevTools URL checks
+
+Committed project settings must stay release-safe. Both `project.config.json`
+and `project.private.config.json` keep `setting.urlCheck` enabled, and source
+maps disabled for upload, so a production upload does not accidentally inherit a
+local debug bypass.
+
+If WeChat DevTools needs a temporary local backend bypass during manual testing,
+change `project.private.config.json` on your machine only and keep that edit
+uncommitted. Before committing or uploading, run:
+
+```bash
+npm test
+```
+
+The code-quality guard checks `urlCheck` so a committed `false` value is caught
+before release.

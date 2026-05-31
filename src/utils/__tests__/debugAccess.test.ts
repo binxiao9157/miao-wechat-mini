@@ -43,6 +43,24 @@ describe('debug access policy', () => {
     })).toBe(false);
   });
 
+  it('does not enable admin bundle in ordinary development mode without explicit flags', async () => {
+    const {
+      canAccessAdminConsole,
+      canUseDangerousDebug,
+      getAdminSettingsRoute,
+      isAdminBundleEnabled,
+      isDangerousDebugStorageEnabled,
+      isDebugBuild,
+    } = await importDebugAccess({ NODE_ENV: 'development' });
+
+    expect(isDebugBuild()).toBe(false);
+    expect(isAdminBundleEnabled()).toBe(false);
+    expect(getAdminSettingsRoute()).toBeNull();
+    expect(canAccessAdminConsole(null)).toBe(false);
+    expect(canUseDangerousDebug(null)).toBe(false);
+    expect(isDangerousDebugStorageEnabled()).toBe(false);
+  });
+
   it('allows admin and dangerous flags in explicit debug builds', async () => {
     const { canAccessAdminConsole, canUseDangerousDebug, getAdminSettingsRoute, isDangerousDebugStorageEnabled } =
       await importDebugAccess({ TARO_APP_DEBUG_BUILD: 'true' });

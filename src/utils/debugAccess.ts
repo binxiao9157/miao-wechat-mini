@@ -10,7 +10,7 @@ function readFlag(name: string): boolean {
 }
 
 export function isDebugBuild(): boolean {
-  return readFlag('TARO_APP_DEBUG_BUILD') || process.env.NODE_ENV === 'development';
+  return readFlag('TARO_APP_DEBUG_BUILD');
 }
 
 export function isAdminBundleEnabled(): boolean {

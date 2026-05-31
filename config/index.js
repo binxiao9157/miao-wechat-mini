@@ -26,6 +26,9 @@ const config = {
     'process.env.TARO_APP_AI_PROVIDER': JSON.stringify(
       process.env.TARO_APP_AI_PROVIDER || 'volcengine'
     ),
+    'process.env.TARO_APP_AI_PROFILE_VERSION': JSON.stringify(
+      process.env.TARO_APP_AI_PROFILE_VERSION || 'release-volcengine-default-20260531'
+    ),
     'process.env.TARO_APP_ENABLE_ADMIN': JSON.stringify(
       process.env.TARO_APP_ENABLE_ADMIN || 'false'
     ),

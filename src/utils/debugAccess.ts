@@ -4,17 +4,15 @@ export type DebugCapability = 'diagnostics' | 'admin' | 'dangerous';
 
 const ADMIN_ROLES = new Set(['developer', 'operator']);
 const ADMIN_SETTINGS_ROUTE_PARTS = ['pages', 'admin-settings', 'index'] as const;
-
-function readFlag(name: string): boolean {
-  return process.env[name] === 'true';
-}
+const DEBUG_BUILD_ENABLED = process.env.TARO_APP_DEBUG_BUILD === 'true';
+const ADMIN_BUNDLE_ENABLED = process.env.TARO_APP_ENABLE_ADMIN === 'true';
 
 export function isDebugBuild(): boolean {
-  return readFlag('TARO_APP_DEBUG_BUILD');
+  return DEBUG_BUILD_ENABLED;
 }
 
 export function isAdminBundleEnabled(): boolean {
-  return isDebugBuild() || readFlag('TARO_APP_ENABLE_ADMIN');
+  return isDebugBuild() || ADMIN_BUNDLE_ENABLED;
 }
 
 export function getAdminSettingsRoute(): string | null {

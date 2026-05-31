@@ -111,6 +111,15 @@ describe('code quality guardrails', () => {
     expect(profileSource).not.toContain(`navigateTo('${adminRoute}')`);
   });
 
+  it('shows a login path for profile actions that require an account', () => {
+    const profileSource = fs.readFileSync(path.join(srcRoot, 'pages/profile/index.tsx'), 'utf8');
+
+    expect(profileSource).toContain('const requireLogin');
+    expect(profileSource).toContain("Taro.showToast({ title: '请先登录', icon: 'none' })");
+    expect(profileSource).toContain("navigateTo('/pages/login/index')");
+    expect(profileSource).toContain('requireLogin(() => navigateTo(item.url))');
+  });
+
   it('does not register admin settings as an unconditional release page', () => {
     const appConfigSource = fs.readFileSync(path.join(srcRoot, 'app.config.ts'), 'utf8');
 
@@ -125,6 +134,34 @@ describe('code quality guardrails', () => {
 
     expect(adminSource).toContain('canAccessAdminConsole');
     expect(adminSource).toContain('canUseDangerousDebug');
+  });
+
+  it('does not use dynamic process.env reads in runtime source', () => {
+    const violations = listSourceFiles(srcRoot).flatMap((file) => {
+      const content = fs.readFileSync(file, 'utf8');
+      return [...content.matchAll(/process\.env\s*\[/g)]
+        .map(() => `${relative(file)} uses dynamic process.env access`);
+    });
+
+    expect(violations).toEqual([]);
+  });
+
+  it('defines every runtime process.env key used by app source', () => {
+    const configSource = fs.readFileSync(path.join(projectRoot, 'config/index.js'), 'utf8');
+    const envKeys = new Set<string>();
+
+    listSourceFiles(srcRoot).forEach((file) => {
+      const content = fs.readFileSync(file, 'utf8');
+      [...content.matchAll(/process\.env\.([A-Z0-9_]+)/g)].forEach((match) => {
+        envKeys.add(match[1]);
+      });
+    });
+
+    const violations = [...envKeys]
+      .filter(key => key !== 'NODE_ENV' && key !== 'TARO_ENV')
+      .filter(key => !configSource.includes(`process.env.${key}`));
+
+    expect(violations).toEqual([]);
   });
 
   it('keeps production diagnostics free of user identifiers and admin route literals', () => {

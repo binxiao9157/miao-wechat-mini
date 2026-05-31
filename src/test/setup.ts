@@ -37,6 +37,8 @@ vi.mock('@tarojs/taro', () => ({
     showToast: vi.fn(),
     navigateTo: vi.fn(async () => undefined),
     navigateBack: vi.fn(async () => undefined),
+    redirectTo: vi.fn(async () => undefined),
+    switchTab: vi.fn(async () => undefined),
     getCurrentPages: vi.fn(() => [{ route: 'pages/edit-profile/index' }]),
     chooseImage: vi.fn(),
     chooseMedia: vi.fn(),

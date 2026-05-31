@@ -15,6 +15,7 @@ export interface AIProfile {
 }
 
 const STORAGE_KEYS = {
+  PROFILE_VERSION: 'MIAO_AI_PROFILE_VERSION',
   PROVIDER: 'MIAO_AI_PROVIDER',
   DASHSCOPE_IMAGE_MODEL: 'DASHSCOPE_IMAGE_MODEL',
   DASHSCOPE_VIDEO_MODEL: 'DASHSCOPE_VIDEO_MODEL',
@@ -58,6 +59,31 @@ const defaultProvider = (): AIProvider => {
   return isProvider(envProvider) ? envProvider : 'volcengine';
 };
 
+const activeProfileVersion = () =>
+  process.env.TARO_APP_AI_PROFILE_VERSION || 'release-volcengine-default-20260531';
+
+const resetStoredProfile = () => {
+  [
+    STORAGE_KEYS.PROVIDER,
+    STORAGE_KEYS.DASHSCOPE_IMAGE_MODEL,
+    STORAGE_KEYS.DASHSCOPE_VIDEO_MODEL,
+    STORAGE_KEYS.VOLC_IMAGE_MODEL,
+    STORAGE_KEYS.VOLC_VIDEO_MODEL,
+    STORAGE_KEYS.RESOLUTION,
+    STORAGE_KEYS.DURATION,
+    STORAGE_KEYS.SEED,
+    STORAGE_KEYS.PROMPT_EXTEND,
+    STORAGE_KEYS.MOCK_MODE,
+  ].forEach(key => removeItem(key));
+};
+
+const migrateProfileIfNeeded = () => {
+  const version = activeProfileVersion();
+  if (getItem(STORAGE_KEYS.PROFILE_VERSION) === version) return;
+  resetStoredProfile();
+  setItem(STORAGE_KEYS.PROFILE_VERSION, version);
+};
+
 const readNumber = (key: string, fallback: number) => {
   const raw = getItem(key);
   if (!raw) return fallback;
@@ -74,6 +100,7 @@ const readBool = (key: string, fallback: boolean) => {
 
 export const aiConfig = {
   getProfile(): AIProfile {
+    migrateProfileIfNeeded();
     const provider = isProvider(getItem(STORAGE_KEYS.PROVIDER))
       ? getItem(STORAGE_KEYS.PROVIDER) as AIProvider
       : defaultProvider();
@@ -100,6 +127,7 @@ export const aiConfig = {
   },
 
   saveProfile(profile: AIProfile) {
+    setItem(STORAGE_KEYS.PROFILE_VERSION, activeProfileVersion());
     setItem(STORAGE_KEYS.PROVIDER, profile.provider);
     setItem(
       profile.provider === 'dashscope' ? STORAGE_KEYS.DASHSCOPE_IMAGE_MODEL : STORAGE_KEYS.VOLC_IMAGE_MODEL,
@@ -122,6 +150,7 @@ export const aiConfig = {
 
   reset() {
     Object.values(STORAGE_KEYS).forEach(key => removeItem(key));
+    setItem(STORAGE_KEYS.PROFILE_VERSION, activeProfileVersion());
   },
 };
 

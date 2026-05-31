@@ -4,7 +4,7 @@ const originalEnv = { ...process.env };
 
 async function loadServices(env: Record<string, string | undefined> = {}) {
   process.env.NODE_ENV = env.NODE_ENV || 'production';
-  for (const key of ['TARO_APP_ENABLE_ADMIN', 'TARO_APP_DEBUG_BUILD']) {
+  for (const key of ['TARO_APP_ENABLE_ADMIN', 'TARO_APP_DEBUG_BUILD', 'TARO_APP_AI_PROVIDER', 'TARO_APP_AI_PROFILE_VERSION']) {
     if (env[key] === undefined) {
       delete process.env[key];
     } else {
@@ -57,5 +57,30 @@ describe('debug release guards', () => {
     expect(aiConfig.getProfile().mockMode).toBe(true);
     expect(storage.getIsFastForward()).toBe(true);
     expect(storage.getIsPointsCheat()).toBe(true);
+  });
+
+  it('migrates stale cached ai provider to the current release default once per profile version', async () => {
+    const { aiConfig, setItem } = await loadServices({
+      TARO_APP_AI_PROVIDER: 'volcengine',
+      TARO_APP_AI_PROFILE_VERSION: 'release-volcengine-default',
+    });
+
+    setItem('MIAO_AI_PROFILE_VERSION', 'legacy-dashscope-default');
+    setItem('MIAO_AI_PROVIDER', 'dashscope');
+
+    expect(aiConfig.getProfile().provider).toBe('volcengine');
+    expect(aiConfig.getProfile().imageModel).toBe('doubao-seedream-4-5-251128');
+  });
+
+  it('keeps an explicitly saved ai provider after the active profile version is current', async () => {
+    const { aiConfig, DEFAULT_AI_PROFILES, setItem } = await loadServices({
+      TARO_APP_AI_PROVIDER: 'volcengine',
+      TARO_APP_AI_PROFILE_VERSION: 'release-volcengine-default',
+    });
+
+    setItem('MIAO_AI_PROFILE_VERSION', 'release-volcengine-default');
+    aiConfig.saveProfile(DEFAULT_AI_PROFILES.dashscope);
+
+    expect(aiConfig.getProfile().provider).toBe('dashscope');
   });
 });

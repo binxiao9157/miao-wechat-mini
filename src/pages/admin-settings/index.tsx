@@ -5,6 +5,9 @@ import { safeBack } from '../../utils/navigateAdapter';
 import { aiConfig, AIProfile, AIProvider, DEFAULT_AI_PROFILES } from '../../services/aiConfig';
 import { storage, PresetCat } from '../../services/storage';
 import PageHeader from '../../components/layout/PageHeader';
+import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
+import { useAuthContext } from '../../context/AuthContext';
+import { canAccessAdminConsole, canUseDangerousDebug } from '../../utils/debugAccess';
 
 const SETTINGS_DARK = require('../../assets/profile-icons/settings-dark.png');
 const PLUS_WHITE = require('../../assets/profile-icons/plus-white.png');
@@ -14,6 +17,7 @@ const UPLOAD_PRIMARY = require('../../assets/profile-icons/upload-primary.png');
 import './index.less';
 
 export default function AdminSettings() {
+  const { user } = useAuthContext();
   const [profile, setProfile] = useState<AIProfile>(DEFAULT_AI_PROFILES.volcengine);
   const [presets, setPresets] = useState<PresetCat[]>([]);
   const [newPresetName, setNewPresetName] = useState('');
@@ -21,6 +25,8 @@ export default function AdminSettings() {
   const [isUploadingPreset, setIsUploadingPreset] = useState(false);
   const [isPointsCheat, setIsPointsCheat] = useState(() => storage.getIsPointsCheat());
   const [isFastForward, setIsFastForward] = useState(() => storage.getIsFastForward());
+  const canAccessAdmin = canAccessAdminConsole(user);
+  const canUseDangerousControls = canUseDangerousDebug(user);
 
   useEffect(() => {
     setProfile(aiConfig.getProfile());
@@ -31,7 +37,7 @@ export default function AdminSettings() {
     const defaults = DEFAULT_AI_PROFILES[provider];
     setProfile(prev => ({
       ...defaults,
-      mockMode: prev.mockMode,
+      mockMode: canUseDangerousControls ? prev.mockMode : false,
       resolution: prev.resolution || defaults.resolution,
       duration: prev.duration || defaults.duration,
       seed: prev.seed || defaults.seed,
@@ -44,7 +50,7 @@ export default function AdminSettings() {
   };
 
   const handleSave = () => {
-    aiConfig.saveProfile(profile);
+    aiConfig.saveProfile(canUseDangerousControls ? profile : { ...profile, mockMode: false });
     storage.savePresetCats(presets);
     Taro.showToast({ title: '配置已保存', icon: 'success' });
   };
@@ -57,6 +63,9 @@ export default function AdminSettings() {
   };
 
   const choosePresetImage = async (): Promise<string> => {
+    const authorized = await ensurePrivacyAuthorized('选择预设猫咪图片');
+    if (!authorized) throw { errMsg: 'cancel privacy authorization' };
+
     try {
       const res = await Taro.chooseMedia({
         count: 1,
@@ -122,6 +131,18 @@ export default function AdminSettings() {
   const handleRemovePreset = (id: string) => {
     setPresets(presets.filter(p => p.id !== id));
   };
+
+  if (!canAccessAdmin) {
+    return (
+      <View className="admin-settings-page">
+        <PageHeader title="后台配置" subtitle="Access Restricted" onBack={() => safeBack()} />
+        <View className="access-denied">
+          <Text className="access-denied-title">无调试权限</Text>
+          <Text className="access-denied-desc">当前账号未获得后台调试授权。</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="admin-settings-page">
@@ -205,14 +226,16 @@ export default function AdminSettings() {
                 onChange={(e) => updateField('promptExtend', e.detail.value)}
               />
             </View>
-            <View className="switch-item">
-              <Text className="switch-label">Mock 模式</Text>
-              <Switch
-                color="#ff8c5a"
-                checked={profile.mockMode}
-                onChange={(e) => updateField('mockMode', e.detail.value)}
-              />
-            </View>
+            {canUseDangerousControls && (
+              <View className="switch-item">
+                <Text className="switch-label">Mock 模式</Text>
+                <Switch
+                  color="#ff8c5a"
+                  checked={profile.mockMode}
+                  onChange={(e) => updateField('mockMode', e.detail.value)}
+                />
+              </View>
+            )}
           </View>
         </View>
       </View>
@@ -275,45 +298,46 @@ export default function AdminSettings() {
         </View>
       </View>
 
-      {/* 调试工具 */}
-      <View className="section">
-        <View className="section-head">
-          <View className="section-icon">
-            <Image className="icon-img" src={SETTINGS_DARK} mode="aspectFit" style={{ width: 22, height: 22 }} />
+      {canUseDangerousControls && (
+        <View className="section">
+          <View className="section-head">
+            <View className="section-icon">
+              <Image className="icon-img" src={SETTINGS_DARK} mode="aspectFit" style={{ width: 22, height: 22 }} />
+            </View>
+            <View>
+              <Text className="section-title">调试工具</Text>
+              <Text className="section-desc">Debug 构建专用</Text>
+            </View>
           </View>
-          <View>
-            <Text className="section-title">调试工具</Text>
-            <Text className="section-desc">5连击隐藏入口进入</Text>
-          </View>
-        </View>
 
-        <View className="switch-row">
-          <View className="switch-item">
-            <Text className="switch-label">积分作弊</Text>
-            <Switch
-              color="#ff8c5a"
-              checked={isPointsCheat}
-              onChange={(e) => {
-                const val = e.detail.value;
-                setIsPointsCheat(val);
-                storage.setIsPointsCheat(val);
-              }}
-            />
-          </View>
-          <View className="switch-item">
-            <Text className="switch-label">时光快进</Text>
-            <Switch
-              color="#ff8c5a"
-              checked={isFastForward}
-              onChange={(e) => {
-                const val = e.detail.value;
-                setIsFastForward(val);
-                storage.setIsFastForward(val);
-              }}
-            />
+          <View className="switch-row">
+            <View className="switch-item">
+              <Text className="switch-label">积分作弊</Text>
+              <Switch
+                color="#ff8c5a"
+                checked={isPointsCheat}
+                onChange={(e) => {
+                  const val = e.detail.value;
+                  setIsPointsCheat(val);
+                  storage.setIsPointsCheat(val);
+                }}
+              />
+            </View>
+            <View className="switch-item">
+              <Text className="switch-label">时光快进</Text>
+              <Switch
+                color="#ff8c5a"
+                checked={isFastForward}
+                onChange={(e) => {
+                  const val = e.detail.value;
+                  setIsFastForward(val);
+                  storage.setIsFastForward(val);
+                }}
+              />
+            </View>
           </View>
         </View>
-      </View>
+      )}
 
       <View className="tips">
         <Text className="tips-title">说明</Text>

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {  View, Text, Image } from '@tarojs/components';
-import Taro, { useRouter, navigateTo } from '@tarojs/taro';
+import Taro, { useRouter } from '@tarojs/taro';
 const SPARKLES_PNG = require('../../assets/profile-icons/sparkles-primary.png');
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
-import { safeBack } from '../../utils/navigateAdapter';
+import { navigateTo, safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { useAuthContext } from '../../context/AuthContext';
 import { friendService } from '../../services/friendService';
@@ -52,11 +52,11 @@ export default function JoinFriend() {
   };
 
   const handleLogin = () => {
-    navigateTo({ url: '/pages/login/index' });
+    navigateTo('/pages/login/index');
   };
 
   const handleRegister = () => {
-    navigateTo({ url: '/pages/register/index' });
+    navigateTo('/pages/register/index');
   };
 
   if (!inviterName) {

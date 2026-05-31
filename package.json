@@ -6,8 +6,10 @@
   "template": "react",
   "scripts": {
     "dev:weapp": "taro build --type weapp --watch",
+    "dev:weapp:debug": "cross-env TARO_APP_ENABLE_ADMIN=true TARO_APP_DEBUG_BUILD=true taro build --type weapp --watch",
     "dev:h5": "taro build --type h5 --watch",
     "build:weapp": "taro build --type weapp",
+    "build:weapp:debug": "cross-env TARO_APP_ENABLE_ADMIN=true TARO_APP_DEBUG_BUILD=true taro build --type weapp",
     "build:h5": "taro build --type h5",
     "lint": "tsc --noEmit",
     "test": "vitest run",

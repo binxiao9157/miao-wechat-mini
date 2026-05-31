@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
-import Taro, { navigateTo, reLaunch, useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
+import Taro, { useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { storage, UserInfo, CatInfo } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
@@ -8,6 +8,8 @@ import { DEFAULT_AVATAR } from '../../utils/constants';
 import { friendService } from '../../services/friendService';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import { isTimeLetterUnlocked } from '../../utils/timeLetterUnlock';
+import { navigateTo, reLaunch, switchTab } from '../../utils/navigateAdapter';
+import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
 import './index.less';
 
 // Lucide-style icon images (colored PNGs matching PWA)
@@ -185,7 +187,7 @@ export default function Profile() {
 
   const handleLogout = () => {
     storage.clearCurrentUser();
-    reLaunch({ url: '/pages/login/index' });
+    reLaunch('/pages/login/index');
   };
 
   const handleClearLocalData = async () => {
@@ -196,7 +198,7 @@ export default function Profile() {
     }
     storage.clearAll();
     storage.clearCurrentUser();
-    reLaunch({ url: '/pages/register/index' });
+    reLaunch('/pages/register/index');
   };
 
   const handleClearCache = () => {
@@ -226,7 +228,12 @@ export default function Profile() {
             allKeys.forEach((key: string) => {
               const shouldPreserve = preservePatterns.some(p => key.includes(p));
               if (!shouldPreserve) {
-                try { Taro.removeStorageSync(key); cleared++; } catch {}
+                try {
+                  Taro.removeStorageSync(key);
+                  cleared++;
+                } catch (error) {
+                  console.warn('[Profile] remove storage cache failed:', error);
+                }
               }
             });
 
@@ -249,10 +256,17 @@ export default function Profile() {
                 const mediaId = mediaMatch?.[1];
                 const isReferencedMedia = mediaId ? referencedMediaIds.has(mediaId) : false;
                 if (file.startsWith('tmp_') || (file.startsWith('media_') && !isReferencedMedia)) {
-                  try { fs.unlinkSync(`${userDataPath}/${file}`); cleared++; } catch {}
+                  try {
+                    fs.unlinkSync(`${userDataPath}/${file}`);
+                    cleared++;
+                  } catch (error) {
+                    console.warn('[Profile] unlink cache file failed:', error);
+                  }
                 }
               });
-            } catch {}
+            } catch (error) {
+              console.warn('[Profile] clear media cache files failed:', error);
+            }
 
             Taro.showToast({ title: `已清除 ${cleared} 项缓存`, icon: 'success' });
           } catch {
@@ -270,7 +284,7 @@ export default function Profile() {
     if (adminTapCountRef.current >= 5) {
       adminTapCountRef.current = 0;
       Taro.vibrateShort({ type: 'light' }).catch(() => {});
-      navigateTo({ url: '/pages/admin-settings/index' });
+      navigateTo('/pages/diagnostics/index');
       return;
     }
 
@@ -287,10 +301,11 @@ export default function Profile() {
   ];
 
   const handleNotificationClick = () => {
-    navigateTo({ url: '/pages/notification-list/index' });
+    navigateTo('/pages/notification-list/index');
   };
 
-  const handleScanClick = () => {
+  const handleScanClick = async () => {
+    if (!await ensurePrivacyAuthorized('扫码添加好友')) return;
     Taro.scanCode({
       onlyFromCamera: true,
       scanType: ['qrCode'],
@@ -361,7 +376,7 @@ export default function Profile() {
               src={user?.avatar || DEFAULT_AVATAR}
               mode="aspectFill"
             />
-            <View className="avatar-edit-btn" onClick={(e) => { e.stopPropagation(); navigateTo({ url: '/pages/edit-profile/index' }); }}>
+            <View className="avatar-edit-btn" onClick={(e) => { e.stopPropagation(); navigateTo('/pages/edit-profile/index'); }}>
               <ProfileIcon name="camera" size={14} />
             </View>
           </View>
@@ -373,13 +388,13 @@ export default function Profile() {
             <View className="stat-card" onClick={() => {
               const catName = activeCat?.name || '小猫';
               const days = stats.days;
-              navigateTo({ url: `/pages/accompany-milestone/index?catName=${encodeURIComponent(catName)}&days=${days}` });
+              navigateTo(`/pages/accompany-milestone/index?catName=${encodeURIComponent(catName)}&days=${days}`);
             }}>
               <ProfileIcon name="calendar" size={16} className="stat-icon" />
               <Text className="stat-value">{stats.days}</Text>
               <Text className="stat-label">陪伴天数</Text>
             </View>
-            <View className="stat-card" onClick={() => Taro.switchTab({ url: '/pages/diary/index' })}>
+            <View className="stat-card" onClick={() => switchTab('/pages/diary/index')}>
               <ProfileIcon name="image" size={16} className="stat-icon" />
               <Text className="stat-value">{stats.entries}</Text>
               <Text className="stat-label">记录瞬间</Text>
@@ -387,7 +402,7 @@ export default function Profile() {
           </View>
 
           {/* 当前猫咪入口 */}
-          <View className="cat-entry" onClick={() => navigateTo({ url: '/pages/switch-companion/index' })}>
+          <View className="cat-entry" onClick={() => navigateTo('/pages/switch-companion/index')}>
             <View className="cat-entry-icon">
               <ProfileIcon name="heart" size={20} />
             </View>
@@ -410,7 +425,7 @@ export default function Profile() {
                 if (item.url === '__clear_cache__') {
                   handleClearCache();
                 } else if (item.url) {
-                  navigateTo({ url: item.url });
+                  navigateTo(item.url);
                 }
               }}
             >

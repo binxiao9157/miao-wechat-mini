@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
-import Taro, { navigateTo } from '@tarojs/taro';
-import { safeBack } from '../../utils/navigateAdapter';
+import Taro from '@tarojs/taro';
+import { navigateTo, safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import PageHeader from '../../components/layout/PageHeader';
 import { storage } from '../../services/storage';
@@ -91,7 +91,7 @@ export default function PrivacySettings() {
 
       {/* 隐私政策 */}
       <View className="settings-section">
-        <View className="setting-item" onClick={() => navigateTo({ url: '/pages/privacy-policy/index' })}>
+        <View className="setting-item" onClick={() => navigateTo('/pages/privacy-policy/index')}>
           <View className="setting-left">
             <View className="setting-icon">
               <Image className="icon-img" src={SHIELDCHECK_PRIMARY} mode="aspectFit" style={{ width: 20, height: 20 }} />

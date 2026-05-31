@@ -11,6 +11,7 @@ import { storage } from '../../services/storage';
 import { friendService, FriendInvite } from '../../services/friendService';
 import { drawQROnCanvas } from '../../utils/qrCanvas';
 import { useManagedTimeout } from '../../hooks/useManagedTimeout';
+import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
 import './index.less';
 
 export default function AddFriendQR() {
@@ -129,6 +130,7 @@ export default function AddFriendQR() {
   // 保存二维码图片
   const handleSaveImage = async () => {
     if (isSaving || !invitePayload || !cat) return;
+    if (!await ensurePrivacyAuthorized('保存好友二维码到相册')) return;
     setIsSaving(true);
 
     try {

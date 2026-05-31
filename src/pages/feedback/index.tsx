@@ -7,6 +7,7 @@ import { storage } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
 import PageHeader from '../../components/layout/PageHeader';
 import { useManagedTimeout } from '../../hooks/useManagedTimeout';
+import { checkTextContent } from '../../services/contentSafetyService';
 
 const CHECKCIRCLE_GREEN = require('../../assets/profile-icons/checkcircle-green.png');
 const STAR_FILLED = require('../../assets/profile-icons/star-primary.png');
@@ -136,8 +137,13 @@ export default function Feedback() {
       }
     }
     try {
+      const suggestion = typeof surveyAnswers.suggestions === 'string' ? surveyAnswers.suggestions : '';
+      await checkTextContent(suggestion, 'feedback');
       await request({ url: '/api/v1/feedback', method: 'POST', data: { type: 'survey', answers: surveyAnswers } });
-    } catch { /* non-blocking */ }
+    } catch (error: any) {
+      Taro.showToast({ title: error?.message || '反馈内容不合规，请修改', icon: 'none' });
+      return;
+    }
     storage.setHasSubmittedSurvey(true);
     setIsSuccess(true);
     setManagedTimeout(() => safeBack(), 2000);
@@ -149,8 +155,12 @@ export default function Feedback() {
       return;
     }
     try {
+      await checkTextContent(feedbackText, 'feedback');
       await request({ url: '/api/v1/feedback', method: 'POST', data: { type: feedbackType, content: feedbackText.trim() } });
-    } catch { /* non-blocking */ }
+    } catch (error: any) {
+      Taro.showToast({ title: error?.message || '反馈内容不合规，请修改', icon: 'none' });
+      return;
+    }
     setIsSuccess(true);
     setManagedTimeout(() => {
       setFeedbackText('');

@@ -7,6 +7,7 @@ import CatAvatar from '../../components/common/CatAvatar';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import { formatTimeLetterCountdown, isTimeLetterUnlocked } from '../../utils/timeLetterUnlock';
 import { useManagedTimeout } from '../../hooks/useManagedTimeout';
+import { checkTextContent } from '../../services/contentSafetyService';
 import './index.less';
 
 // Lucide-style PNG icons
@@ -307,7 +308,7 @@ export default function TimeLettersPage() {
   }, [letters, filterCatId]);
 
   // 保存信件
-  const handleSaveLetter = useCallback(() => {
+  const handleSaveLetter = useCallback(async () => {
     if (!selectedCatId) {
       showToast("请先选择收信的小猫哦");
       return;
@@ -323,6 +324,16 @@ export default function TimeLettersPage() {
 
     const targetCat = myCats.find(c => c.id === selectedCatId);
     if (!targetCat) return;
+
+    try {
+      await Promise.all([
+        checkTextContent(title, 'time_letter'),
+        checkTextContent(content, 'time_letter'),
+      ]);
+    } catch (error: any) {
+      showToast(error?.message || '信件内容不合规，请修改');
+      return;
+    }
 
     // 归一化日期逻辑：当前日期凌晨 + X天
     const targetDate = new Date();

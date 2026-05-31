@@ -3,6 +3,9 @@ import { request, get } from '../utils/httpAdapter';
 import { uploadFile } from '../utils/uploadAdapter';
 import { aiConfig } from './aiConfig';
 
+const MOCK_IMAGE_URL = 'miao-mock://image/cat-anchor';
+const MOCK_VIDEO_URL = 'miao-mock://video/cat-action';
+
 export const VolcanoConfig = {
   get MOCK_MODE() {
     return aiConfig.getProfile().mockMode;
@@ -30,12 +33,42 @@ export const VolcanoConfig = {
   },
 };
 
+export interface VideoActionPrompt {
+  prompt: string;
+  duration: number;
+}
+
+export interface SubmitVideoTaskOptions {
+  prompt?: string;
+  firstFrame?: string;
+  lastFrame?: string;
+  hasLastFrame?: boolean;
+  duration?: number;
+  resolution?: string;
+  seed?: number;
+  promptExtend?: boolean;
+  audio?: boolean;
+  ratio?: string;
+}
+
 export const ACTION_PROMPTS = {
-  idle: "一只可爱的猫咪蹲坐在温馨的房间里，正视镜头。它缓慢站起来，走向镜头轻轻蹭了一下，然后退回到原来的位置蹲好。画面清晰，光影真实，竖屏构图。",
-  tail: "特写猫咪的面部。一只手轻轻抚摸猫咪的头顶，猫咪舒服地眯起眼睛。随后镜头拉远，猫咪保持蹲坐姿态。细节丰富。",
-  rubbing: "聚焦猫咪的前爪。猫咪左右交替踩奶，看起来非常放松和舒适。随后它停止动作，静静地蹲坐在原地。",
-  blink: "猫咪兴奋地看着镜头。主人拿着羽毛逗猫棒在旁边晃动，猫咪抬头挥动爪子尝试捕捉。随后逗猫棒移开，猫咪恢复安静蹲坐。"
-};
+  v1_approach: {
+    prompt: "第一人称固定视角，空间纵深感清晰，竖屏 9:16，480P，7 秒无音频，超写实风格，自然光影，种子值 12345。0-3.5 秒：猫咪轻巧跳下猫窝，步伐轻快从远景走向镜头正下方近景。3.5-6秒：镜头平滑下摇转为轻微俯视，地板上彩色毛线球完整入画。地板上不要有人脚鞋子等人体部位。6-7 秒：猫咪停在毛线球旁，一直抬头仰视镜头直到视频结束，眼神渴望期待；猫咪嘴部结构真实，无拟人化。全程猫咪身体完整，画面无裁切、无畸变。",
+    duration: 7,
+  },
+  v2_wait: {
+    prompt: "猫咪身体保持静止，仅有面部表情和眼神变化（包含轻轻张嘴叫唤时引起的面部表情、微表情和眼神闪烁变化），视频首尾两帧保持严格一致。嘴巴细节严格遵循真实猫咪生理结构，无拟人化特征；全程保证猫咪完整身体（含头部、躯干、四肢）始终在竖屏 9:16 画面内，静止无任何身体位移，无裁切、无出屏。超写实风格，竖屏 9:16，480P，4秒无音频，种子值 12345。",
+    duration: 4,
+  },
+  v3_return: {
+    prompt: "第一人称固定视角，明确空间纵深感，竖屏 9:16，480P，7 秒无音频，超写实风格，自然光影，种子值 12345。镜头起始轻微俯视，0-1.5秒猫咪低头转身，嘴巴细节真实无拟人化。1.5-4秒猫咪从近景慢慢走向猫窝，镜头平滑抬升至平视，固定展现房间纵深。4-5 秒猫咪跳上猫窝。5-7 秒猫咪转身并缓慢调整姿态，全程猫咪完整身体在画面内，无裁切、无畸变、无错位。",
+    duration: 7,
+  },
+  v4_fetch: {
+    prompt: "第一人称固定视角，明确空间纵深感，竖屏 9:16，480P，7 秒无音频，超写实风格，自然光影，种子值 12345。镜头起始轻微俯视，0-1.5 秒人类手从镜头底端伸入，握毛线球用力向前抛出，毛球沿符合物理规律的抛物线轨迹滚向远处猫窝；毛球抛出后，镜头平滑抬升至平视，固定展现房间纵深。1.5-3 秒猫咪从近景迅速跑向猫窝，精准叼起毛球，嘴巴细节真实无拟人化。3-5 秒猫咪转身跳上猫窝，放下毛球。5-7 秒猫咪缓慢调整姿态，全程猫咪完整身体在画面内，无裁切、无畸变、无错位。",
+    duration: 7,
+  },
+} satisfies Record<string, VideoActionPrompt>;
 
 export const IMAGE_PROMPTS = {
   anchor: (breed: string, color: string) =>
@@ -59,7 +92,7 @@ function isLocalFilePath(path: string): boolean {
   if (/^https?:\/\//i.test(path)) {
     return path.startsWith('http://tmp/') || path.startsWith('http://usr/');
   }
-  const userDataPath = Taro.env.USER_DATA_PATH || '';
+  const userDataPath = Taro.env?.USER_DATA_PATH || '';
   return (
     path.startsWith('wxfile://') ||
     path.startsWith('file://') ||
@@ -98,7 +131,24 @@ function abortableDelay(ms: number, signal?: AbortSignal, abortMessage = '任务
 }
 
 export class VolcanoService {
-  public static async submitTask(imageBase64: string, prompt?: string, retries: number = 2) {
+  public static async submitTask(
+    imageBase64: string,
+    promptOrOptions?: string | SubmitVideoTaskOptions,
+    retries: number = 2
+  ) {
+    const options: SubmitVideoTaskOptions = typeof promptOrOptions === 'string'
+      ? { prompt: promptOrOptions }
+      : (promptOrOptions || {});
+    const prompt = options.prompt || "A high quality video of this cat, cinematic lighting, realistic.";
+    const firstFrame = options.firstFrame || imageBase64;
+    const lastFrame = options.lastFrame;
+    const hasLastFrame = options.hasLastFrame || !!lastFrame;
+    const duration = options.duration ?? VolcanoConfig.Duration;
+    const resolution = options.resolution || VolcanoConfig.Resolution;
+    const seed = options.seed ?? VolcanoConfig.Seed;
+    const promptExtend = options.promptExtend ?? VolcanoConfig.PromptExtend;
+    const audio = options.audio ?? false;
+
     if (VolcanoConfig.MOCK_MODE) {
       await new Promise(resolve => setTimeout(resolve, 1000));
       return { id: 'mock_task_' + Date.now() };
@@ -107,21 +157,26 @@ export class VolcanoService {
     // data: URL 或本地路径改用 uploadFile，避免 base64 过大触发微信数据检查上限
     const uploadPath = getUploadPath(imageBase64);
     if (uploadPath) {
+      const formData: Record<string, string> = {
+        type: 'video',
+        provider: VolcanoConfig.Provider,
+        model: VolcanoConfig.ModelId,
+        prompt,
+        seed: String(seed),
+        resolution,
+        duration: String(duration),
+        prompt_extend: String(promptExtend),
+        audio: String(audio),
+      };
+      if (lastFrame) formData.last_frame = lastFrame;
+      if (hasLastFrame) formData.has_last_frame = 'true';
+      if (options.ratio) formData.ratio = options.ratio;
+
       const data = await uploadFile({
         url: '/api/v1/ai/tasks-file',
         filePath: uploadPath,
         name: 'image',
-        formData: {
-          type: 'video',
-          provider: VolcanoConfig.Provider,
-          model: VolcanoConfig.ModelId,
-          prompt: prompt || "A high quality video of this cat, cinematic lighting, realistic.",
-          seed: String(VolcanoConfig.Seed),
-          resolution: VolcanoConfig.Resolution,
-          duration: String(VolcanoConfig.Duration),
-          prompt_extend: String(VolcanoConfig.PromptExtend),
-          audio: 'false',
-        },
+        formData,
       });
       const taskId = data?.id || data?.task_id;
       if (!taskId) throw new Error("服务器返回数据格式错误，未获取到任务 ID");
@@ -139,14 +194,19 @@ export class VolcanoService {
             type: 'video',
             provider: VolcanoConfig.Provider,
             model: VolcanoConfig.ModelId,
-            prompt: prompt || "A high quality video of this cat, cinematic lighting, realistic.",
+            prompt,
             image_base64: imageBase64,
+            first_frame: firstFrame,
+            ...(lastFrame ? { last_frame: lastFrame } : {}),
+            ...(hasLastFrame ? { has_last_frame: true } : {}),
+            ...(options.ratio ? { ratio: options.ratio } : {}),
             parameters: {
-              seed: VolcanoConfig.Seed,
-              resolution: VolcanoConfig.Resolution,
-              duration: VolcanoConfig.Duration,
-              prompt_extend: VolcanoConfig.PromptExtend,
-              audio: false
+              seed,
+              resolution,
+              duration,
+              prompt_extend: promptExtend,
+              audio,
+              ...(options.ratio ? { ratio: options.ratio } : {}),
             }
           }
         });
@@ -175,7 +235,7 @@ export class VolcanoService {
       await new Promise(resolve => setTimeout(resolve, 500));
       const progress = Math.random();
       if (progress > 0.8) {
-        return { status: 'succeeded', content: { video_url: 'https://www.w3schools.com/html/mov_bbb.mp4' } };
+        return { status: 'succeeded', content: { video_url: MOCK_VIDEO_URL } };
       }
       return { status: 'running' };
     }
@@ -230,7 +290,7 @@ export class VolcanoService {
   public static async pollImageResult(taskId: string, initialUrl?: string, signal?: AbortSignal): Promise<string> {
     if (VolcanoConfig.MOCK_MODE) {
       await new Promise(resolve => setTimeout(resolve, 2000));
-      return 'https://picsum.photos/seed/cat/800/800';
+      return MOCK_IMAGE_URL;
     }
 
     if (initialUrl) return initialUrl;
@@ -279,7 +339,7 @@ export class VolcanoService {
   ): Promise<string> {
     if (VolcanoConfig.MOCK_MODE) {
       await new Promise(resolve => setTimeout(resolve, 3000));
-      return 'https://www.w3schools.com/html/mov_bbb.mp4';
+      return MOCK_VIDEO_URL;
     }
 
     let delay = 3000;

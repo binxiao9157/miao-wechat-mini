@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
-import Taro, { navigateTo, useDidShow, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
+import Taro, { useDidShow, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
 import CatAvatar from '../../components/common/CatAvatar';
 import PageHeader from '../../components/layout/PageHeader';
+import { navigateTo } from '../../utils/navigateAdapter';
 
 const PLAY_WHITE = require('../../assets/profile-icons/play-white.png');
 const TRASH2_RED2 = require('../../assets/profile-icons/trash2-red2.png');
@@ -58,7 +59,7 @@ export default function CatHistory() {
   };
 
   const handleCatClick = (cat: CatInfo) => {
-    navigateTo({ url: `/pages/cat-player/index?id=${cat.id}` });
+    navigateTo(`/pages/cat-player/index?id=${cat.id}`);
   };
 
   return (
@@ -110,7 +111,7 @@ export default function CatHistory() {
           {/* 添加新猫咪 */}
           <View
             className="add-card"
-            onClick={() => navigateTo({ url: '/pages/upload-material/index' })}
+            onClick={() => navigateTo('/pages/upload-material/index')}
           >
             <View className="add-icon-box">
               <Image className="icon-img" src={PLUS_WHITE} mode="aspectFit" style={{ width: 24, height: 24 }} />

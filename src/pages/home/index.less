@@ -37,6 +37,32 @@
   z-index: 2;
 }
 
+.video-stack {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.story-video {
+  opacity: 0;
+  visibility: hidden;
+  z-index: 2;
+  transition: opacity 160ms ease;
+  pointer-events: none;
+}
+
+.story-video.active {
+  opacity: 1;
+  visibility: visible;
+  z-index: 3;
+}
+
+.story-touch-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+}
+
 /* ─── 视频错误遮罩 ─── */
 .video-error-overlay {
   position: absolute;

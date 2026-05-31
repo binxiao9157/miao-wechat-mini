@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro';
 import { storage, UserInfo } from '../services/storage';
 import { authService } from '../services/authService';
 import { syncManager } from '../services/syncManager';
+import { reLaunch } from '../utils/navigateAdapter';
 
 interface AuthContextType {
   user: UserInfo | null;
@@ -86,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(false);
       setUser(null);
       setCatCount(0);
-      Taro.reLaunch({ url: '/pages/login/index' });
+      reLaunch('/pages/login/index');
       setTimeout(() => { handling401 = false; }, 2000);
     };
     Taro.eventCenter.on('auth:unauthorized', handler);

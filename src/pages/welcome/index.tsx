@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import { reLaunch } from '@tarojs/taro';
 import { storage } from '../../services/storage';
 import { routeAfterCatSync } from '../../services/catLifecycle';
 import { useManagedTimeout } from '../../hooks/useManagedTimeout';
+import { reLaunch } from '../../utils/navigateAdapter';
 
 export default function Welcome() {
   const { setManagedTimeout } = useManagedTimeout();
@@ -23,7 +23,7 @@ export default function Welcome() {
       if (user) {
         routeAfterCatSync();
       } else {
-        reLaunch({ url: '/pages/login/index' });
+        reLaunch('/pages/login/index');
       }
     };
 

@@ -1,3 +1,6 @@
+const includeAdminPages = process.env.TARO_APP_ENABLE_ADMIN === 'true' || process.env.TARO_APP_DEBUG_BUILD === 'true';
+const adminPages = includeAdminPages ? ['pages/admin-settings/index'] : [];
+
 export default defineAppConfig({
   pages: [
     'pages/welcome/index',
@@ -9,7 +12,8 @@ export default defineAppConfig({
     'pages/notifications/index',
     'pages/points/index',
     'pages/profile/index',
-    'pages/admin-settings/index',
+    'pages/diagnostics/index',
+    ...adminPages,
     'pages/create-companion/index',
     'pages/generation-progress/index',
     'pages/scan-friend/index',

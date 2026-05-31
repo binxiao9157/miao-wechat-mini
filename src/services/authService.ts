@@ -13,6 +13,7 @@ function persistAuth(token: string, user: UserInfo) {
 }
 
 function normalizeUser(raw: any, fallbackPassword?: string): UserInfo {
+  const debugExpiresAt = Number(raw?.debugExpiresAt);
   return {
     username: raw?.username || '',
     nickname: raw?.nickname || raw?.username || 'Miao 用户',
@@ -20,6 +21,9 @@ function normalizeUser(raw: any, fallbackPassword?: string): UserInfo {
     passwordSet: !!raw?.passwordSet || !!fallbackPassword,
     openidBound: !!raw?.openidBound,
     phone: raw?.phone,
+    debugAllowed: raw?.debugAllowed === true,
+    debugRole: ['developer', 'operator', 'support', 'none'].includes(raw?.debugRole) ? raw.debugRole : undefined,
+    debugExpiresAt: Number.isFinite(debugExpiresAt) ? debugExpiresAt : undefined,
   };
 }
 
@@ -47,7 +51,9 @@ function getStableWechatDevOpenid(): string {
         setItem(WECHAT_DEV_OPENID_KEY, legacyOpenid);
         return legacyOpenid;
       }
-    } catch {}
+    } catch (error) {
+      console.warn('[authService] failed to parse cached dev user:', error);
+    }
   }
 
   const generated = `dev_mini_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Input, Button, Image } from '@tarojs/components';
-import Taro, { navigateTo } from '@tarojs/taro';
+import Taro from '@tarojs/taro';
 import PawLogo from '../../components/common/PawLogo';
 import { storage } from '../../services/storage';
 import { useAuthContext } from '../../context/AuthContext';
 import { routeAfterCatSync } from '../../services/catLifecycle';
 import { useManagedTimeout } from '../../hooks/useManagedTimeout';
+import { navigateTo, redirectTo } from '../../utils/navigateAdapter';
+import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
 import './index.less';
 
 const EYE_DARK = require('../../assets/profile-icons/eye-dark.png');
@@ -87,7 +89,7 @@ export default function Login() {
   };
 
   const handleRegister = () => {
-    navigateTo({ url: '/pages/register/index' });
+    navigateTo('/pages/register/index');
   };
 
   const handleWechatLogin = async () => {
@@ -108,7 +110,8 @@ export default function Login() {
 
   // 点击手机号登录按钮时启动超时计时器
   // getPhoneNumber 未开通时回调可能不触发，需要超时保护
-  const handlePhoneLoginClick = () => {
+  const handlePhoneLoginClick = async () => {
+    if (!await ensurePrivacyAuthorized('手机号快捷登录')) return;
     if (phoneLoginTimerRef.current) {
       clearTimeout(phoneLoginTimerRef.current);
     }
@@ -172,7 +175,7 @@ export default function Login() {
         return;
       }
       if (result.isNewUser || (result as any).nickname?.startsWith('喵星人_')) {
-        Taro.redirectTo({ url: '/pages/set-nickname/index' });
+        redirectTo('/pages/set-nickname/index');
       } else {
         routeAfterCatSync();
       }
@@ -249,7 +252,7 @@ export default function Login() {
           </View>
 
           <View className="forgot-password">
-            <Text className="forgot-text" onClick={() => navigateTo({ url: '/pages/reset-password/index' })}>
+            <Text className="forgot-text" onClick={() => navigateTo('/pages/reset-password/index')}>
               忘记密码？
             </Text>
           </View>
@@ -262,9 +265,9 @@ export default function Login() {
             </View>
             <Text className="agreement-text">
               我已阅读并同意
-              <Text className="link" onClick={(e) => { e.stopPropagation(); navigateTo({ url: '/pages/terms-of-service/index' }); }}>《Miao 服务条款》</Text>
+              <Text className="link" onClick={(e) => { e.stopPropagation(); navigateTo('/pages/terms-of-service/index'); }}>《Miao 服务条款》</Text>
               和
-              <Text className="link" onClick={(e) => { e.stopPropagation(); navigateTo({ url: '/pages/privacy-policy/index' }); }}>《隐私政策》</Text>
+              <Text className="link" onClick={(e) => { e.stopPropagation(); navigateTo('/pages/privacy-policy/index'); }}>《隐私政策》</Text>
             </Text>
           </View>
 
@@ -297,9 +300,9 @@ export default function Login() {
         {/* Footer */}
         <View className="footer">
           <View className="footer-links">
-            <Text className="footer-link" onClick={() => navigateTo({ url: '/pages/privacy-policy/index' })}>隐私政策</Text>
+            <Text className="footer-link" onClick={() => navigateTo('/pages/privacy-policy/index')}>隐私政策</Text>
             <Text className="dot">·</Text>
-            <Text className="footer-link" onClick={() => navigateTo({ url: '/pages/terms-of-service/index' })}>服务条款</Text>
+            <Text className="footer-link" onClick={() => navigateTo('/pages/terms-of-service/index')}>服务条款</Text>
           </View>
           <Text className="copyright">© 2026 MIAO SANCTUARY</Text>
         </View>

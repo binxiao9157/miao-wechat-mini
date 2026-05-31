@@ -7,6 +7,9 @@ export interface UserInfo {
   openidBound?: boolean;
   phone?: string;
   isNewUser?: boolean;
+  debugAllowed?: boolean;
+  debugRole?: 'developer' | 'operator' | 'support' | 'none';
+  debugExpiresAt?: number;
 }
 
 export interface CatInfo {
@@ -22,17 +25,15 @@ export interface CatInfo {
   generationUpdatedAt?: number;
   videoPath?: string;
   videoPaths?: Record<string, string | undefined> & {
-    idle?: string;
-    tail?: string;
-    rubbing?: string;
-    blink?: string;
-    petting?: string;
-    feeding?: string;
-    teasing?: string;
+    v1_approach?: string;
+    v2_wait?: string;
+    v3_return?: string;
+    v4_fetch?: string;
   };
   remoteVideoUrl?: string;
   placeholderImage?: string;
   anchorFrame?: string;
+  actionGenerationError?: string;
   isUnlocking?: boolean;
   unlockProgress?: CatUnlockProgress;
   updatedAt?: number;

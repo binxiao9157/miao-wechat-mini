@@ -26,6 +26,12 @@ const config = {
     'process.env.TARO_APP_AI_PROVIDER': JSON.stringify(
       process.env.TARO_APP_AI_PROVIDER || 'volcengine'
     ),
+    'process.env.TARO_APP_ENABLE_ADMIN': JSON.stringify(
+      process.env.TARO_APP_ENABLE_ADMIN || 'false'
+    ),
+    'process.env.TARO_APP_DEBUG_BUILD': JSON.stringify(
+      process.env.TARO_APP_DEBUG_BUILD || 'false'
+    ),
   },
   mini: {},
   h5: {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Image } from '@tarojs/components';
-import Taro, { navigateTo } from '@tarojs/taro';
-import { safeBack } from '../../utils/navigateAdapter';
+import Taro from '@tarojs/taro';
+import { navigateTo, safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
@@ -21,11 +21,11 @@ export default function EmptyCatPage() {
   };
 
   const handleUpload = () => {
-    navigateTo({ url: `/pages/upload-material/index?${redemptionParams.slice(1)}` });
+    navigateTo(`/pages/upload-material/index?${redemptionParams.slice(1)}`);
   };
 
   const handleCreate = () => {
-    navigateTo({ url: `/pages/create-companion/index?${redemptionParams.slice(1)}` });
+    navigateTo(`/pages/create-companion/index?${redemptionParams.slice(1)}`);
   };
 
   return (

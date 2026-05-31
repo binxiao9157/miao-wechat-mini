@@ -37,6 +37,38 @@ describe('authService', () => {
     });
   });
 
+  it('preserves server-provided debug authorization fields', async () => {
+    const expiresAt = Date.now() + 60_000;
+    vi.mocked(request).mockResolvedValue({
+      status: 200,
+      headers: {},
+      data: {
+        token: 'token-debug',
+        user: {
+          username: 'operator',
+          nickname: 'Operator',
+          debugAllowed: true,
+          debugRole: 'operator',
+          debugExpiresAt: expiresAt,
+        },
+      },
+    });
+
+    const user = await authService.passwordLogin('operator', 'secret123');
+
+    expect(user).toMatchObject({
+      username: 'operator',
+      debugAllowed: true,
+      debugRole: 'operator',
+      debugExpiresAt: expiresAt,
+    });
+    expect(JSON.parse(getItem('miao_current_user') || '{}')).toMatchObject({
+      debugAllowed: true,
+      debugRole: 'operator',
+      debugExpiresAt: expiresAt,
+    });
+  });
+
   it('removes cached auth on logout', async () => {
     vi.mocked(request).mockResolvedValue({
       status: 200,

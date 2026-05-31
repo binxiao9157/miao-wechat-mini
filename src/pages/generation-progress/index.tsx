@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Video, Image } from '@tarojs/components';
-import Taro, { navigateTo, reLaunch } from '@tarojs/taro';
+import Taro from '@tarojs/taro';
 import { VolcanoService, ACTION_PROMPTS } from '../../services/volcanoService';
 import { FileManager } from '../../services/fileManager';
 import { storage } from '../../services/storage';
 import { isCatReady } from '../../services/catLifecycle';
+import type { FourStageVideoAction } from '../../services/videoActions';
 import { useAuthContext } from '../../context/AuthContext';
 import { useNavSpace } from '../../hooks/useNavSpace';
-import { safeBack } from '../../utils/navigateAdapter';
+import { navigateTo, reLaunch, safeBack } from '../../utils/navigateAdapter';
 
 const SPARKLES_GRAY = require('../../assets/profile-icons/sparkles-gray.png');
 const SPARKLES_PRIMARY = require('../../assets/profile-icons/sparkles-primary.png');
@@ -40,7 +41,7 @@ export default function GenerationProgress() {
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState('正在准备生成...');
   const [errorMsg, setErrorMsg] = useState('');
-  const [idleVideoUrl, setIdleVideoUrl] = useState<string | null>(null);
+  const [primaryVideoUrl, setPrimaryVideoUrl] = useState<string | null>(null);
   const [anchorImage, setAnchorImage] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
@@ -83,7 +84,7 @@ export default function GenerationProgress() {
       return () => controller.abort();
     }
     if (isCatReady(activeCat)) {
-      reLaunch({ url: '/pages/home/index' });
+      reLaunch('/pages/home/index');
       return () => controller.abort();
     }
     catRef.current = {
@@ -148,7 +149,11 @@ export default function GenerationProgress() {
       setStatusText('正在编织它的动作姿态...');
 
       // 提交视频生成任务
-      const task = await VolcanoService.submitTask(imageUrl, ACTION_PROMPTS.idle);
+      const task = await VolcanoService.submitTask(imageUrl, {
+        prompt: ACTION_PROMPTS.v1_approach.prompt,
+        duration: ACTION_PROMPTS.v1_approach.duration,
+        firstFrame: imageUrl,
+      });
       if (!isActiveRun(runId, signal)) return;
 
       setProgress(30);
@@ -178,7 +183,7 @@ export default function GenerationProgress() {
 
       // 更新猫咪视频信息
       const finalVideoPaths = await FileManager.downloadVideos(
-        { idle: videoUrl },
+        { v1_approach: videoUrl },
         cat.id,
         cat.name,
         cat.avatar,
@@ -192,8 +197,8 @@ export default function GenerationProgress() {
       );
       if (!isActiveRun(runId, signal)) return;
 
-      const playableIdleVideoUrl = finalVideoPaths.idle || videoUrl;
-      setIdleVideoUrl(playableIdleVideoUrl);
+      const playablePrimaryVideoUrl = finalVideoPaths.v1_approach || videoUrl;
+      setPrimaryVideoUrl(playablePrimaryVideoUrl);
 
       // 确认保存成功
       const saved = storage.getCatById(cat.id);
@@ -234,7 +239,7 @@ export default function GenerationProgress() {
   };
 
   const runSecondaryUnlock = async (cat: NonNullable<typeof catRef.current>, signal?: AbortSignal) => {
-    const secondaryActions: (keyof typeof ACTION_PROMPTS)[] = ['tail', 'rubbing', 'blink'];
+    const secondaryActions: FourStageVideoAction[] = ['v2_wait', 'v3_return', 'v4_fetch'];
     let completed = 0;
     let failed = 0;
     try {
@@ -255,15 +260,23 @@ export default function GenerationProgress() {
             currentAction: action,
             failed,
           });
-          const task = await VolcanoService.submitTask(anchorFrame, ACTION_PROMPTS[action]);
+          const actionPrompt = ACTION_PROMPTS[action];
+          const task = await VolcanoService.submitTask(anchorFrame, {
+            prompt: actionPrompt.prompt,
+            duration: actionPrompt.duration,
+            firstFrame: anchorFrame,
+            lastFrame: anchorFrame,
+            hasLastFrame: action === 'v2_wait',
+          });
           const videoUrl = await VolcanoService.pollTaskResult(task.id, undefined, signal);
           completed += 1;
+          const actionError = failed > 0 ? `有 ${failed} 个后续动作暂未生成成功` : null;
           await FileManager.updateCatVideos(cat.id, { [action]: videoUrl }, true, {
             completed,
             total: secondaryActions.length,
             currentAction: action,
             failed,
-          });
+          }, { actionGenerationError: actionError });
           await new Promise(resolve => setTimeout(resolve, 3000));
         } catch (e) {
           failed += 1;
@@ -272,7 +285,7 @@ export default function GenerationProgress() {
             total: secondaryActions.length,
             currentAction: action,
             failed,
-          });
+          }, { actionGenerationError: `有 ${failed} 个后续动作暂未生成成功` });
           console.error(`动作 ${action} 生成失败:`, e);
         }
       }
@@ -280,7 +293,7 @@ export default function GenerationProgress() {
       await FileManager.updateCatVideos(cat.id, {}, false);
     } catch (e) {
       console.error('后台生成任务失败:', e);
-      await FileManager.updateCatVideos(cat.id, {}, false);
+      await FileManager.updateCatVideos(cat.id, {}, false, undefined, { actionGenerationError: '后续动作生成失败，稍后可重试' });
     }
   };
 
@@ -311,18 +324,18 @@ export default function GenerationProgress() {
     Taro.showToast({ title: '已开始后台解锁', icon: 'none' });
 
     void runSecondaryUnlock(cat);
-    reLaunch({ url: '/pages/home/index' });
+    reLaunch('/pages/home/index');
   };
 
   const handleStayBasic = () => {
-    reLaunch({ url: '/pages/home/index' });
+    reLaunch('/pages/home/index');
   };
 
   const handleRetry = () => {
     setPhase('generating');
     setProgress(0);
     setErrorMsg('');
-    setIdleVideoUrl(null);
+    setPrimaryVideoUrl(null);
     setShowConfirmDialog(false);
     clearConfirmTimer();
 
@@ -344,7 +357,7 @@ export default function GenerationProgress() {
       ? `?isRedemption=1&redemptionAmount=${redemptionAmount}`
       : '';
     const target = cat?.source === 'uploaded' ? '/pages/upload-material/index' : '/pages/create-companion/index';
-    navigateTo({ url: `${target}${redemptionQuery}` });
+    navigateTo(`${target}${redemptionQuery}`);
   };
 
   return (
@@ -409,10 +422,10 @@ export default function GenerationProgress() {
       {phase === 'confirm' && (
         <View className="confirm-view">
           {/* 视频预览 */}
-          {idleVideoUrl ? (
+          {primaryVideoUrl ? (
             <Video
               className="preview-video"
-              src={idleVideoUrl}
+              src={primaryVideoUrl}
               autoplay
               loop
               muted
@@ -438,7 +451,7 @@ export default function GenerationProgress() {
                 </View>
                 <Text className="dialog-title">我是你的梦中情猫吗？</Text>
                 <Text className="dialog-desc">
-                  形象已初步锁定！是否还需要解锁我更多动作（摸头、踩奶、玩耍）？
+                  形象已初步锁定！是否还需要解锁等待、回窝、叼毛线球等更多互动？
                 </Text>
                 <View className="dialog-actions">
                   <View className={`dialog-btn primary ${isUnlocking ? 'disabled' : ''}`} onClick={handleUnlockAll}>

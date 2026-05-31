@@ -43,6 +43,12 @@ vi.mock('../../utils/uploadAdapter', () => ({
 
 vi.mock('../../utils/navigateAdapter', () => ({
   safeBack: vi.fn(async () => undefined),
+  navigateTo: vi.fn(async () => undefined),
+}));
+
+vi.mock('../../services/contentSafetyService', () => ({
+  checkTextContent: vi.fn(async () => undefined),
+  checkMediaContent: vi.fn(async () => undefined),
 }));
 
 describe('EditProfile', () => {

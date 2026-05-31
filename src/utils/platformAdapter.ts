@@ -157,7 +157,9 @@ export const vibrate = (type: 'short' | 'long' = 'short'): void => {
       } else {
         Taro.vibrateLong();
       }
-    } catch {}
+    } catch (error) {
+      console.warn('[platformAdapter] vibration failed:', error);
+    }
   } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
     navigator.vibrate(type === 'short' ? 50 : 200);
   }
@@ -178,7 +180,9 @@ export const showToast = (options: {
         icon: options.icon || 'none',
         duration: options.duration || 2000,
       });
-    } catch {}
+    } catch (error) {
+      console.warn('[platformAdapter] showToast failed:', error);
+    }
   } else {
     console.log('[Toast]', options.title);
   }
@@ -191,7 +195,9 @@ export const showLoading = (title: string = '加载中') => {
   if (checkIsMiniProgram()) {
     try {
       Taro.showLoading({ title });
-    } catch {}
+    } catch (error) {
+      console.warn('[platformAdapter] showLoading failed:', error);
+    }
   }
 };
 
@@ -202,7 +208,9 @@ export const hideLoading = () => {
   if (checkIsMiniProgram()) {
     try {
       Taro.hideLoading();
-    } catch {}
+    } catch (error) {
+      console.warn('[platformAdapter] hideLoading failed:', error);
+    }
   }
 };
 
@@ -216,7 +224,9 @@ export const previewImage = (urls: string[], current?: string) => {
         urls,
         current: current || urls[0],
       });
-    } catch {}
+    } catch (error) {
+      console.warn('[platformAdapter] previewImage failed:', error);
+    }
   }
 };
 

@@ -1,4 +1,5 @@
 import { getItem, setItem, removeItem } from '../utils/storageAdapter';
+import { isDangerousDebugStorageEnabled } from '../utils/debugAccess';
 
 export type AIProvider = 'dashscope' | 'volcengine';
 
@@ -92,7 +93,9 @@ export const aiConfig = {
       duration: readNumber(STORAGE_KEYS.DURATION, defaults.duration),
       seed: readNumber(STORAGE_KEYS.SEED, defaults.seed),
       promptExtend: readBool(STORAGE_KEYS.PROMPT_EXTEND, defaults.promptExtend),
-      mockMode: readBool(STORAGE_KEYS.MOCK_MODE, defaults.mockMode),
+      mockMode: isDangerousDebugStorageEnabled()
+        ? readBool(STORAGE_KEYS.MOCK_MODE, defaults.mockMode)
+        : false,
     };
   },
 
@@ -110,7 +113,11 @@ export const aiConfig = {
     setItem(STORAGE_KEYS.DURATION, String(profile.duration));
     setItem(STORAGE_KEYS.SEED, String(profile.seed));
     setItem(STORAGE_KEYS.PROMPT_EXTEND, String(profile.promptExtend));
-    setItem(STORAGE_KEYS.MOCK_MODE, String(profile.mockMode));
+    if (isDangerousDebugStorageEnabled()) {
+      setItem(STORAGE_KEYS.MOCK_MODE, String(profile.mockMode));
+    } else {
+      removeItem(STORAGE_KEYS.MOCK_MODE);
+    }
   },
 
   reset() {

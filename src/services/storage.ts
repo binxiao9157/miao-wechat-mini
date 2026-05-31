@@ -2,6 +2,7 @@ import Taro from '@tarojs/taro';
 import { getItem, setItem, removeItem, getAllKeys } from '../utils/storageAdapter';
 import { trigger } from '../utils/eventAdapter';
 import { request as taroRequest } from '../utils/httpAdapter';
+import { isDangerousDebugStorageEnabled } from '../utils/debugAccess';
 import type { ServerSyncApi } from './storage/serverSync';
 import { safeClone, safeJsonStringify } from './storage/jsonUtils';
 export type {
@@ -123,7 +124,9 @@ export const mediaStorage = {
           if (stored) {
             try {
               filePath = (JSON.parse(stored) as { filePath?: string }).filePath || stored;
-            } catch {}
+            } catch (error) {
+              console.warn('[storage] media metadata parse failed:', error);
+            }
           }
           if (filePath) {
             const fs = Taro.getFileSystemManager();
@@ -164,7 +167,9 @@ async function readLocalMediaAsDataUrl(id: string): Promise<string | null> {
     const parsed = JSON.parse(stored) as { filePath?: string; mimeType?: string };
     filePath = parsed.filePath || stored;
     mimeType = parsed.mimeType || mimeType;
-  } catch {}
+  } catch (error) {
+    console.warn('[storage] local media metadata parse failed:', error);
+  }
 
   if (!filePath) return null;
 
@@ -212,12 +217,14 @@ const STORAGE_KEYS = {
   READ_NOTIFICATION_IDS: 'miao_read_notification_ids',
 };
 
+const DEFAULT_PRESET_CAT_IMAGE = require('../assets/logo.png');
+
 const DEFAULT_PRESET_CATS: PresetCat[] = [
-  { id: 'british_shorthair', name: '英国短毛猫', imageUrl: 'https://fastly.picsum.photos/id/534/800/800.jpg?hmac=DijMB8QbxnoQc_h2Sol9Uh3CypfI5ml6agCoUj8-cEY' },
-  { id: 'ragdoll', name: '布偶猫', imageUrl: 'https://fastly.picsum.photos/id/366/800/800.jpg?hmac=R8t4TxfCjjhVEcB-QZq9c2mTa8YufuOVZV0_pgABCBQ' },
-  { id: 'persian', name: '波斯猫', imageUrl: 'https://fastly.picsum.photos/id/219/800/800.jpg?hmac=jtAqs0bVp0OWaGB1TzTJ4pgcnTAvAw3GL7X3liCjhXQ' },
-  { id: 'maine_coon', name: '缅因猫', imageUrl: 'https://fastly.picsum.photos/id/293/800/800.jpg?hmac=AcdZBXya3-oW-8OFNZnNQmWD1rUESR9TagsKbEyf8NU' },
-  { id: 'siamese', name: '暹罗猫', imageUrl: 'https://fastly.picsum.photos/id/164/800/800.jpg?hmac=-vrHqnVZ5JXaSiIV-qbYsO6fUd1_YjwsX82JGuoMk6g' },
+  { id: 'british_shorthair', name: '英国短毛猫', imageUrl: DEFAULT_PRESET_CAT_IMAGE },
+  { id: 'ragdoll', name: '布偶猫', imageUrl: DEFAULT_PRESET_CAT_IMAGE },
+  { id: 'persian', name: '波斯猫', imageUrl: DEFAULT_PRESET_CAT_IMAGE },
+  { id: 'maine_coon', name: '缅因猫', imageUrl: DEFAULT_PRESET_CAT_IMAGE },
+  { id: 'siamese', name: '暹罗猫', imageUrl: DEFAULT_PRESET_CAT_IMAGE },
 ];
 
 const USER_DATA_KEYS = {
@@ -584,7 +591,9 @@ export const storage = {
                 setItem(key, JSON.stringify(recent));
               }
             }
-          } catch (e) {}
+          } catch (error) {
+            console.warn('[storage] failed to prune oversized diary cache:', error);
+          }
         }
       }
 
@@ -1325,19 +1334,30 @@ export const storage = {
   },
 
   setIsFastForward: (enabled: boolean) => {
+    if (!isDangerousDebugStorageEnabled()) {
+      removeItem(getUserKey(USER_DATA_KEYS.IS_FAST_FORWARD));
+      trigger('fast-forward-changed', { enabled: false });
+      return;
+    }
     storage.setItem(getUserKey(USER_DATA_KEYS.IS_FAST_FORWARD), enabled.toString());
     trigger('fast-forward-changed', { enabled });
   },
 
   getIsFastForward: (): boolean => {
+    if (!isDangerousDebugStorageEnabled()) return false;
     return getItem(getUserKey(USER_DATA_KEYS.IS_FAST_FORWARD)) === 'true';
   },
 
   setIsPointsCheat: (enabled: boolean) => {
+    if (!isDangerousDebugStorageEnabled()) {
+      removeItem(getUserKey(USER_DATA_KEYS.IS_POINTS_CHEAT));
+      return;
+    }
     storage.setItem(getUserKey(USER_DATA_KEYS.IS_POINTS_CHEAT), enabled.toString());
   },
 
   getIsPointsCheat: (): boolean => {
+    if (!isDangerousDebugStorageEnabled()) return false;
     return getItem(getUserKey(USER_DATA_KEYS.IS_POINTS_CHEAT)) === 'true';
   },
 

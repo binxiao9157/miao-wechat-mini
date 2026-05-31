@@ -29,9 +29,9 @@ describe('FileManager.updateCatVideos', () => {
     avatar: 'https://cdn.example.com/cat.png',
     source: 'uploaded',
     createdAt: 1,
-    videoPath: 'https://cdn.example.com/idle.mp4',
-    remoteVideoUrl: 'https://cdn.example.com/idle.mp4',
-    videoPaths: { idle: 'https://cdn.example.com/idle.mp4' },
+    videoPath: 'https://cdn.example.com/v1.mp4',
+    remoteVideoUrl: 'https://cdn.example.com/v1.mp4',
+    videoPaths: { v1_approach: 'https://cdn.example.com/v1.mp4' },
     generationStatus: 'ready',
   };
 
@@ -43,12 +43,12 @@ describe('FileManager.updateCatVideos', () => {
   it('persists background unlock progress metadata', async () => {
     await FileManager.updateCatVideos(
       'cat-1',
-      { tail: 'https://cdn.example.com/tail.mp4' },
+      { v2_wait: 'https://cdn.example.com/v2.mp4' },
       true,
       {
         completed: 1,
         total: 3,
-        currentAction: 'tail',
+        currentAction: 'v2_wait',
         failed: 0,
       },
     );
@@ -59,11 +59,41 @@ describe('FileManager.updateCatVideos', () => {
       unlockProgress: expect.objectContaining({
         completed: 1,
         total: 3,
-        currentAction: 'tail',
+        currentAction: 'v2_wait',
         failed: 0,
         updatedAt: expect.any(Number),
       }),
     }));
     expect(trigger).toHaveBeenCalledWith('cat-updated', { catId: 'cat-1' });
+  });
+
+  it('promotes v1_approach as the primary video when modern actions are saved', async () => {
+    await FileManager.updateCatVideos(
+      'cat-1',
+      { v1_approach: 'https://cdn.example.com/v1.mp4' },
+      false,
+    );
+
+    expect(storage.saveCatInfo).toHaveBeenCalledWith(expect.objectContaining({
+      videoPath: 'https://cdn.example.com/v1.mp4',
+      remoteVideoUrl: 'https://cdn.example.com/v1.mp4',
+      generationStatus: 'ready',
+    }));
+  });
+
+  it('stores action generation failures without clearing playable videos', async () => {
+    await FileManager.updateCatVideos(
+      'cat-1',
+      {},
+      false,
+      undefined,
+      { actionGenerationError: '后续动作生成失败' },
+    );
+
+    expect(storage.saveCatInfo).toHaveBeenCalledWith(expect.objectContaining({
+      videoPath: 'https://cdn.example.com/v1.mp4',
+      actionGenerationError: '后续动作生成失败',
+      generationStatus: 'ready',
+    }));
   });
 });

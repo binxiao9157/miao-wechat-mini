@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Input, Image, ScrollView } from '@tarojs/components';
-import Taro, { navigateTo } from '@tarojs/taro';
+import Taro from '@tarojs/taro';
 import PageHeader from '../../components/layout/PageHeader';
 const SPARKLES_WHITE = require('../../assets/profile-icons/sparkles-white.png');
 import { storage, PresetCat } from '../../services/storage';
 import { DEFAULT_AVATAR } from '../../utils/constants';
 import { useManagedTimeout } from '../../hooks/useManagedTimeout';
+import { navigateTo } from '../../utils/navigateAdapter';
+import { checkTextContent } from '../../services/contentSafetyService';
 import './index.less';
 
 export default function CreateCompanion() {
@@ -30,7 +32,7 @@ export default function CreateCompanion() {
     setManagedTimeout(() => setShowToast(null), 3000);
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!catName.trim() || !selectedPresetId) {
       triggerToast('请填写完整信息后再生成哦！');
       return;
@@ -40,6 +42,13 @@ export default function CreateCompanion() {
     if (!selectedPreset) return;
 
     setIsGenerating(true);
+    try {
+      await checkTextContent(catName, 'cat_profile');
+    } catch (error: any) {
+      triggerToast(error?.message || '猫咪名称不合规，请修改');
+      setIsGenerating(false);
+      return;
+    }
 
     // 保存猫咪信息并跳转到生成进度页
     const newCat = {
@@ -57,7 +66,7 @@ export default function CreateCompanion() {
 
     // 跳转到生成进度页
     const redemptionParams = isRedemption ? `&isRedemption=1&redemptionAmount=${redemptionAmount}` : '';
-    navigateTo({ url: `/pages/generation-progress/index?source=created${redemptionParams}` });
+    navigateTo(`/pages/generation-progress/index?source=created${redemptionParams}`);
   };
 
   const isFormComplete = catName.trim().length > 0 && selectedPresetId !== null;

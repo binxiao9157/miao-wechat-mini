@@ -71,10 +71,10 @@ vi.mock('../../services/storage', () => ({
 
 vi.mock('../../services/volcanoService', () => ({
   ACTION_PROMPTS: {
-    idle: 'idle prompt',
-    tail: 'tail prompt',
-    rubbing: 'rubbing prompt',
-    blink: 'blink prompt',
+    v1_approach: { prompt: 'v1 prompt', duration: 7 },
+    v2_wait: { prompt: 'v2 prompt', duration: 4 },
+    v3_return: { prompt: 'v3 prompt', duration: 7 },
+    v4_fetch: { prompt: 'v4 prompt', duration: 7 },
   },
   VolcanoService: {
     submitTask: vi.fn(async () => ({ id: 'task-1' })),
@@ -93,6 +93,7 @@ import GenerationProgress from './index';
 import { useAuthContext } from '../../context/AuthContext';
 import { FileManager } from '../../services/fileManager';
 import { storage } from '../../services/storage';
+import { VolcanoService } from '../../services/volcanoService';
 
 describe('GenerationProgress lifecycle', () => {
   beforeEach(() => {
@@ -116,11 +117,41 @@ describe('GenerationProgress lifecycle', () => {
 
     unmount();
     await act(async () => {
-      download.resolve({ idle: 'https://cdn.example.com/persisted.mp4' });
+      download.resolve({ v1_approach: 'https://cdn.example.com/persisted.mp4' });
       await download.promise;
     });
 
     expect(storage.setActiveCatId).not.toHaveBeenCalled();
     expect(refreshCatStatus).not.toHaveBeenCalled();
+  });
+
+  it('generates and persists the first video as v1_approach', async () => {
+    vi.mocked(FileManager.downloadVideos).mockResolvedValue({ v1_approach: 'https://cdn.example.com/v1.mp4' });
+
+    render(<GenerationProgress />);
+
+    await waitFor(() => {
+      expect(VolcanoService.submitTask).toHaveBeenCalledWith(
+        activeCat.avatar,
+        expect.objectContaining({
+          prompt: 'v1 prompt',
+          duration: 7,
+          firstFrame: activeCat.avatar,
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(FileManager.downloadVideos).toHaveBeenCalledWith(
+        { v1_approach: 'https://cdn.example.com/idle.mp4' },
+        activeCat.id,
+        activeCat.name,
+        activeCat.avatar,
+        expect.objectContaining({
+          anchorFrame: activeCat.avatar,
+          placeholderImage: activeCat.avatar,
+        }),
+      );
+    });
   });
 });

@@ -64,7 +64,9 @@ function uploadFileOnce(options: UploadOptions, fullUrl: string, token: string):
           try {
             const data = JSON.parse(res.data || '{}');
             message = data.message || data.error || message;
-          } catch {}
+          } catch (error) {
+            console.warn('[uploadAdapter] upload error response parse failed:', error);
+          }
           if (res.statusCode === 401) {
             handleUnauthorizedUpload();
             return reject(new Error('登录已过期，请重新登录'));

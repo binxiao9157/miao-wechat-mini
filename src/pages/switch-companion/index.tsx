@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
-import { navigateTo, reLaunch, useDidShow } from '@tarojs/taro';
+import { useDidShow } from '@tarojs/taro';
 import CatAvatar from '../../components/common/CatAvatar';
 import PageHeader from '../../components/layout/PageHeader';
+import { reLaunch } from '../../utils/navigateAdapter';
 
 const PLUS_WHITE = require('../../assets/profile-icons/plus-white.png');
 const CHECKCIRCLE_GREEN = require('../../assets/profile-icons/checkcircle-green.png');
@@ -51,7 +52,7 @@ export default function SwitchCompanion() {
 
   const handleAddNew = () => {
     if (points >= REDEEM_THRESHOLD) {
-      reLaunch({ url: `/pages/empty-cat/index?isRedemption=1&redemptionAmount=${REDEEM_THRESHOLD}` });
+      reLaunch(`/pages/empty-cat/index?isRedemption=1&redemptionAmount=${REDEEM_THRESHOLD}`);
     }
   };
 
@@ -69,7 +70,7 @@ export default function SwitchCompanion() {
     setDeletingCat(null);
 
     if (remaining.length === 0) {
-      reLaunch({ url: '/pages/empty-cat/index' });
+      reLaunch('/pages/empty-cat/index');
     }
   };
 

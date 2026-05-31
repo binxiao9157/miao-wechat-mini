@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {  View, Text, Image } from '@tarojs/components';
-import Taro, { navigateTo } from '@tarojs/taro';
-import { safeBack } from '../../utils/navigateAdapter';
+import Taro from '@tarojs/taro';
+import { navigateTo, safeBack } from '../../utils/navigateAdapter';
 import PageHeader from '../../components/layout/PageHeader';
 const SCAN_PNG = require('../../assets/profile-icons/scan-primary.png');
 import { FriendInfo } from '../../services/storage';
 import { friendService } from '../../services/friendService';
 import { useManagedTimeout } from '../../hooks/useManagedTimeout';
+import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
 import './index.less';
 
 export default function ScanFriend() {
@@ -19,10 +20,15 @@ export default function ScanFriend() {
 
   useEffect(() => {
     // 自动启动扫码
-    startScan();
+    void startScan();
   }, []);
 
-  const startScan = () => {
+  const startScan = async () => {
+    if (!await ensurePrivacyAuthorized('扫码添加好友')) {
+      setScanning(false);
+      safeBack();
+      return;
+    }
     setScanning(true);
     Taro.scanCode({
       onlyFromCamera: false,
@@ -115,7 +121,7 @@ export default function ScanFriend() {
           </View>
           <Text className="action-label">再次扫码</Text>
         </View>
-        <View className="action-item" onClick={() => navigateTo({ url: '/pages/add-friend-qr/index' })}>
+        <View className="action-item" onClick={() => navigateTo('/pages/add-friend-qr/index')}>
           <View className="action-circle">
             <Text className="action-emoji">📱</Text>
           </View>

@@ -34,6 +34,7 @@ export default function GenerationProgress() {
   const navSpace = useNavSpace();
 
   const router = Taro.getCurrentInstance().router;
+  const routeCatId = typeof router?.params?.catId === 'string' ? router.params.catId : '';
   const isRedemption = router?.params?.isRedemption === '1';
   const redemptionAmount = Number(router?.params?.redemptionAmount) || 0;
 
@@ -78,7 +79,9 @@ export default function GenerationProgress() {
     if (startedRef.current) return;
     startedRef.current = true;
     const { controller, runId } = beginGenerationRun();
-    const activeCat = storage.getActiveCat();
+    const activeCat = routeCatId
+      ? storage.getCatById(routeCatId) || storage.getActiveCat()
+      : storage.getActiveCat();
     if (!activeCat) {
       safeBack();
       return () => controller.abort();

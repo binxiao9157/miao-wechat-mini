@@ -6,7 +6,7 @@ const SPARKLES_WHITE = require('../../assets/profile-icons/sparkles-white.png');
 import { storage, PresetCat } from '../../services/storage';
 import { DEFAULT_AVATAR } from '../../utils/constants';
 import { useManagedTimeout } from '../../hooks/useManagedTimeout';
-import { navigateTo } from '../../utils/navigateAdapter';
+import { redirectTo } from '../../utils/navigateAdapter';
 import { checkTextContent } from '../../services/contentSafetyService';
 import './index.less';
 
@@ -66,7 +66,7 @@ export default function CreateCompanion() {
 
     // 跳转到生成进度页
     const redemptionParams = isRedemption ? `&isRedemption=1&redemptionAmount=${redemptionAmount}` : '';
-    navigateTo(`/pages/generation-progress/index?source=created${redemptionParams}`);
+    redirectTo(`/pages/generation-progress/index?source=created&catId=${encodeURIComponent(newCat.id)}${redemptionParams}`);
   };
 
   const isFormComplete = catName.trim().length > 0 && selectedPresetId !== null;

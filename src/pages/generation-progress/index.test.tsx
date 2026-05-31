@@ -154,4 +154,28 @@ describe('GenerationProgress lifecycle', () => {
       );
     });
   });
+
+  it('starts generation for the cat id passed in route params instead of relying only on active cat', async () => {
+    const routeCat = { ...activeCat, id: 'cat-route', name: 'Route Cat' };
+    const otherActiveCat = { ...activeCat, id: 'cat-active', name: 'Active Cat' };
+    const Taro = await import('@tarojs/taro');
+    vi.mocked(Taro.default.getCurrentInstance).mockReturnValue({ router: { params: { catId: 'cat-route' } } } as any);
+    vi.mocked(storage.getActiveCat).mockReturnValue(otherActiveCat as any);
+    vi.mocked(storage.getCatById).mockImplementation((id: string) => (
+      id === 'cat-route' ? routeCat : otherActiveCat
+    ) as any);
+    vi.mocked(FileManager.downloadVideos).mockResolvedValue({ v1_approach: 'https://cdn.example.com/v1.mp4' });
+
+    render(<GenerationProgress />);
+
+    await waitFor(() => {
+      expect(storage.getCatById).toHaveBeenCalledWith('cat-route');
+      expect(VolcanoService.submitTask).toHaveBeenCalledWith(
+        routeCat.avatar,
+        expect.objectContaining({
+          firstFrame: routeCat.avatar,
+        }),
+      );
+    });
+  });
 });

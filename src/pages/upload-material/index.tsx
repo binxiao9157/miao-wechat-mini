@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Image, Input, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
-import { navigateTo, safeBack } from '../../utils/navigateAdapter';
+import { redirectTo, safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 
@@ -132,7 +132,7 @@ export default function UploadMaterial() {
     storage.saveCatInfo(newCat);
 
     const redemptionParams = isRedemption ? `&isRedemption=1&redemptionAmount=${redemptionAmount}` : '';
-    navigateTo(`/pages/generation-progress/index?source=uploaded${redemptionParams}`);
+    redirectTo(`/pages/generation-progress/index?source=uploaded&catId=${encodeURIComponent(newCat.id)}${redemptionParams}`);
   };
 
   const handleRegenerate = () => {

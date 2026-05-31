@@ -120,6 +120,14 @@ describe('code quality guardrails', () => {
     expect(profileSource).toContain('requireLogin(() => navigateTo(item.url))');
   });
 
+  it('passes cat id into generation progress and avoids stacking generation pages', () => {
+    const createSource = fs.readFileSync(path.join(srcRoot, 'pages/create-companion/index.tsx'), 'utf8');
+    const uploadSource = fs.readFileSync(path.join(srcRoot, 'pages/upload-material/index.tsx'), 'utf8');
+
+    expect(createSource).toContain('redirectTo(`/pages/generation-progress/index?source=created&catId=${encodeURIComponent(newCat.id)}');
+    expect(uploadSource).toContain('redirectTo(`/pages/generation-progress/index?source=uploaded&catId=${encodeURIComponent(newCat.id)}');
+  });
+
   it('does not register admin settings as an unconditional release page', () => {
     const appConfigSource = fs.readFileSync(path.join(srcRoot, 'app.config.ts'), 'utf8');
 

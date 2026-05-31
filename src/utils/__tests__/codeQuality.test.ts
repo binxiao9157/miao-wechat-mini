@@ -258,11 +258,31 @@ describe('code quality guardrails', () => {
       'lucide-react',
       'qrcode.react',
       '重置密码验证码',
+      'process.env',
+      'process is not defined',
     ];
 
     expect(fs.existsSync(scanPath)).toBe(true);
     expectedChecks.forEach(check => {
       expect(scanSource).toContain(check);
+    });
+  });
+
+  it('provides a backend API contract check for mini program release endpoints', () => {
+    const contractPath = path.join(projectRoot, 'scripts/check-api-contract.mjs');
+    const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
+    const contractSource = fs.existsSync(contractPath) ? fs.readFileSync(contractPath, 'utf8') : '';
+
+    expect(packageJson.scripts['release:api-contract']).toBe('node scripts/check-api-contract.mjs');
+    expect(packageJson.scripts['release:check']).toContain('npm run release:api-contract');
+    [
+      '/api/v1/security/text',
+      '/api/v1/security/media',
+      '/api/v1/security/media-file',
+      '/api/v1/ai/tasks-file',
+      '/api/v1/ai/tasks/:taskId',
+    ].forEach(route => {
+      expect(contractSource).toContain(route);
     });
   });
 

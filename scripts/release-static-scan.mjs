@@ -94,8 +94,14 @@ const forbiddenReleaseStrings = [
   '重置密码验证码',
 ];
 
+const distOnlyForbiddenReleaseStrings = [
+  'process.env',
+  'process is not defined',
+];
+
 assertNoContentMatches('source scan', sourceFiles, forbiddenReleaseStrings);
 assertNoContentMatches('dist scan', distFiles, forbiddenReleaseStrings);
+assertNoContentMatches('dist scan', distFiles, distOnlyForbiddenReleaseStrings);
 
 if (failures.length > 0) {
   console.error('Release static scan failed:');

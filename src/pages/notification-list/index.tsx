@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
-import Taro, { navigateTo, useDidShow } from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import PageHeader from '../../components/layout/PageHeader';
 import { storage, TimeLetter, PointsInfo } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
 import { getEffectiveUnlockAt, isTimeLetterUnlocked } from '../../utils/timeLetterUnlock';
+import { navigateTo, switchTab } from '../../utils/navigateAdapter';
 
 const SETTINGS_DARK = require('../../assets/profile-icons/settings-dark.png');
 const SPARKLES_PRIMARY = require('../../assets/profile-icons/sparkles-primary.png');
@@ -97,7 +98,8 @@ async function fetchServerNotifications(): Promise<Notification[]> {
       catAvatar: n.catAvatar,
       source: 'server' as const,
     }));
-  } catch {
+  } catch (error) {
+    console.warn('[NotificationList] fetch server notifications failed:', error);
     return [];
   }
 }
@@ -127,17 +129,19 @@ export default function NotificationList() {
     if (notification.source === 'server') {
       try {
         await request({ url: `/api/v1/notifications/${notification.id}/read`, method: 'PUT' });
-      } catch {}
+      } catch (error) {
+        console.warn('[NotificationList] mark notification read failed:', error);
+      }
     }
     setNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, read: true } : n));
 
     // 跳转到对应页面
     if (notification.type === 'letter') {
-      navigateTo({ url: '/pages/time-letters/index' });
+      navigateTo('/pages/time-letters/index');
     } else if (notification.type === 'points') {
-      navigateTo({ url: '/pages/points/index' });
+      navigateTo('/pages/points/index');
     } else if (notification.type === 'friend_share') {
-      Taro.switchTab({ url: '/pages/diary/index' });
+      switchTab('/pages/diary/index');
     }
   };
 
@@ -147,7 +151,9 @@ export default function NotificationList() {
     });
     try {
       await request({ url: '/api/v1/notifications/read-all', method: 'PUT' });
-    } catch {}
+    } catch (error) {
+      console.warn('[NotificationList] mark all notifications read failed:', error);
+    }
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
@@ -178,7 +184,7 @@ export default function NotificationList() {
       <PageHeader
         title="通知"
         rightElement={
-          <View className="settings-btn" onClick={() => navigateTo({ url: '/pages/notifications/index' })}>
+          <View className="settings-btn" onClick={() => navigateTo('/pages/notifications/index')}>
             <Image className="icon-img" src={SETTINGS_DARK} mode="aspectFit" style={{ width: 22, height: 22 }} />
           </View>
         }

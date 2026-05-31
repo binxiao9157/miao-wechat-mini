@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Video, Image } from '@tarojs/components';
-import Taro, { navigateTo, reLaunch } from '@tarojs/taro';
+import Taro from '@tarojs/taro';
 import { VolcanoService, ACTION_PROMPTS } from '../../services/volcanoService';
 import { FileManager } from '../../services/fileManager';
 import { storage } from '../../services/storage';
 import { isCatReady } from '../../services/catLifecycle';
+import type { FourStageVideoAction } from '../../services/videoActions';
 import { useAuthContext } from '../../context/AuthContext';
 import { useNavSpace } from '../../hooks/useNavSpace';
-import { safeBack } from '../../utils/navigateAdapter';
+import { navigateTo, reLaunch, safeBack } from '../../utils/navigateAdapter';
 
 const SPARKLES_GRAY = require('../../assets/profile-icons/sparkles-gray.png');
 const SPARKLES_PRIMARY = require('../../assets/profile-icons/sparkles-primary.png');
@@ -40,7 +41,7 @@ export default function GenerationProgress() {
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState('正在准备生成...');
   const [errorMsg, setErrorMsg] = useState('');
-  const [idleVideoUrl, setIdleVideoUrl] = useState<string | null>(null);
+  const [primaryVideoUrl, setPrimaryVideoUrl] = useState<string | null>(null);
   const [anchorImage, setAnchorImage] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
@@ -49,18 +50,42 @@ export default function GenerationProgress() {
   const catRef = useRef<{ id: string; name: string; breed: string; color: string; avatar: string; source: 'created' | 'uploaded' } | null>(null);
   const startedRef = useRef(false);
   const unlockStartedRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const confirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const runIdRef = useRef(0);
+
+  const clearConfirmTimer = () => {
+    if (confirmTimerRef.current) {
+      clearTimeout(confirmTimerRef.current);
+      confirmTimerRef.current = null;
+    }
+  };
+
+  const beginGenerationRun = () => {
+    abortControllerRef.current?.abort();
+    clearConfirmTimer();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    runIdRef.current += 1;
+    return { controller, runId: runIdRef.current };
+  };
+
+  const isActiveRun = (runId: number, signal?: AbortSignal) => {
+    return runIdRef.current === runId && !signal?.aborted;
+  };
 
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
+    const { controller, runId } = beginGenerationRun();
     const activeCat = storage.getActiveCat();
     if (!activeCat) {
       safeBack();
-      return;
+      return () => controller.abort();
     }
     if (isCatReady(activeCat)) {
-      reLaunch({ url: '/pages/home/index' });
-      return;
+      reLaunch('/pages/home/index');
+      return () => controller.abort();
     }
     catRef.current = {
       id: activeCat.id,
@@ -72,7 +97,15 @@ export default function GenerationProgress() {
     };
 
     setAnchorImage(activeCat.avatar);
-    startGeneration(activeCat);
+    startGeneration(activeCat, controller.signal, runId);
+    return () => {
+      controller.abort();
+      clearConfirmTimer();
+      runIdRef.current += 1;
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
+    };
   }, []);
 
   // 沉浸式状态文字自动轮播
@@ -84,9 +117,10 @@ export default function GenerationProgress() {
     }
   }, [progress, phase]);
 
-  const startGeneration = async (cat: NonNullable<typeof catRef.current>) => {
+  const startGeneration = async (cat: NonNullable<typeof catRef.current>, signal: AbortSignal | undefined, runId: number) => {
     let pointsDeducted = 0;
     try {
+      if (!isActiveRun(runId, signal)) return;
       const currentCat = storage.getCatById(cat.id);
       storage.saveCatInfo({
         ...(currentCat || cat),
@@ -115,7 +149,12 @@ export default function GenerationProgress() {
       setStatusText('正在编织它的动作姿态...');
 
       // 提交视频生成任务
-      const task = await VolcanoService.submitTask(imageUrl, ACTION_PROMPTS.idle);
+      const task = await VolcanoService.submitTask(imageUrl, {
+        prompt: ACTION_PROMPTS.v1_approach.prompt,
+        duration: ACTION_PROMPTS.v1_approach.duration,
+        firstFrame: imageUrl,
+      });
+      if (!isActiveRun(runId, signal)) return;
 
       setProgress(30);
       setStatusText(getImmersiveStatus(30));
@@ -124,6 +163,7 @@ export default function GenerationProgress() {
       const videoUrl = await VolcanoService.pollTaskResult(
         task.id,
         (s) => {
+          if (!isActiveRun(runId, signal)) return;
           const statusMap: Record<string, string> = {
             'running': getImmersiveStatus(50),
             'processing': getImmersiveStatus(60),
@@ -133,15 +173,17 @@ export default function GenerationProgress() {
           if (s === 'running' || s === 'processing') {
             setProgress(prev => Math.min(prev + 5, 85));
           }
-        }
+        },
+        signal
       );
+      if (!isActiveRun(runId, signal)) return;
 
       setProgress(90);
       setStatusText('正在开启次元通道...');
 
       // 更新猫咪视频信息
       const finalVideoPaths = await FileManager.downloadVideos(
-        { idle: videoUrl },
+        { v1_approach: videoUrl },
         cat.id,
         cat.name,
         cat.avatar,
@@ -153,8 +195,10 @@ export default function GenerationProgress() {
           anchorFrame: cat.avatar,
         }
       );
-      const playableIdleVideoUrl = finalVideoPaths.idle || videoUrl;
-      setIdleVideoUrl(playableIdleVideoUrl);
+      if (!isActiveRun(runId, signal)) return;
+
+      const playablePrimaryVideoUrl = finalVideoPaths.v1_approach || videoUrl;
+      setPrimaryVideoUrl(playablePrimaryVideoUrl);
 
       // 确认保存成功
       const saved = storage.getCatById(cat.id);
@@ -167,11 +211,13 @@ export default function GenerationProgress() {
       setPhase('confirm');
 
       // 短暂延迟后显示确认对话框
-      setTimeout(() => {
+      confirmTimerRef.current = setTimeout(() => {
+        if (!isActiveRun(runId, signal)) return;
         setShowConfirmDialog(true);
       }, 1500);
 
     } catch (err: any) {
+      if (!isActiveRun(runId, signal)) return;
       const message = err.message || '生成失败，请重试';
       // 生成失败时退还积分
       if (pointsDeducted > 0) {
@@ -192,17 +238,54 @@ export default function GenerationProgress() {
     }
   };
 
-  const runSecondaryUnlock = async (cat: NonNullable<typeof catRef.current>) => {
-    const secondaryActions: (keyof typeof ACTION_PROMPTS)[] = ['tail', 'rubbing', 'blink'];
+  const runSecondaryUnlock = async (cat: NonNullable<typeof catRef.current>, signal?: AbortSignal) => {
+    const secondaryActions: FourStageVideoAction[] = ['v2_wait', 'v3_return', 'v4_fetch'];
+    let completed = 0;
+    let failed = 0;
     try {
       const anchorFrame = anchorImage || cat.avatar;
+      await FileManager.updateCatVideos(cat.id, {}, true, {
+        completed,
+        total: secondaryActions.length,
+        currentAction: secondaryActions[0],
+        failed,
+      });
+
       for (const action of secondaryActions) {
+        if (signal?.aborted) return;
         try {
-          const task = await VolcanoService.submitTask(anchorFrame, ACTION_PROMPTS[action]);
-          const videoUrl = await VolcanoService.pollTaskResult(task.id);
-          await FileManager.updateCatVideos(cat.id, { [action]: videoUrl }, true);
+          await FileManager.updateCatVideos(cat.id, {}, true, {
+            completed,
+            total: secondaryActions.length,
+            currentAction: action,
+            failed,
+          });
+          const actionPrompt = ACTION_PROMPTS[action];
+          const task = await VolcanoService.submitTask(anchorFrame, {
+            prompt: actionPrompt.prompt,
+            duration: actionPrompt.duration,
+            firstFrame: anchorFrame,
+            lastFrame: anchorFrame,
+            hasLastFrame: action === 'v2_wait',
+          });
+          const videoUrl = await VolcanoService.pollTaskResult(task.id, undefined, signal);
+          completed += 1;
+          const actionError = failed > 0 ? `有 ${failed} 个后续动作暂未生成成功` : null;
+          await FileManager.updateCatVideos(cat.id, { [action]: videoUrl }, true, {
+            completed,
+            total: secondaryActions.length,
+            currentAction: action,
+            failed,
+          }, { actionGenerationError: actionError });
           await new Promise(resolve => setTimeout(resolve, 3000));
         } catch (e) {
+          failed += 1;
+          await FileManager.updateCatVideos(cat.id, {}, true, {
+            completed,
+            total: secondaryActions.length,
+            currentAction: action,
+            failed,
+          }, { actionGenerationError: `有 ${failed} 个后续动作暂未生成成功` });
           console.error(`动作 ${action} 生成失败:`, e);
         }
       }
@@ -210,7 +293,7 @@ export default function GenerationProgress() {
       await FileManager.updateCatVideos(cat.id, {}, false);
     } catch (e) {
       console.error('后台生成任务失败:', e);
-      await FileManager.updateCatVideos(cat.id, {}, false);
+      await FileManager.updateCatVideos(cat.id, {}, false, undefined, { actionGenerationError: '后续动作生成失败，稍后可重试' });
     }
   };
 
@@ -241,22 +324,24 @@ export default function GenerationProgress() {
     Taro.showToast({ title: '已开始后台解锁', icon: 'none' });
 
     void runSecondaryUnlock(cat);
-    reLaunch({ url: '/pages/home/index' });
+    reLaunch('/pages/home/index');
   };
 
   const handleStayBasic = () => {
-    reLaunch({ url: '/pages/home/index' });
+    reLaunch('/pages/home/index');
   };
 
   const handleRetry = () => {
     setPhase('generating');
     setProgress(0);
     setErrorMsg('');
-    setIdleVideoUrl(null);
+    setPrimaryVideoUrl(null);
     setShowConfirmDialog(false);
+    clearConfirmTimer();
 
     if (catRef.current) {
-      startGeneration(catRef.current);
+      const { controller, runId } = beginGenerationRun();
+      startGeneration(catRef.current, controller.signal, runId);
     } else {
       safeBack();
     }
@@ -272,7 +357,7 @@ export default function GenerationProgress() {
       ? `?isRedemption=1&redemptionAmount=${redemptionAmount}`
       : '';
     const target = cat?.source === 'uploaded' ? '/pages/upload-material/index' : '/pages/create-companion/index';
-    navigateTo({ url: `${target}${redemptionQuery}` });
+    navigateTo(`${target}${redemptionQuery}`);
   };
 
   return (
@@ -337,10 +422,10 @@ export default function GenerationProgress() {
       {phase === 'confirm' && (
         <View className="confirm-view">
           {/* 视频预览 */}
-          {idleVideoUrl ? (
+          {primaryVideoUrl ? (
             <Video
               className="preview-video"
-              src={idleVideoUrl}
+              src={primaryVideoUrl}
               autoplay
               loop
               muted
@@ -366,7 +451,7 @@ export default function GenerationProgress() {
                 </View>
                 <Text className="dialog-title">我是你的梦中情猫吗？</Text>
                 <Text className="dialog-desc">
-                  形象已初步锁定！是否还需要解锁我更多动作（摸头、踩奶、玩耍）？
+                  形象已初步锁定！是否还需要解锁等待、回窝、叼毛线球等更多互动？
                 </Text>
                 <View className="dialog-actions">
                   <View className={`dialog-btn primary ${isUnlocking ? 'disabled' : ''}`} onClick={handleUnlockAll}>

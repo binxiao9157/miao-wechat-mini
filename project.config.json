@@ -5,7 +5,7 @@
   "appid": "wx4c0c312f5b762e8e",
   "compileType": "miniprogram",
   "setting": {
-    "urlCheck": false,
+    "urlCheck": true,
     "es6": true,
     "enhance": true,
     "postcss": true,
@@ -26,7 +26,7 @@
     "minifyWXML": true,
     "compileWorklet": false,
     "uglifyFileName": false,
-    "uploadWithSourceMap": true,
+    "uploadWithSourceMap": false,
     "packNpmManually": false,
     "packNpmRelationList": [],
     "minifyWXSS": true,

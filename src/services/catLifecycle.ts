@@ -1,9 +1,9 @@
-import Taro from '@tarojs/taro';
 import { storage, CatInfo } from './storage';
+import { reLaunch, switchTab } from '../utils/navigateAdapter';
+import { getPrimaryVideoUrl as getPreferredPrimaryVideoUrl } from './videoActions';
 
 export function getPrimaryVideoUrl(cat: CatInfo | null | undefined): string {
-  if (!cat) return '';
-  return cat.videoPaths?.idle || cat.videoPath || cat.remoteVideoUrl || '';
+  return getPreferredPrimaryVideoUrl(cat);
 }
 
 export function isCatReady(cat: CatInfo | null | undefined): boolean {
@@ -38,23 +38,23 @@ export function routeAfterCatSync(): void {
   const cat = getActiveOrFirstCat();
 
   if (!cat) {
-    Taro.reLaunch({ url: '/pages/cat-start/index' });
+    reLaunch('/pages/cat-start/index');
     return;
   }
 
   storage.setActiveCatId(cat.id);
 
   if (isCatGenerationFailed(cat)) {
-    Taro.reLaunch({ url: '/pages/empty-cat/index' });
+    reLaunch('/pages/empty-cat/index');
     return;
   }
 
   if (isCatReady(cat)) {
-    Taro.switchTab({ url: '/pages/home/index' }).catch(() => {
-      Taro.reLaunch({ url: '/pages/home/index' });
+    switchTab('/pages/home/index').catch(() => {
+      reLaunch('/pages/home/index');
     });
     return;
   }
 
-  Taro.reLaunch({ url: '/pages/generation-progress/index' });
+  reLaunch('/pages/generation-progress/index');
 }

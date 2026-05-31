@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
+import { switchTab } from '../utils/navigateAdapter';
 import './index.less';
 
 // Lucide-style icon images for tab bar
@@ -81,7 +82,7 @@ export default function CustomTabBar() {
             className={`miao-tab ${active ? 'active' : ''} ${tab.center ? 'center' : ''}`}
             onClick={() => {
               setActiveRoute(tabRoute);
-              Taro.switchTab({ url: tab.pagePath });
+              switchTab(tab.pagePath);
             }}
           >
             <View className="miao-tab-icon">

@@ -32,6 +32,12 @@ interface RequestResult {
   headers: Record<string, string>;
 }
 
+function handleUnauthorized() {
+  removeItem('miao_auth_token');
+  removeItem('miao_current_user');
+  Taro.eventCenter.trigger('auth:unauthorized');
+}
+
 /**
  * 发送 HTTP 请求
  */
@@ -45,10 +51,10 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
   } = options;
 
   const isMini = isMiniProgram();
-  // 小程序环境需要完整域名，Web/H5 环境保留调用方传入的 /api 路径。
+  // 小程序环境需要完整域名，Web/H5 环境可选配置 API 域名。
   const baseURL = isMini
     ? (process.env.TARO_APP_API_BASE_URL || 'https://www.mmdd10.tech')
-    : '';
+    : (process.env.TARO_APP_API_BASE_URL || '').replace(/\/$/, '');
   const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`;
   const token = getItem('miao_auth_token');
   const requestHeaders = {
@@ -72,11 +78,7 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
       if (res.statusCode < 200 || res.statusCode >= 300) {
         const errData = res.data as any;
         const msg = errData?.message || errData?.error || `HTTP ${res.statusCode}`;
-        if (res.statusCode === 401 && errData?.code === 'UNAUTHORIZED') {
-          removeItem('miao_auth_token');
-          removeItem('miao_current_user');
-          Taro.eventCenter.trigger('auth:unauthorized');
-        }
+        if (res.statusCode === 401) handleUnauthorized();
         const err: any = new Error(msg);
         err.response = { status: res.statusCode, data: errData };
         throw err;
@@ -105,18 +107,15 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
   }
 
   // Web 环境使用 fetch
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
     const response = await fetch(fullUrl, {
       method,
       headers: requestHeaders,
       body: data ? JSON.stringify(data) : undefined,
       signal: controller.signal,
     });
-
-    clearTimeout(timeoutId);
 
     let responseData: any;
     try {
@@ -125,11 +124,7 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
       responseData = {};
     }
 
-    if (response.status === 401 && responseData?.code === 'UNAUTHORIZED') {
-      removeItem('miao_auth_token');
-      removeItem('miao_current_user');
-      Taro.eventCenter.trigger('auth:unauthorized');
-    }
+    if (response.status === 401) handleUnauthorized();
 
     if (response.status < 200 || response.status >= 300) {
       const msg = responseData?.message || responseData?.error || `HTTP ${response.status}`;
@@ -149,6 +144,8 @@ export const request = async (options: RequestOptions): Promise<RequestResult> =
       throw new Error('请求超时');
     }
     throw new Error(`网络请求失败: ${error.message}`);
+  } finally {
+    clearTimeout(timeoutId);
   }
 };
 

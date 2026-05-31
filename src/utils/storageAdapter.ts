@@ -69,11 +69,15 @@ export const removeItem = (key: string): void => {
   if (isMiniProgram()) {
     try {
       Taro.removeStorageSync(key);
-    } catch {}
+    } catch (error) {
+      console.warn('[storageAdapter] removeStorageSync failed:', error);
+    }
   } else {
     try {
       localStorage.removeItem(key);
-    } catch {}
+    } catch (error) {
+      console.warn('[storageAdapter] localStorage removeItem failed:', error);
+    }
   }
 };
 
@@ -84,11 +88,15 @@ export const clear = (): void => {
   if (isMiniProgram()) {
     try {
       Taro.clearStorageSync();
-    } catch {}
+    } catch (error) {
+      console.warn('[storageAdapter] clearStorageSync failed:', error);
+    }
   } else {
     try {
       localStorage.clear();
-    } catch {}
+    } catch (error) {
+      console.warn('[storageAdapter] localStorage clear failed:', error);
+    }
   }
 };
 

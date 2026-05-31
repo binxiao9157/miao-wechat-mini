@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Input, Image, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { safeBack } from '../../utils/navigateAdapter';
 import { storage } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
 import PageHeader from '../../components/layout/PageHeader';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 import './index.less';
 
 const EYE_DARK = require('../../assets/profile-icons/eye-dark.png');
@@ -20,10 +21,30 @@ export default function ResetPassword() {
   const [countdown, setCountdown] = useState(0);
   const [showToast, setShowToast] = useState(false);
   const codeRef = useRef('');
+  const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { clearManagedTimeouts, setManagedTimeout } = useManagedTimeout();
 
-  let countdownTimer: ReturnType<typeof setInterval>;
+  const clearCountdownTimer = () => {
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+  };
+
+  const scheduleSafeBack = () => {
+    clearManagedTimeouts();
+    setManagedTimeout(() => {
+      safeBack();
+    }, 1500);
+  };
+
+  useEffect(() => () => {
+    clearCountdownTimer();
+  }, []);
 
   const handleSendCode = async () => {
+    if (countdown > 0) return;
+
     if (!phone || phone.length !== 11) {
       setError('请输入正确的手机号');
       return;
@@ -39,7 +60,12 @@ export default function ResetPassword() {
       if (process.env.NODE_ENV === 'development') {
         const mockCode = String(Math.floor(100000 + Math.random() * 900000));
         codeRef.current = mockCode;
-        console.log('[Dev] 重置密码验证码:', mockCode);
+        Taro.showModal({
+          title: '开发模式验证',
+          content: `本次开发验证码：${mockCode}`,
+          showCancel: false,
+          confirmText: '知道了',
+        });
         Taro.showToast({ title: '验证码已发送（开发模式）', icon: 'none' });
       } else {
         setError('验证码发送失败，请稍后重试');
@@ -48,10 +74,11 @@ export default function ResetPassword() {
     }
 
     setCountdown(60);
-    countdownTimer = setInterval(() => {
+    clearCountdownTimer();
+    countdownTimerRef.current = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) {
-          clearInterval(countdownTimer);
+          clearCountdownTimer();
           return 0;
         }
         return prev - 1;
@@ -81,17 +108,13 @@ export default function ResetPassword() {
         data: resetData,
       });
       setShowToast(true);
-      setTimeout(() => {
-        safeBack();
-      }, 1500);
+      scheduleSafeBack();
     } catch (e: any) {
       // 服务端 API 未就绪时，回退到开发模式验证
       if (process.env.NODE_ENV === 'development' && codeRef.current && code === codeRef.current) {
         storage.updatePassword(phone);
         setShowToast(true);
-        setTimeout(() => {
-          safeBack();
-        }, 1500);
+        scheduleSafeBack();
         return;
       }
       setError(e?.message || '重置密码失败，请重试');

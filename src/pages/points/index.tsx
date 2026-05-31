@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, Button, ScrollView } from '@tarojs/components';
-import Taro, { switchTab, navigateTo, useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
+import Taro, { useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
 import { storage, PointsInfo, PointTransaction } from '../../services/storage';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { trigger } from '../../utils/eventAdapter';
+import { navigateTo, switchTab } from '../../utils/navigateAdapter';
 import './index.less';
 
 // Lucide-style PNG icons
@@ -109,13 +110,13 @@ export default function Points() {
   const handleTaskClick = (task: typeof tasks[0]) => {
     if (!task.completed && task.id === 2) {
       trigger('home:show-interaction-hint', {});
-      switchTab({ url: '/pages/home/index' });
+      switchTab('/pages/home/index');
     }
   };
 
   const handleRedeem = () => {
     if (effectivePoints >= REDEEM_THRESHOLD) {
-      navigateTo({ url: `/pages/empty-cat/index?isRedemption=1&redemptionAmount=${REDEEM_THRESHOLD}` });
+      navigateTo(`/pages/empty-cat/index?isRedemption=1&redemptionAmount=${REDEEM_THRESHOLD}`);
     }
   };
 

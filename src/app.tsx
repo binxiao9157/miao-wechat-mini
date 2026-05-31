@@ -1,5 +1,5 @@
-import React, { Component, ReactNode } from 'react';
-import Taro, { useLaunch, eventCenter } from '@tarojs/taro';
+import React, { ReactNode } from 'react';
+import Taro, { useLaunch } from '@tarojs/taro';
 import { AuthProvider } from './context/AuthContext';
 import { syncManager } from './services/syncManager';
 import { syncQueue } from './services/syncQueue';
@@ -16,23 +16,36 @@ interface AppProps {
   children?: ReactNode;
 }
 
+async function runForegroundSync() {
+  try {
+    await syncQueue.flushNow();
+    await syncManager.syncAll();
+  } catch (error) {
+    console.warn('[App] foreground sync failed:', error);
+  }
+}
+
+function ensureForegroundSyncListeners() {
+  const globalState = globalThis as any;
+  if (globalState.__miaoForegroundSyncListenersRegistered) return;
+  globalState.__miaoForegroundSyncListenersRegistered = true;
+
+  Taro.onAppShow(runForegroundSync);
+
+  if (typeof document !== 'undefined') {
+    const visibilityHandler = () => {
+      if (document.visibilityState === 'visible') {
+        runForegroundSync();
+      }
+    };
+    document.addEventListener('visibilitychange', visibilityHandler);
+    globalState.__miaoForegroundVisibilityHandler = visibilityHandler;
+  }
+}
+
 function App({ children }: AppProps) {
   useLaunch(() => {
-    console.log('App launched.');
-    Taro.onAppShow(async () => {
-      await syncQueue.flushNow();
-      syncManager.syncAll();
-    });
-    // PWA: 监听页面切回前台时同步数据
-    if (typeof document !== 'undefined') {
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          syncQueue.flushNow().then(() => {
-            syncManager.syncAll();
-          });
-        }
-      });
-    }
+    ensureForegroundSyncListeners();
   });
 
   return (

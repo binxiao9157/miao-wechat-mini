@@ -1,4 +1,5 @@
 import { getItem, setItem, removeItem } from '../utils/storageAdapter';
+import { isDangerousDebugStorageEnabled } from '../utils/debugAccess';
 
 export type AIProvider = 'dashscope' | 'volcengine';
 
@@ -14,6 +15,7 @@ export interface AIProfile {
 }
 
 const STORAGE_KEYS = {
+  PROFILE_VERSION: 'MIAO_AI_PROFILE_VERSION',
   PROVIDER: 'MIAO_AI_PROVIDER',
   DASHSCOPE_IMAGE_MODEL: 'DASHSCOPE_IMAGE_MODEL',
   DASHSCOPE_VIDEO_MODEL: 'DASHSCOPE_VIDEO_MODEL',
@@ -57,6 +59,31 @@ const defaultProvider = (): AIProvider => {
   return isProvider(envProvider) ? envProvider : 'volcengine';
 };
 
+const activeProfileVersion = () =>
+  process.env.TARO_APP_AI_PROFILE_VERSION || 'release-volcengine-default-20260531';
+
+const resetStoredProfile = () => {
+  [
+    STORAGE_KEYS.PROVIDER,
+    STORAGE_KEYS.DASHSCOPE_IMAGE_MODEL,
+    STORAGE_KEYS.DASHSCOPE_VIDEO_MODEL,
+    STORAGE_KEYS.VOLC_IMAGE_MODEL,
+    STORAGE_KEYS.VOLC_VIDEO_MODEL,
+    STORAGE_KEYS.RESOLUTION,
+    STORAGE_KEYS.DURATION,
+    STORAGE_KEYS.SEED,
+    STORAGE_KEYS.PROMPT_EXTEND,
+    STORAGE_KEYS.MOCK_MODE,
+  ].forEach(key => removeItem(key));
+};
+
+const migrateProfileIfNeeded = () => {
+  const version = activeProfileVersion();
+  if (getItem(STORAGE_KEYS.PROFILE_VERSION) === version) return;
+  resetStoredProfile();
+  setItem(STORAGE_KEYS.PROFILE_VERSION, version);
+};
+
 const readNumber = (key: string, fallback: number) => {
   const raw = getItem(key);
   if (!raw) return fallback;
@@ -73,6 +100,7 @@ const readBool = (key: string, fallback: boolean) => {
 
 export const aiConfig = {
   getProfile(): AIProfile {
+    migrateProfileIfNeeded();
     const provider = isProvider(getItem(STORAGE_KEYS.PROVIDER))
       ? getItem(STORAGE_KEYS.PROVIDER) as AIProvider
       : defaultProvider();
@@ -92,11 +120,14 @@ export const aiConfig = {
       duration: readNumber(STORAGE_KEYS.DURATION, defaults.duration),
       seed: readNumber(STORAGE_KEYS.SEED, defaults.seed),
       promptExtend: readBool(STORAGE_KEYS.PROMPT_EXTEND, defaults.promptExtend),
-      mockMode: readBool(STORAGE_KEYS.MOCK_MODE, defaults.mockMode),
+      mockMode: isDangerousDebugStorageEnabled()
+        ? readBool(STORAGE_KEYS.MOCK_MODE, defaults.mockMode)
+        : false,
     };
   },
 
   saveProfile(profile: AIProfile) {
+    setItem(STORAGE_KEYS.PROFILE_VERSION, activeProfileVersion());
     setItem(STORAGE_KEYS.PROVIDER, profile.provider);
     setItem(
       profile.provider === 'dashscope' ? STORAGE_KEYS.DASHSCOPE_IMAGE_MODEL : STORAGE_KEYS.VOLC_IMAGE_MODEL,
@@ -110,11 +141,16 @@ export const aiConfig = {
     setItem(STORAGE_KEYS.DURATION, String(profile.duration));
     setItem(STORAGE_KEYS.SEED, String(profile.seed));
     setItem(STORAGE_KEYS.PROMPT_EXTEND, String(profile.promptExtend));
-    setItem(STORAGE_KEYS.MOCK_MODE, String(profile.mockMode));
+    if (isDangerousDebugStorageEnabled()) {
+      setItem(STORAGE_KEYS.MOCK_MODE, String(profile.mockMode));
+    } else {
+      removeItem(STORAGE_KEYS.MOCK_MODE);
+    }
   },
 
   reset() {
     Object.values(STORAGE_KEYS).forEach(key => removeItem(key));
+    setItem(STORAGE_KEYS.PROFILE_VERSION, activeProfileVersion());
   },
 };
 

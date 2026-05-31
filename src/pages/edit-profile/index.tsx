@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, Input, Image, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
-import { safeBack } from '../../utils/navigateAdapter';
+import { navigateTo, safeBack } from '../../utils/navigateAdapter';
 import PageHeader from '../../components/layout/PageHeader';
 const CAMERA_PNG = require('../../assets/profile-icons/camera-primary.png');
 const CHECKCIRCLE_PNG = require('../../assets/profile-icons/checkcircle-green.png');
 const IMAGEICON_PNG = require('../../assets/profile-icons/image-primary.png');
 const X_GRAY_PNG = require('../../assets/profile-icons/x-gray.png');
 import { useAuthContext } from '../../context/AuthContext';
-import { storage } from '../../services/storage';
 import { request } from '../../utils/httpAdapter';
+import { uploadFile } from '../../utils/uploadAdapter';
 import { DEFAULT_AVATAR } from '../../utils/constants';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
+import { checkMediaContent, checkTextContent } from '../../services/contentSafetyService';
+import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
 import './index.less';
 
 export default function EditProfile() {
@@ -20,6 +23,7 @@ export default function EditProfile() {
   const [isSaving, setIsSaving] = useState(false);
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const { setManagedTimeout } = useManagedTimeout();
 
   const handleSave = async () => {
     if (!nickname.trim()) {
@@ -29,19 +33,18 @@ export default function EditProfile() {
 
     setIsSaving(true);
     try {
+      await checkTextContent(nickname, 'profile');
       let avatarUrl = avatar;
       if (avatar && (avatar.startsWith('wxfile://') || avatar.startsWith('http://tmp') || avatar.includes('tmp'))) {
-        try {
-          const uploadRes = await Taro.uploadFile({
-            url: (process.env.TARO_APP_API_BASE_URL || '') + '/api/v1/upload',
-            filePath: avatar,
-            name: 'file',
-            header: { Authorization: `Bearer ${storage.getToken()}` },
-          });
-          const uploadData = JSON.parse(uploadRes.data);
-          avatarUrl = uploadData.url || uploadData.data?.url || avatar;
-        } catch {
-          // upload failed, use local path as fallback
+        await checkMediaContent(avatar, 'image', 'profile');
+        const uploadData = await uploadFile({
+          url: '/api/v1/upload',
+          filePath: avatar,
+          name: 'file',
+        });
+        avatarUrl = uploadData?.url || uploadData?.data?.url;
+        if (!avatarUrl) {
+          throw new Error('头像上传失败，请重试');
         }
       }
       const res = await request({
@@ -53,7 +56,7 @@ export default function EditProfile() {
         updateProfile({ nickname: res.data.user.nickname, avatar: res.data.user.avatar });
       }
       setShowSuccessToast(true);
-      setTimeout(() => safeBack(), 1500);
+      setManagedTimeout(() => safeBack(), 1500);
     } catch (e: any) {
       Taro.showToast({ title: e.message || '保存失败', icon: 'none' });
     } finally {
@@ -61,7 +64,8 @@ export default function EditProfile() {
     }
   };
 
-  const handleChooseFromAlbum = () => {
+  const handleChooseFromAlbum = async () => {
+    if (!await ensurePrivacyAuthorized('选择头像图片')) return;
     Taro.chooseImage({
       count: 1,
       sourceType: ['album'],
@@ -82,11 +86,14 @@ export default function EditProfile() {
           }
         });
       },
-      fail: () => {}
+      fail: (error) => {
+        console.warn('[EditProfile] choose image from album failed:', error);
+      }
     });
   };
 
-  const handleTakePhoto = () => {
+  const handleTakePhoto = async () => {
+    if (!await ensurePrivacyAuthorized('拍摄头像照片')) return;
     Taro.chooseImage({
       count: 1,
       sourceType: ['camera'],
@@ -96,7 +103,9 @@ export default function EditProfile() {
         setAvatar(tempFilePath);
         setShowActionSheet(false);
       },
-      fail: () => {}
+      fail: (error) => {
+        console.warn('[EditProfile] take profile photo failed:', error);
+      }
     });
   };
 
@@ -164,7 +173,7 @@ export default function EditProfile() {
         )}
 
         <View className="form-group">
-          <View className="nav-item" onClick={() => navigateTo({ url: '/pages/change-password/index' })}>
+          <View className="nav-item" onClick={() => navigateTo('/pages/change-password/index')}>
             <Text className="nav-item-text">修改登录密码</Text>
             <Text className="nav-item-arrow">›</Text>
           </View>
@@ -213,8 +222,4 @@ export default function EditProfile() {
       )}
     </View>
   );
-}
-
-function navigateTo(options: { url: string }) {
-  Taro.navigateTo(options);
 }

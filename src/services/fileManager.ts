@@ -1,6 +1,8 @@
 import { storage, CatInfo } from './storage';
+import type { CatUnlockProgress } from './storage';
 import { trigger } from '../utils/eventAdapter';
 import { post } from '../utils/httpAdapter';
+import { selectPrimaryVideoUrl } from './videoActions';
 
 const getApiBaseURL = () => (process.env.TARO_APP_API_BASE_URL || '').replace(/\/$/, '');
 
@@ -73,6 +75,10 @@ function getPrimaryStatus(currentStatus: CatInfo['generationStatus'], primaryVid
   return primaryVideo ? 'ready' : currentStatus;
 }
 
+interface UpdateCatVideosOptions {
+  actionGenerationError?: string | null;
+}
+
 export class FileManager {
   public static async downloadVideos(
     videoUrls: { [key: string]: string },
@@ -106,11 +112,12 @@ export class FileManager {
       avatar: avatarUrl,
       source: metadata?.source === 'created' ? 'created' : 'uploaded',
       createdAt: existingCat?.createdAt || Date.now(),
-      videoPath: finalPaths.idle || finalPaths.petting || Object.values(finalPaths)[0],
+      videoPath: selectPrimaryVideoUrl(finalPaths),
       videoPaths: finalPaths,
-      remoteVideoUrl: finalPaths.idle || finalPaths.petting || Object.values(finalPaths)[0],
+      remoteVideoUrl: selectPrimaryVideoUrl(finalPaths),
       placeholderImage: compressedPlaceholder,
       anchorFrame: compressedAnchor,
+      actionGenerationError: undefined,
       generationStatus: 'ready',
       generationError: undefined,
       generationUpdatedAt: Date.now(),
@@ -124,7 +131,9 @@ export class FileManager {
   public static async updateCatVideos(
     catId: string,
     newVideoUrls: { [key: string]: string },
-    isUnlocking: boolean = false
+    isUnlocking: boolean = false,
+    unlockProgress?: Omit<CatUnlockProgress, 'updatedAt'>,
+    options?: UpdateCatVideosOptions
   ): Promise<void> {
     const cat = storage.getCatById(catId);
     if (!cat) return;
@@ -137,17 +146,36 @@ export class FileManager {
     entries.forEach(([action], i) => {
       persistedUrls[action] = persisted[i];
     });
+    const nextUnlockProgress: CatUnlockProgress | undefined = unlockProgress
+      ? {
+          completed: unlockProgress.completed,
+          total: unlockProgress.total,
+          currentAction: unlockProgress.currentAction,
+          failed: unlockProgress.failed,
+          updatedAt: Date.now(),
+        }
+      : isUnlocking
+        ? cat.unlockProgress
+        : undefined;
+
+    const nextVideoPaths = {
+      ...cat.videoPaths,
+      ...persistedUrls
+    };
+    const primaryVideo = selectPrimaryVideoUrl(nextVideoPaths, cat.videoPath || cat.remoteVideoUrl);
+    const nextActionGenerationError = options?.actionGenerationError === null
+      ? undefined
+      : options?.actionGenerationError ?? cat.actionGenerationError;
 
     const updatedCat: CatInfo = {
       ...cat,
-      videoPaths: {
-        ...cat.videoPaths,
-        ...persistedUrls
-      },
-      videoPath: persistedUrls.idle || cat.videoPath || cat.remoteVideoUrl,
-      remoteVideoUrl: persistedUrls.idle || cat.remoteVideoUrl || cat.videoPath,
+      videoPaths: nextVideoPaths,
+      videoPath: primaryVideo,
+      remoteVideoUrl: primaryVideo,
       isUnlocking,
-      generationStatus: getPrimaryStatus(cat.generationStatus, persistedUrls.idle || cat.videoPath || cat.remoteVideoUrl),
+      unlockProgress: nextUnlockProgress,
+      actionGenerationError: nextActionGenerationError,
+      generationStatus: getPrimaryStatus(cat.generationStatus, primaryVideo),
       generationError: undefined,
       generationUpdatedAt: Date.now(),
     };

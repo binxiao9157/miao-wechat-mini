@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, Image, Input, ScrollView } from '@tarojs/components';
-import Taro, { navigateTo } from '@tarojs/taro';
-import { safeBack } from '../../utils/navigateAdapter';
+import Taro from '@tarojs/taro';
+import { navigateTo, safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const X_DARK = require('../../assets/profile-icons/x-dark.png');
@@ -12,6 +13,8 @@ const SPARKLES_GRAY = require('../../assets/profile-icons/sparkles-gray.png');
 const SPARKLES_PRIMARY = require('../../assets/profile-icons/sparkles-primary.png');
 import { VolcanoService, IMAGE_PROMPTS } from '../../services/volcanoService';
 import { storage } from '../../services/storage';
+import { checkMediaContent, checkTextContent } from '../../services/contentSafetyService';
+import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
 import './index.less';
 
 export default function UploadMaterial() {
@@ -25,10 +28,11 @@ export default function UploadMaterial() {
   const [showToast, setShowToast] = useState<string | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [firstFrameUrl, setFirstFrameUrl] = useState<string | null>(null);
+  const { setManagedTimeout } = useManagedTimeout();
 
   const triggerToast = (msg: string) => {
     setShowToast(msg);
-    setTimeout(() => setShowToast(null), 2500);
+    setManagedTimeout(() => setShowToast(null), 2500);
   };
 
   const prepareSelectedImage = async (filePath: string): Promise<string> => {
@@ -47,7 +51,8 @@ export default function UploadMaterial() {
     }
   };
 
-  const handleChooseImage = () => {
+  const handleChooseImage = async () => {
+    if (!await ensurePrivacyAuthorized('选择猫咪照片')) return;
     Taro.chooseMedia({
       count: 1,
       mediaType: ['image'],
@@ -93,9 +98,11 @@ export default function UploadMaterial() {
 
     setIsDrawing(true);
     try {
+      await checkTextContent(nickname, 'cat_profile');
       // 直接传文件路径，volcanoService 内部用 Taro.uploadFile 上传，避免 base64 过大触发微信限制
       const prompt = IMAGE_PROMPTS.anchor('未知', '未知');
       const uploadImage = await prepareSelectedImage(selectedImage);
+      await checkMediaContent(uploadImage, 'image', 'cat_upload');
       if (uploadImage !== selectedImage) setSelectedImage(uploadImage);
       const task = await VolcanoService.submitImageTask(prompt, uploadImage);
       const imageUrl = await VolcanoService.pollImageResult(task.id, task.image_url);
@@ -125,7 +132,7 @@ export default function UploadMaterial() {
     storage.saveCatInfo(newCat);
 
     const redemptionParams = isRedemption ? `&isRedemption=1&redemptionAmount=${redemptionAmount}` : '';
-    navigateTo({ url: `/pages/generation-progress/index?source=uploaded${redemptionParams}` });
+    navigateTo(`/pages/generation-progress/index?source=uploaded${redemptionParams}`);
   };
 
   const handleRegenerate = () => {
@@ -133,8 +140,9 @@ export default function UploadMaterial() {
     handleGenerateImage();
   };
 
-  const handleSaveImage = () => {
+  const handleSaveImage = async () => {
     if (!firstFrameUrl) return;
+    if (!await ensurePrivacyAuthorized('保存生成图片到相册')) return;
     Taro.saveImageToPhotosAlbum({
       filePath: firstFrameUrl,
       success: () => triggerToast('已保存到相册'),

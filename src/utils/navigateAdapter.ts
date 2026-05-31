@@ -5,13 +5,19 @@
 
 import Taro from '@tarojs/taro';
 
-const isMiniProgram = process.env.TARO_ENV === 'weapp';
+const isMiniProgram = () => {
+  try {
+    return Taro.getEnv() === Taro.ENV_TYPE.WEAPP;
+  } catch {
+    return process.env.TARO_ENV === 'weapp';
+  }
+};
 
 /**
  * 跳转到指定页面
  */
 export const navigateTo = (url: string): Promise<any> => {
-  if (isMiniProgram) {
+  if (isMiniProgram()) {
     return Taro.navigateTo({ url });
   }
   // Web 环境使用 hash 路由
@@ -23,7 +29,7 @@ export const navigateTo = (url: string): Promise<any> => {
  * 页面返回
  */
 export const navigateBack = (delta = 1): Promise<any> => {
-  if (isMiniProgram) {
+  if (isMiniProgram()) {
     return Taro.navigateBack({ delta });
   }
   window.history.back();
@@ -34,7 +40,7 @@ export const navigateBack = (delta = 1): Promise<any> => {
  * 安全返回：优先 navigateBack，如果导航栈为空则 reLaunch 到首页
  */
 export const safeBack = (fallbackUrl = '/pages/home/index'): Promise<any> => {
-  if (isMiniProgram) {
+  if (isMiniProgram()) {
     const pages = Taro.getCurrentPages();
     if (pages.length > 1) {
       return Taro.navigateBack();
@@ -49,7 +55,7 @@ export const safeBack = (fallbackUrl = '/pages/home/index'): Promise<any> => {
  * 替换当前页面
  */
 export const redirectTo = (url: string): Promise<any> => {
-  if (isMiniProgram) {
+  if (isMiniProgram()) {
     return Taro.redirectTo({ url });
   }
   window.location.replace(url);
@@ -60,7 +66,7 @@ export const redirectTo = (url: string): Promise<any> => {
  * 跳转到 tabBar 页面
  */
 export const switchTab = (url: string): Promise<any> => {
-  if (isMiniProgram) {
+  if (isMiniProgram()) {
     return Taro.switchTab({ url });
   }
   window.location.hash = url;
@@ -71,7 +77,7 @@ export const switchTab = (url: string): Promise<any> => {
  * 重新加载应用
  */
 export const reLaunch = (url: string): Promise<any> => {
-  if (isMiniProgram) {
+  if (isMiniProgram()) {
     return Taro.reLaunch({ url });
   }
   window.location.reload();
@@ -82,7 +88,7 @@ export const reLaunch = (url: string): Promise<any> => {
  * 获取当前页面路径
  */
 export const getCurrentPath = (): string => {
-  if (isMiniProgram) {
+  if (isMiniProgram()) {
     const instance = Taro.getCurrentInstance();
     const router = instance.router;
     return router?.path || '/';
@@ -94,7 +100,7 @@ export const getCurrentPath = (): string => {
  * 获取页面参数
  */
 export const getParams = (): Record<string, string> => {
-  if (isMiniProgram) {
+  if (isMiniProgram()) {
     const instance = Taro.getCurrentInstance();
     const raw = instance.router?.params || {};
     // Filter out undefined values
@@ -121,7 +127,7 @@ export const getParams = (): Record<string, string> => {
  * 获取页面实例
  */
 export const getCurrentInstance = () => {
-  if (isMiniProgram) {
+  if (isMiniProgram()) {
     return Taro.getCurrentInstance();
   }
   return null;

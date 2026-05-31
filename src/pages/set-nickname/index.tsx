@@ -5,7 +5,8 @@ import { useAuthContext } from '../../context/AuthContext';
 import { request } from '../../utils/httpAdapter';
 import { routeAfterCatSync } from '../../services/catLifecycle';
 import { useNavSpace } from '../../hooks/useNavSpace';
-import { safeBack } from '../../utils/navigateAdapter';
+import { redirectTo, safeBack } from '../../utils/navigateAdapter';
+import { checkTextContent } from '../../services/contentSafetyService';
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 import './index.less';
 
@@ -25,7 +26,7 @@ export default function SetNickname() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      Taro.redirectTo({ url: '/pages/login/index' });
+      redirectTo('/pages/login/index');
     }
   }, [isAuthenticated]);
 
@@ -44,6 +45,7 @@ export default function SetNickname() {
     }
     setIsLoading(true);
     try {
+      await checkTextContent(trimmed, 'profile');
       const res = await request({
         url: '/api/v1/me',
         method: 'PATCH',

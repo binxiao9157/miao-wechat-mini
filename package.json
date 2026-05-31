@@ -5,12 +5,19 @@
   "description": "Miao WeChat Mini Program - Taro Version",
   "template": "react",
   "scripts": {
-    "dev:weapp": "cross-env NODE_OPTIONS=--openssl-legacy-provider taro build --type weapp --watch",
-    "dev:h5": "cross-env NODE_OPTIONS=--openssl-legacy-provider taro build --type h5 --watch",
-    "build:weapp": "cross-env NODE_OPTIONS=--openssl-legacy-provider taro build --type weapp",
-    "build:h5": "cross-env NODE_OPTIONS=--openssl-legacy-provider taro build --type h5",
+    "dev:weapp": "taro build --type weapp --watch",
+    "dev:weapp:debug": "cross-env TARO_APP_ENABLE_ADMIN=true TARO_APP_DEBUG_BUILD=true taro build --type weapp --watch",
+    "dev:h5": "taro build --type h5 --watch",
+    "build:weapp": "taro build --type weapp",
+    "build:weapp:debug": "cross-env TARO_APP_ENABLE_ADMIN=true TARO_APP_DEBUG_BUILD=true taro build --type weapp",
+    "build:h5": "taro build --type h5",
     "lint": "tsc --noEmit",
     "check:native": "node native-weapp/scripts/check.js",
+    "release:scan": "node scripts/release-static-scan.mjs",
+    "release:api-contract": "node scripts/check-api-contract.mjs",
+    "release:check": "npm test && npm run lint && npm audit --omit=dev --audit-level=high && npm run build:h5 && npm run build:weapp && npm run release:scan && npm run release:api-contract",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
     "dev:server": "cd ../Miao_remote && npm run dev",
     "install:server": "cd ../Miao_remote && npm install"
@@ -21,17 +28,10 @@
     "ios >= 9"
   ],
   "dependencies": {
-    "@tarojs/components": "^3.6.29",
-    "@tarojs/mini-runner": "^3.6.37",
-    "@tarojs/plugin-framework-react": "^3.6.29",
-    "@tarojs/plugin-platform-h5": "^3.6.40",
-    "@tarojs/plugin-platform-weapp": "^3.6.40",
-    "@tarojs/react": "^3.6.29",
-    "@tarojs/runtime": "^3.6.29",
-    "@tarojs/taro": "^3.6.29",
-    "@tarojs/webpack5-runner": "^3.6.29",
-    "lucide-react": "^0.546.0",
-    "qrcode.react": "^4.2.0",
+    "@tarojs/components": "4.2.0",
+    "@tarojs/react": "4.2.0",
+    "@tarojs/runtime": "4.2.0",
+    "@tarojs/taro": "4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -40,19 +40,41 @@
     "@babel/preset-env": "^7.29.2",
     "@babel/preset-react": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
-    "@tarojs/cli": "^3.6.29",
-    "@tarojs/webpack-runner": "^3.6.37",
+    "@tarojs/cli": "4.2.0",
+    "@tarojs/plugin-framework-react": "4.2.0",
+    "@tarojs/plugin-platform-h5": "4.2.0",
+    "@tarojs/plugin-platform-weapp": "4.2.0",
+    "@tarojs/webpack5-runner": "4.2.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
     "@types/react": "^18.2.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
-    "babel-preset-taro": "^3.6.29",
+    "babel-preset-taro": "4.2.0",
     "cross-env": "^10.1.0",
     "eslint": "^8.0.0",
-    "eslint-config-taro": "^3.6.29",
+    "eslint-config-taro": "4.2.0",
     "eslint-plugin-react": "^7.0.0",
+    "jsdom": "^29.1.1",
     "prettier": "^3.0.0",
     "sharp": "^0.34.5",
     "typescript": "^5.0.0",
-    "webpack": "^4.47.0"
+    "vitest": "^4.1.7",
+    "webpack": "5.104.1"
+  },
+  "overrides": {
+    "swiper": "12.1.2",
+    "esbuild": "0.28.0",
+    "webpack": "5.104.1",
+    "webpack-dev-server": "5.2.4",
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "9.0.7"
+    },
+    "@tarojs/plugin-doctor": {
+      "glob": "10.5.0"
+    },
+    "sockjs": {
+      "uuid": "11.1.1"
+    }
   }
 }

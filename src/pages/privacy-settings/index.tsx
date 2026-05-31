@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
-import Taro, { navigateTo } from '@tarojs/taro';
-import { safeBack } from '../../utils/navigateAdapter';
+import Taro from '@tarojs/taro';
+import { navigateTo, safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import PageHeader from '../../components/layout/PageHeader';
 import { storage } from '../../services/storage';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 
 const TRASH2_RED2 = require('../../assets/profile-icons/trash2-red2.png');
 const SHIELDCHECK_PRIMARY = require('../../assets/profile-icons/shieldcheck-primary.png');
@@ -16,6 +17,7 @@ export default function PrivacySettings() {
   const [cacheSize, setCacheSize] = useState('0 KB');
   const [isClearing, setIsClearing] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
+  const { setManagedTimeout } = useManagedTimeout();
 
   useEffect(() => {
     calculateCacheSize();
@@ -43,7 +45,7 @@ export default function PrivacySettings() {
         if (res.confirm) {
           setIsClearing(true);
           storage.clearMediaCache();
-          setTimeout(() => {
+          setManagedTimeout(() => {
             setIsClearing(false);
             calculateCacheSize();
             triggerToast('缓存已清除');
@@ -55,7 +57,7 @@ export default function PrivacySettings() {
 
   const triggerToast = (msg: string) => {
     setShowToast(msg);
-    setTimeout(() => setShowToast(null), 2500);
+    setManagedTimeout(() => setShowToast(null), 2500);
   };
 
   return (
@@ -89,7 +91,7 @@ export default function PrivacySettings() {
 
       {/* 隐私政策 */}
       <View className="settings-section">
-        <View className="setting-item" onClick={() => navigateTo({ url: '/pages/privacy-policy/index' })}>
+        <View className="setting-item" onClick={() => navigateTo('/pages/privacy-policy/index')}>
           <View className="setting-left">
             <View className="setting-icon">
               <Image className="icon-img" src={SHIELDCHECK_PRIMARY} mode="aspectFit" style={{ width: 20, height: 20 }} />

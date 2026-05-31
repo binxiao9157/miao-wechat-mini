@@ -1,5 +1,10 @@
+const includeAdminPages = process.env.TARO_APP_ENABLE_ADMIN === 'true' || process.env.TARO_APP_DEBUG_BUILD === 'true';
+const adminSettingsPage = ['pages', 'admin-settings', 'index'].join('/');
+const adminPages = includeAdminPages ? [adminSettingsPage] : [];
+
 export default defineAppConfig({
   pages: [
+    'pages/welcome/index',
     'pages/login/index',
     'pages/register/index',
     'pages/home/index',
@@ -8,7 +13,8 @@ export default defineAppConfig({
     'pages/notifications/index',
     'pages/points/index',
     'pages/profile/index',
-    'pages/admin-settings/index',
+    'pages/diagnostics/index',
+    ...adminPages,
     'pages/create-companion/index',
     'pages/generation-progress/index',
     'pages/scan-friend/index',
@@ -17,7 +23,6 @@ export default defineAppConfig({
     'pages/change-password/index',
     'pages/empty-cat/index',
     'pages/cat-start/index',
-    'pages/welcome/index',
     'pages/upload-material/index',
     'pages/cat-player/index',
     'pages/cat-history/index',

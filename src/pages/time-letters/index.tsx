@@ -6,6 +6,8 @@ import { storage, TimeLetter, CatInfo } from '../../services/storage';
 import CatAvatar from '../../components/common/CatAvatar';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import { formatTimeLetterCountdown, isTimeLetterUnlocked } from '../../utils/timeLetterUnlock';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
+import { checkTextContent } from '../../services/contentSafetyService';
 import './index.less';
 
 // Lucide-style PNG icons
@@ -58,6 +60,10 @@ function LetterCard({ letter, targetCat, isUnlocked, fastForward, onDelete, onCl
   const handleTouchMove = () => {
     clearTimeout(longPressTimerRef.current);
   };
+
+  useEffect(() => () => {
+    clearTimeout(longPressTimerRef.current);
+  }, []);
 
   useEffect(() => {
     if (isUnlocked) return;
@@ -152,6 +158,7 @@ export default function TimeLettersPage() {
   const [letterToDelete, setLetterToDelete] = useState<TimeLetter | null>(null);
   const [filterCatId, setFilterCatId] = useState<string>('all');
   const [toast, setToast] = useState<string | null>(null);
+  const { setManagedTimeout } = useManagedTimeout();
 
   useShareAppMessage(() => ({
     title: 'Miao - 给未来的自己和猫咪写一封时光信',
@@ -242,8 +249,8 @@ export default function TimeLettersPage() {
   // 显示提示
   const showToast = useCallback((msg: string) => {
     setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  }, []);
+    setManagedTimeout(() => setToast(null), 3000);
+  }, [setManagedTimeout]);
 
   // 点击信件
   const handleLetterClick = useCallback((letter: TimeLetter) => {
@@ -301,7 +308,7 @@ export default function TimeLettersPage() {
   }, [letters, filterCatId]);
 
   // 保存信件
-  const handleSaveLetter = useCallback(() => {
+  const handleSaveLetter = useCallback(async () => {
     if (!selectedCatId) {
       showToast("请先选择收信的小猫哦");
       return;
@@ -317,6 +324,16 @@ export default function TimeLettersPage() {
 
     const targetCat = myCats.find(c => c.id === selectedCatId);
     if (!targetCat) return;
+
+    try {
+      await Promise.all([
+        checkTextContent(title, 'time_letter'),
+        checkTextContent(content, 'time_letter'),
+      ]);
+    } catch (error: any) {
+      showToast(error?.message || '信件内容不合规，请修改');
+      return;
+    }
 
     // 归一化日期逻辑：当前日期凌晨 + X天
     const targetDate = new Date();

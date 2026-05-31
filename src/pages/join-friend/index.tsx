@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {  View, Text, Image } from '@tarojs/components';
-import Taro, { useRouter, navigateTo } from '@tarojs/taro';
+import Taro, { useRouter } from '@tarojs/taro';
 const SPARKLES_PNG = require('../../assets/profile-icons/sparkles-primary.png');
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
-import { safeBack } from '../../utils/navigateAdapter';
+import { navigateTo, safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { useAuthContext } from '../../context/AuthContext';
 import { friendService } from '../../services/friendService';
 import CatAvatar from '../../components/common/CatAvatar';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 import './index.less';
 
 export default function JoinFriend() {
@@ -20,6 +21,7 @@ export default function JoinFriend() {
   const [catAvatar, setCatAvatar] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const { setManagedTimeout } = useManagedTimeout();
 
   useEffect(() => {
     const code = router.params.invite || router.params.code || '';
@@ -43,18 +45,18 @@ export default function JoinFriend() {
     try {
       await friendService.acceptInvite(inviteCode);
       setShowSuccess(true);
-      setTimeout(() => safeBack(), 2000);
+      setManagedTimeout(() => safeBack(), 2000);
     } catch (error: any) {
       Taro.showToast({ title: error?.message || '添加好友失败', icon: 'none' });
     }
   };
 
   const handleLogin = () => {
-    navigateTo({ url: '/pages/login/index' });
+    navigateTo('/pages/login/index');
   };
 
   const handleRegister = () => {
-    navigateTo({ url: '/pages/register/index' });
+    navigateTo('/pages/register/index');
   };
 
   if (!inviterName) {

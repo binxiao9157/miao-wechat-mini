@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Video, Image } from '@tarojs/components';
 import Taro, { useRouter, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
-import { safeBack } from '../../utils/navigateAdapter';
+import { reLaunch, safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import PageHeader from '../../components/layout/PageHeader';
 
@@ -15,6 +15,8 @@ const ALERTCIRCLE_RED2 = require('../../assets/profile-icons/alertcircle-red2.pn
 import { storage, CatInfo } from '../../services/storage';
 import { FileManager } from '../../services/fileManager';
 import { getPrimaryVideoUrl } from '../../services/catLifecycle';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
+import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
 import './index.less';
 
 export default function CatPlayer() {
@@ -30,6 +32,7 @@ export default function CatPlayer() {
   const [liked, setLiked] = useState(() => catId ? storage.isCatLiked(catId) : false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showToast, setShowToast] = useState<string | null>(null);
+  const { setManagedTimeout } = useManagedTimeout();
 
   useShareAppMessage(() => ({
     title: cat ? `来看看${cat.name}的AI猫咪视频！` : 'Miao - AI猫咪视频',
@@ -72,13 +75,15 @@ export default function CatPlayer() {
     setShowControls(true);
   };
 
-  const handleSaveToAlbum = () => {
-    if (!cat?.videoPath && !cat?.remoteVideoUrl) {
+  const handleSaveToAlbum = async () => {
+    const primaryVideoUrl = getPrimaryVideoUrl(cat);
+    if (!primaryVideoUrl) {
       triggerToast('暂无可保存的视频');
       return;
     }
+    if (!await ensurePrivacyAuthorized('保存猫咪视频到相册')) return;
 
-    const videoUrl = cat.videoPath || cat.remoteVideoUrl || '';
+    const videoUrl = primaryVideoUrl;
     if (videoUrl.startsWith('http')) {
       Taro.downloadFile({
         url: videoUrl,
@@ -119,7 +124,7 @@ export default function CatPlayer() {
 
   const triggerToast = (msg: string) => {
     setShowToast(msg);
-    setTimeout(() => setShowToast(null), 2500);
+    setManagedTimeout(() => setShowToast(null), 2500);
   };
 
   const handleRetry = () => {
@@ -137,7 +142,7 @@ export default function CatPlayer() {
     );
   }
 
-  const videoSrc = cat.videoPaths?.petting || getPrimaryVideoUrl(cat);
+  const videoSrc = getPrimaryVideoUrl(cat);
   const createdDate = cat.id.includes('_')
     ? new Date(parseInt(cat.id.split('_')[1])).toLocaleDateString()
     : '';
@@ -164,7 +169,7 @@ export default function CatPlayer() {
               <View className="error-btn primary" onClick={handleRetry}>
                 <Text className="error-btn-text white">重试</Text>
               </View>
-              <View className="error-btn secondary" onClick={() => Taro.reLaunch({ url: '/pages/home/index' })}>
+              <View className="error-btn secondary" onClick={() => reLaunch('/pages/home/index')}>
                 <Text className="error-btn-text dark">返回首页</Text>
               </View>
             </View>

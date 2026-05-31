@@ -1,8 +1,7 @@
 import React from 'react';
 import { useState } from 'react';
 import { View, Text, Input, Button, Image, ScrollView } from '@tarojs/components';
-import { navigateTo } from '@tarojs/taro';
-import { safeBack } from '../../utils/navigateAdapter';
+import { navigateTo, safeBack } from '../../utils/navigateAdapter';
 import PawLogo from '../../components/common/PawLogo';
 import PageHeader from '../../components/layout/PageHeader';
 import { storage, UserInfo } from '../../services/storage';
@@ -179,9 +178,9 @@ export default function Register() {
             </View>
             <Text className="agreement-text">
               我已阅读并同意
-              <Text className="link" onClick={(e) => { e.stopPropagation(); navigateTo({ url: '/pages/terms-of-service/index' }); }}>《Miao 服务条款》</Text>
+              <Text className="link" onClick={(e) => { e.stopPropagation(); navigateTo('/pages/terms-of-service/index'); }}>《Miao 服务条款》</Text>
               和
-              <Text className="link" onClick={(e) => { e.stopPropagation(); navigateTo({ url: '/pages/privacy-policy/index' }); }}>《隐私政策》</Text>
+              <Text className="link" onClick={(e) => { e.stopPropagation(); navigateTo('/pages/privacy-policy/index'); }}>《隐私政策》</Text>
             </Text>
           </View>
 
@@ -203,9 +202,9 @@ export default function Register() {
           {/* Bottom agreement text */}
           <Text className="bottom-agreement">
             注册即表示您同意
-            <Text className="link" onClick={() => navigateTo({ url: '/pages/terms-of-service/index' })}>《Miao 服务条款》</Text>
+            <Text className="link" onClick={() => navigateTo('/pages/terms-of-service/index')}>《Miao 服务条款》</Text>
             和
-            <Text className="link" onClick={() => navigateTo({ url: '/pages/privacy-policy/index' })}>《隐私政策》</Text>
+            <Text className="link" onClick={() => navigateTo('/pages/privacy-policy/index')}>《隐私政策》</Text>
           </Text>
         </View>
         </ScrollView>

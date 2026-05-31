@@ -9,6 +9,10 @@ import { generateShareCard } from '../../utils/shareCard';
 import ShareSheet from '../../components/common/ShareSheet';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import DiaryCard from '../../components/common/DiaryCard';
+import { useManagedTimeout } from '../../hooks/useManagedTimeout';
+import { navigateTo, reLaunch } from '../../utils/navigateAdapter';
+import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
+import { checkMediaContent, checkTextContent } from '../../services/contentSafetyService';
 
 // Lucide-style PNG icons
 const USERPLUS_GRAY = require('../../assets/profile-icons/userplus-gray.png');
@@ -53,6 +57,7 @@ export default function Diary() {
   const [sharingDiary, setSharingDiary] = useState<DiaryWithMedia | null>(null);
   const [showShareSheet, setShowShareSheet] = useState(false);
   const [shareCardPath, setShareCardPath] = useState('');
+  const { setManagedTimeout } = useManagedTimeout();
 
   // 用 ref 持久化分享数据，确保 useShareTimeline/useShareAppMessage 在 ShareSheet 关闭后仍能读取
   const sharingDiaryRef = useRef<DiaryWithMedia | null>(null);
@@ -190,7 +195,9 @@ export default function Diary() {
           return local?.mediaUrl ? { ...fd, mediaUrl: local.mediaUrl } : fd;
         });
       });
-    }).catch(() => {});
+    }).catch((error) => {
+      console.warn('[Diary] quiet friend diary sync failed:', error);
+    });
   };
 
   useEffect(() => {
@@ -201,7 +208,9 @@ export default function Diary() {
     try {
       const launchOptions = Taro.getLaunchOptionsSync();
       setIsSinglePage(launchOptions.scene === 1154);
-    } catch {}
+    } catch (error) {
+      console.warn('[Diary] get launch options failed:', error);
+    }
 
     // 1 分钟轮询好友动态
     const intervalId = setInterval(() => {
@@ -298,7 +307,8 @@ export default function Diary() {
   };
 
   // 选择图片
-  const chooseImage = () => {
+  const chooseImage = async () => {
+    if (!await ensurePrivacyAuthorized('选择日记图片')) return;
     Taro.chooseMedia({
       count: 1,
       mediaType: ['image'],
@@ -319,7 +329,8 @@ export default function Diary() {
   };
 
   // 选择视频
-  const chooseVideo = () => {
+  const chooseVideo = async () => {
+    if (!await ensurePrivacyAuthorized('选择日记视频')) return;
     Taro.chooseMedia({
       count: 1,
       mediaType: ['video'],
@@ -359,6 +370,10 @@ export default function Diary() {
     setIsLoading(true);
 
     try {
+      await checkTextContent(newContent, 'diary');
+      if (selectedMedia?.tempFilePath) {
+        await checkMediaContent(selectedMedia.tempFilePath, selectedMedia.type, 'diary');
+      }
       const diaryId = 'diary_' + Date.now();
       let mediaUrl: string | undefined;
       let mediaType: 'image' | 'video' | undefined;
@@ -492,6 +507,12 @@ export default function Diary() {
     if (!commentText.trim() || !commentingId) return;
 
     const content = commentText.trim();
+    try {
+      await checkTextContent(content, 'comment');
+    } catch (error: any) {
+      Taro.showToast({ title: error?.message || '评论内容不合规', icon: 'none' });
+      return;
+    }
     const targetId = commentingId;
     setCommentText('');
     setCommentingId(null);
@@ -597,7 +618,7 @@ export default function Diary() {
   // 评论弹窗关闭后重置 ScrollView 滚动位置，防止布局错位
   const resetScrollView = () => {
     setScrollTop(1);
-    setTimeout(() => setScrollTop(0), 50);
+    setManagedTimeout(() => setScrollTop(0), 50);
   };
 
   // 分享功能
@@ -906,9 +927,7 @@ export default function Diary() {
                     onClick={() => {
                       setShowAddFriendMenu(false);
                       setAddFriendStep(1);
-                      Taro.navigateTo({
-                        url: `/pages/add-friend-qr/index?catId=${selectedCatForQR?.id}`
-                      });
+                      navigateTo(`/pages/add-friend-qr/index?catId=${selectedCatForQR?.id}`);
                     }}
                   >
                     <View className="add-method-icon qr-icon">
@@ -934,7 +953,7 @@ export default function Diary() {
         url="/pages/diary/index"
         isTabPage={true}
         shareImagePath={shareCardPath}
-        onClose={() => { setShowShareSheet(false); setShareCardPath(''); setTimeout(() => updateSharingDiary(null), 5000); }}
+        onClose={() => { setShowShareSheet(false); setShareCardPath(''); setManagedTimeout(() => updateSharingDiary(null), 5000); }}
       />
 
       {/* 分享卡片 Canvas（不可见，用于生成朋友圈分享图） */}
@@ -946,7 +965,7 @@ export default function Diary() {
 
       {/* 单页模式引导（从朋友圈进入） */}
       {isSinglePage && (
-        <View className="single-page-banner" onClick={() => Taro.reLaunch({ url: '/pages/home/index' })}>
+        <View className="single-page-banner" onClick={() => reLaunch('/pages/home/index')}>
           <Text className="single-page-text">进入 Miao 完整体验 →</Text>
         </View>
       )}

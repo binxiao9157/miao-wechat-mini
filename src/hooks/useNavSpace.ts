@@ -11,10 +11,10 @@ export interface NavSpaceStyle {
 
 export function useNavSpace(): NavSpaceStyle {
   const [navStyle, setNavStyle] = useState<NavSpaceStyle>({
-    '--nav-top': '0px',
+    '--nav-top': 'calc(env(safe-area-inset-top) + 76rpx)',
     '--nav-height': '32px',
-    '--nav-side': '21px',
-    '--nav-capsule-top': '0px',
+    '--nav-side': '42rpx',
+    '--nav-capsule-top': 'calc(env(safe-area-inset-top) + 12rpx)',
   });
 
   useEffect(() => {

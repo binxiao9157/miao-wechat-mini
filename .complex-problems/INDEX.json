@@ -1,0 +1,39 @@
+{
+  "active_ledger_id": "L20260530-143802-03",
+  "ledgers": [
+    {
+      "active_count": 0,
+      "blocked_count": 0,
+      "ledger_id": "L20260530-143802-01",
+      "path": "L20260530-143802-01",
+      "root_id": "P000",
+      "schema_version": 6,
+      "status": "done",
+      "title": "专项计划",
+      "updated_at": "2026-05-30T06:39:31+00:00"
+    },
+    {
+      "active_count": 0,
+      "blocked_count": 0,
+      "ledger_id": "L20260530-143802-02",
+      "path": "L20260530-143802-02",
+      "root_id": "P000",
+      "schema_version": 6,
+      "status": "done",
+      "title": "代码实施",
+      "updated_at": "2026-05-30T06:44:26+00:00"
+    },
+    {
+      "active_count": 0,
+      "blocked_count": 0,
+      "ledger_id": "L20260530-143802-03",
+      "path": "L20260530-143802-03",
+      "root_id": "P000",
+      "schema_version": 6,
+      "status": "done",
+      "title": "验证交付",
+      "updated_at": "2026-05-30T06:48:39+00:00"
+    }
+  ],
+  "updated_at": "2026-05-30T06:52:41+00:00"
+}

@@ -1,0 +1,35 @@
+{
+  "created_at": "2026-05-30T14:37:58+08:00",
+  "goal": "按 storage/sync 稳定性专项计划完成代码修复，提升数据一致性、重试可观测性和前台同步健壮性，不改变现有业务流程",
+  "schema_version": 1,
+  "tasks": {
+    "docs/plans/task_01_专项计划.md": {
+      "ledger_id": "L20260530-143802-01",
+      "ledger_path": ".complex-problems/L20260530-143802-01",
+      "next_action": "none",
+      "status": "complete",
+      "task_file": "docs/plans/task_01_专项计划.md",
+      "title": "专项计划",
+      "updated_at": "2026-05-30T14:39:38+08:00"
+    },
+    "docs/plans/task_02_代码实施.md": {
+      "ledger_id": "L20260530-143802-02",
+      "ledger_path": ".complex-problems/L20260530-143802-02",
+      "next_action": "none",
+      "status": "complete",
+      "task_file": "docs/plans/task_02_代码实施.md",
+      "title": "代码实施",
+      "updated_at": "2026-05-30T14:44:26+08:00"
+    },
+    "docs/plans/task_03_验证交付.md": {
+      "ledger_id": "L20260530-143802-03",
+      "ledger_path": ".complex-problems/L20260530-143802-03",
+      "next_action": "none",
+      "status": "complete",
+      "task_file": "docs/plans/task_03_验证交付.md",
+      "title": "验证交付",
+      "updated_at": "2026-05-30T14:52:05+08:00"
+    }
+  },
+  "updated_at": "2026-05-30T14:52:05+08:00"
+}

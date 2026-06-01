@@ -1,7 +1,7 @@
 import Taro from '@tarojs/taro';
 import { request } from '../utils/httpAdapter';
 import { getItem, removeItem, setItem } from '../utils/storageAdapter';
-import { UserInfo } from './storage';
+import { storage, UserInfo } from './storage';
 
 const TOKEN_KEY = 'miao_auth_token';
 const CURRENT_USER_KEY = 'miao_current_user';
@@ -77,10 +77,13 @@ export const authService = {
   },
 
   async getCurrentUser(): Promise<UserInfo | null> {
-    if (!this.getToken()) return null;
+    const token = this.getToken();
+    if (!token) return null;
     const res = await request({ url: '/api/v1/me', method: 'GET', timeout: 10000 });
     const user = normalizeUser(res.data?.user);
-    persistAuth(this.getToken() || '', user);
+    if (this.getToken() === token) {
+      persistAuth(token, user);
+    }
     return user;
   },
 
@@ -189,6 +192,7 @@ export const authService = {
   logout() {
     removeItem(TOKEN_KEY);
     removeItem(CURRENT_USER_KEY);
+    storage.clearMemoryCache();
   },
 };
 

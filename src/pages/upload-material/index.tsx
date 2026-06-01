@@ -119,7 +119,7 @@ export default function UploadMaterial() {
     if (!firstFrameUrl || !nickname.trim()) return;
 
     const newCat = {
-      id: 'cat_' + Date.now(),
+      id: 'cat_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
       name: nickname.trim(),
       breed: 'AI 生成',
       color: '上传',

@@ -3,7 +3,7 @@ import { View, Text, Video, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { VolcanoService, ACTION_PROMPTS } from '../../services/volcanoService';
 import { FileManager } from '../../services/fileManager';
-import { storage } from '../../services/storage';
+import { storage, type CatInfo } from '../../services/storage';
 import { isCatReady } from '../../services/catLifecycle';
 import type { FourStageVideoAction } from '../../services/videoActions';
 import { useAuthContext } from '../../context/AuthContext';
@@ -20,6 +20,7 @@ const ARROWLEFT_WHITE = require('../../assets/profile-icons/arrowleft-white.png'
 import './index.less';
 
 type Phase = 'generating' | 'confirm' | 'success' | 'error';
+type GenerationCat = Pick<CatInfo, 'id' | 'name' | 'breed' | 'color' | 'avatar' | 'source' | 'anchorFrame' | 'placeholderImage'>;
 
 type GenerationAbortController = {
   signal?: AbortSignal;
@@ -76,21 +77,14 @@ export default function GenerationProgress() {
   const [isUnlocking, setIsUnlocking] = useState(false);
 
   // 从 storage 获取刚创建的猫咪信息
-  const catRef = useRef<{
-    id: string;
-    name: string;
-    breed: string;
-    color: string;
-    avatar: string;
-    source: 'created' | 'uploaded';
-    placeholderImage?: string;
-    anchorFrame?: string;
-  } | null>(null);
+  const catRef = useRef<GenerationCat | null>(null);
   const startedRef = useRef(false);
   const unlockStartedRef = useRef(false);
   const abortControllerRef = useRef<GenerationAbortController | null>(null);
   const confirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const runIdRef = useRef(0);
+  const pointsSpentRef = useRef(0);
+  const redemptionCompletedRef = useRef(false);
 
   const clearConfirmTimer = () => {
     if (confirmTimerRef.current) {
@@ -105,7 +99,7 @@ export default function GenerationProgress() {
     const controller = createGenerationAbortController();
     abortControllerRef.current = controller;
     runIdRef.current += 1;
-    return { controller, runId: runIdRef.current };
+    return { controller, signal: controller?.signal, runId: runIdRef.current };
   };
 
   const isActiveRun = (runId: number, signal?: AbortSignal) => {
@@ -119,7 +113,7 @@ export default function GenerationProgress() {
     try {
       const generationRun = beginGenerationRun();
       controller = generationRun.controller;
-      const { runId } = generationRun;
+      const { runId, signal } = generationRun;
       const activeCat = routeCatId
         ? storage.getCatById(routeCatId) || storage.getActiveCat()
         : storage.getActiveCat();
@@ -143,7 +137,7 @@ export default function GenerationProgress() {
       };
 
       setAnchorImage(activeCat.anchorFrame || activeCat.placeholderImage || activeCat.avatar);
-      startGeneration(activeCat, controller.signal, runId);
+      startGeneration(activeCat, signal, runId);
     } catch (error: any) {
       const message = error?.message || '生成初始化失败，请重试';
       console.error('生成初始化失败:', error);
@@ -153,6 +147,7 @@ export default function GenerationProgress() {
     }
     return () => {
       abortGenerationController(controller);
+      refundRedemption('生成中断退还');
       clearConfirmTimer();
       runIdRef.current += 1;
       if (abortControllerRef.current === controller) {
@@ -171,7 +166,7 @@ export default function GenerationProgress() {
   }, [progress, phase]);
 
   const startGeneration = async (cat: NonNullable<typeof catRef.current>, signal: AbortSignal | undefined, runId: number) => {
-    let pointsDeducted = 0;
+    redemptionCompletedRef.current = false;
     try {
       if (!isActiveRun(runId, signal)) return;
       const currentCat = storage.getCatById(cat.id);
@@ -189,7 +184,7 @@ export default function GenerationProgress() {
           const currentPoints = storage.getPoints();
           throw new Error(`积分不足，需要 ${redemptionAmount} 积分，当前仅有 ${currentPoints.total} 积分`);
         }
-        pointsDeducted = redemptionAmount;
+        pointsSpentRef.current = redemptionAmount;
       }
 
       setPhase('generating');
@@ -258,6 +253,8 @@ export default function GenerationProgress() {
       if (!saved) throw new Error('猫咪数据保存失败');
       storage.setActiveCatId(cat.id);
       refreshCatStatus();
+      redemptionCompletedRef.current = true;
+      pointsSpentRef.current = 0;
 
       setProgress(100);
       setStatusText('生成成功！');
@@ -273,9 +270,7 @@ export default function GenerationProgress() {
       if (!isActiveRun(runId, signal)) return;
       const message = err.message || '生成失败，请重试';
       // 生成失败时退还积分
-      if (pointsDeducted > 0) {
-        storage.addPoints(pointsDeducted, '生成失败退还');
-      }
+      refundRedemption('生成失败退还');
       if (cat?.id) {
         const currentCat = storage.getCatById(cat.id);
         storage.saveCatInfo({
@@ -291,12 +286,20 @@ export default function GenerationProgress() {
     }
   };
 
+  const refundRedemption = (reason: string) => {
+    const amount = pointsSpentRef.current;
+    if (!amount || redemptionCompletedRef.current) return;
+    const catId = catRef.current?.id || routeCatId || 'unknown';
+    storage.addPoints(amount, reason, `generation-refund:${catId}:${amount}`);
+    pointsSpentRef.current = 0;
+  };
+
   const runSecondaryUnlock = async (cat: NonNullable<typeof catRef.current>, signal?: AbortSignal) => {
     const secondaryActions: FourStageVideoAction[] = ['v2_wait', 'v3_return', 'v4_fetch'];
     let completed = 0;
     let failed = 0;
     try {
-      const anchorFrame = anchorImage || cat.avatar;
+      const anchorFrame = anchorImage || cat.anchorFrame || cat.avatar;
       await FileManager.updateCatVideos(cat.id, {}, true, {
         completed,
         total: secondaryActions.length,
@@ -362,6 +365,8 @@ export default function GenerationProgress() {
       color: activeCat.color,
       avatar: activeCat.avatar,
       source: activeCat.source,
+      anchorFrame: activeCat.anchorFrame,
+      placeholderImage: activeCat.placeholderImage,
     } : null);
 
     if (!cat) {
@@ -395,14 +400,23 @@ export default function GenerationProgress() {
 
     if (catRef.current) {
       const { controller, runId } = beginGenerationRun();
-      startGeneration(catRef.current, controller.signal, runId);
+      startGeneration(catRef.current, controller?.signal, runId);
     } else {
       safeBack();
     }
   };
 
-  const handleGoBack = () => {
+  const handleGoBack = async () => {
     const cat = catRef.current;
+    const result = await Taro.showModal({
+      title: '取消生成？',
+      content: '取消后会删除当前未完成的猫咪，并退回本次兑换积分。',
+      confirmText: '确认取消',
+      cancelText: '继续等待',
+    });
+    if (!result.confirm) return;
+    abortControllerRef.current?.abort();
+    refundRedemption('取消生成退还');
     if (cat) {
       storage.deleteCatById(cat.id);
       refreshCatStatus();
@@ -418,7 +432,7 @@ export default function GenerationProgress() {
     <View className="generation-progress-page">
       {/* 返回按钮 */}
       {phase === 'generating' && (
-        <View className="back-btn-top" style={navSpace as React.CSSProperties} onClick={() => safeBack()}>
+          <View className="back-btn-top" style={navSpace as React.CSSProperties} onClick={handleGoBack}>
           <Image className="icon-img" src={ARROWLEFT_WHITE} mode="aspectFit" style={{ width: 20, height: 20 }} />
         </View>
       )}

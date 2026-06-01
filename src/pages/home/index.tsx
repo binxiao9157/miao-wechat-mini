@@ -247,19 +247,26 @@ export default function Home() {
     const pointsInfo = storage.getPoints();
     const today = new Date().toISOString().slice(0, 10);
     if (pointsInfo.lastLoginDate !== today) {
-      pointsInfo.total += 10;
-      pointsInfo.history.unshift({
-        id: 'tx_' + Date.now() + Math.random().toString(36).substring(2, 7),
-        type: 'earn',
-        amount: 10,
-        reason: '每日登录奖励',
-        timestamp: Date.now(),
-      });
-      if (pointsInfo.history.length > 50) pointsInfo.history.pop();
-      pointsInfo.lastLoginDate = today;
-      pointsInfo.onlineMinutes = 0;
-      pointsInfo.lastOnlineUpdate = Date.now();
-      storage.savePoints(pointsInfo);
+      const transactionId = `daily-login:${today}`;
+      const nextPoints = {
+        ...pointsInfo,
+        lastLoginDate: today,
+        onlineMinutes: 0,
+        lastOnlineUpdate: Date.now(),
+        history: [...pointsInfo.history],
+      };
+      if (!nextPoints.history.some(item => item.id === transactionId)) {
+        nextPoints.total += 10;
+        nextPoints.history.unshift({
+          id: transactionId,
+          type: 'earn',
+          amount: 10,
+          reason: '每日登录奖励',
+          timestamp: Date.now(),
+        });
+        if (nextPoints.history.length > 50) nextPoints.history.pop();
+      }
+      storage.savePoints(nextPoints);
       showPointsToast(10, '每日登录奖励');
     }
   }, [showPointsToast]);
@@ -282,15 +289,18 @@ export default function Home() {
         p.lastOnlineUpdate = now;
 
         if (p.onlineMinutes >= 10 && p.onlineMinutes - diffMinutes < 10) {
-          p.total += 10;
-          p.history.unshift({
-            id: 'tx_' + Date.now() + Math.random().toString(36).substring(2, 7),
-            type: 'earn',
-            amount: 10,
-            reason: '在线时长奖励',
-            timestamp: Date.now(),
-          });
-          if (p.history.length > 50) p.history.pop();
+          const transactionId = `online-10min:${new Date().toISOString().slice(0, 10)}`;
+          if (!p.history.some(item => item.id === transactionId)) {
+            p.total += 10;
+            p.history.unshift({
+              id: transactionId,
+              type: 'earn',
+              amount: 10,
+              reason: '在线时长奖励',
+              timestamp: Date.now(),
+            });
+            if (p.history.length > 50) p.history.pop();
+          }
           showPointsToast(10, '在线时长奖励');
         }
         storage.savePoints(p);
@@ -306,16 +316,20 @@ export default function Home() {
       p.lastInteractionDate = today;
     }
     if (p.dailyInteractionPoints < 20) {
+      const nextInteractionPoints = p.dailyInteractionPoints + 5;
+      const transactionId = `interaction:${today}:${nextInteractionPoints}`;
       p.dailyInteractionPoints += 5;
-      p.total += 5;
-      p.history.unshift({
-        id: 'tx_' + Date.now() + Math.random().toString(36).substring(2, 7),
-        type: 'earn',
-        amount: 5,
-        reason: '互动奖励',
-        timestamp: Date.now(),
-      });
-      if (p.history.length > 50) p.history.pop();
+      if (!p.history.some(item => item.id === transactionId)) {
+        p.total += 5;
+        p.history.unshift({
+          id: transactionId,
+          type: 'earn',
+          amount: 5,
+          reason: '互动奖励',
+          timestamp: Date.now(),
+        });
+        if (p.history.length > 50) p.history.pop();
+      }
       storage.savePoints(p);
       showPointsToast(5, '互动奖励');
     }

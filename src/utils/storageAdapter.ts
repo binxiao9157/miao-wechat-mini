@@ -26,7 +26,7 @@ export const getItem = (key: string): string | null => {
   if (isMiniProgram()) {
     try {
       const value = Taro.getStorageSync(key);
-      if (value === '' || value === undefined || value === null) return null;
+      if (value === undefined || value === null) return null;
       if (typeof value === 'string') return value;
       // 小程序可能返回已反序列化的对象，转为 JSON 字符串
       return JSON.stringify(value);

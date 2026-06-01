@@ -86,6 +86,15 @@ function dataUrlToTempFile(dataUrl: string): string {
   return tempPath;
 }
 
+function cleanupTempUploadFile(filePath: string | null) {
+  if (!filePath || !filePath.includes('/upload_')) return;
+  try {
+    Taro.getFileSystemManager().unlinkSync(filePath);
+  } catch (error) {
+    console.warn('[volcanoService] cleanup temp upload file failed:', error);
+  }
+}
+
 // 判断是否为微信本地文件路径（需要 uploadFile 上传）
 function isLocalFilePath(path: string): boolean {
   if (!path) return false;
@@ -157,30 +166,34 @@ export class VolcanoService {
     // data: URL 或本地路径改用 uploadFile，避免 base64 过大触发微信数据检查上限
     const uploadPath = getUploadPath(imageBase64);
     if (uploadPath) {
-      const formData: Record<string, string> = {
-        type: 'video',
-        provider: VolcanoConfig.Provider,
-        model: VolcanoConfig.ModelId,
-        prompt,
-        seed: String(seed),
-        resolution,
-        duration: String(duration),
-        prompt_extend: String(promptExtend),
-        audio: String(audio),
-      };
-      if (lastFrame) formData.last_frame = lastFrame;
-      if (hasLastFrame) formData.has_last_frame = 'true';
-      if (options.ratio) formData.ratio = options.ratio;
+      try {
+        const formData: Record<string, string> = {
+          type: 'video',
+          provider: VolcanoConfig.Provider,
+          model: VolcanoConfig.ModelId,
+          prompt,
+          seed: String(seed),
+          resolution,
+          duration: String(duration),
+          prompt_extend: String(promptExtend),
+          audio: String(audio),
+        };
+        if (lastFrame) formData.last_frame = lastFrame;
+        if (hasLastFrame) formData.has_last_frame = 'true';
+        if (options.ratio) formData.ratio = options.ratio;
 
-      const data = await uploadFile({
-        url: '/api/v1/ai/tasks-file',
-        filePath: uploadPath,
-        name: 'image',
-        formData,
-      });
-      const taskId = data?.id || data?.task_id;
-      if (!taskId) throw new Error("服务器返回数据格式错误，未获取到任务 ID");
-      return { ...data, id: taskId };
+        const data = await uploadFile({
+          url: '/api/v1/ai/tasks-file',
+          filePath: uploadPath,
+          name: 'image',
+          formData,
+        });
+        const taskId = data?.id || data?.task_id;
+        if (!taskId) throw new Error("服务器返回数据格式错误，未获取到任务 ID");
+        return { ...data, id: taskId };
+      } finally {
+        cleanupTempUploadFile(uploadPath);
+      }
     }
 
     let lastError: any;
@@ -258,20 +271,24 @@ export class VolcanoService {
       //  URL 或本地路径改用 uploadFile，避免 base64 过大触发微信数据检查上限
       const uploadPath = imageBase64 ? getUploadPath(imageBase64) : null;
       if (uploadPath) {
-        const data = await uploadFile({
-          url: '/api/v1/ai/tasks-file',
-          filePath: uploadPath,
-          name: 'image',
-          formData: {
-            type: 'image',
-            provider: VolcanoConfig.Provider,
-            prompt,
-            model: VolcanoConfig.T2IModelId,
-          },
-        });
-        const taskId = data?.id || data?.task_id;
-        if (!taskId) throw new Error("文生图任务提交失败，未获取到 ID");
-        return { id: taskId, image_url: data?.image_url, status: data?.status };
+        try {
+          const data = await uploadFile({
+            url: '/api/v1/ai/tasks-file',
+            filePath: uploadPath,
+            name: 'image',
+            formData: {
+              type: 'image',
+              provider: VolcanoConfig.Provider,
+              prompt,
+              model: VolcanoConfig.T2IModelId,
+            },
+          });
+          const taskId = data?.id || data?.task_id;
+          if (!taskId) throw new Error("文生图任务提交失败，未获取到 ID");
+          return { id: taskId, image_url: data?.image_url, status: data?.status };
+        } finally {
+          cleanupTempUploadFile(uploadPath);
+        }
       }
 
       const response = await request({

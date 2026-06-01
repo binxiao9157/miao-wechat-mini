@@ -4,7 +4,11 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
-const defaultServerRoot = path.resolve(projectRoot, '..', 'Miao');
+const serverCandidates = ['Miao_remote', 'Miao'];
+const defaultServerRoot = serverCandidates
+  .map((name) => path.resolve(projectRoot, '..', name))
+  .find((candidate) => fs.existsSync(path.join(candidate, 'server.ts')))
+  || path.resolve(projectRoot, '..', 'Miao');
 const serverRoot = process.env.MIAO_SERVER_ROOT
   ? path.resolve(process.env.MIAO_SERVER_ROOT)
   : defaultServerRoot;

@@ -2,10 +2,10 @@
 
 ## STATUS
 
-- **Goal:** 审计最近大范围提交对 Taro 小程序真机体验和稳定性的影响，修复已暴露回归并建立发布防线
+- **Goal:** 评估 `docs/code-audit-report.md` 中的问题真实性，并实施第一批 P0/P1 稳定性与数据安全修复
 - **Mode:** Execute
-- **Phase:** Completed
-- **Task:** docs/plans/task_03_发布验证闭环.md
+- **Phase:** Audit Remediation
+- **Task:** docs/plans/task_04_审计问题修复.md
 - **Blockers:** None
 
 ## Key Decisions

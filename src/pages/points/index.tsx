@@ -133,7 +133,6 @@ export default function Points() {
           <View className="action-spacer" />
         </View>
       </View>
-
       <View className="points-content">
         {/* 积分卡片 - 对齐PWA: Star图标 + 积分明细用ChevronRight */}
         <View className="points-card" onClick={() => setShowHistory(true)}>

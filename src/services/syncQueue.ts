@@ -147,48 +147,43 @@ class SyncQueue {
       return;
     }
     const tasks = Array.from(this.dirty.values()).filter(task => (task.retries ?? 0) < this.MAX_RETRIES);
-    const exhaustedTasks = Array.from(this.dirty.values()).filter(task => (task.retries ?? 0) >= this.MAX_RETRIES);
-    this.dirty.clear();
-    for (const task of exhaustedTasks) {
-      this.dirty.set(this.getTaskKey(task), task);
-    }
-    this.persist();
     this.timer = null;
     this.flushing = true;
 
-    const username = storage.getUserInfo()?.username;
-    if (!username) {
-      for (const task of tasks) {
-        this.dirty.set(this.getTaskKey(task), task);
+    try {
+      const username = storage.getUserInfo()?.username;
+      if (!username) {
+        this.persist();
+        return;
       }
-      this.persist();
-      this.flushing = false;
-      this.resolveFlushWaiters();
-      return;
-    }
 
-    for (const task of tasks) {
-      try {
-        await this.executeTask(username, task);
-      } catch (error: any) {
-        if ((task.retries ?? 0) < this.MAX_RETRIES) {
-          const nextTask = {
-            ...task,
-            retries: (task.retries ?? 0) + 1,
-            lastError: error?.message || String(error || 'unknown'),
-            lastTriedAt: Date.now(),
-          };
-          this.dirty.set(this.getTaskKey(task), nextTask);
+      for (const task of tasks) {
+        const key = this.getTaskKey(task);
+        try {
+          await this.executeTask(username, task);
+          this.dirty.delete(key);
+        } catch (error: any) {
+          if ((task.retries ?? 0) < this.MAX_RETRIES) {
+            const nextTask = {
+              ...task,
+              retries: (task.retries ?? 0) + 1,
+              lastError: error?.message || String(error || 'unknown'),
+              lastTriedAt: Date.now(),
+            };
+            console.warn('[syncQueue] task failed:', nextTask);
+            this.dirty.set(key, nextTask);
+          }
         }
       }
-    }
-    this.persist();
-    this.flushing = false;
-    this.resolveFlushWaiters();
+      this.persist();
+    } finally {
+      this.flushing = false;
+      this.resolveFlushWaiters();
 
-    // 如果 flush 期间有新任务入队，再调度一次
-    if (Array.from(this.dirty.values()).some(task => (task.retries ?? 0) < this.MAX_RETRIES)) {
-      this.scheduleFlush();
+      // 如果 flush 期间有新任务入队，再调度一次
+      if (Array.from(this.dirty.values()).some(task => (task.retries ?? 0) < this.MAX_RETRIES)) {
+        this.scheduleFlush();
+      }
     }
   }
 

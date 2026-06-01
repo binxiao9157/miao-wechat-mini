@@ -52,6 +52,28 @@ function getSyncQueue() {
 const MEDIA_STORAGE_PREFIX = 'miao_media_';
 
 export const mediaStorage = {
+  async saveMediaFile(id: string, filePath: string, mimeType: string): Promise<void> {
+    const isMini = Taro.getEnv() === Taro.ENV_TYPE.WEAPP;
+
+    if (isMini) {
+      return new Promise((resolve, reject) => {
+        Taro.saveFile({
+          tempFilePath: filePath,
+          success: (res) => {
+            setItem(`${MEDIA_STORAGE_PREFIX}${id}`, JSON.stringify({ filePath: res.savedFilePath, mimeType }));
+            resolve();
+          },
+          fail: (err) => {
+            console.error('saveFile error:', err);
+            reject(err);
+          },
+        });
+      });
+    }
+
+    setItem(`${MEDIA_STORAGE_PREFIX}${id}`, JSON.stringify({ filePath, mimeType }));
+  },
+
   async saveMedia(id: string, data: string): Promise<void> {
     const isMini = Taro.getEnv() === Taro.ENV_TYPE.WEAPP;
     
@@ -469,6 +491,20 @@ function invalidateCache(storageKey: string) {
   memCache.delete(storageKey);
 }
 
+function clearMemoryCache() {
+  memCache.clear();
+  cachedCurrentUserRaw = null;
+  cachedUserPrefix = 'guest';
+}
+
+function sanitizeUserInfo(info: UserInfo): UserInfo {
+  const { password, ...safe } = info as UserInfo & { password?: string };
+  return {
+    ...safe,
+    passwordSet: safe.passwordSet || !!password,
+  };
+}
+
 function stripServerCat(cat: CatInfo & { userId?: string }): CatInfo {
   const { userId, ...rest } = cat;
   return normalizeCatVideoUrls(rest);
@@ -612,6 +648,8 @@ export const storage = {
     }
   },
 
+  clearMemoryCache,
+
   pruneStorage: () => {
     try {
       const allKeys = getAllKeys();
@@ -687,22 +725,23 @@ export const storage = {
   },
 
   saveUserInfo: (info: UserInfo) => {
-    storage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(info));
+    const safeInfo = sanitizeUserInfo(info);
+    storage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(safeInfo));
     invalidateCache(STORAGE_KEYS.CURRENT_USER);
-    storage.setItem(STORAGE_KEYS.LAST_USERNAME, info.username);
+    storage.setItem(STORAGE_KEYS.LAST_USERNAME, safeInfo.username);
     refreshUserPrefix();
 
     const users = storage.safeParse<UserInfo[]>(STORAGE_KEYS.USERS, []);
-    const index = users.findIndex(u => u.username === info.username);
+    const index = users.findIndex(u => u.username === safeInfo.username);
     if (index >= 0) {
-      users[index] = info;
+      users[index] = safeInfo;
     } else {
-      users.push(info);
+      users.push(safeInfo);
     }
     storage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
 
-    if (info.avatar) {
-      storage.setItem(getUserKey(STORAGE_KEYS.USER_AVATAR), info.avatar);
+    if (safeInfo.avatar) {
+      storage.setItem(getUserKey(STORAGE_KEYS.USER_AVATAR), safeInfo.avatar);
     }
   },
 
@@ -787,6 +826,7 @@ export const storage = {
     storage.removeItem(STORAGE_KEYS.TOKEN);
     removeItem('miao_login_time');
     removeItem('miao_last_active_time');
+    memCache.clear();
     refreshUserPrefix();
   },
 
@@ -804,6 +844,7 @@ export const storage = {
       setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
     }
     storage.clearCurrentUser();
+    clearMemoryCache();
   },
 
   getLastUsername: (): string => {
@@ -1006,6 +1047,7 @@ export const storage = {
     };
     const list = storage.getCatList();
     const index = list.findIndex(c => c.id === nextCat.id);
+    const isNewCat = index < 0;
     if (index >= 0) {
       list[index] = nextCat;
     } else {
@@ -1013,7 +1055,9 @@ export const storage = {
     }
     forgetDeleted('cat', nextCat.id);
     storage.saveCatList(list);
-    storage.setActiveCatId(nextCat.id);
+    if (isNewCat || !storage.getActiveCatId()) {
+      storage.setActiveCatId(nextCat.id);
+    }
     const userId = getCurrentUsername();
     if (userId) getSyncQueue().enqueue({ type: 'cat', id: nextCat.id, action: 'upsert', payload: nextCat });
   },
@@ -1087,20 +1131,14 @@ export const storage = {
       history: []
     });
 
-    if (!p.history) p.history = [];
-
-    const today = new Date().toISOString().slice(0, 10);
-    let expectedMinimum = 0;
-    if (p.lastLoginDate === today) expectedMinimum += 10;
-    if (p.lastInteractionDate === today) expectedMinimum += p.dailyInteractionPoints;
-    if (p.onlineMinutes >= 10) expectedMinimum += 10;
-
-    if (p.total < expectedMinimum) {
-      p.total = expectedMinimum;
-      storage.setItem(getUserKey(USER_DATA_KEYS.POINTS), JSON.stringify(p));
-    }
-
-    return p;
+    return {
+      ...p,
+      total: Number(p.total || 0),
+      dailyInteractionPoints: Number(p.dailyInteractionPoints || 0),
+      onlineMinutes: Number(p.onlineMinutes || 0),
+      lastOnlineUpdate: Number(p.lastOnlineUpdate || Date.now()),
+      history: Array.isArray(p.history) ? p.history : [],
+    };
   },
 
   savePoints: (points: PointsInfo) => {
@@ -1160,7 +1198,9 @@ export const storage = {
   },
 
   saveSettings: (settings: AppSettings) => {
-    storage.setItem(getUserKey(USER_DATA_KEYS.SETTINGS), JSON.stringify(settings));
+    const key = getUserKey(USER_DATA_KEYS.SETTINGS);
+    storage.setItem(key, JSON.stringify(settings));
+    invalidateCache(key);
   },
 
   getSettings: (): AppSettings => {
@@ -1330,14 +1370,18 @@ export const storage = {
   },
 
   saveFriends: (friends: FriendInfo[]) => {
-    storage.setItem(getUserKey(USER_DATA_KEYS.FRIENDS), JSON.stringify(friends));
+    const key = getUserKey(USER_DATA_KEYS.FRIENDS);
+    storage.setItem(key, JSON.stringify(friends));
+    invalidateCache(key);
   },
 
   addFriend: (friend: FriendInfo) => {
     const friends = storage.getFriends();
     if (!friends.find(f => f.id === friend.id)) {
       friends.push(friend);
-      storage.setItem(getUserKey(USER_DATA_KEYS.FRIENDS), JSON.stringify(friends));
+      const key = getUserKey(USER_DATA_KEYS.FRIENDS);
+      storage.setItem(key, JSON.stringify(friends));
+      invalidateCache(key);
       return true;
     }
     return false;
@@ -1349,7 +1393,9 @@ export const storage = {
 
   saveFriendDiaries: (diaries: FriendDiaryEntry[]) => {
     const trimmed = diaries.length > MAX_FRIEND_DIARIES ? diaries.slice(0, MAX_FRIEND_DIARIES) : diaries;
-    storage.setItem(getUserKey(USER_DATA_KEYS.FRIEND_DIARIES), JSON.stringify(trimmed));
+    const key = getUserKey(USER_DATA_KEYS.FRIEND_DIARIES);
+    storage.setItem(key, JSON.stringify(trimmed));
+    invalidateCache(key);
   },
 
   getPresetCats: (): PresetCat[] => {

@@ -52,7 +52,7 @@ export default function CreateCompanion() {
 
     // 保存猫咪信息并跳转到生成进度页
     const newCat = {
-      id: 'cat_' + Date.now(),
+      id: 'cat_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
       name: catName.trim(),
       breed: selectedPreset.name,
       color: '预设',

@@ -381,13 +381,8 @@ export default function Diary() {
       // 如果有媒体文件，保存到本地文件系统
       if (selectedMedia?.tempFilePath) {
         mediaType = selectedMedia.type;
-
-        // 读取文件为 base64
-        const fs = Taro.getFileSystemManager();
-        const fileData = fs.readFileSync(selectedMedia.tempFilePath, 'base64');
-
-        // 保存到媒体存储
-        await mediaStorage.saveMedia(diaryId, `data:${selectedMedia.type === 'image' ? 'image/jpeg' : 'video/mp4'};base64,${fileData}`);
+        const mimeType = selectedMedia.type === 'image' ? 'image/jpeg' : 'video/mp4';
+        await mediaStorage.saveMediaFile(diaryId, selectedMedia.tempFilePath, mimeType);
         mediaUrl = `miao_media:${diaryId}`;
       }
 

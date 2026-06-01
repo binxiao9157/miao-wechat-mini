@@ -80,7 +80,7 @@ export const reLaunch = (url: string): Promise<any> => {
   if (isMiniProgram()) {
     return Taro.reLaunch({ url });
   }
-  window.location.reload();
+  window.location.href = url;
   return Promise.resolve();
 };
 
@@ -90,7 +90,7 @@ export const reLaunch = (url: string): Promise<any> => {
 export const getCurrentPath = (): string => {
   if (isMiniProgram()) {
     const instance = Taro.getCurrentInstance();
-    const router = instance.router;
+    const router = instance?.router;
     return router?.path || '/';
   }
   return window.location.hash.slice(1) || '/';
@@ -102,7 +102,7 @@ export const getCurrentPath = (): string => {
 export const getParams = (): Record<string, string> => {
   if (isMiniProgram()) {
     const instance = Taro.getCurrentInstance();
-    const raw = instance.router?.params || {};
+    const raw = instance?.router?.params || {};
     // Filter out undefined values
     const result: Record<string, string> = {};
     for (const key of Object.keys(raw)) {
@@ -116,8 +116,7 @@ export const getParams = (): Record<string, string> => {
   const hash = window.location.hash;
   const queryString = hash.split('?')[1] || '';
   const params: Record<string, string> = {};
-  queryString.split('&').forEach(pair => {
-    const [key, value] = pair.split('=');
+  new URLSearchParams(queryString).forEach((value, key) => {
     if (key) params[key] = decodeURIComponent(value || '');
   });
   return params;

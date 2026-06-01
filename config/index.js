@@ -18,7 +18,7 @@ const config = {
   },
   sourceRoot: 'src',
   outputRoot: 'dist',
-  plugins: [path.resolve(__dirname, '..', 'scripts', 'taro-plugin-share-timeline')],
+  plugins: [path.resolve(__dirname, '..', 'scripts', 'taro-plugin-share-timeline.js')],
   defineConstants: {
     'process.env.TARO_APP_API_BASE_URL': JSON.stringify(
       process.env.TARO_APP_API_BASE_URL || DEFAULT_API_BASE_URL

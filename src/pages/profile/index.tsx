@@ -400,7 +400,6 @@ export default function Profile() {
           </View>
         </View>
       </View>
-
       <View className="profile-content">
         {/* 头像区域 */}
         <View className="profile-header">

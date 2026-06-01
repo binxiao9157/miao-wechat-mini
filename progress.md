@@ -20,6 +20,15 @@ Required fields: timestamp, current task, current recursive ledger, next action,
 
 - None recorded.
 
+## Audit Remediation Checkpoint - 2026-06-01T15:30:15+08:00
+
+- Lodestar task: `docs/plans/task_04_审计问题修复.md`
+- Current task: 审计报告 P0/P1 问题真实性复核与第一批代码修复。
+- Current recursive ledger: pending。
+- Next action: 后续批次可处理 QR UTF-8、海报头像、事件适配器、资源压缩、死代码清理和服务端 API 契约协作。
+- Verification status: `npm run lint`、`npm test`、`npm run build:weapp`、`npm run release:scan`、`git diff --check` 已通过。
+- Summary: 已修复用户信息脱敏、active cat 误切换、积分读写副作用、同步队列 flush 卡死、生成页 AbortController 兼容与退款、首帧字段持久化、日记视频文件保存、导航空实例保护、临时上传文件清理和原生视频 tab bar 覆盖问题。
+
 ## Update Trigger
 
 Update this file after every recursive state-changing command bundle and before ending a session.
@@ -113,4 +122,3 @@ Update this file after every recursive state-changing command bundle and before 
 - Next action: `none`
 - Counts: 1/1 problems done, 0 blocked, 1/1 tickets done
 - Next instruction: Only perform `none` finalization. Goal: validate, render, status, and summarize the closed ledger. Detailed worker requirements: `references/workers/none.md`.
-

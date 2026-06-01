@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CatInfo } from '../../services/storage';
 
@@ -23,10 +23,7 @@ const defaultActiveCat: CatInfo = {
 let currentActiveCat: CatInfo = defaultActiveCat;
 
 const videoContexts = vi.hoisted(() => ({
-  catVideoV1: { play: vi.fn(), pause: vi.fn(), stop: vi.fn(), seek: vi.fn() },
-  catVideoV2: { play: vi.fn(), pause: vi.fn(), stop: vi.fn(), seek: vi.fn() },
-  catVideoV3: { play: vi.fn(), pause: vi.fn(), stop: vi.fn(), seek: vi.fn() },
-  catVideoV4: { play: vi.fn(), pause: vi.fn(), stop: vi.fn(), seek: vi.fn() },
+  catStoryVideo: { play: vi.fn(), pause: vi.fn(), stop: vi.fn(), seek: vi.fn() },
 }));
 
 const resetVideoContextMocks = () => {
@@ -46,12 +43,17 @@ vi.mock('@tarojs/components', async () => {
   };
   return {
     View: (props: any) => React.createElement('div', toDomProps(props)),
+    CoverView: (props: any) => React.createElement('div', toDomProps(props)),
     Text: (props: any) => React.createElement('span', toDomProps(props)),
     Image: ({ src, className }: any) => React.createElement('img', { src, className, alt: '' }),
-    Video: (props: any) => React.createElement('video', {
-      ...toDomProps(props),
-      'data-testid': props.id,
-    }),
+    Video: (props: any) => {
+      const { autoplay, ...domProps } = toDomProps(props) as any;
+      return React.createElement('video', {
+        ...domProps,
+        autoPlay: autoplay,
+        'data-testid': props.id,
+      });
+    },
   };
 });
 
@@ -106,7 +108,12 @@ vi.mock('../../utils/navigateAdapter', () => ({
   navigateTo: vi.fn(),
 }));
 
+vi.mock('../../utils/clientDiagnostics', () => ({
+  reportPlaybackDiagnostic: vi.fn(),
+}));
+
 import Home from './index';
+import { reportPlaybackDiagnostic } from '../../utils/clientDiagnostics';
 
 describe('Home PWA playback model', () => {
   beforeEach(() => {
@@ -115,13 +122,11 @@ describe('Home PWA playback model', () => {
     resetVideoContextMocks();
   });
 
-  it('renders the four PWA story videos instead of legacy action playback', () => {
+  it('renders one native story video and switches sources through state', () => {
     const { container } = render(<Home />);
 
-    expect(screen.getByTestId('catVideoV1').getAttribute('src')).toBe('https://cdn.example.com/v1.mp4');
-    expect(screen.getByTestId('catVideoV2').getAttribute('src')).toBe('https://cdn.example.com/v2.mp4');
-    expect(screen.getByTestId('catVideoV3').getAttribute('src')).toBe('https://cdn.example.com/v3.mp4');
-    expect(screen.getByTestId('catVideoV4').getAttribute('src')).toBe('https://cdn.example.com/v4.mp4');
+    expect(container.querySelectorAll('video')).toHaveLength(1);
+    expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v1.mp4');
     expect(container.querySelector('video[src="https://cdn.example.com/idle.mp4"]')).toBeNull();
   });
 
@@ -129,54 +134,118 @@ describe('Home PWA playback model', () => {
     render(<Home />);
 
     fireEvent.click(screen.getByTestId('story-touch-layer'));
-    expect(videoContexts.catVideoV1.play).toHaveBeenCalled();
+    expect(videoContexts.catStoryVideo.play).toHaveBeenCalled();
 
-    fireEvent.ended(screen.getByTestId('catVideoV1'));
-    expect(videoContexts.catVideoV2.play).toHaveBeenCalled();
+    fireEvent.ended(screen.getByTestId('catStoryVideo'));
+    expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v2.mp4');
+    expect(videoContexts.catStoryVideo.play).toHaveBeenCalled();
   });
 
-  it('pauses inactive videos before starting the requested story segment', () => {
+  it('reports playback diagnostics when tapping the story layer', () => {
+    render(<Home />);
+
+    fireEvent.click(screen.getByTestId('story-touch-layer'));
+
+    expect(reportPlaybackDiagnostic).toHaveBeenCalledWith('home.tap.ready', expect.objectContaining({
+      catId: defaultActiveCat.id,
+      action: 'v1',
+      src: 'https://cdn.example.com/v1.mp4',
+      hasV1: true,
+      hasV2: true,
+      hasV3: true,
+      hasV4: true,
+    }));
+  });
+
+  it('marks the requested story video for native autoplay after tap', () => {
+    render(<Home />);
+
+    expect((screen.getByTestId('catStoryVideo') as HTMLVideoElement).autoplay).toBe(false);
+
+    fireEvent.click(screen.getByTestId('story-touch-layer'));
+
+    expect((screen.getByTestId('catStoryVideo') as HTMLVideoElement).autoplay).toBe(true);
+  });
+
+  it('surfaces a playback error when the active video never starts', () => {
+    vi.useFakeTimers();
+    try {
+      render(<Home />);
+
+      fireEvent.click(screen.getByTestId('story-touch-layer'));
+
+      act(() => {
+        vi.advanceTimersByTime(5600);
+      });
+
+      expect(screen.getByText('视频暂时无法播放')).toBeTruthy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps playback active when the native video reports play', () => {
+    vi.useFakeTimers();
+    try {
+      render(<Home />);
+
+      fireEvent.click(screen.getByTestId('story-touch-layer'));
+      fireEvent.play(screen.getByTestId('catStoryVideo'));
+
+      act(() => {
+        vi.advanceTimersByTime(5600);
+      });
+
+      expect(screen.queryByText('视频暂时无法播放')).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('resets and plays the single native video before starting a story segment', () => {
     render(<Home />);
     resetVideoContextMocks();
 
     fireEvent.click(screen.getByTestId('story-touch-layer'));
 
-    expect(videoContexts.catVideoV2.pause).toHaveBeenCalled();
-    expect(videoContexts.catVideoV3.pause).toHaveBeenCalled();
-    expect(videoContexts.catVideoV4.pause).toHaveBeenCalled();
-    expect(videoContexts.catVideoV1.seek).toHaveBeenCalledWith(0);
-    expect(videoContexts.catVideoV1.play).toHaveBeenCalled();
+    expect(videoContexts.catStoryVideo.seek).toHaveBeenCalledWith(0);
+    expect(videoContexts.catStoryVideo.play).toHaveBeenCalled();
   });
 
-  it('ignores stale ended events from hidden story videos', () => {
+  it('does not mount hidden native videos for inactive story segments', () => {
+    const { container } = render(<Home />);
+
+    fireEvent.click(screen.getByTestId('story-touch-layer'));
+
+    expect(container.querySelectorAll('video')).toHaveLength(1);
+    expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v1.mp4');
+  });
+
+  it('keeps single-video ended events scoped to the active playback state', () => {
     render(<Home />);
     resetVideoContextMocks();
 
-    fireEvent.ended(screen.getByTestId('catVideoV2'));
-    fireEvent.ended(screen.getByTestId('catVideoV3'));
-    fireEvent.ended(screen.getByTestId('catVideoV4'));
+    fireEvent.ended(screen.getByTestId('catStoryVideo'));
 
-    expect(videoContexts.catVideoV2.play).not.toHaveBeenCalled();
-    expect(videoContexts.catVideoV3.play).not.toHaveBeenCalled();
-    expect(videoContexts.catVideoV4.play).not.toHaveBeenCalled();
-    expect(videoContexts.catVideoV1.seek).not.toHaveBeenCalled();
+    expect(videoContexts.catStoryVideo.play).not.toHaveBeenCalled();
+    expect(videoContexts.catStoryVideo.seek).not.toHaveBeenCalled();
   });
 
-  it('ignores preload errors from inactive story videos', () => {
+  it('surfaces playback errors from the active single native video', () => {
     render(<Home />);
 
-    fireEvent.error(screen.getByTestId('catVideoV3'));
+    fireEvent.error(screen.getByTestId('catStoryVideo'));
 
-    expect(screen.queryByText('视频暂时无法播放')).toBeNull();
+    expect(screen.getByText('视频暂时无法播放')).toBeTruthy();
   });
 
   it('keeps the story video mounted behind the active error overlay for retry', () => {
     render(<Home />);
 
-    fireEvent.error(screen.getByTestId('catVideoV1'));
+    fireEvent.error(screen.getByTestId('catStoryVideo'));
 
     expect(screen.getByText('视频暂时无法播放')).toBeTruthy();
-    expect(screen.getByTestId('catVideoV1')).toBeTruthy();
+    expect(screen.getByTestId('catStoryVideo')).toBeTruthy();
   });
 
   it('returns to ready instead of looping V1 when V2 is missing', () => {
@@ -191,9 +260,26 @@ describe('Home PWA playback model', () => {
     resetVideoContextMocks();
 
     fireEvent.click(screen.getByTestId('story-touch-layer'));
-    fireEvent.ended(screen.getByTestId('catVideoV1'));
+    fireEvent.ended(screen.getByTestId('catStoryVideo'));
 
-    expect(videoContexts.catVideoV1.play).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v1.mp4');
     expect(screen.getByText('剧情流暂未完成')).toBeTruthy();
+  });
+
+  it('shows only the active unlock progress badge while background actions are generating', () => {
+    currentActiveCat = {
+      ...defaultActiveCat,
+      isUnlocking: true,
+      unlockProgress: { total: 3, completed: 1, failed: 0, updatedAt: Date.now() },
+      videoPaths: {
+        v1_approach: 'https://cdn.example.com/v1.mp4',
+      },
+    };
+
+    const { container } = render(<Home />);
+
+    expect(container.querySelectorAll('.unlock-progress-badge')).toHaveLength(1);
+    expect(screen.getByText('正在解锁更多动作')).toBeTruthy();
+    expect(screen.queryByText('剧情流暂未完成')).toBeNull();
   });
 });

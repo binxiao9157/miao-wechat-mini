@@ -44,16 +44,13 @@
 }
 
 .story-video {
-  opacity: 0;
-  visibility: hidden;
-  z-index: 2;
-  transition: opacity 160ms ease;
+  opacity: 1;
+  z-index: 3;
   pointer-events: none;
 }
 
 .story-video.active {
   opacity: 1;
-  visibility: visible;
   z-index: 3;
 }
 
@@ -161,7 +158,8 @@
   position: absolute;
   left: 32rpx;
   right: 32rpx;
-  bottom: 180rpx;
+  /* Keep clear of the custom tab bar: safe area + 28rpx bottom + 136rpx height + 32rpx gap. */
+  bottom: calc(env(safe-area-inset-bottom) + 196rpx);
   z-index: 45;
   padding: 20rpx 28rpx;
   border-radius: 28rpx;

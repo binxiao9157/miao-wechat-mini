@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, Image, Video } from '@tarojs/components';
+import { View, Text, Video, CoverView } from '@tarojs/components';
 import Taro, { useDidHide, useDidShow, useShareAppMessage, useShareTimeline } from '@tarojs/taro';
 import { storage, CatInfo } from '../../services/storage';
 import CatAvatar from '../../components/common/CatAvatar';
@@ -7,7 +7,8 @@ import { getPrimaryVideoUrl } from '../../services/catLifecycle';
 import { hasFourStageVideos } from '../../services/videoActions';
 import { on, off } from '../../utils/eventAdapter';
 import { navigateTo } from '../../utils/navigateAdapter';
-import FrostedGlassBubble from '../../components/common/FrostedGlassBubble';
+import { reportPlaybackDiagnostic } from '../../utils/clientDiagnostics';
+import '../../components/common/FrostedGlassBubble.less';
 import './index.less';
 
 type PlaybackState = 'READY' | 'PLAYING_V1' | 'LOOPING_V2' | 'PLAYING_V3' | 'PLAYING_V4';
@@ -15,14 +16,10 @@ type PlaybackState = 'READY' | 'PLAYING_V1' | 'LOOPING_V2' | 'PLAYING_V3' | 'PLA
 const GREETING_MORNING = '早上好~';
 const GREETING_NIGHT = '该休息啦~';
 
-const VIDEO_IDS = {
-  v1: 'catVideoV1',
-  v2: 'catVideoV2',
-  v3: 'catVideoV3',
-  v4: 'catVideoV4',
-};
+const STORY_VIDEO_ID = 'catStoryVideo';
+const STORY_VIDEO_KEYS = ['v1', 'v2', 'v3', 'v4'] as const;
 
-type StoryVideoKey = keyof typeof VIDEO_IDS;
+type StoryVideoKey = typeof STORY_VIDEO_KEYS[number];
 
 function getActiveStoryVideoKey(state: PlaybackState): StoryVideoKey | null {
   if (state === 'PLAYING_V1') return 'v1';
@@ -30,6 +27,10 @@ function getActiveStoryVideoKey(state: PlaybackState): StoryVideoKey | null {
   if (state === 'PLAYING_V3') return 'v3';
   if (state === 'PLAYING_V4') return 'v4';
   return null;
+}
+
+function getStoryVideoKeyForState(state: PlaybackState): StoryVideoKey {
+  return getActiveStoryVideoKey(state) || 'v1';
 }
 
 function getGreetingText(): string | null {
@@ -48,11 +49,30 @@ function getStoryUrls(cat: CatInfo | null) {
   };
 }
 
+function getStoryUrlByKey(urls: ReturnType<typeof getStoryUrls>, key: StoryVideoKey): string {
+  return urls[key] || '';
+}
+
+function HomeCoverBubble({ text, visible, exiting }: { text: string; visible: boolean; exiting?: boolean }) {
+  if (!visible) return null;
+
+  return (
+    <CoverView className={`frosted-glass-bubble ${exiting ? 'bubble-exit' : 'bubble-enter'}`}>
+      <CoverView className="bubble-glow" />
+      <CoverView className="bubble-body">
+        <CoverView className="bubble-text">{text}</CoverView>
+      </CoverView>
+      <CoverView className="bubble-border-overlay" />
+    </CoverView>
+  );
+}
+
 export default function Home() {
   const [cat, setCat] = useState<CatInfo | null>(null);
   const [playbackState, setPlaybackState] = useState<PlaybackState>('READY');
   const [v2LoopCount, setV2LoopCount] = useState(0);
   const [videoError, setVideoError] = useState(false);
+  const [playRequest, setPlayRequest] = useState<{ key: StoryVideoKey; nonce: number } | null>(null);
 
   useShareAppMessage(() => ({
     title: cat ? `来和${cat.name}一起玩吧！` : 'Miao - 你的AI猫咪伙伴',
@@ -75,6 +95,17 @@ export default function Home() {
   const interactionHintTimerRef = useRef<any>(null);
   const onlineTimerRef = useRef<any>(null);
   const lastActionErrorRef = useRef('');
+  const playbackWatchdogRef = useRef<any>(null);
+  const playRetryTimersRef = useRef<any[]>([]);
+  const requestedVideoKeyRef = useRef<StoryVideoKey | null>(null);
+  const playRequestNonceRef = useRef(0);
+
+  const urls = getStoryUrls(cat);
+  const hasVideo = !!getPrimaryVideoUrl(cat);
+  const hasStoryModel = hasFourStageVideos(cat);
+  const activeStoryVideoKey = getStoryVideoKeyForState(playbackState);
+  const activeStoryVideoSrc = getStoryUrlByKey(urls, activeStoryVideoKey) || urls.v1;
+  const isPlayingStoryVideo = playbackState !== 'READY';
 
   const showFloatingBubble = useCallback((text: string, duration = 3000) => {
     if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
@@ -101,10 +132,21 @@ export default function Home() {
   const runVideoCommand = useCallback((id: string, label: string, command: (ctx: any) => void) => {
     try {
       const ctx = Taro.createVideoContext(id);
+      if (!ctx) return;
       command(ctx);
     } catch (error) {
       console.warn(`[Home] ${label} video failed:`, error);
     }
+  }, []);
+
+  const clearPlaybackTimers = useCallback(() => {
+    if (playbackWatchdogRef.current) {
+      clearTimeout(playbackWatchdogRef.current);
+      playbackWatchdogRef.current = null;
+    }
+
+    playRetryTimersRef.current.forEach(timer => clearTimeout(timer));
+    playRetryTimersRef.current = [];
   }, []);
 
   const pauseVideo = useCallback((id: string) => {
@@ -120,31 +162,72 @@ export default function Home() {
   }, [runVideoCommand]);
 
   const pauseAllVideos = useCallback(() => {
-    Object.values(VIDEO_IDS).forEach(pauseVideo);
+    pauseVideo(STORY_VIDEO_ID);
   }, [pauseVideo]);
 
   const resetAllVideoPositions = useCallback(() => {
-    Object.values(VIDEO_IDS).forEach(seekVideoToStart);
+    seekVideoToStart(STORY_VIDEO_ID);
   }, [seekVideoToStart]);
 
-  const playStoryVideo = useCallback((key: StoryVideoKey) => {
-    Object.entries(VIDEO_IDS).forEach(([candidateKey, id]) => {
-      if (candidateKey !== key) pauseVideo(id);
-    });
+  const queueNativePlay = useCallback((key: StoryVideoKey) => {
+    const play = () => {
+      runVideoCommand(STORY_VIDEO_ID, `play ${key}`, ctx => {
+        ctx.seek?.(0);
+        ctx.play?.();
+      });
+    };
 
-    runVideoCommand(VIDEO_IDS[key], `play ${key}`, ctx => {
-      ctx.seek?.(0);
-      ctx.play?.();
-    });
-  }, [pauseVideo, runVideoCommand]);
+    play();
+
+    const nextTick = (Taro as any).nextTick;
+    if (typeof nextTick === 'function') {
+      nextTick(play);
+    } else {
+      playRetryTimersRef.current.push(setTimeout(play, 0));
+    }
+
+    playRetryTimersRef.current.push(setTimeout(play, 180));
+    playRetryTimersRef.current.push(setTimeout(play, 650));
+  }, [runVideoCommand]);
+
+  const playStoryVideo = useCallback((key: StoryVideoKey) => {
+    clearPlaybackTimers();
+    requestedVideoKeyRef.current = key;
+    setVideoError(false);
+    pauseAllVideos();
+    setPlayRequest({ key, nonce: playRequestNonceRef.current + 1 });
+    playRequestNonceRef.current += 1;
+    playbackWatchdogRef.current = setTimeout(() => {
+      if (requestedVideoKeyRef.current !== key) return;
+      const currentUrls = getStoryUrls(cat);
+      reportPlaybackDiagnostic('home.video.watchdog-timeout', {
+        catId: cat?.id,
+        action: key,
+        playbackState,
+        src: getStoryUrlByKey(currentUrls, key),
+      });
+      setVideoError(true);
+      showFloatingBubble('视频启动失败，请重试', 4000);
+    }, 5000);
+  }, [cat, clearPlaybackTimers, pauseAllVideos, playbackState, showFloatingBubble]);
 
   const resetPlayback = useCallback(() => {
+    clearPlaybackTimers();
+    requestedVideoKeyRef.current = null;
+    setPlayRequest(null);
     pauseAllVideos();
     setPlaybackState('READY');
     setV2LoopCount(0);
     setVideoError(false);
     resetAllVideoPositions();
-  }, [pauseAllVideos, resetAllVideoPositions]);
+  }, [clearPlaybackTimers, pauseAllVideos, resetAllVideoPositions]);
+
+  useEffect(() => {
+    if (!playRequest || !activeStoryVideoSrc) return;
+    if (playRequest.key !== activeStoryVideoKey) return;
+
+    queueNativePlay(playRequest.key);
+  }, [activeStoryVideoKey, activeStoryVideoSrc, playRequest, queueNativePlay]);
 
   const loadCat = useCallback(() => {
     const activeCat = storage.getActiveCat();
@@ -273,8 +356,9 @@ export default function Home() {
       if (pointsToastTimerRef.current) clearTimeout(pointsToastTimerRef.current);
       if (greetingTimerRef.current) clearTimeout(greetingTimerRef.current);
       if (interactionHintTimerRef.current) clearTimeout(interactionHintTimerRef.current);
+      clearPlaybackTimers();
     };
-  }, [checkDailyLogin, loadCat, refreshCatsFromCloud, showFloatingBubble, startOnlineTimer]);
+  }, [checkDailyLogin, clearPlaybackTimers, loadCat, refreshCatsFromCloud, showFloatingBubble, startOnlineTimer]);
 
   useDidShow(() => {
     Taro.eventCenter.trigger('tabbar:show');
@@ -287,14 +371,20 @@ export default function Home() {
   });
 
   useDidHide(() => {
+    clearPlaybackTimers();
+    requestedVideoKeyRef.current = null;
+    setPlayRequest(null);
     pauseAllVideos();
   });
 
   useEffect(() => {
     return () => {
+      clearPlaybackTimers();
+      requestedVideoKeyRef.current = null;
+      setPlayRequest(null);
       pauseAllVideos();
     };
-  }, [pauseAllVideos]);
+  }, [clearPlaybackTimers, pauseAllVideos]);
 
   useEffect(() => {
     if (!cat?.id) return;
@@ -308,10 +398,6 @@ export default function Home() {
     showFloatingBubble(actionError, 5000);
   }, [cat?.actionGenerationError, showFloatingBubble]);
 
-  const urls = getStoryUrls(cat);
-  const hasVideo = !!getPrimaryVideoUrl(cat);
-  const hasStoryModel = hasFourStageVideos(cat);
-
   const handleV1Ended = () => {
     if (playbackState !== 'PLAYING_V1') return;
 
@@ -324,7 +410,7 @@ export default function Home() {
     }
 
     pauseAllVideos();
-    seekVideoToStart(VIDEO_IDS.v1);
+    resetAllVideoPositions();
     setPlaybackState('READY');
     showFloatingBubble(cat?.isUnlocking ? '后续剧情还在生成中，请稍后再来互动～' : '剧情流还没准备好，请重新生成或等待同步～');
   };
@@ -342,7 +428,7 @@ export default function Home() {
         playStoryVideo('v3');
       } else {
         pauseAllVideos();
-        seekVideoToStart(VIDEO_IDS.v1);
+        resetAllVideoPositions();
         setPlaybackState('READY');
         showFloatingBubble(cat?.isUnlocking ? '还在生成返回结局，请稍后再试～' : '返回结局还没准备好，请等待同步～');
       }
@@ -359,7 +445,7 @@ export default function Home() {
 
     pauseAllVideos();
     setPlaybackState('READY');
-    seekVideoToStart(VIDEO_IDS.v1);
+    resetAllVideoPositions();
   };
 
   const handleV4Ended = () => {
@@ -367,13 +453,47 @@ export default function Home() {
 
     pauseAllVideos();
     setPlaybackState('READY');
-    seekVideoToStart(VIDEO_IDS.v1);
+    resetAllVideoPositions();
+  };
+
+  const handleActiveVideoEnded = () => {
+    if (playbackState === 'PLAYING_V1') {
+      handleV1Ended();
+      return;
+    }
+
+    if (playbackState === 'LOOPING_V2') {
+      handleV2Ended();
+      return;
+    }
+
+    if (playbackState === 'PLAYING_V3') {
+      handleV3Ended();
+      return;
+    }
+
+    if (playbackState === 'PLAYING_V4') {
+      handleV4Ended();
+    }
   };
 
   const handleMainTap = () => {
     if (!cat) return;
 
     if (playbackState === 'READY') {
+      reportPlaybackDiagnostic('home.tap.ready', {
+        catId: cat.id,
+        action: 'v1',
+        playbackState,
+        src: urls.v1,
+        hasVideo,
+        hasV1: !!urls.v1,
+        hasV2: !!urls.v2,
+        hasV3: !!urls.v3,
+        hasV4: !!urls.v4,
+        isUnlocking: !!cat.isUnlocking,
+      });
+
       if (!urls.v1) {
         setVideoError(true);
         return;
@@ -388,6 +508,17 @@ export default function Home() {
 
     if (playbackState === 'LOOPING_V2') {
       if (!urls.v4) {
+        reportPlaybackDiagnostic('home.tap.looping-v2.missing-v4', {
+          catId: cat.id,
+          action: 'v4',
+          playbackState,
+          src: urls.v4,
+          hasV1: !!urls.v1,
+          hasV2: !!urls.v2,
+          hasV3: !!urls.v3,
+          hasV4: !!urls.v4,
+          isUnlocking: !!cat.isUnlocking,
+        });
         showFloatingBubble(cat.isUnlocking ? '还在生成有趣的后续结局哦，请耐心等候～' : '快去解锁完整的“毛球互动剧情流”吧～');
         return;
       }
@@ -407,8 +538,31 @@ export default function Home() {
     if (activeKey && activeKey !== key) return;
     if (!activeKey && key !== 'v1') return;
 
+    reportPlaybackDiagnostic('home.video.error', {
+      catId: cat?.id,
+      action: key,
+      playbackState,
+      src: getStoryUrlByKey(urls, key),
+    });
+
+    clearPlaybackTimers();
+    requestedVideoKeyRef.current = null;
+    setPlayRequest(null);
     pauseAllVideos();
     setVideoError(true);
+  };
+
+  const handleVideoPlay = (key: StoryVideoKey) => {
+    if (requestedVideoKeyRef.current !== key) return;
+    reportPlaybackDiagnostic('home.video.play', {
+      catId: cat?.id,
+      action: key,
+      playbackState,
+      src: getStoryUrlByKey(urls, key),
+    });
+    requestedVideoKeyRef.current = null;
+    clearPlaybackTimers();
+    setVideoError(false);
   };
 
   const handleRetryVideo = () => {
@@ -431,12 +585,13 @@ export default function Home() {
             />
           )}
 
-          {hasVideo && (
+          {hasVideo && activeStoryVideoSrc && (
             <View className="video-stack">
               <Video
-                id={VIDEO_IDS.v1}
-                className={`cat-video story-video ${playbackState === 'READY' || playbackState === 'PLAYING_V1' ? 'active' : ''}`}
-                src={urls.v1}
+                key={`${activeStoryVideoKey}:${activeStoryVideoSrc}`}
+                id={STORY_VIDEO_ID}
+                className={`cat-video story-video ${isPlayingStoryVideo ? 'active' : ''}`}
+                src={activeStoryVideoSrc}
                 muted
                 showFullscreenBtn={false}
                 showPlayBtn={false}
@@ -444,74 +599,15 @@ export default function Home() {
                 controls={false}
                 enableProgressGesture={false}
                 enablePlayGesture={false}
-                autoplay={false}
+                autoplay={isPlayingStoryVideo}
                 initialTime={0}
                 objectFit="cover"
-                onEnded={handleV1Ended}
-                onError={() => handleVideoError('v1')}
+                onPlay={() => handleVideoPlay(activeStoryVideoKey)}
+                onEnded={handleActiveVideoEnded}
+                onError={() => handleVideoError(activeStoryVideoKey)}
               />
 
-              {urls.v2 && (
-                <Video
-                  id={VIDEO_IDS.v2}
-                  className={`cat-video story-video ${playbackState === 'LOOPING_V2' ? 'active' : ''}`}
-                  src={urls.v2}
-                  muted
-                  showFullscreenBtn={false}
-                  showPlayBtn={false}
-                  showCenterPlayBtn={false}
-                  controls={false}
-                  enableProgressGesture={false}
-                  enablePlayGesture={false}
-                  autoplay={false}
-                  initialTime={0}
-                  objectFit="cover"
-                  onEnded={handleV2Ended}
-                  onError={() => handleVideoError('v2')}
-                />
-              )}
-
-              {urls.v3 && (
-                <Video
-                  id={VIDEO_IDS.v3}
-                  className={`cat-video story-video ${playbackState === 'PLAYING_V3' ? 'active' : ''}`}
-                  src={urls.v3}
-                  muted
-                  showFullscreenBtn={false}
-                  showPlayBtn={false}
-                  showCenterPlayBtn={false}
-                  controls={false}
-                  enableProgressGesture={false}
-                  enablePlayGesture={false}
-                  autoplay={false}
-                  initialTime={0}
-                  objectFit="cover"
-                  onEnded={handleV3Ended}
-                  onError={() => handleVideoError('v3')}
-                />
-              )}
-
-              {urls.v4 && (
-                <Video
-                  id={VIDEO_IDS.v4}
-                  className={`cat-video story-video ${playbackState === 'PLAYING_V4' ? 'active' : ''}`}
-                  src={urls.v4}
-                  muted
-                  showFullscreenBtn={false}
-                  showPlayBtn={false}
-                  showCenterPlayBtn={false}
-                  controls={false}
-                  enableProgressGesture={false}
-                  enablePlayGesture={false}
-                  autoplay={false}
-                  initialTime={0}
-                  objectFit="cover"
-                  onEnded={handleV4Ended}
-                  onError={() => handleVideoError('v4')}
-                />
-              )}
-
-              <View
+              <CoverView
                 className="story-touch-layer"
                 data-testid="story-touch-layer"
                 onClick={handleMainTap}
@@ -520,43 +616,43 @@ export default function Home() {
           )}
 
           {videoError && (
-            <View className="video-error-overlay">
-              <Text className="video-error-title">视频暂时无法播放</Text>
-              <Text className="video-error-desc">网络波动，请稍后重试</Text>
-              <View className="retry-btn" onClick={handleRetryVideo}>
-                <Text className="retry-btn-text">重试播放</Text>
-              </View>
-            </View>
+            <CoverView className="video-error-overlay">
+              <CoverView className="video-error-title">视频暂时无法播放</CoverView>
+              <CoverView className="video-error-desc">网络波动，请稍后重试</CoverView>
+              <CoverView className="retry-btn" onClick={handleRetryVideo}>
+                <CoverView className="retry-btn-text">重试播放</CoverView>
+              </CoverView>
+            </CoverView>
           )}
 
-          {!hasStoryModel && hasVideo && !videoError && (
-            <View className="unlock-progress-badge">
-              <Text className="unlock-progress-title">剧情流暂未完成</Text>
-              <Text className="unlock-progress-text">请重新生成或等待同步</Text>
-            </View>
+          {!cat.isUnlocking && !hasStoryModel && hasVideo && !videoError && (
+            <CoverView className="unlock-progress-badge">
+              <CoverView className="unlock-progress-title">剧情流暂未完成</CoverView>
+              <CoverView className="unlock-progress-text">请重新生成或等待同步</CoverView>
+            </CoverView>
           )}
 
-          <FrostedGlassBubble
+          <HomeCoverBubble
             text={bubbleText}
             visible={bubbleVisible}
             exiting={bubbleExiting}
           />
 
           {pointsToast && (
-            <View className="points-toast">
-              <Text className="points-toast-text">{pointsToast}</Text>
-            </View>
+            <CoverView className="points-toast">
+              <CoverView className="points-toast-text">{pointsToast}</CoverView>
+            </CoverView>
           )}
 
           {cat.isUnlocking && (
-            <View className="unlock-progress-badge">
-              <Text className="unlock-progress-title">正在解锁更多动作</Text>
-              <Text className="unlock-progress-text">
+            <CoverView className="unlock-progress-badge">
+              <CoverView className="unlock-progress-title">正在解锁更多动作</CoverView>
+              <CoverView className="unlock-progress-text">
                 {cat.unlockProgress
                   ? `${cat.unlockProgress.completed}/${cat.unlockProgress.total} 已完成`
                   : '后台生成中'}
-              </Text>
-            </View>
+              </CoverView>
+            </CoverView>
           )}
         </View>
       )}

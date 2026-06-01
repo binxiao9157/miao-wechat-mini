@@ -128,6 +128,56 @@ describe('code quality guardrails', () => {
     expect(uploadSource).toContain('redirectTo(`/pages/generation-progress/index?source=uploaded&catId=${encodeURIComponent(newCat.id)}');
   });
 
+  it('renders tab bar with cover components so it stays above native video', () => {
+    const tabBarSource = fs.readFileSync(path.join(srcRoot, 'custom-tab-bar/index.tsx'), 'utf8');
+
+    expect(tabBarSource).toContain("import { CoverView, CoverImage } from '@tarojs/components'");
+    expect(tabBarSource).toContain('<CoverView className={`miao-tabbar');
+    expect(tabBarSource).toContain('<CoverImage');
+  });
+
+  it('renders home video overlays with cover components so taps and prompts stay above native video', () => {
+    const homeSource = fs.readFileSync(path.join(srcRoot, 'pages/home/index.tsx'), 'utf8');
+
+    expect(homeSource).toContain("import { View, Text, Video, CoverView } from '@tarojs/components'");
+    expect(homeSource).toContain("const STORY_VIDEO_ID = 'catStoryVideo'");
+    expect(homeSource).not.toContain('catVideoV2');
+    expect(homeSource).not.toContain('catVideoV3');
+    expect(homeSource).not.toContain('catVideoV4');
+    expect(homeSource).toContain('<CoverView\n                className="story-touch-layer"');
+    expect(homeSource).toContain('<CoverView className="video-error-overlay">');
+    expect(homeSource).toContain('<CoverView className="retry-btn" onClick={handleRetryVideo}>');
+    expect(homeSource).toContain('<CoverView className="unlock-progress-badge">');
+    expect(homeSource).toContain('<CoverView className="points-toast">');
+    expect(homeSource).toContain('<HomeCoverBubble');
+  });
+
+  it('keeps points and profile headers inside their scroll containers', () => {
+    const profileSource = fs.readFileSync(path.join(srcRoot, 'pages/profile/index.tsx'), 'utf8');
+    const pointsSource = fs.readFileSync(path.join(srcRoot, 'pages/points/index.tsx'), 'utf8');
+
+    expect(profileSource.indexOf('<ScrollView className="profile-scroll"')).toBeLessThan(profileSource.indexOf('<View className="header">'));
+    expect(pointsSource.indexOf('<ScrollView className="points-scroll"')).toBeLessThan(pointsSource.indexOf('<View className="header">'));
+  });
+
+  it('keeps home unlock progress above the safe-area tab bar', () => {
+    const homeStyles = fs.readFileSync(path.join(srcRoot, 'pages/home/index.less'), 'utf8');
+    const badgeBlock = homeStyles.match(/\.unlock-progress-badge\s*\{[\s\S]+?\n\}/)?.[0] || '';
+
+    expect(badgeBlock).toContain('env(safe-area-inset-bottom)');
+    expect(badgeBlock).toContain('bottom: calc(env(safe-area-inset-bottom) + 196rpx)');
+  });
+
+  it('persists first-frame metadata before opening generation progress', () => {
+    const createSource = fs.readFileSync(path.join(srcRoot, 'pages/create-companion/index.tsx'), 'utf8');
+    const uploadSource = fs.readFileSync(path.join(srcRoot, 'pages/upload-material/index.tsx'), 'utf8');
+
+    expect(createSource).toContain('placeholderImage: selectedPreset.imageUrl');
+    expect(createSource).toContain('anchorFrame: selectedPreset.imageUrl');
+    expect(uploadSource).toContain('placeholderImage: firstFrameUrl');
+    expect(uploadSource).toContain('anchorFrame: firstFrameUrl');
+  });
+
   it('does not register admin settings as an unconditional release page', () => {
     const appConfigSource = fs.readFileSync(path.join(srcRoot, 'app.config.ts'), 'utf8');
 

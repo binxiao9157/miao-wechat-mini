@@ -12,6 +12,7 @@ vi.mock('../storage', () => ({
     syncLetterToServer: vi.fn(async () => undefined),
     deleteLetterFromServer: vi.fn(async () => undefined),
     syncPointsToServer: vi.fn(async () => undefined),
+    syncPointTransactionToServer: vi.fn(async () => undefined),
     syncCatToServer: vi.fn(async () => undefined),
     deleteCatFromServer: vi.fn(async () => undefined),
   },
@@ -52,6 +53,34 @@ describe('syncQueue', () => {
     await syncQueue.flushNow();
 
     expect(serverSync.syncPointsToServer).toHaveBeenCalledWith('alice', { total: 10 });
+  });
+
+  it('flushes points transactions through the atomic server endpoint', async () => {
+    const { syncQueue } = await import('../syncQueue');
+    const { serverSync } = await import('../storage');
+
+    syncQueue.enqueue({
+      type: 'points',
+      id: 'daily-login:2026-06-01',
+      action: 'transaction',
+      payload: {
+        id: 'daily-login:2026-06-01',
+        type: 'earn',
+        amount: 10,
+        reason: '每日登录奖励',
+        timestamp: Date.now(),
+      },
+    });
+
+    await syncQueue.flushNow();
+
+    expect(serverSync.syncPointTransactionToServer).toHaveBeenCalledWith('alice', {
+      id: 'daily-login:2026-06-01',
+      type: 'earn',
+      amount: 10,
+      reason: '每日登录奖励',
+      timestamp: expect.any(Number),
+    });
   });
 
   it('resolves every concurrent flush caller when a flush is already running', async () => {

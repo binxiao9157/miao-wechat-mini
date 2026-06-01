@@ -1,4 +1,4 @@
-import type { CatInfo, DiaryEntry, PointsInfo, TimeLetter } from './types';
+import type { CatInfo, DiaryEntry, PointsInfo, PointTransaction, TimeLetter } from './types';
 
 export interface ServerSyncApi {
   syncCatToServer(userId: string, cat: CatInfo): Promise<void>;
@@ -8,4 +8,5 @@ export interface ServerSyncApi {
   syncLetterToServer(userId: string, letter: TimeLetter): Promise<void>;
   deleteLetterFromServer(userId: string, letterId: string): Promise<void>;
   syncPointsToServer(userId: string, data: PointsInfo): Promise<void>;
+  syncPointTransactionToServer(userId: string, transaction: PointTransaction): Promise<void>;
 }

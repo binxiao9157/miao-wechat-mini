@@ -142,6 +142,17 @@ describe('storage stability behavior', () => {
       amount: 10,
       type: 'earn',
     });
+    expect(syncQueue.enqueue).toHaveBeenCalledWith({
+      type: 'points',
+      id: 'daily-login:2026-05-30',
+      action: 'transaction',
+      payload: expect.objectContaining({
+        id: 'daily-login:2026-05-30',
+        amount: 10,
+        type: 'earn',
+        reason: '每日登录奖励',
+      }),
+    });
   });
 
   it('deduplicates point deductions by idempotency key', async () => {
@@ -156,6 +167,17 @@ describe('storage stability behavior', () => {
     const points = storage.getPoints();
     expect(points.total).toBe(30);
     expect(points.history.filter(item => item.id === 'unlock:cat-1')).toHaveLength(1);
+    expect(syncQueue.enqueue).toHaveBeenCalledWith({
+      type: 'points',
+      id: 'unlock:cat-1',
+      action: 'transaction',
+      payload: expect.objectContaining({
+        id: 'unlock:cat-1',
+        amount: 20,
+        type: 'spend',
+        reason: '解锁新伙伴',
+      }),
+    });
   });
 
   it('clears stale background unlock state when reading cats', async () => {

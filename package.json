@@ -14,7 +14,7 @@
     "lint": "tsc --noEmit",
     "release:scan": "node scripts/release-static-scan.mjs",
     "release:api-contract": "node scripts/check-api-contract.mjs",
-    "release:check": "npm test && npm run lint && npm audit --omit=dev --audit-level=high && npm run build:h5 && npm run build:weapp && npm run release:scan && npm run release:api-contract",
+    "release:check": "node scripts/validate-release-env.mjs && npm test && npm run lint && npm audit --omit=dev --audit-level=high && npm run build:h5 && npm run build:weapp && npm run release:scan && npm run release:api-contract",
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",

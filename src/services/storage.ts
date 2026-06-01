@@ -466,6 +466,17 @@ async function syncPointsToServer(userId: string, data: PointsInfo) {
   });
 }
 
+async function syncPointTransactionToServer(userId: string, transaction: PointTransaction) {
+  return request('/api/v1/points/transaction', {
+    method: 'POST',
+    data: {
+      amount: transaction.amount,
+      type: transaction.type,
+      reason: transaction.reason,
+    },
+  });
+}
+
 function mergePoints(local: PointsInfo, remote: PointsInfo): PointsInfo {
   const latest = (a: string | null, b: string | null) => {
     if (!a) return b;
@@ -1174,6 +1185,10 @@ export const storage = {
   },
 
   savePoints: (points: PointsInfo) => {
+    storage.persistPoints(points, true);
+  },
+
+  persistPoints: (points: PointsInfo, enqueueSnapshot: boolean = true) => {
     const nextPoints = {
       ...points,
       updatedAt: Date.now(),
@@ -1182,7 +1197,7 @@ export const storage = {
     storage.setItem(key, JSON.stringify(nextPoints));
     invalidateCache(key);
     const userId = getCurrentUsername();
-    if (userId) getSyncQueue().enqueue({ type: 'points', action: 'upsert', payload: nextPoints });
+    if (userId && enqueueSnapshot) getSyncQueue().enqueue({ type: 'points', action: 'upsert', payload: nextPoints });
   },
 
   addPoints: (amount: number, reason: string = '系统奖励', transactionId?: string) => {
@@ -1191,15 +1206,18 @@ export const storage = {
       return points.total;
     }
     points.total += amount;
-    points.history.unshift({
+    const transaction = {
       id: transactionId || 'tx_' + Date.now() + Math.random().toString(36).substring(2, 7),
       type: 'earn',
       amount,
       reason,
       timestamp: Date.now()
-    });
+    } as PointTransaction;
+    points.history.unshift(transaction);
     if (points.history.length > 50) points.history.pop();
-    storage.savePoints(points);
+    storage.persistPoints(points, false);
+    const userId = getCurrentUsername();
+    if (userId) getSyncQueue().enqueue({ type: 'points', id: transaction.id, action: 'transaction', payload: transaction });
     return points.total;
   },
 
@@ -1215,15 +1233,18 @@ export const storage = {
     }
     if (points.total >= amount) {
       points.total -= amount;
-      points.history.unshift({
+      const transaction = {
         id: transactionId || 'tx_' + Date.now() + Math.random().toString(36).substring(2, 7),
         type: 'spend',
         amount,
         reason,
         timestamp: Date.now()
-      });
+      } as PointTransaction;
+      points.history.unshift(transaction);
       if (points.history.length > 50) points.history.pop();
-      storage.savePoints(points);
+      storage.persistPoints(points, false);
+      const userId = getCurrentUsername();
+      if (userId) getSyncQueue().enqueue({ type: 'points', id: transaction.id, action: 'transaction', payload: transaction });
       return true;
     }
     return false;
@@ -1532,6 +1553,7 @@ export const storage = {
   _syncDiaryToServer: syncDiaryToServer,
   _syncLetterToServer: syncLetterToServer,
   _syncPointsToServer: syncPointsToServer,
+  _syncPointTransactionToServer: syncPointTransactionToServer,
   _deleteCatFromServer: deleteCatFromServer,
   _deleteDiaryFromServer: deleteDiaryFromServer,
   _deleteLetterFromServer: deleteLetterFromServer,
@@ -1545,4 +1567,5 @@ export const serverSync: ServerSyncApi = {
   syncLetterToServer,
   deleteLetterFromServer,
   syncPointsToServer,
+  syncPointTransactionToServer,
 };

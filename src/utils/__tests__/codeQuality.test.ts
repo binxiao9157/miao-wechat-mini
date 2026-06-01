@@ -358,6 +358,7 @@ describe('code quality guardrails', () => {
     const contractSource = fs.existsSync(contractPath) ? fs.readFileSync(contractPath, 'utf8') : '';
 
     expect(packageJson.scripts['release:api-contract']).toBe('node scripts/check-api-contract.mjs');
+    expect(packageJson.scripts['release:check']).toContain('node scripts/validate-release-env.mjs');
     expect(packageJson.scripts['release:check']).toContain('npm run release:api-contract');
     expect(contractSource).toContain("method: 'post'");
     expect(contractSource).toContain("auth: 'required'");
@@ -382,6 +383,7 @@ describe('code quality guardrails', () => {
       '/api/v1/letters',
       '/api/v1/letters/:letterId',
       '/api/v1/points',
+      '/api/v1/points/transaction',
       '/api/v1/friend-invites',
       '/api/v1/friend-invites/:code',
       '/api/v1/friends',

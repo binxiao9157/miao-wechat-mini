@@ -6,7 +6,7 @@ import { safeClone } from './storage/jsonUtils';
 export type SyncTask = {
   type: 'diary' | 'letter' | 'points' | 'cat';
   id?: string;
-  action: 'upsert' | 'delete';
+  action: 'upsert' | 'delete' | 'transaction';
   payload?: any;
   retries?: number;
   lastError?: string;
@@ -49,9 +49,12 @@ class SyncQueue {
   private isValidTask(task: any): task is SyncTask {
     if (!task || typeof task !== 'object') return false;
     if (!['diary', 'letter', 'points', 'cat'].includes(task.type)) return false;
-    if (!['upsert', 'delete'].includes(task.action)) return false;
+    if (!['upsert', 'delete', 'transaction'].includes(task.action)) return false;
 
     const hasId = typeof task.id === 'string' && task.id.trim().length > 0;
+    if (task.action === 'transaction') {
+      return task.type === 'points' && hasId && task.payload !== undefined;
+    }
     if (task.action === 'delete') {
       return task.type !== 'points' && hasId;
     }
@@ -210,7 +213,11 @@ class SyncQueue {
         }
         break;
       case 'points':
-        await serverSync.syncPointsToServer(username, task.payload);
+        if (task.action === 'transaction') {
+          await serverSync.syncPointTransactionToServer(username, task.payload);
+        } else {
+          await serverSync.syncPointsToServer(username, task.payload);
+        }
         break;
       case 'cat':
         if (task.action === 'delete') {

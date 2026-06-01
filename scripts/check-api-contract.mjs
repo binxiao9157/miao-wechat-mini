@@ -42,6 +42,7 @@ const requiredRoutes = [
   { method: 'delete', route: '/api/v1/letters/:letterId', auth: 'required' },
   { method: 'get', route: '/api/v1/points', auth: 'required' },
   { method: 'post', route: '/api/v1/points', auth: 'required' },
+  { method: 'post', route: '/api/v1/points/transaction', auth: 'required' },
   { method: 'post', route: '/api/v1/friend-invites', auth: 'required' },
   { method: 'get', route: '/api/v1/friend-invites/:code', auth: 'required' },
   { method: 'get', route: '/api/v1/friends', auth: 'required' },

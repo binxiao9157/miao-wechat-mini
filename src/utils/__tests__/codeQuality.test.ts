@@ -275,14 +275,19 @@ describe('code quality guardrails', () => {
     expect(dependencies['lucide-react']).toBeUndefined();
     expect(dependencies['qrcode.react']).toBeUndefined();
     expect(devDependencies.sharp).toBeUndefined();
+    expect(devDependencies.eslint).toBeUndefined();
+    expect(devDependencies['eslint-config-taro']).toBeUndefined();
+    expect(devDependencies['eslint-plugin-react']).toBeUndefined();
+    expect(devDependencies['@typescript-eslint/eslint-plugin']).toBeUndefined();
+    expect(devDependencies['@typescript-eslint/parser']).toBeUndefined();
   });
 
   it('keeps safe audit overrides scoped to known build-tool transitive dependencies', () => {
     const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
     const overrides = packageJson.overrides || {};
 
-    expect(overrides['@typescript-eslint/typescript-estree']?.minimatch).toBe('9.0.7');
     expect(overrides['@tarojs/plugin-doctor']?.glob).toBe('10.5.0');
+    expect(overrides['@typescript-eslint/typescript-estree']).toBeUndefined();
     expect(overrides['@tarojs/webpack5-runner']).toBeUndefined();
     expect(overrides['@tarojs/plugin-platform-h5']).toBeUndefined();
   });
@@ -336,12 +341,47 @@ describe('code quality guardrails', () => {
 
     expect(packageJson.scripts['release:api-contract']).toBe('node scripts/check-api-contract.mjs');
     expect(packageJson.scripts['release:check']).toContain('npm run release:api-contract');
+    expect(contractSource).toContain("method: 'post'");
+    expect(contractSource).toContain("auth: 'required'");
     [
+      '/api/health',
+      '/api/v1/auth/register',
+      '/api/v1/auth/password-login',
+      '/api/v1/auth/wechat-login',
+      '/api/v1/auth/phone-login',
+      '/api/v1/auth/send-reset-code',
+      '/api/v1/auth/reset-password',
+      '/api/v1/auth/set-password',
+      '/api/v1/me',
+      '/api/v1/me/settings',
+      '/api/v1/cats',
+      '/api/v1/cats/:catId',
+      '/api/v1/diaries',
+      '/api/v1/diaries/:diaryId',
+      '/api/v1/diaries/:diaryId/like',
+      '/api/v1/diaries/:diaryId/comments',
+      '/api/v1/diaries/:diaryId/comments/:commentId',
+      '/api/v1/letters',
+      '/api/v1/letters/:letterId',
+      '/api/v1/points',
+      '/api/v1/friend-invites',
+      '/api/v1/friend-invites/:code',
+      '/api/v1/friends',
+      '/api/v1/friends/accept',
+      '/api/v1/friends/diaries',
+      '/api/v1/notifications',
+      '/api/v1/notifications/read-all',
+      '/api/v1/notifications/:id/read',
+      '/api/v1/feedback',
+      '/api/v1/upload',
       '/api/v1/security/text',
       '/api/v1/security/media',
       '/api/v1/security/media-file',
+      '/api/v1/ai/tasks',
       '/api/v1/ai/tasks-file',
       '/api/v1/ai/tasks/:taskId',
+      '/api/v1/assets/persist-video',
+      '/api/v1/diagnostics/client-log',
     ].forEach(route => {
       expect(contractSource).toContain(route);
     });

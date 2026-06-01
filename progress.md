@@ -176,3 +176,10 @@ Update this file after every recursive state-changing command bundle and before 
 - Next action: `none`
 - Counts: 1/1 problems done, 0 blocked, 1/1 tickets done
 - Next instruction: Only perform `none` finalization. Goal: validate, render, status, and summarize the closed ledger. Detailed worker requirements: `references/workers/none.md`.
+
+## Release Approval Audit - 2026-06-01T16:44:00+08:00
+
+- Scope: production release code approval scan across mini build/test/config/runtime/API/security/dependencies, with backend API contract confirmation.
+- Confirmed fixes: expanded mini/backend API contract gate, protected backend client diagnostics route with `authRequired`, removed unused direct ESLint dev dependencies.
+- Evidence: `docs/release-audit-2026-06-01.md`.
+- Verification: mini `npm run release:check` passed; backend `npm run lint`, `npm run verify:baseline`, and production dependency audit passed.

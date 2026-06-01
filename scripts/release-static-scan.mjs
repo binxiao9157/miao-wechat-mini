@@ -71,9 +71,11 @@ assert(privateConfig?.setting?.uploadWithSourceMap !== true, 'project.private.co
 
 const packageJson = readJson('package.json');
 const dependencies = packageJson?.dependencies || {};
+const devDependencies = packageJson?.devDependencies || {};
 ['lucide-react', 'qrcode.react'].forEach((dependency) => {
   assert(!dependencies[dependency], `package.json dependencies must not include unused ${dependency}`);
 });
+assert(!devDependencies.sharp, 'package.json devDependencies must not include unused sharp');
 
 const sourceFiles = walkFiles(srcRoot, (fullPath, entry) => {
   if (entry.isDirectory()) return path.basename(fullPath) !== '__tests__';

@@ -270,9 +270,11 @@ describe('code quality guardrails', () => {
   it('does not keep unused H5-only dependencies in the app package', () => {
     const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
     const dependencies = packageJson.dependencies || {};
+    const devDependencies = packageJson.devDependencies || {};
 
     expect(dependencies['lucide-react']).toBeUndefined();
     expect(dependencies['qrcode.react']).toBeUndefined();
+    expect(devDependencies.sharp).toBeUndefined();
   });
 
   it('keeps safe audit overrides scoped to known build-tool transitive dependencies', () => {
@@ -315,6 +317,7 @@ describe('code quality guardrails', () => {
       'source.unsplash',
       'lucide-react',
       'qrcode.react',
+      'sharp',
       '重置密码验证码',
       'process.env',
       'process is not defined',
@@ -354,5 +357,21 @@ describe('code quality guardrails', () => {
     });
 
     expect(violations).toEqual([]);
+  });
+
+  it('keeps QR and event adapter fixes in place', () => {
+    const qrSource = fs.readFileSync(path.join(srcRoot, 'utils/qrCanvas.ts'), 'utf8');
+    const addFriendQrSource = fs.readFileSync(path.join(srcRoot, 'pages/add-friend-qr/index.tsx'), 'utf8');
+    const eventAdapterSource = fs.readFileSync(path.join(srcRoot, 'utils/eventAdapter.ts'), 'utf8');
+
+    expect(qrSource).toContain('encodeUtf8Bytes');
+    expect(qrSource).toContain('selectVersion(textBytes.length)');
+    expect(addFriendQrSource).toContain('const imagePath = qrImageUrl || await exportQRCanvas()');
+    expect(eventAdapterSource).toContain('const handlers = new Map');
+    expect(eventAdapterSource).not.toMatch(/eventCenter\.off\(event\)/);
+  });
+
+  it('does not keep unused browser-only video utilities', () => {
+    expect(fs.existsSync(path.join(srcRoot, 'lib/videoUtils.ts'))).toBe(false);
   });
 });

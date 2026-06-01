@@ -89,41 +89,61 @@ function selectVersion(dataLen: number): QRVersion {
   throw new Error(`QR码数据过长(${dataLen}字节)，最大支持274字节`);
 }
 
-function encodeData(text: string, version: QRVersion): Uint8Array {
+function encodeUtf8Bytes(text: string): Uint8Array {
+  if (typeof TextEncoder !== 'undefined') {
+    return new TextEncoder().encode(text);
+  }
+  const encoded = encodeURIComponent(text);
+  const bytes: number[] = [];
+  for (let i = 0; i < encoded.length; i++) {
+    if (encoded[i] === '%') {
+      bytes.push(parseInt(encoded.slice(i + 1, i + 3), 16));
+      i += 2;
+    } else {
+      bytes.push(encoded.charCodeAt(i));
+    }
+  }
+  return new Uint8Array(bytes);
+}
+
+function encodeData(bytes: Uint8Array, version: QRVersion): Uint8Array {
   const dataBytes: number[] = [];
-  // Mode: byte (0100)
-  let bits = 4;
-  let bitBuffer = 0b0100;
+  let currentByte = 0;
+  let currentBits = 0;
+
+  const writeBits = (value: number, length: number) => {
+    for (let i = length - 1; i >= 0; i--) {
+      currentByte = (currentByte << 1) | ((value >> i) & 1);
+      currentBits++;
+      if (currentBits === 8) {
+        dataBytes.push(currentByte);
+        currentByte = 0;
+        currentBits = 0;
+      }
+    }
+  };
+
+  writeBits(0b0100, 4);
 
   // Character count (8 bits for version 1-9, 16 bits for version 10+)
   const charCountBits = version.version <= 9 ? 8 : 16;
-  bitBuffer = (bitBuffer << charCountBits) | text.length;
-  bits += charCountBits;
+  writeBits(bytes.length, charCountBits);
 
   // Data
-  for (let i = 0; i < text.length; i++) {
-    const code = text.charCodeAt(i);
-    bitBuffer = (bitBuffer << 8) | code;
-    bits += 8;
-    // Flush complete bytes
-    while (bits >= 8) {
-      dataBytes.push((bitBuffer >> (bits - 8)) & 0xff);
-      bits -= 8;
-    }
+  for (const byte of bytes) {
+    writeBits(byte, 8);
   }
 
   // Terminator (up to 4 zero bits)
   const maxDataBits = version.dataCodewords * 8;
-  const terminatorBits = Math.min(4, maxDataBits - (dataBytes.length * 8 + bits));
+  const terminatorBits = Math.min(4, maxDataBits - (dataBytes.length * 8 + currentBits));
   if (terminatorBits > 0) {
-    bitBuffer = (bitBuffer << terminatorBits);
-    bits += terminatorBits;
+    writeBits(0, terminatorBits);
   }
 
   // Flush remaining bits
-  if (bits > 0) {
-    dataBytes.push((bitBuffer << (8 - bits)) & 0xff);
-    bits = 0;
+  if (currentBits > 0) {
+    dataBytes.push((currentByte << (8 - currentBits)) & 0xff);
   }
 
   // Pad to data codewords length
@@ -328,14 +348,19 @@ function placeFormatInfo(matrix: number[][], maskPattern: number): void {
 }
 
 function generateQRMatrix(text: string): number[][] {
-  const version = selectVersion(text.length);
-  const dataCodewords = encodeData(text, version);
+  const textBytes = encodeUtf8Bytes(text);
+  const version = selectVersion(textBytes.length);
+  const dataCodewords = encodeData(textBytes, version);
   const finalCodewords = generateECAndInterleave(dataCodewords, version);
   const { matrix, reserved } = createMatrix(version);
   placeData(matrix, reserved, finalCodewords);
   applyMask(matrix, reserved);
   placeFormatInfo(matrix, 0);
   return matrix;
+}
+
+export function getQRByteLength(text: string): number {
+  return encodeUtf8Bytes(text).length;
 }
 
 /**
@@ -390,6 +415,7 @@ export async function generateFriendPoster(options: {
   const {
     canvasId,
     nickname,
+    avatarUrl,
     catName,
     catAvatarUrl,
     inviteCode,
@@ -404,7 +430,7 @@ export async function generateFriendPoster(options: {
     const query = page ? Taro.createSelectorQuery().in(page) : Taro.createSelectorQuery();
     query.select(`#${canvasId}`)
       .fields({ node: true, size: true })
-      .exec((res) => {
+      .exec(async (res) => {
         if (!res[0]?.node) {
           reject(new Error('Canvas node not found'));
           return;
@@ -429,6 +455,39 @@ export async function generateFriendPoster(options: {
         ctx.fillStyle = '#D99B7A';
         ctx.fillRect(0, 0, width, 6);
 
+        const loadImage = (src: string): Promise<any | null> => new Promise((resolve) => {
+          if (!src || typeof canvas.createImage !== 'function') {
+            resolve(null);
+            return;
+          }
+          const img = canvas.createImage();
+          img.onload = () => resolve(img);
+          img.onerror = () => resolve(null);
+          img.src = src;
+        });
+
+        const drawCircularImage = async (src: string, cx: number, cy: number, radius: number, fallbackText: string) => {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.fillStyle = '#FEF6F0';
+          ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+          const image = await loadImage(src);
+          if (image) {
+            ctx.drawImage(image, cx - radius, cy - radius, radius * 2, radius * 2);
+          } else {
+            ctx.fillStyle = '#D99B7A';
+            ctx.font = 'bold 22px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(fallbackText || 'M', cx, cy);
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+          }
+          ctx.restore();
+        };
+
         // User section
         ctx.fillStyle = '#1C1B1F';
         ctx.font = 'bold 24px sans-serif';
@@ -438,9 +497,10 @@ export async function generateFriendPoster(options: {
         ctx.fillText('邀请你成为好友', 100, 108);
 
         // Cat info
+        await drawCircularImage(catAvatarUrl, 58, 555, 22, catName.charAt(0));
         ctx.fillStyle = '#D99B7A';
         ctx.font = 'bold 16px sans-serif';
-        ctx.fillText(`🐱 代表猫咪：${catName}`, 40, 560);
+        ctx.fillText(`代表猫咪：${catName}`, 90, 560);
 
         // QR code
         drawQROnCanvas(ctx, qrContent, (width - 280) / 2, 140, 280, '#1C1B1F', '#ffffff');
@@ -458,16 +518,7 @@ export async function generateFriendPoster(options: {
         ctx.fillText('让好友打开 Miao 扫描即可建立连接', width / 2, 600);
         ctx.textAlign = 'left';
 
-        // Avatar circles (drawn after QR as decorative)
-        // User avatar
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(56, 84, 28, 0, Math.PI * 2);
-        ctx.clip();
-        // Fallback: draw placeholder circle
-        ctx.fillStyle = '#FEF6F0';
-        ctx.fill();
-        ctx.restore();
+        await drawCircularImage(avatarUrl, 56, 84, 28, nickname.charAt(0));
 
         // Export
         setTimeout(() => {

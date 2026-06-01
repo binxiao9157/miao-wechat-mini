@@ -3,6 +3,7 @@ import type { CatUnlockProgress } from './storage';
 import { trigger } from '../utils/eventAdapter';
 import { post } from '../utils/httpAdapter';
 import { selectPrimaryVideoUrl } from './videoActions';
+import Taro from '@tarojs/taro';
 
 const getApiBaseURL = () => (process.env.TARO_APP_API_BASE_URL || '').replace(/\/$/, '');
 
@@ -44,11 +45,46 @@ async function persistVideoUrl(url: string, catId: string, action: string): Prom
   }
 }
 
-function compressForStorage(base64: string | undefined, maxSize: number, quality: number): Promise<string | undefined> {
-  if (!base64 || !base64.startsWith('data:image')) return Promise.resolve(base64);
+function isMiniProgram(): boolean {
+  try {
+    return Taro.getEnv() === Taro.ENV_TYPE.WEAPP;
+  } catch {
+    return process.env.TARO_ENV === 'weapp';
+  }
+}
+
+function isLocalImagePath(src: string): boolean {
+  return src.startsWith('wxfile://') || src.startsWith('ttfile://') || src.startsWith('http://tmp') || src.startsWith('/tmp/');
+}
+
+function compressMiniImage(src: string, quality: number): Promise<string> {
+  return new Promise((resolve) => {
+    Taro.compressImage({
+      src,
+      quality: Math.max(1, Math.min(100, Math.round(quality * 100))),
+      success: (res) => resolve(res.tempFilePath || src),
+      fail: (error) => {
+        console.warn('[FileManager] mini image compression failed, using original:', error);
+        resolve(src);
+      },
+    });
+  });
+}
+
+function compressForStorage(image: string | undefined, maxSize: number, quality: number): Promise<string | undefined> {
+  if (!image) return Promise.resolve(image);
+  if (isMiniProgram()) {
+    if (isLocalImagePath(image)) return compressMiniImage(image, quality);
+    if (image.startsWith('data:image')) {
+      console.warn('[FileManager] skip base64 image compression in mini program runtime');
+    }
+    return Promise.resolve(image);
+  }
+  if (!image.startsWith('data:image')) return Promise.resolve(image);
   return new Promise((resolve) => {
     if (typeof window === 'undefined') {
-      resolve(base64);
+      console.warn('[FileManager] skip browser image compression without window');
+      resolve(image);
       return;
     }
     const img = new Image();
@@ -66,8 +102,8 @@ function compressForStorage(base64: string | undefined, maxSize: number, quality
       ctx?.drawImage(img, 0, 0, w, h);
       resolve(canvas.toDataURL('image/jpeg', quality));
     };
-    img.onerror = () => resolve(base64);
-    img.src = base64;
+    img.onerror = () => resolve(image);
+    img.src = image;
   });
 }
 

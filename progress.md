@@ -29,6 +29,24 @@ Required fields: timestamp, current task, current recursive ledger, next action,
 - Verification status: `npm run lint`、`npm test`、`npm run build:weapp`、`npm run release:scan`、`git diff --check` 已通过。
 - Summary: 已修复用户信息脱敏、active cat 误切换、积分读写副作用、同步队列 flush 卡死、生成页 AbortController 兼容与退款、首帧字段持久化、日记视频文件保存、导航空实例保护、临时上传文件清理和原生视频 tab bar 覆盖问题。
 
+## Audit Optimization Checkpoint - 2026-06-01T15:39:34+08:00
+
+- Lodestar task: `docs/plans/task_05_审计优化项修复.md`
+- Current task: 审计延期优化项的小程序侧独立修复。
+- Current recursive ledger: pending。
+- Next action: 修改 QR/海报、事件适配、压缩降级和死代码依赖清理。
+- Verification status: pending。
+- Summary: 第一批修复已提交为 `08844e7`，第二批从报告延期项继续。
+
+## Audit Optimization Checkpoint - 2026-06-01T15:43:34+08:00
+
+- Lodestar task: `docs/plans/task_05_审计优化项修复.md`
+- Current task: 审计延期优化项的小程序侧独立修复。
+- Current recursive ledger: pending。
+- Next action: 服务端 API 契约协作项留待后端接口确认。
+- Verification status: `npm run lint`、`npm test`、`npm run build:weapp`、`npm run release:scan`、`git diff --check` 已通过。
+- Summary: 已修复 QR UTF-8、二维码保存、好友海报头像、事件适配器、图片压缩降级，并清理 `videoUtils.ts` 与 `sharp`。
+
 ## Update Trigger
 
 Update this file after every recursive state-changing command bundle and before ending a session.

@@ -127,6 +127,25 @@ export default function AddFriendQR() {
     setManagedTimeout(() => setShowToast(false), 3000);
   };
 
+  const exportQRCanvas = (): Promise<string> => new Promise((resolve, reject) => {
+    const page = Taro.getCurrentInstance().page;
+    const query = page ? Taro.createSelectorQuery().in(page) : Taro.createSelectorQuery();
+    query.select('#qrCanvas')
+      .fields({ node: true })
+      .exec(async (res) => {
+        if (!res[0]?.node) {
+          reject(new Error('QR canvas not found'));
+          return;
+        }
+        try {
+          const tempRes = await Taro.canvasToTempFilePath({ canvas: res[0].node });
+          resolve(tempRes.tempFilePath);
+        } catch (error) {
+          reject(error);
+        }
+      });
+  });
+
   // 保存二维码图片
   const handleSaveImage = async () => {
     if (isSaving || !invitePayload || !cat) return;
@@ -149,26 +168,9 @@ export default function AddFriendQR() {
         }
       }
 
-      // Export QR canvas to image
-      const page = Taro.getCurrentInstance().page;
-      const query = page ? Taro.createSelectorQuery().in(page) : Taro.createSelectorQuery();
-      query.select('#qrCanvas')
-        .fields({ node: true })
-        .exec(async (res) => {
-          if (!res[0]?.node) {
-            showToastMessage('保存失败，请截图保存');
-            return;
-          }
-          try {
-            const tempRes = await Taro.canvasToTempFilePath({
-              canvas: res[0].node,
-            });
-            await Taro.saveImageToPhotosAlbum({ filePath: tempRes.tempFilePath });
-            showToastMessage('二维码已保存到相册');
-          } catch {
-            showToastMessage('保存失败，请截图保存');
-          }
-        });
+      const imagePath = qrImageUrl || await exportQRCanvas();
+      await Taro.saveImageToPhotosAlbum({ filePath: imagePath });
+      showToastMessage('二维码已保存到相册');
     } catch {
       showToastMessage('保存失败，请截图保存');
     } finally {

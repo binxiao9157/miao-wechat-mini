@@ -17,6 +17,7 @@
 | 2 | done | 回归修复实施 | `docs/plans/task_02_回归修复实施.md` | `L20260601-003943-05` |
 | 3 | done | 发布验证闭环 | `docs/plans/task_03_发布验证闭环.md` | `L20260601-003943-07` |
 | 4 | done | 审计问题修复 | `docs/plans/task_04_审计问题修复.md` | pending |
+| 5 | done | 审计优化项修复 | `docs/plans/task_05_审计优化项修复.md` | pending |
 
 ## File Structure
 

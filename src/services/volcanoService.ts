@@ -71,8 +71,28 @@ export const ACTION_PROMPTS = {
 } satisfies Record<string, VideoActionPrompt>;
 
 export const IMAGE_PROMPTS = {
-  anchor: (breed: string, color: string) =>
-    `A ultra-realistic, high-detail portrait of a cat with ${color} fur${breed && breed !== '未知' ? `, ${breed} breed` : ''}, sitting comfortably in a soft cat nest, cinematic lighting, 4k resolution, looking at the camera. Do NOT render any text, watermark, or name on the image.`
+  anchor: (_breed: string, _color: string) =>
+    `基于输入猫咪照片，将猫咪主体取出重新生成一张照片。
+主体描述：
+以输入照片中的猫咪为唯一主体，精确提取其外观特征（包括毛色、花纹、体型、眼睛颜色），保持其独特的生物特征不变。猫咪呈标准蹲坐姿态，前爪并拢，身体端正，头部微微抬起，双眼圆睁，目光直视镜头，表情平静而专注。
+
+场景与环境：
+背景为一个现代温馨的家庭客厅环境。猫咪蹲坐在一个质感柔软的米色猫窝中央，猫窝上带有简约的几何暗纹。背景中可见模糊处理的沙发一角（浅灰色布艺材质）、木质茶几边缘，以及一盆绿植（如龟背竹），营造出舒适的居家氛围。环境整洁，无杂物干扰主体。
+
+光线与氛围：
+采用柔和的室内自然光。整体色调偏暖，色温约3500K，营造温馨、宁静、治愈的家庭氛围。
+
+构图与技术参数：
+构图： 中心构图，猫咪位于画面正中央，占据画面约1/8高度。
+视角： 平视视角，摄像头高度与猫咪眼睛齐平。
+镜头： 固定摄像头，焦距50mm，模拟人眼视角，无明显畸变。
+画质： 超写实风格，细节清晰，毛发纹理、地毯纤维可见。
+分辨率： 480P（640x480），保持画面比例协调。
+景深： 浅景深，背景适度虚化（f/2.8光圈效果），突出猫咪主体。
+
+风格与限制：
+风格： 照片级真实感，避免卡通化、绘画感 or 艺术化处理。
+限制： 禁止添加额外元素（如玩具、食物、其他动物 or 人物）；禁止改变猫咪原始姿态、品种特征 or 表情；禁止在画面上添加任何文字、水印 or 名字；保持光影逻辑一致，无违和感。`
 };
 
 // base64 数据 URL 写入临时文件，返回临时文件路径，避免通过 JSON 传输过大数据

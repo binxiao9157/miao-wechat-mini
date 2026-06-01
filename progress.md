@@ -56,6 +56,24 @@ Required fields: timestamp, current task, current recursive ledger, next action,
 - Verification status: `Miao_remote` 已快进同步到 `origin/main` 的 `e9fcd9a`；小程序侧 `npm run release:api-contract` 通过；后端侧 `npm run lint`、`npm run verify:baseline` 通过。
 - Summary: 最新后端已包含 `/api/v1/security/text`、`/api/v1/security/media`、`/api/v1/security/media-file`，并接入 `createReleaseHealth`、`checkTextSafety`、`checkMediaSafety`、`createMockTaskPollResponse`。服务端契约缺口关闭。
 
+## Release Audit Checkpoint - 2026-06-01T15:53:44+08:00
+
+- Lodestar task: `docs/plans/task_06_正式发布前全量审计.md`
+- Current task: 正式发布前全量审计。
+- Current recursive ledger: pending。
+- Next action: 执行覆盖异常路径、运行时兼容、数据安全、API 契约、资源性能、死代码和依赖风险的静态扫描。
+- Verification status: pending。
+- Summary: 小程序远端已 fetch，当前本地 `ahead 3`；后端 `Miao_remote` 已和 `origin/main` 对齐。
+
+## Release Audit Checkpoint - 2026-06-01T16:00:25+08:00
+
+- Lodestar task: `docs/plans/task_06_正式发布前全量审计.md`
+- Current task: 正式发布前全量审计。
+- Current recursive ledger: pending。
+- Next action: 提交小程序和后端修复。
+- Verification status: 小程序 `npm run release:check` 已通过；后端 `npm run lint`、`npm run verify:baseline` 已通过。
+- Summary: 未发现 P0；修复两个 P1：猫咪首帧字段服务端同步被剥离、日记视频同步仍可能走 base64 JSON；修复一个 P2：后端上传接口不支持日记视频媒体。
+
 ## Update Trigger
 
 Update this file after every recursive state-changing command bundle and before ending a session.

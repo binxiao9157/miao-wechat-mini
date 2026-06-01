@@ -2,10 +2,10 @@
 
 ## STATUS
 
-- **Goal:** 评估 `docs/code-audit-report.md` 中的问题真实性，并实施第一批 P0/P1 稳定性与数据安全修复
+- **Goal:** 按正式发布前代码审计标准全量扫描小程序工程，覆盖异常路径、运行时兼容、数据安全、API 契约、资源性能、死代码和依赖风险，并修复可确认问题
 - **Mode:** Execute
-- **Phase:** Audit Remediation
-- **Task:** docs/plans/task_04_审计问题修复.md
+- **Phase:** Release Audit
+- **Task:** docs/plans/task_06_正式发布前全量审计.md
 - **Blockers:** None
 
 ## Key Decisions

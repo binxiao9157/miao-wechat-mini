@@ -2,6 +2,7 @@ import Taro from '@tarojs/taro';
 import { getItem, setItem, removeItem, getAllKeys } from '../utils/storageAdapter';
 import { trigger } from '../utils/eventAdapter';
 import { request as taroRequest } from '../utils/httpAdapter';
+import { uploadFile } from '../utils/uploadAdapter';
 import { isDangerousDebugStorageEnabled } from '../utils/debugAccess';
 import type { ServerSyncApi } from './storage/serverSync';
 import { safeClone, safeJsonStringify } from './storage/jsonUtils';
@@ -131,6 +132,24 @@ export const mediaStorage = {
     } else {
       // Web 环境：从 localStorage 读取
       return Promise.resolve(getItem(`${MEDIA_STORAGE_PREFIX}${id}`));
+    }
+  },
+
+  getMediaInfo(id: string): { filePath: string; mimeType: string } | null {
+    const stored = getItem(`${MEDIA_STORAGE_PREFIX}${id}`);
+    if (!stored) return null;
+    try {
+      const parsed = JSON.parse(stored) as { filePath?: string; mimeType?: string };
+      if (!parsed.filePath) return null;
+      return {
+        filePath: parsed.filePath,
+        mimeType: parsed.mimeType || (parsed.filePath.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg'),
+      };
+    } catch {
+      return {
+        filePath: stored,
+        mimeType: stored.endsWith('.mp4') ? 'video/mp4' : 'image/jpeg',
+      };
     }
   },
 
@@ -362,7 +381,7 @@ async function request(url: string, options: { method?: string; data?: any; head
 async function syncCatToServer(userId: string, cat: CatInfo): Promise<void> {
   await request('/api/v1/cats', {
     method: 'POST',
-    data: { cat: { ...cat, placeholderImage: undefined, anchorFrame: undefined, generationError: undefined } },
+    data: { cat: { ...cat, generationError: undefined } },
   });
 }
 
@@ -381,7 +400,28 @@ async function resolveServerDiaryPayload(diary: DiaryEntry): Promise<DiaryEntry>
 
   if (media?.startsWith('miao_media:')) {
     const mediaId = media.replace('miao_media:', '');
+    const mediaInfo = mediaStorage.getMediaInfo(mediaId);
+    if (mediaInfo?.filePath && !mediaInfo.filePath.startsWith('data:')) {
+      const uploadData = await uploadFile({
+        url: '/api/v1/upload',
+        filePath: mediaInfo.filePath,
+        name: 'file',
+        formData: {
+          purpose: 'diary',
+          mediaType: mediaInfo.mimeType.startsWith('video/') ? 'video' : 'image',
+        },
+        timeout: 120000,
+        retries: 1,
+      });
+      const uploadedUrl = uploadData?.url || uploadData?.data?.url;
+      if (uploadedUrl) return { ...diary, media: uploadedUrl };
+      throw new Error('日记媒体上传失败：服务器未返回文件地址');
+    }
+
     const mediaData = await readLocalMediaAsDataUrl(mediaId);
+    if (mediaInfo?.mimeType?.startsWith('video/')) {
+      throw new Error('日记视频媒体必须通过文件上传同步，已阻止 base64 JSON 同步');
+    }
     return mediaData ? { ...diary, media: mediaData } : rest;
   }
 
@@ -600,15 +640,7 @@ function mergeCat(local?: CatInfo, remote?: CatInfo): CatInfo {
 }
 
 function hasMeaningfulCatDifference(a: CatInfo, b: CatInfo): boolean {
-  return JSON.stringify({
-    ...a,
-    placeholderImage: undefined,
-    anchorFrame: undefined,
-  }) !== JSON.stringify({
-    ...b,
-    placeholderImage: undefined,
-    anchorFrame: undefined,
-  });
+  return JSON.stringify(a) !== JSON.stringify(b);
 }
 
 const refreshUserPrefix = () => {

@@ -374,4 +374,13 @@ describe('code quality guardrails', () => {
   it('does not keep unused browser-only video utilities', () => {
     expect(fs.existsSync(path.join(srcRoot, 'lib/videoUtils.ts'))).toBe(false);
   });
+
+  it('keeps release sync from stripping first-frame metadata or posting diary video base64', () => {
+    const storageSource = fs.readFileSync(path.join(srcRoot, 'services/storage.ts'), 'utf8');
+
+    expect(storageSource).not.toContain('placeholderImage: undefined');
+    expect(storageSource).not.toContain('anchorFrame: undefined');
+    expect(storageSource).toContain("url: '/api/v1/upload'");
+    expect(storageSource).toContain('已阻止 base64 JSON 同步');
+  });
 });

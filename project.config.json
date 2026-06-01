@@ -1,47 +1,42 @@
 {
-  "miniprogramRoot": "dist/",
-  "projectname": "miao-wechat-mini",
-  "description": "Miao WeChat Mini Program",
+  "miniprogramRoot": "miniprogram/",
+  "projectname": "miao-weapp-native",
+  "description": "Miao native WeChat Mini Program MVP",
   "appid": "wx4c0c312f5b762e8e",
   "compileType": "miniprogram",
   "setting": {
-    "urlCheck": true,
+    "urlCheck": false,
     "es6": true,
     "enhance": true,
     "postcss": true,
-    "preloadBackgroundData": false,
     "minified": true,
     "newFeature": true,
-    "coverView": true,
-    "autoAudits": false,
-    "showShadowRootInWxmlPanel": true,
-    "scopeDataCheck": false,
     "checkInvalidKey": true,
     "checkSiteMap": true,
-    "babelSetting": {
-      "ignore": [],
-      "disablePlugins": [],
-      "outputPath": ""
-    },
     "minifyWXML": true,
+    "minifyWXSS": true,
     "compileWorklet": false,
     "uglifyFileName": false,
-    "uploadWithSourceMap": false,
+    "uploadWithSourceMap": true,
     "packNpmManually": false,
     "packNpmRelationList": [],
-    "minifyWXSS": true,
     "localPlugins": false,
     "disableUseStrict": false,
     "useCompilerPlugins": false,
     "condition": false,
     "swc": false,
-    "disableSWC": true
+    "disableSWC": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
   },
   "condition": {},
-  "simulatorPluginLibVersion": {},
   "packOptions": {
     "ignore": [],
     "include": []
   },
-  "editorSetting": {}
+  "editorSetting": {},
+  "simulatorPluginLibVersion": {}
 }

@@ -14,19 +14,19 @@ function walk(dir, predicate, out = []) {
 }
 
 const jsonFiles = [
-  'native-weapp/project.config.json',
-  ...walk('native-weapp/miniprogram', (file) => file.endsWith('.json'))
+  'project.config.json',
+  ...walk('miniprogram', (file) => file.endsWith('.json'))
 ];
 
 for (const file of jsonFiles) {
   JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
-const appConfig = JSON.parse(fs.readFileSync('native-weapp/miniprogram/app.json', 'utf8'));
+const appConfig = JSON.parse(fs.readFileSync('miniprogram/app.json', 'utf8'));
 const declaredPages = new Set(appConfig.pages || []);
 for (const page of appConfig.pages || []) {
   for (const ext of ['js', 'json', 'wxml', 'wxss']) {
-    const file = path.join('native-weapp/miniprogram', `${page}.${ext}`);
+    const file = path.join('miniprogram', `${page}.${ext}`);
     if (!fs.existsSync(file)) {
       throw new Error(`missing page file: ${file}`);
     }
@@ -36,7 +36,7 @@ for (const page of appConfig.pages || []) {
 for (const componentPath of Object.values(appConfig.usingComponents || {})) {
   const normalized = componentPath.replace(/^\//, '');
   for (const ext of ['js', 'json', 'wxml', 'wxss']) {
-    const file = path.join('native-weapp/miniprogram', `${normalized}.${ext}`);
+    const file = path.join('miniprogram', `${normalized}.${ext}`);
     if (!fs.existsSync(file)) {
       throw new Error(`missing component file: ${file}`);
     }
@@ -44,7 +44,7 @@ for (const componentPath of Object.values(appConfig.usingComponents || {})) {
 }
 
 const routePattern = /\/pages\/[A-Za-z0-9_-]+\/index/g;
-for (const file of walk('native-weapp/miniprogram', (item) => /\.(js|wxml)$/.test(item))) {
+for (const file of walk('miniprogram', (item) => /\.(js|wxml)$/.test(item))) {
   const content = fs.readFileSync(file, 'utf8');
   const routes = content.match(routePattern) || [];
   for (const route of routes) {
@@ -104,7 +104,7 @@ global.getApp = () => ({
   }
 });
 
-const modules = walk('native-weapp/miniprogram', (file) => file.endsWith('.js'))
+const modules = walk('miniprogram', (file) => file.endsWith('.js'))
   .sort((a, b) => {
     if (a.endsWith('app.js')) return -1;
     if (b.endsWith('app.js')) return 1;

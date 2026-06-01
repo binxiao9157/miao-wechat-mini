@@ -47,6 +47,15 @@ Required fields: timestamp, current task, current recursive ledger, next action,
 - Verification status: `npm run lint`、`npm test`、`npm run build:weapp`、`npm run release:scan`、`git diff --check` 已通过。
 - Summary: 已修复 QR UTF-8、二维码保存、好友海报头像、事件适配器、图片压缩降级，并清理 `videoUtils.ts` 与 `sharp`。
 
+## Backend Contract Checkpoint - 2026-06-01T15:49:29+08:00
+
+- Lodestar task: `docs/plans/task_05_审计优化项修复.md`
+- Current task: 服务端 API 契约协作项确认。
+- Current recursive ledger: pending。
+- Next action: 无。
+- Verification status: `Miao_remote` 已快进同步到 `origin/main` 的 `e9fcd9a`；小程序侧 `npm run release:api-contract` 通过；后端侧 `npm run lint`、`npm run verify:baseline` 通过。
+- Summary: 最新后端已包含 `/api/v1/security/text`、`/api/v1/security/media`、`/api/v1/security/media-file`，并接入 `createReleaseHealth`、`checkTextSafety`、`checkMediaSafety`、`createMockTaskPollResponse`。服务端契约缺口关闭。
+
 ## Update Trigger
 
 Update this file after every recursive state-changing command bundle and before ending a session.

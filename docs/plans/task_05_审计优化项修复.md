@@ -15,7 +15,6 @@
 
 ## Out Of Scope
 
-- 服务端 API 契约缺口。
 - 需要产品确认的分享交互重设计。
 
 ## Steps
@@ -41,7 +40,16 @@
 - `npm test`
 - `npm run build:weapp`
 - `npm run release:scan`
+- `npm run release:api-contract`
 - `git diff --check`
+
+## Backend Contract Confirmation
+
+- 已先同步相邻后端仓库 `Miao_remote` 到 `origin/main` 最新提交 `e9fcd9a`。
+- 最新后端已注册 `/api/v1/security/text`、`/api/v1/security/media`、`/api/v1/security/media-file`。
+- 最新后端已接入 `createReleaseHealth`、`checkTextSafety`、`checkMediaSafety`、`createMockTaskPollResponse`。
+- 小程序侧 `npm run release:api-contract` 已通过，确认契约缺口关闭。
+- 后端侧 `npm run lint`、`npm run verify:baseline` 已通过。
 
 ## Success Criteria
 
@@ -49,4 +57,4 @@
 - 保存二维码不依赖已卸载的离屏 Canvas。
 - `offAll(event)` 不会移除其他模块注册的同名事件监听。
 - 小程序端图片压缩路径有可观察的行为或明确告警。
-- 验证命令通过，并保留明确的后续协作项。
+- 验证命令通过，服务端 API 契约协作项已确认关闭。

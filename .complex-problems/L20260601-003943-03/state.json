@@ -1,0 +1,140 @@
+{
+  "checks": {
+    "C000": {
+      "blocking_gaps": [],
+      "body_path": "problems/P000/checks/C000.md",
+      "created_at": "2026-05-31T16:43:49+00:00",
+      "criteria_map": [
+        "覆盖主要大提交、真机问题映射、P0/P1/P2 计划。"
+      ],
+      "evidence": [
+        "docs/plans/2026-06-01-recent-commit-regression-audit.md"
+      ],
+      "execution_map": [
+        "已执行 git log --numstat、git show --stat、git diff、rg 关键字检查，并将结论落盘。"
+      ],
+      "followup_problem_id": null,
+      "id": "C000",
+      "problem_id": "P000",
+      "residual_risk": [
+        "后续任务继续修首页 cover overlay、生成防 pending 和发布验证。"
+      ],
+      "result_ids": [
+        "R000"
+      ],
+      "root_id": "P000",
+      "status": "success",
+      "stress_test": [
+        "以用户真机反馈反推代码结构风险，额外发现首页视频 overlay 普通 View 仍可能被原生 Video 盖住。"
+      ],
+      "summary": "审计报告满足提交影响、风险映射和开发计划要求。"
+    }
+  },
+  "counters": {
+    "check": 1,
+    "event": 12,
+    "problem": 1,
+    "result": 1,
+    "ticket": 1
+  },
+  "created_at": "2026-05-31T16:39:43+00:00",
+  "effort": "medium",
+  "language": "zh",
+  "ledger_id": "L20260601-003943-03",
+  "problems": {
+    "P000": {
+      "body_path": "problems/P000/README.md",
+      "check_ids": [
+        "C000"
+      ],
+      "created_at": "2026-05-31T16:39:43+00:00",
+      "created_from_check_id": null,
+      "created_from_ticket_id": null,
+      "created_from_ticket_mode": null,
+      "description": "Close the Lodestar task represented by `/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_01_提交影响审计.md` using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 提交影响审计",
+      "followup_ids": [],
+      "id": "P000",
+      "package_path": "problems/P000",
+      "parent_id": null,
+      "result_ids": [
+        "R000"
+      ],
+      "root_id": "P000",
+      "status": "done",
+      "subproblem_ids": [],
+      "success_criteria": [
+        "Recursive ledger reaches `next_action=none` or the task explicitly records why no ledger is needed.",
+        "Implementation satisfies this task's context and scope.",
+        "Verification evidence is recorded in recursive result/check bodies and summarized in `progress.md`."
+      ],
+      "ticket_ids": [
+        "T000"
+      ],
+      "title": "提交影响审计",
+      "updated_at": "2026-05-31T16:43:49+00:00"
+    }
+  },
+  "results": {
+    "R000": {
+      "artifacts": [
+        "docs/plans/2026-06-01-recent-commit-regression-audit.md"
+      ],
+      "body_path": "problems/P000/results/R000.md",
+      "created_at": "2026-05-31T16:43:04+00:00",
+      "done": [
+        "报告覆盖 Taro4、稳定性、生成链路、首页视频、发布防线、真机 flow 和 catId 路由。"
+      ],
+      "id": "R000",
+      "known_gaps": [
+        "代码修复和真机验证进入后续任务。"
+      ],
+      "problem_id": "P000",
+      "root_id": "P000",
+      "summary": "完成近期大范围提交审计，形成风险矩阵和 P0/P1/P2 修复计划。",
+      "ticket_id": "T000",
+      "verification": [
+        "基于 git log/show/diff、真机反馈和关键源码检查。"
+      ]
+    }
+  },
+  "root_id": "P000",
+  "schema_version": 6,
+  "tickets": {
+    "T000": {
+      "acceptance_criteria": [
+        "列出最近时间跨度和改动面较大的提交，至少覆盖 Taro 升级、稳定性生命周期、生成链路、首页视频模型、发布防线、真机 release flow、catId 路由等提交。",
+        "每个提交或提交组说明修改内容、正向收益、潜在影响、已暴露问题、风险等级。",
+        "将真机问题映射到具体提交或代码结构，避免泛泛归因。",
+        "输出一份可执行开发计划，按 P0/P1/P2 标注修复顺序和验证方式。",
+        "明确哪些问题已在本地修复，哪些还需要补防线或真机验证。"
+      ],
+      "assumptions": [
+        "本轮目标只针对 `miao-wechat-mini` Taro 小程序，不切换到原生小程序或 Miao_App 服务端。",
+        "用户最近真机反馈是当前最高优先级验收依据。",
+        "已有本地未提交修复可以作为本轮回归修复任务的输入继续验证。"
+      ],
+      "body_path": "problems/P000/tickets/T000.md",
+      "classification": "one_go",
+      "classification_reason": "审计范围明确，输入来自 git 历史、真机反馈和关键文件 diff，可在一次执行中完成报告并作为后续修复任务输入。",
+      "created_at": "2026-05-31T16:40:34+00:00",
+      "id": "T000",
+      "problem_definition": "近期连续提交覆盖 Taro 4 构建栈、H5 构建告警、启动/登录/上传/同步稳定性、AI 生成链路、后台调试、发布防线、首页视频模型、真机生成修复等多个系统面。真机测试已经暴露出生成链路 pending/404/provider 缓存、首页视频遮挡底部导航、积分页和 Miao 页顶部固定区域等问题。需要把最近时间跨度和改动面较大的提交逐项梳理，明确哪些改动带来收益，哪些改动引入或暴露风险，并形成后续修复计划。",
+      "problem_id": "P000",
+      "proposed_solution": "基于 `git log`、`git show --stat`、关键文件 diff、现有真机反馈和本地未提交修复，整理一份审计报告。报告需要覆盖最近大范围提交的修改内容、影响面、关联真机问题、风险等级、已修复状态、待修复项和验证方式。审计结果同步到 `findings.md` 或专门的发布回归报告文件，并作为后续回归修复任务的输入。",
+      "result_ids": [
+        "R000"
+      ],
+      "risks": [
+        "真机渲染层问题无法完全由单元测试覆盖，需要保留真机验证清单。",
+        "Closure/Lodestar 历史任务文件可能存在旧任务残留，报告需要聚焦当前三项任务，避免被旧上下文干扰。",
+        "大提交之间存在叠加效应，单一提交归因只能按证据判断，不能替代真机回归。"
+      ],
+      "root_id": "P000",
+      "status": "done",
+      "title": "最近大提交影响审计",
+      "updated_at": "2026-05-31T16:43:04+00:00",
+      "verification_plan": "- 使用 `git log --stat`、`git show --stat`、`git diff` 生成证据。\n- 检查受影响文件：`src/pages/home`、`src/custom-tab-bar`、`src/pages/generation-progress`、`src/pages/profile`、`src/pages/points`、`src/utils/navigateAdapter`、发布脚本。\n- 对已修复项运行现有测试、lint 和 `build:weapp`，并将结果纳入后续发布验证任务。"
+    }
+  },
+  "updated_at": "2026-05-31T16:43:49+00:00"
+}

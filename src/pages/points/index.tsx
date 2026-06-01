@@ -122,6 +122,7 @@ export default function Points() {
 
   return (
     <View className="points-page" style={navSpace as React.CSSProperties}>
+      <ScrollView className="points-scroll" scrollY showScrollbar={false}>
       {/* Header */}
       <View className="header">
         <View className="header-title">
@@ -133,7 +134,6 @@ export default function Points() {
         </View>
       </View>
 
-      <ScrollView className="points-scroll" scrollY showScrollbar={false}>
       <View className="points-content">
         {/* 积分卡片 - 对齐PWA: Star图标 + 积分明细用ChevronRight */}
         <View className="points-card" onClick={() => setShowHistory(true)}>

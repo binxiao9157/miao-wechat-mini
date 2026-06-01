@@ -379,6 +379,7 @@ export default function Profile() {
 
   return (
     <View className="profile-page" style={navStyle}>
+      <ScrollView className="profile-scroll" scrollY showScrollbar={false}>
       {/* Header */}
       <View className="header">
         <View className="header-title">
@@ -400,7 +401,6 @@ export default function Profile() {
         </View>
       </View>
 
-      <ScrollView className="profile-scroll" scrollY showScrollbar={false}>
       <View className="profile-content">
         {/* 头像区域 */}
         <View className="profile-header">

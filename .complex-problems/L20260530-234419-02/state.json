@@ -1,0 +1,135 @@
+{
+  "checks": {
+    "C000": {
+      "blocking_gaps": [],
+      "body_path": "problems/P000/checks/C000.md",
+      "created_at": "2026-05-30T15:48:21+00:00",
+      "criteria_map": [
+        "确认PWA技术栈、列出两端页面/服务、识别PWA近期更新、形成证据清单均已满足。"
+      ],
+      "evidence": [
+        "`docs/plans/result_pwa_mini_scan.md`",
+        "`Miao/package.json`",
+        "`Miao/src/App.tsx`",
+        "`Miao/server.ts`",
+        "`miao-wechat-mini/package.json`",
+        "`miao-wechat-mini/src/app.config.ts`",
+        "`miao-wechat-mini/src/services/volcanoService.ts`",
+        "`miao-wechat-mini/src/pages/generation-progress/index.tsx`",
+        "`miao-wechat-mini/src/pages/home/index.tsx`"
+      ],
+      "execution_map": [
+        "通过package、路由配置、服务目录、server路由、git log/git show、关键页面/服务源码完成只读扫描。"
+      ],
+      "followup_problem_id": null,
+      "id": "C000",
+      "problem_id": "P000",
+      "residual_risk": [
+        "PWA未提交变更不存在；小程序当前有未提交稳定性修复，后续分析需区分已改工作区与已提交基线。"
+      ],
+      "result_ids": [
+        "R000"
+      ],
+      "root_id": "P000",
+      "status": "success",
+      "stress_test": [
+        "抽查核心差异关键字：v1_approach/v2_wait/v3_return/v4_fetch、has_last_frame、actionGenerationError、idle/tail/rubbing/blink、adminService。"
+      ],
+      "summary": "两端工程扫描完成，证据足以支撑差异矩阵。"
+    }
+  },
+  "counters": {
+    "check": 1,
+    "event": 12,
+    "problem": 1,
+    "result": 1,
+    "ticket": 1
+  },
+  "created_at": "2026-05-30T15:44:19+00:00",
+  "effort": "medium",
+  "language": "zh",
+  "ledger_id": "L20260530-234419-02",
+  "problems": {
+    "P000": {
+      "body_path": "problems/P000/README.md",
+      "check_ids": [
+        "C000"
+      ],
+      "created_at": "2026-05-30T15:44:19+00:00",
+      "created_from_check_id": null,
+      "created_from_ticket_id": null,
+      "created_from_ticket_mode": null,
+      "description": "Close the Lodestar task represented by `/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_01_扫描两端工程.md` using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 扫描两端工程",
+      "followup_ids": [],
+      "id": "P000",
+      "package_path": "problems/P000",
+      "parent_id": null,
+      "result_ids": [
+        "R000"
+      ],
+      "root_id": "P000",
+      "status": "done",
+      "subproblem_ids": [],
+      "success_criteria": [
+        "Recursive ledger reaches `next_action=none` or the task explicitly records why no ledger is needed.",
+        "Implementation satisfies this task's context and scope.",
+        "Verification evidence is recorded in recursive result/check bodies and summarized in `progress.md`."
+      ],
+      "ticket_ids": [
+        "T000"
+      ],
+      "title": "扫描两端工程",
+      "updated_at": "2026-05-30T15:48:21+00:00"
+    }
+  },
+  "results": {
+    "R000": {
+      "artifacts": [],
+      "body_path": "problems/P000/results/R000.md",
+      "created_at": "2026-05-30T15:47:49+00:00",
+      "done": [],
+      "id": "R000",
+      "known_gaps": [],
+      "problem_id": "P000",
+      "root_id": "P000",
+      "summary": "已完成 `Miao` PWA 工程与 `miao-wechat-mini` 小程序工程的只读扫描。确认 `Miao` 是当前 PWA/全栈工程：React 19 + Vite + React Router + Express，服务端入口为 `server.ts`。小程序工程为 Taro 4 + React，通过适配层调用同一类 `/api/v1/*` 后端接口。",
+      "ticket_id": "T000",
+      "verification": []
+    }
+  },
+  "root_id": "P000",
+  "schema_version": 6,
+  "tickets": {
+    "T000": {
+      "acceptance_criteria": [
+        "明确确认 `Miao` 是否为 PWA 主工程，并记录其技术栈和入口结构。",
+        "列出 PWA 与小程序各自的页面、服务、核心业务模块。",
+        "识别 PWA 最近更新的文件和业务区域。",
+        "形成后续差异矩阵分析可直接使用的证据清单。"
+      ],
+      "assumptions": [],
+      "body_path": "problems/P000/tickets/T000.md",
+      "classification": "one_go",
+      "classification_reason": "本任务是只读工程扫描和证据收集，范围明确，可通过文件结构、路由、服务和 Git 变更一次性完成；后续差异矩阵在下一任务展开。",
+      "created_at": "2026-05-30T15:44:45+00:00",
+      "id": "T000",
+      "problem_definition": "需要重新检查 `Miao` PWA 工程与 `miao-wechat-mini` 小程序工程的最新差异，识别页面功能、服务层、数据模型、接口协议、存储同步、鉴权登录、内容生成、社交关系、通知积分和调试能力的对齐状态。",
+      "problem_id": "P000",
+      "proposed_solution": "从两个工程的文件结构、路由配置、依赖配置、服务目录、页面目录、接口调用和最近 Git 变更入手，建立可核查的功能清单和业务逻辑清单。重点判断 PWA 最近更新是否已同步到小程序，以及哪些差异属于平台适配差异、可同步差异或不建议同步差异。",
+      "result_ids": [
+        "R000"
+      ],
+      "risks": [
+        "PWA 最近更新如果未提交，只能基于当前工作区状态判断。",
+        "两端技术栈差异较大，某些能力不能逐字复制，只能做业务语义对齐。",
+        "当前小程序工程有未提交稳定性修复，分析时需要区分“已有改动”和“尚未提交状态”。"
+      ],
+      "root_id": "P000",
+      "status": "done",
+      "title": "扫描两端工程",
+      "updated_at": "2026-05-30T15:47:49+00:00",
+      "verification_plan": "- 使用 `git status`、`git log`、`rg --files`、`find`、`package.json`、路由配置和服务目录扫描两个工程。\n- 对页面和服务文件进行模块归类，而不是只看文件名。\n- 对接口路径、存储 key、核心业务状态流进行抽样核对。"
+    }
+  },
+  "updated_at": "2026-05-30T15:48:21+00:00"
+}

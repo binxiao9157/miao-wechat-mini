@@ -1,0 +1,134 @@
+{
+  "checks": {
+    "C000": {
+      "blocking_gaps": [],
+      "body_path": "problems/P000/checks/C000.md",
+      "created_at": "2026-05-30T15:51:45+00:00",
+      "criteria_map": [
+        "覆盖页面服务数据模型生成流程首页播放器内容安全后台积分等主要业务域"
+      ],
+      "evidence": [
+        "`docs/plans/result_pwa_mini_matrix.md`",
+        "`/Users/yxj/Documents/Codex/AiStudio/Miao/src/services/ai/actionPrompts.ts`",
+        "`/Users/yxj/Documents/Codex/AiStudio/Miao/src/pages/GenerationProgress.tsx`",
+        "`/Users/yxj/Documents/Codex/AiStudio/Miao/src/pages/Home.tsx`",
+        "`/Users/yxj/Documents/Codex/AiStudio/Miao/server.ts`",
+        "`/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/src/services/volcanoService.ts`",
+        "`/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/src/pages/generation-progress/index.tsx`",
+        "`/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/src/pages/home/index.tsx`",
+        "`/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/src/types/cat.ts`"
+      ],
+      "execution_map": [
+        "基于两端源码和近期提交进行只读比对"
+      ],
+      "followup_problem_id": null,
+      "id": "C000",
+      "problem_id": "P000",
+      "residual_risk": [
+        "小程序视频提帧和生产后端部署状态仍需实施阶段验证"
+      ],
+      "result_ids": [
+        "R000"
+      ],
+      "root_id": "P000",
+      "status": "success",
+      "stress_test": [
+        "区分业务语义对齐和平台实现分叉，避免直接照搬PWA浏览器实现"
+      ],
+      "summary": "差异矩阵已覆盖两端工程业务域差异、最近PWA更新未同步项、同步可行性与优先级"
+    }
+  },
+  "counters": {
+    "check": 1,
+    "event": 12,
+    "problem": 1,
+    "result": 1,
+    "ticket": 1
+  },
+  "created_at": "2026-05-30T15:44:20+00:00",
+  "effort": "medium",
+  "language": "zh",
+  "ledger_id": "L20260530-234419-04",
+  "problems": {
+    "P000": {
+      "body_path": "problems/P000/README.md",
+      "check_ids": [
+        "C000"
+      ],
+      "created_at": "2026-05-30T15:44:20+00:00",
+      "created_from_check_id": null,
+      "created_from_ticket_id": null,
+      "created_from_ticket_mode": null,
+      "description": "Close the Lodestar task represented by `/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_02_差异矩阵分析.md` using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 差异矩阵分析",
+      "followup_ids": [],
+      "id": "P000",
+      "package_path": "problems/P000",
+      "parent_id": null,
+      "result_ids": [
+        "R000"
+      ],
+      "root_id": "P000",
+      "status": "done",
+      "subproblem_ids": [],
+      "success_criteria": [
+        "Recursive ledger reaches `next_action=none` or the task explicitly records why no ledger is needed.",
+        "Implementation satisfies this task's context and scope.",
+        "Verification evidence is recorded in recursive result/check bodies and summarized in `progress.md`."
+      ],
+      "ticket_ids": [
+        "T000"
+      ],
+      "title": "差异矩阵分析",
+      "updated_at": "2026-05-30T15:51:45+00:00"
+    }
+  },
+  "results": {
+    "R000": {
+      "artifacts": [],
+      "body_path": "problems/P000/results/R000.md",
+      "created_at": "2026-05-30T15:51:25+00:00",
+      "done": [],
+      "id": "R000",
+      "known_gaps": [],
+      "problem_id": "P000",
+      "root_id": "P000",
+      "summary": "`Miao` 当前就是 PWA/全栈主工程。它近期更新后，小程序与 PWA 的“页面覆盖率”仍然很高，但“核心猫咪生成与互动业务逻辑”已经出现明显分叉。\n\n最大差异不是登录、日记、积分这些常规模块，而是 PWA 已经升级到“首帧确认图 + 四段式视频状态机 + 前后帧约束 + 首页剧情流播放”的新模型；小程序当前仍是旧的 `idle/tail/rubbing/blink` 多动作视频模型。",
+      "ticket_id": "T000",
+      "verification": []
+    }
+  },
+  "root_id": "P000",
+  "schema_version": 6,
+  "tickets": {
+    "T000": {
+      "acceptance_criteria": [
+        "输出能直接回答“最近 PWA 更新是否已同步到小程序”。",
+        "标出至少 P0/P1/P2 三层同步优先级。",
+        "区分“业务必须一致”和“平台实现可不同”。",
+        "标出需要后端支持、微信能力支持或真机验证的项。"
+      ],
+      "assumptions": [],
+      "body_path": "problems/P000/tickets/T000.md",
+      "classification": "one_go",
+      "classification_reason": "差异矩阵是只读分析产物，输入证据已在扫描阶段收集，范围明确，可一次性完成。",
+      "created_at": "2026-05-30T15:48:56+00:00",
+      "id": "T000",
+      "problem_definition": "需要基于已完成的跨工程扫描，把 PWA 与小程序的差异从文件级线索转化为可决策的功能/业务逻辑矩阵，明确哪些差异必须同步、哪些可以保持平台差异、哪些需要先补后端或验证环境。",
+      "problem_id": "P000",
+      "proposed_solution": "按照业务域拆分差异：路由页面、猫咪创建与 AI 生成、首页互动状态机、视频持久化与播放、积分兑换、账号认证、好友/日记/评论/通知、后台管理、内容安全、平台能力。每项给出当前状态、影响、同步可行性、推荐优先级。",
+      "result_ids": [
+        "R000"
+      ],
+      "risks": [
+        "部分 PWA 服务端能力如果已部署到生产，小程序可直接受益；如果未部署，则仍是后端差异。",
+        "小程序当前工作区存在未提交修复，本矩阵默认按“当前工作区”评估，不按远端 `master` 原始状态评估。"
+      ],
+      "root_id": "P000",
+      "status": "done",
+      "title": "差异矩阵分析",
+      "updated_at": "2026-05-30T15:51:25+00:00",
+      "verification_plan": "- 使用扫描结果和关键源码证据交叉验证。\n- 对近期 PWA 提交涉及的核心文件逐项映射到小程序对应文件。\n- 不把页面命名一致误判为业务逻辑一致。"
+    }
+  },
+  "updated_at": "2026-05-30T15:51:45+00:00"
+}

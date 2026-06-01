@@ -487,6 +487,41 @@ function normalizePlayableVideoUrl(url?: string): string | undefined {
   return url.replace(/^http:\/\/localhost(?::|\/)/, (match) => match.replace('localhost', '127.0.0.1'));
 }
 
+const SECONDARY_UNLOCK_ACTIONS = ['v2_wait', 'v3_return', 'v4_fetch'] as const;
+const UNLOCK_PROGRESS_STALE_MS = 20 * 60 * 1000;
+
+function hasAllSecondaryUnlockVideos(cat: CatInfo): boolean {
+  const videoPaths = cat.videoPaths || {};
+  return SECONDARY_UNLOCK_ACTIONS.every(action => Boolean(videoPaths[action]));
+}
+
+function normalizeCatUnlockState(cat: CatInfo): CatInfo {
+  if (!cat.isUnlocking) return cat;
+
+  const hasAllVideos = hasAllSecondaryUnlockVideos(cat);
+  const progressCompleted = Boolean(cat.unlockProgress && cat.unlockProgress.total > 0 && cat.unlockProgress.completed >= cat.unlockProgress.total);
+  if (hasAllVideos || progressCompleted) {
+    return {
+      ...cat,
+      isUnlocking: false,
+      unlockProgress: undefined,
+      actionGenerationError: hasAllVideos ? undefined : cat.actionGenerationError,
+    };
+  }
+
+  const lastProgressAt = cat.unlockProgress?.updatedAt || cat.generationUpdatedAt || cat.updatedAt || cat.createdAt || 0;
+  if (lastProgressAt > 0 && Date.now() - lastProgressAt > UNLOCK_PROGRESS_STALE_MS) {
+    return {
+      ...cat,
+      isUnlocking: false,
+      unlockProgress: undefined,
+      actionGenerationError: cat.actionGenerationError || '后续动作生成超时，稍后可重试',
+    };
+  }
+
+  return cat;
+}
+
 function normalizeCatVideoUrls(cat: CatInfo): CatInfo {
   const videoPaths = cat.videoPaths
     ? Object.fromEntries(
@@ -494,12 +529,12 @@ function normalizeCatVideoUrls(cat: CatInfo): CatInfo {
       )
     : cat.videoPaths;
 
-  return {
+  return normalizeCatUnlockState({
     ...cat,
     videoPath: normalizePlayableVideoUrl(cat.videoPath),
     videoPaths,
     remoteVideoUrl: normalizePlayableVideoUrl(cat.remoteVideoUrl),
-  };
+  });
 }
 
 function mergeCat(local?: CatInfo, remote?: CatInfo): CatInfo {

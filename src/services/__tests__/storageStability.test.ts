@@ -157,4 +157,76 @@ describe('storage stability behavior', () => {
     expect(points.total).toBe(30);
     expect(points.history.filter(item => item.id === 'unlock:cat-1')).toHaveLength(1);
   });
+
+  it('clears stale background unlock state when reading cats', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-06-01T12:00:00Z'));
+      const { storage, setSyncQueueForTesting } = await import('../storage');
+      setSyncQueueForTesting(syncQueue);
+      storage.saveUserInfo({ username: 'alice', nickname: 'Alice', avatar: '' });
+      storage.saveCatList([{
+        id: 'cat-1',
+        name: 'Miao',
+        breed: '狸花',
+        color: 'brown',
+        source: 'uploaded',
+        avatar: 'avatar-1',
+        videoPath: 'video-1',
+        createdAt: 1,
+        isUnlocking: true,
+        unlockProgress: {
+          completed: 1,
+          total: 3,
+          currentAction: 'v3_return',
+          failed: 0,
+          updatedAt: Date.now() - 21 * 60 * 1000,
+        },
+      }]);
+
+      const [cat] = storage.getCatList();
+
+      expect(cat.isUnlocking).toBe(false);
+      expect(cat.unlockProgress).toBeUndefined();
+      expect(cat.actionGenerationError).toContain('超时');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('clears background unlock state when all secondary actions are already available', async () => {
+    const { storage, setSyncQueueForTesting } = await import('../storage');
+    setSyncQueueForTesting(syncQueue);
+    storage.saveUserInfo({ username: 'alice', nickname: 'Alice', avatar: '' });
+    storage.saveCatList([{
+      id: 'cat-1',
+      name: 'Miao',
+      breed: '狸花',
+      color: 'brown',
+      source: 'uploaded',
+      avatar: 'avatar-1',
+      videoPath: 'video-1',
+      createdAt: 1,
+      isUnlocking: true,
+      unlockProgress: {
+        completed: 3,
+        total: 3,
+        currentAction: 'v4_fetch',
+        failed: 0,
+        updatedAt: Date.now(),
+      },
+      videoPaths: {
+        v1_approach: 'video-1',
+        v2_wait: 'video-2',
+        v3_return: 'video-3',
+        v4_fetch: 'video-4',
+      },
+    }]);
+
+    const [cat] = storage.getCatList();
+
+    expect(cat.isUnlocking).toBe(false);
+    expect(cat.unlockProgress).toBeUndefined();
+    expect(cat.actionGenerationError).toBeUndefined();
+  });
 });

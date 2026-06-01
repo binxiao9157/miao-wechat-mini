@@ -1,0 +1,1057 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recursive Closure Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --panel-2: #fbfcfe;
+      --text: #17202a;
+      --muted: #667085;
+      --line: #d8dee8;
+      --accent: #166b5f;
+      --accent-2: #255e9c;
+      --danger: #b42318;
+      --warn: #b54708;
+      --ok: #067647;
+      --shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.45;
+      letter-spacing: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+    button, input, select { font: inherit; letter-spacing: 0; }
+    button {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 7px 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, color 0.2s;
+    }
+    button:hover { border-color: #9aa8ba; }
+    a { color: var(--accent-2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+    .title h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+      font-weight: 720;
+    }
+    .title p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .toolbar input,
+    .toolbar select {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 6px;
+      min-height: 34px;
+      padding: 6px 9px;
+    }
+    .toolbar input { width: min(360px, 42vw); }
+    .layout {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr) 380px;
+      gap: 12px;
+      padding: 12px;
+      height: calc(100vh - 73px);
+    }
+    .sidebar,
+    .main,
+    .details {
+      min-height: 0;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .sidebar,
+    .details {
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+    .panel-head {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-2);
+    }
+    .panel-head h2 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 720;
+    }
+    .panel-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .scroll {
+      min-height: 0;
+      overflow: auto;
+    }
+    .ledger-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .ledger-item {
+      border-bottom: 1px solid var(--line);
+    }
+    .ledger-button {
+      width: 100%;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      text-align: left;
+      padding: 10px 12px;
+      display: grid;
+      gap: 6px;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .ledger-button.is-selected {
+      background: #e9f5f3;
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
+    .ledger-title {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: start;
+    }
+    .ledger-title strong {
+      font-size: 13px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+    .ledger-meta,
+    .entity-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 20px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #eef2f6;
+      color: #344054;
+      font-size: 12px;
+      white-space: nowrap;
+      transition: background 0.2s, color 0.2s;
+    }
+    .badge.done, .badge.success { background: #dcfae6; color: var(--ok); }
+    .badge.doing, .badge.followup, .badge.checking { background: #e0f2fe; color: #175cd3; }
+    .badge.blocked, .badge.not_success { background: #fee4e2; color: var(--danger); }
+    .badge.todo, .badge.created, .badge.defined, .badge.classified { background: #fff1c2; color: var(--warn); }
+    .main {
+      display: grid;
+      grid-template-rows: auto auto auto 1fr;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: auto repeat(6, minmax(0, 1fr));
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+    .stat {
+      padding: 12px;
+      border-right: 1px solid var(--line);
+      min-width: 0;
+    }
+    .stat:last-child { border-right: 0; }
+    .stat .value {
+      font-size: 20px;
+      font-weight: 760;
+      line-height: 1;
+    }
+    .stat .label {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .ledger-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-2);
+      display: grid;
+      gap: 8px;
+    }
+    .ledger-header h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+    }
+    .tree {
+      padding: 12px 14px 40px;
+    }
+    .tree-node {
+      position: relative;
+      margin: 0 0 8px;
+    }
+    .tree-node .children {
+      margin-left: 20px;
+      padding-left: 14px;
+      border-left: 1px solid var(--line);
+    }
+    details > summary {
+      list-style: none;
+      cursor: pointer;
+    }
+    details > summary::-webkit-details-marker { display: none; }
+    .problem-row,
+    .child-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: var(--panel);
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .problem-row:hover,
+    .child-row:hover { border-color: #9aa8ba; }
+    .problem-row.is-selected,
+    .child-row.is-selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(22, 107, 95, 0.12);
+    }
+    .chevron {
+      color: var(--muted);
+      font-size: 12px;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.2s;
+    }
+    .chevron:hover { background: var(--line); }
+    details[open] > summary .chevron { transform: rotate(90deg); }
+    .row-title {
+      min-width: 0;
+    }
+    .row-title strong {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+    .row-title span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+    .ptrc {
+      margin: 7px 0 10px 34px;
+      display: grid;
+      gap: 6px;
+    }
+    .child-row {
+      grid-template-columns: auto 1fr auto;
+      padding: 6px 8px;
+      background: #fcfcfd;
+      font-size: 13px;
+    }
+    .type-pill {
+      min-width: 22px;
+      text-align: center;
+      font-family: var(--mono);
+      font-weight: 700;
+      color: #475467;
+    }
+    .details-body {
+      padding: 12px;
+    }
+    .empty {
+      color: var(--muted);
+      padding: 24px;
+      text-align: center;
+    }
+    .detail-title {
+      margin: 0 0 8px;
+      font-size: 16px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+    .detail-section {
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+    .detail-section h3 {
+      margin: 0 0 6px;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+    .kv {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 6px 10px;
+      font-size: 13px;
+    }
+    .kv dt { color: var(--muted); }
+    .kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+    .text-block {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px;
+      font-size: 13px;
+      max-height: 260px;
+      overflow: auto;
+    }
+    .list {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .list li { margin: 3px 0; }
+    .footer-note {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 10px;
+    }
+    .timeline { padding: 0; margin: 0; list-style: none; }
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 56px 12px 1fr;
+      gap: 0 8px;
+      min-height: 36px;
+      font-size: 13px;
+    }
+    .timeline-time {
+      text-align: right;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding-top: 2px;
+    }
+    .timeline-dot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .timeline-dot::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .timeline-dot::after {
+      content: "";
+      width: 1px;
+      flex: 1;
+      background: var(--line);
+    }
+    .timeline-item:last-child .timeline-dot::after { display: none; }
+    .timeline-content { padding-bottom: 8px; }
+    .timeline-content strong { font-size: 13px; }
+    .timeline-content span { color: var(--muted); font-size: 12px; }
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-2);
+    }
+    .view-tab {
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      cursor: pointer;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .graph-container {
+      width: 100%;
+      height: 100%;
+      display: none;
+    }
+    .graph-container.visible { display: block; }
+    .graph-container svg { width: 100%; height: 100%; }
+    .graph-node { cursor: pointer; }
+    .graph-node circle { transition: r 0.2s; }
+    .graph-node:hover circle { r: 10; }
+    .graph-label { font-family: var(--sans); font-size: 10px; fill: var(--text); pointer-events: none; }
+    .graph-link { stroke: var(--line); stroke-opacity: 0.6; }
+    .graph-tooltip {
+      position: absolute;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      box-shadow: var(--shadow);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 10;
+    }
+    @media (max-width: 1180px) {
+      .layout {
+        grid-template-columns: 300px minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) minmax(360px, 42vh);
+      }
+      .details {
+        grid-column: 1 / -1;
+      }
+      .stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0f1117;
+      --panel: #1a1d27;
+      --panel-2: #21242f;
+      --text: #e0e4ec;
+      --muted: #8b92a5;
+      --line: #2e3345;
+      --accent: #34d399;
+      --accent-2: #60a5fa;
+      --danger: #f87171;
+      --warn: #fbbf24;
+      --ok: #4ade80;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+    [data-theme="dark"] .badge { background: #2e3345; color: #8b92a5; }
+    [data-theme="dark"] .badge.done,
+    [data-theme="dark"] .badge.success { background: #064e3b; color: #6ee7b7; }
+    [data-theme="dark"] .badge.doing,
+    [data-theme="dark"] .badge.followup,
+    [data-theme="dark"] .badge.checking { background: #1e3a5f; color: #93c5fd; }
+    [data-theme="dark"] .badge.blocked,
+    [data-theme="dark"] .badge.not_success { background: #450a0a; color: #fca5a5; }
+    [data-theme="dark"] .badge.todo,
+    [data-theme="dark"] .badge.created,
+    [data-theme="dark"] .badge.defined,
+    [data-theme="dark"] .badge.classified { background: #422006; color: #fde68a; }
+    [data-theme="dark"] .ledger-button.is-selected { background: #1a2e2a; }
+    [data-theme="dark"] .child-row { background: #1e2130; }
+    [data-theme="dark"] .text-block { background: #14161f; }
+    [data-theme="dark"] button:hover { border-color: #4b5563; }
+    [data-theme="dark"] .problem-row:hover,
+    [data-theme="dark"] .child-row:hover { border-color: #4b5563; }
+    [data-theme="dark"] .problem-row.is-selected,
+    [data-theme="dark"] .child-row.is-selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.15); }
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      min-height: 34px;
+    }
+    .theme-toggle svg { width: 16px; height: 16px; }
+    .progress-ring { flex-shrink: 0; }
+    .progress-ring .track { stroke: var(--line); }
+    .progress-ring .fill { stroke: var(--accent); transition: stroke-dashoffset 0.4s ease; }
+    .progress-ring text { fill: var(--text); font-family: var(--sans); font-weight: 700; }
+    @media (max-width: 780px) {
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+      .toolbar {
+        justify-content: stretch;
+      }
+      .toolbar input,
+      .toolbar select {
+        width: 100%;
+      }
+      .layout {
+        height: auto;
+        min-height: calc(100vh - 73px);
+        grid-template-columns: 1fr;
+        grid-template-rows: 360px auto 420px;
+      }
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="title">
+        <h1>Recursive Closure Dashboard</h1>
+        <p id="subtitle"></p>
+      </div>
+      <div class="toolbar">
+        <input id="search" type="search" placeholder="Search ledger, problem, ticket, result, check">
+        <select id="statusFilter">
+          <option value="all">All statuses</option>
+          <option value="open">Open ledgers</option>
+          <option value="done">Done</option>
+          <option value="blocked">Blocked</option>
+          <option value="followup">Has follow-up</option>
+        </select>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode">
+          <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          Light
+        </button>
+        <button id="expandAll" type="button">Expand</button>
+        <button id="collapseAll" type="button">Collapse</button>
+      </div>
+    </header>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="panel-head">
+          <h2>Ledgers</h2>
+          <p id="ledgerSummary"></p>
+        </div>
+        <div class="scroll">
+          <ul id="ledgerList" class="ledger-list"></ul>
+        </div>
+      </aside>
+      <main class="main">
+        <section id="stats" class="stats"></section>
+        <section id="ledgerHeader" class="ledger-header"></section>
+        <div class="view-tabs">
+          <button class="view-tab active" data-view="tree" type="button">Tree</button>
+          <button class="view-tab" data-view="graph" type="button">Graph</button>
+        </div>
+        <section class="scroll" style="position:relative">
+          <div id="tree" class="tree"></div>
+          <div id="graphContainer" class="graph-container"></div>
+          <div id="graphTooltip" class="graph-tooltip"></div>
+        </section>
+      </main>
+      <aside class="details">
+        <div class="panel-head">
+          <h2>Details</h2>
+          <p>Click any problem, ticket, result, or check.</p>
+        </div>
+        <div id="details" class="scroll details-body"></div>
+      </aside>
+    </div>
+  </div>
+  <script>
+    window.DASHBOARD_DATA = {"generated_at":"2026-05-31T16:52:13.871Z","workspace":"/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini","ledger_dir":".complex-problems","ledger_dir_from_output":".","active_ledger_id":"L20260601-003943-09","index_error":"","totals":{"ledgers":18,"problems":18,"tickets":9,"results":9,"checks":9,"open":9,"blocked":0,"followup":0,"doneLedgers":9,"openLedgers":9},"errors":[],"ledgers":[{"ledger_id":"L20260601-003943-07","schema_version":6,"root_id":"P000","title":"发布验证闭环","status":"done","updated_at":"2026-05-31T16:52:02+00:00","created_at":"2026-05-31T16:39:44+00:00","effort":"medium","language":"zh","completion_pct":100,"counts":{"problems":1,"tickets":1,"results":1,"checks":1,"events":12,"open":0,"done":1,"blocked":0,"followup":0},"problem_counts":{"done":1},"ticket_counts":{"done":1},"check_counts":{"success":1},"problems":[{"id":"P000","title":"发布验证闭环","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_03_发布验证闭环.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 发布验证闭环","status":"done","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":["T000"],"subproblem_ids":[],"result_ids":["R000"],"check_ids":["C000"],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-31T16:39:44+00:00","updated_at":"2026-05-31T16:52:02+00:00"}],"tickets":[{"id":"T000","title":"发布验证闭环","problem_id":"P000","status":"done","classification":"one_go","classification_reason":"验证命令清晰、顺序固定、可一次执行并记录证据；失败时再回到修复任务。","problem_definition":"回归修复已经完成代码实施，但必须通过全量测试、类型检查、Taro weapp 构建、发布静态扫描和后端 API 合约检查，才能认为本地产物具备再次上传真机验证的基础。","proposed_solution":"运行本轮发布前验证命令，记录通过/失败证据。若失败，回到修复任务；若通过，输出真机验证清单和剩余风险。","acceptance_criteria":["\u0060npm test\u0060 通过。","\u0060npm run lint\u0060 通过。","\u0060npm run build:weapp\u0060 通过。","\u0060npm run release:scan\u0060 通过。","\u0060npm run release:api-contract\u0060 通过。","输出真机验证清单：生成后首页 tabbar、首页点击剧情、错误重试、积分/Miao 上滑、诊断/health/后端部署版本。"],"verification_plan":"- 顺序运行全部发布前命令，读取 exit code 和关键输出。\n- 检查 git diff/stat，确认修改范围符合本轮目标。\n- 记录无法由本地自动验证覆盖的真机风险。","risks":["本地 API 合约检查只能检查源码存在，不代表服务器已经部署。","\u0060CoverView\u0060 视觉和微信 \u0060Video\u0060 行为仍需要真机验证。","微信开发者工具上传不在本任务自动执行，除非用户明确要求。"],"assumptions":["本机依赖已经安装。","后端源码路径为默认 \u0060../Miao\u0060。"],"result_ids":["R000"],"body_path":"problems/P000/tickets/T000.md","created_at":"2026-05-31T16:48:47+00:00","updated_at":"2026-05-31T16:51:37+00:00"}],"results":[{"id":"R000","ticket_id":"T000","problem_id":"P000","summary":"发布前本地验证通过。","done":["npm test、lint、build:weapp、release:scan、release:api-contract、audit、build:h5 均通过。"],"verification":["113 tests passed；weapp/h5 编译成功；release scan/API contract passed；audit 0 vulnerabilities。"],"known_gaps":["真机验证和线上 /api/health 版本确认仍需用户部署/上传后执行。"],"artifacts":["dist","docs/plans/result_03_发布验证闭环.md"],"body_path":"problems/P000/results/R000.md","created_at":"2026-05-31T16:51:37+00:00"}],"checks":[{"id":"C000","problem_id":"P000","status":"success","summary":"发布验证闭环成功，本地发布前检查全部通过。","evidence":["docs/plans/result_03_发布验证闭环.md"],"criteria_map":["测试、lint、weapp/h5 构建、release scan、API contract、audit 均满足。"],"execution_map":["按发布验证顺序执行并读取 exit code。"],"stress_test":["检查 dist 中存在 cover-view/cover-image，确认 cover 化进入产物。"],"residual_risk":["仍需微信真机和线上 /api/health 验证。"],"blocking_gaps":[],"result_ids":["R000"],"followup_problem_id":null,"body_path":"problems/P000/checks/C000.md","created_at":"2026-05-31T16:52:02+00:00"}],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-31T16:39:44+00:00","payload":{"ledger_id":"L20260601-003943-07","root_id":"P000","title":"发布验证闭环"}},{"id":"E001","type":"ticket_created","at":"2026-05-31T16:48:47+00:00","payload":{"problem_id":"P000","ticket_id":"T000","title":"发布验证闭环"}},{"id":"E002","type":"ticket_status_changed","at":"2026-05-31T16:48:47+00:00","payload":{"from":"created","id":"T000","to":"defined"}},{"id":"E003","type":"ticket_status_changed","at":"2026-05-31T16:48:47+00:00","payload":{"from":"defined","id":"T000","to":"classified"}},{"id":"E004","type":"ticket_classified","at":"2026-05-31T16:48:47+00:00","payload":{"classification":"one_go","reason":"验证命令清晰、顺序固定、可一次执行并记录证据；失败时再回到修复任务。","ticket_id":"T000"}},{"id":"E005","type":"problem_status_changed","at":"2026-05-31T16:51:36+00:00","payload":{"from":"todo","id":"P000","to":"doing"}},{"id":"E006","type":"ticket_status_changed","at":"2026-05-31T16:51:37+00:00","payload":{"from":"classified","id":"T000","to":"executing"}},{"id":"E007","type":"ticket_status_changed","at":"2026-05-31T16:51:37+00:00","payload":{"from":"executing","id":"T000","to":"done"}},{"id":"E008","type":"result_recorded","at":"2026-05-31T16:51:37+00:00","payload":{"result_id":"R000","ticket_id":"T000"}},{"id":"E009","type":"problem_status_changed","at":"2026-05-31T16:52:02+00:00","payload":{"from":"doing","id":"P000","to":"checking"}},{"id":"E010","type":"problem_status_changed","at":"2026-05-31T16:52:02+00:00","payload":{"from":"checking","id":"P000","to":"done"}},{"id":"E011","type":"check_recorded","at":"2026-05-31T16:52:02+00:00","payload":{"check_id":"C000","followup_id":null,"problem_id":"P000","status":"success"}}]},{"ledger_id":"L20260601-003943-05","schema_version":6,"root_id":"P000","title":"回归修复实施","status":"done","updated_at":"2026-05-31T16:48:05+00:00","created_at":"2026-05-31T16:39:43+00:00","effort":"medium","language":"zh","completion_pct":100,"counts":{"problems":1,"tickets":1,"results":1,"checks":1,"events":12,"open":0,"done":1,"blocked":0,"followup":0},"problem_counts":{"done":1},"ticket_counts":{"done":1},"check_counts":{"success":1},"problems":[{"id":"P000","title":"回归修复实施","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_02_回归修复实施.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 回归修复实施","status":"done","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":["T000"],"subproblem_ids":[],"result_ids":["R000"],"check_ids":["C000"],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-31T16:39:43+00:00","updated_at":"2026-05-31T16:48:05+00:00"}],"tickets":[{"id":"T000","title":"发布回归修复实施","problem_id":"P000","status":"done","classification":"one_go","classification_reason":"修复目标已经由审计收敛到少量 Taro 页面与静态防线，且多数生成/滚动修复已在本地完成，剩余首页 cover overlay 可在一次 bounded implementation 中完成。","problem_definition":"审计确认近期系统优化后存在 P0/P1 回归风险：生成流程可能停在 pending，首页 \u0060Video\u0060 原生层遮挡 tabbar 和上层交互，积分/Miao 页面 header 固定，发布防线尚需补充验证。需要在不改变 Taro 架构、不回退 PWA 视频模型的前提下修复这些问题。","proposed_solution":"保留已经完成的生成链路、catId、首帧元数据、tabbar cover、ScrollView header 修复；继续补齐首页视频上方 overlay 的原生层级兼容，把点击层、错误重试、提示和 toast 改为可覆盖 \u0060Video\u0060 的 cover 组件或等价实现。补充静态回归测试，确保关键 overlay 不再使用普通 \u0060View/Text\u0060。","acceptance_criteria":["首页视频页面底部 tabbar 使用 \u0060CoverView/CoverImage\u0060，不会被微信 \u0060Video\u0060 原生层盖住。","首页视频上层主点击区域、错误重试层、剧情/生成提示、互动气泡、积分 toast 使用 cover 组件或不会被 \u0060Video\u0060 盖住。","生成页兼容无 \u0060AbortController\u0060 的真机环境，初始化异常进入 error，不停留在 pending。","创建/上传进入生成页时携带显式 \u0060catId\u0060 并保存 \u0060placeholderImage/anchorFrame\u0060。","积分页和 Miao 页 header 位于各自 \u0060ScrollView\u0060 内。","对上述结构补测试或静态扫描防线。"],"verification_plan":"- 先运行针对 codeQuality 和 generation-progress 的定向测试。\n- 再运行全量 \u0060npm test\u0060、\u0060npm run lint\u0060、\u0060npm run build:weapp\u0060。\n- 真机验证点留给发布验证闭环任务：生成后首页 tabbar 可见、首页点击可触发剧情、错误重试可点、积分/Miao 上滑 header 不固定。","risks":["\u0060CoverView\u0060 样式支持弱于普通 \u0060View\u0060，可能需要真机微调视觉。","微信 \u0060Video\u0060 多实例在不同基础库上表现可能不同，仍需真机长测。","当前任务不处理 H5 体积和 Taro 上游 audit 残留。"],"assumptions":["不回退 PWA 四段视频模型。","当前小程序仍是 Taro 框架，所有修复在 Taro 组件层实现。","用户会在上传后进行真实机器验证。"],"result_ids":["R000"],"body_path":"problems/P000/tickets/T000.md","created_at":"2026-05-31T16:45:02+00:00","updated_at":"2026-05-31T16:47:40+00:00"}],"results":[{"id":"R000","ticket_id":"T000","problem_id":"P000","summary":"完成发布回归修复实施，新增首页 Video overlay cover 化并保留生成/滚动防线。","done":["首页 overlay、tabbar、生成 pending、catId、首帧元数据、Profile/Points 滚动结构均已有代码修复。"],"verification":["已运行 codeQuality、home、generation-progress、profile/navigate/debug、volcano/fileManager/videoActions 定向测试并通过。"],"known_gaps":["全量测试、lint、build:weapp、发布扫描进入下一任务。"],"artifacts":["src/pages/home/index.tsx","src/utils/__tests__/codeQuality.test.ts"],"body_path":"problems/P000/results/R000.md","created_at":"2026-05-31T16:47:40+00:00"}],"checks":[{"id":"C000","problem_id":"P000","status":"success","summary":"回归修复实施满足本任务目标，剩余进入发布验证。","evidence":["docs/plans/result_02_回归修复实施.md"],"criteria_map":["首页 tabbar/overlay、生成 pending、catId/首帧、Profile/Points 滚动结构均有修复。"],"execution_map":["定向测试覆盖 codeQuality、home、generation-progress、profile/navigate/debug、volcano/fileManager/videoActions。"],"stress_test":["从首页 Video 原生层级扩展排查到所有 overlay，并统一 cover 化。"],"residual_risk":["CoverView 视觉和微信 Video 多实例仍需真机确认。"],"blocking_gaps":[],"result_ids":["R000"],"followup_problem_id":null,"body_path":"problems/P000/checks/C000.md","created_at":"2026-05-31T16:48:05+00:00"}],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-31T16:39:43+00:00","payload":{"ledger_id":"L20260601-003943-05","root_id":"P000","title":"回归修复实施"}},{"id":"E001","type":"ticket_created","at":"2026-05-31T16:45:02+00:00","payload":{"problem_id":"P000","ticket_id":"T000","title":"发布回归修复实施"}},{"id":"E002","type":"ticket_status_changed","at":"2026-05-31T16:45:02+00:00","payload":{"from":"created","id":"T000","to":"defined"}},{"id":"E003","type":"ticket_status_changed","at":"2026-05-31T16:45:02+00:00","payload":{"from":"defined","id":"T000","to":"classified"}},{"id":"E004","type":"ticket_classified","at":"2026-05-31T16:45:02+00:00","payload":{"classification":"one_go","reason":"修复目标已经由审计收敛到少量 Taro 页面与静态防线，且多数生成/滚动修复已在本地完成，剩余首页 cover overlay 可在一次 bounded implementation 中完成。","ticket_id":"T000"}},{"id":"E005","type":"problem_status_changed","at":"2026-05-31T16:47:40+00:00","payload":{"from":"todo","id":"P000","to":"doing"}},{"id":"E006","type":"ticket_status_changed","at":"2026-05-31T16:47:40+00:00","payload":{"from":"classified","id":"T000","to":"executing"}},{"id":"E007","type":"ticket_status_changed","at":"2026-05-31T16:47:40+00:00","payload":{"from":"executing","id":"T000","to":"done"}},{"id":"E008","type":"result_recorded","at":"2026-05-31T16:47:40+00:00","payload":{"result_id":"R000","ticket_id":"T000"}},{"id":"E009","type":"problem_status_changed","at":"2026-05-31T16:48:05+00:00","payload":{"from":"doing","id":"P000","to":"checking"}},{"id":"E010","type":"problem_status_changed","at":"2026-05-31T16:48:05+00:00","payload":{"from":"checking","id":"P000","to":"done"}},{"id":"E011","type":"check_recorded","at":"2026-05-31T16:48:05+00:00","payload":{"check_id":"C000","followup_id":null,"problem_id":"P000","status":"success"}}]},{"ledger_id":"L20260601-003943-03","schema_version":6,"root_id":"P000","title":"提交影响审计","status":"done","updated_at":"2026-05-31T16:43:49+00:00","created_at":"2026-05-31T16:39:43+00:00","effort":"medium","language":"zh","completion_pct":100,"counts":{"problems":1,"tickets":1,"results":1,"checks":1,"events":12,"open":0,"done":1,"blocked":0,"followup":0},"problem_counts":{"done":1},"ticket_counts":{"done":1},"check_counts":{"success":1},"problems":[{"id":"P000","title":"提交影响审计","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_01_提交影响审计.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 提交影响审计","status":"done","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":["T000"],"subproblem_ids":[],"result_ids":["R000"],"check_ids":["C000"],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-31T16:39:43+00:00","updated_at":"2026-05-31T16:43:49+00:00"}],"tickets":[{"id":"T000","title":"最近大提交影响审计","problem_id":"P000","status":"done","classification":"one_go","classification_reason":"审计范围明确，输入来自 git 历史、真机反馈和关键文件 diff，可在一次执行中完成报告并作为后续修复任务输入。","problem_definition":"近期连续提交覆盖 Taro 4 构建栈、H5 构建告警、启动/登录/上传/同步稳定性、AI 生成链路、后台调试、发布防线、首页视频模型、真机生成修复等多个系统面。真机测试已经暴露出生成链路 pending/404/provider 缓存、首页视频遮挡底部导航、积分页和 Miao 页顶部固定区域等问题。需要把最近时间跨度和改动面较大的提交逐项梳理，明确哪些改动带来收益，哪些改动引入或暴露风险，并形成后续修复计划。","proposed_solution":"基于 \u0060git log\u0060、\u0060git show --stat\u0060、关键文件 diff、现有真机反馈和本地未提交修复，整理一份审计报告。报告需要覆盖最近大范围提交的修改内容、影响面、关联真机问题、风险等级、已修复状态、待修复项和验证方式。审计结果同步到 \u0060findings.md\u0060 或专门的发布回归报告文件，并作为后续回归修复任务的输入。","acceptance_criteria":["列出最近时间跨度和改动面较大的提交，至少覆盖 Taro 升级、稳定性生命周期、生成链路、首页视频模型、发布防线、真机 release flow、catId 路由等提交。","每个提交或提交组说明修改内容、正向收益、潜在影响、已暴露问题、风险等级。","将真机问题映射到具体提交或代码结构，避免泛泛归因。","输出一份可执行开发计划，按 P0/P1/P2 标注修复顺序和验证方式。","明确哪些问题已在本地修复，哪些还需要补防线或真机验证。"],"verification_plan":"- 使用 \u0060git log --stat\u0060、\u0060git show --stat\u0060、\u0060git diff\u0060 生成证据。\n- 检查受影响文件：\u0060src/pages/home\u0060、\u0060src/custom-tab-bar\u0060、\u0060src/pages/generation-progress\u0060、\u0060src/pages/profile\u0060、\u0060src/pages/points\u0060、\u0060src/utils/navigateAdapter\u0060、发布脚本。\n- 对已修复项运行现有测试、lint 和 \u0060build:weapp\u0060，并将结果纳入后续发布验证任务。","risks":["真机渲染层问题无法完全由单元测试覆盖，需要保留真机验证清单。","Closure/Lodestar 历史任务文件可能存在旧任务残留，报告需要聚焦当前三项任务，避免被旧上下文干扰。","大提交之间存在叠加效应，单一提交归因只能按证据判断，不能替代真机回归。"],"assumptions":["本轮目标只针对 \u0060miao-wechat-mini\u0060 Taro 小程序，不切换到原生小程序或 Miao_App 服务端。","用户最近真机反馈是当前最高优先级验收依据。","已有本地未提交修复可以作为本轮回归修复任务的输入继续验证。"],"result_ids":["R000"],"body_path":"problems/P000/tickets/T000.md","created_at":"2026-05-31T16:40:34+00:00","updated_at":"2026-05-31T16:43:04+00:00"}],"results":[{"id":"R000","ticket_id":"T000","problem_id":"P000","summary":"完成近期大范围提交审计，形成风险矩阵和 P0/P1/P2 修复计划。","done":["报告覆盖 Taro4、稳定性、生成链路、首页视频、发布防线、真机 flow 和 catId 路由。"],"verification":["基于 git log/show/diff、真机反馈和关键源码检查。"],"known_gaps":["代码修复和真机验证进入后续任务。"],"artifacts":["docs/plans/2026-06-01-recent-commit-regression-audit.md"],"body_path":"problems/P000/results/R000.md","created_at":"2026-05-31T16:43:04+00:00"}],"checks":[{"id":"C000","problem_id":"P000","status":"success","summary":"审计报告满足提交影响、风险映射和开发计划要求。","evidence":["docs/plans/2026-06-01-recent-commit-regression-audit.md"],"criteria_map":["覆盖主要大提交、真机问题映射、P0/P1/P2 计划。"],"execution_map":["已执行 git log --numstat、git show --stat、git diff、rg 关键字检查，并将结论落盘。"],"stress_test":["以用户真机反馈反推代码结构风险，额外发现首页视频 overlay 普通 View 仍可能被原生 Video 盖住。"],"residual_risk":["后续任务继续修首页 cover overlay、生成防 pending 和发布验证。"],"blocking_gaps":[],"result_ids":["R000"],"followup_problem_id":null,"body_path":"problems/P000/checks/C000.md","created_at":"2026-05-31T16:43:49+00:00"}],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-31T16:39:43+00:00","payload":{"ledger_id":"L20260601-003943-03","root_id":"P000","title":"提交影响审计"}},{"id":"E001","type":"ticket_created","at":"2026-05-31T16:40:34+00:00","payload":{"problem_id":"P000","ticket_id":"T000","title":"最近大提交影响审计"}},{"id":"E002","type":"ticket_status_changed","at":"2026-05-31T16:40:34+00:00","payload":{"from":"created","id":"T000","to":"defined"}},{"id":"E003","type":"ticket_status_changed","at":"2026-05-31T16:40:51+00:00","payload":{"from":"defined","id":"T000","to":"classified"}},{"id":"E004","type":"ticket_classified","at":"2026-05-31T16:40:51+00:00","payload":{"classification":"one_go","reason":"审计范围明确，输入来自 git 历史、真机反馈和关键文件 diff，可在一次执行中完成报告并作为后续修复任务输入。","ticket_id":"T000"}},{"id":"E005","type":"problem_status_changed","at":"2026-05-31T16:43:04+00:00","payload":{"from":"todo","id":"P000","to":"doing"}},{"id":"E006","type":"ticket_status_changed","at":"2026-05-31T16:43:04+00:00","payload":{"from":"classified","id":"T000","to":"executing"}},{"id":"E007","type":"ticket_status_changed","at":"2026-05-31T16:43:04+00:00","payload":{"from":"executing","id":"T000","to":"done"}},{"id":"E008","type":"result_recorded","at":"2026-05-31T16:43:04+00:00","payload":{"result_id":"R000","ticket_id":"T000"}},{"id":"E009","type":"problem_status_changed","at":"2026-05-31T16:43:49+00:00","payload":{"from":"doing","id":"P000","to":"checking"}},{"id":"E010","type":"problem_status_changed","at":"2026-05-31T16:43:49+00:00","payload":{"from":"checking","id":"P000","to":"done"}},{"id":"E011","type":"check_recorded","at":"2026-05-31T16:43:49+00:00","payload":{"check_id":"C000","followup_id":null,"problem_id":"P000","status":"success"}}]},{"ledger_id":"L20260601-003943-09","schema_version":6,"root_id":"P000","title":"验证交付","status":"doing","updated_at":"2026-05-31T16:39:44+00:00","created_at":"2026-05-31T16:39:44+00:00","effort":"medium","language":"zh","completion_pct":0,"counts":{"problems":1,"tickets":0,"results":0,"checks":0,"events":1,"open":1,"done":0,"blocked":0,"followup":0},"problem_counts":{"todo":1},"ticket_counts":{},"check_counts":{},"problems":[{"id":"P000","title":"验证交付","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_03_验证交付.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 验证交付","status":"todo","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":[],"subproblem_ids":[],"result_ids":[],"check_ids":[],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-31T16:39:44+00:00","updated_at":"2026-05-31T16:39:44+00:00"}],"tickets":[],"results":[],"checks":[],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-31T16:39:44+00:00","payload":{"ledger_id":"L20260601-003943-09","root_id":"P000","title":"验证交付"}}]},{"ledger_id":"L20260601-003943-08","schema_version":6,"root_id":"P000","title":"同步方案输出","status":"doing","updated_at":"2026-05-31T16:39:44+00:00","created_at":"2026-05-31T16:39:44+00:00","effort":"medium","language":"zh","completion_pct":0,"counts":{"problems":1,"tickets":0,"results":0,"checks":0,"events":1,"open":1,"done":0,"blocked":0,"followup":0},"problem_counts":{"todo":1},"ticket_counts":{},"check_counts":{},"problems":[{"id":"P000","title":"同步方案输出","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_03_同步方案输出.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 同步方案输出","status":"todo","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":[],"subproblem_ids":[],"result_ids":[],"check_ids":[],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-31T16:39:44+00:00","updated_at":"2026-05-31T16:39:44+00:00"}],"tickets":[],"results":[],"checks":[],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-31T16:39:44+00:00","payload":{"ledger_id":"L20260601-003943-08","root_id":"P000","title":"同步方案输出"}}]},{"ledger_id":"L20260601-003943-06","schema_version":6,"root_id":"P000","title":"差异矩阵分析","status":"doing","updated_at":"2026-05-31T16:39:44+00:00","created_at":"2026-05-31T16:39:44+00:00","effort":"medium","language":"zh","completion_pct":0,"counts":{"problems":1,"tickets":0,"results":0,"checks":0,"events":1,"open":1,"done":0,"blocked":0,"followup":0},"problem_counts":{"todo":1},"ticket_counts":{},"check_counts":{},"problems":[{"id":"P000","title":"差异矩阵分析","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_02_差异矩阵分析.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 差异矩阵分析","status":"todo","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":[],"subproblem_ids":[],"result_ids":[],"check_ids":[],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-31T16:39:44+00:00","updated_at":"2026-05-31T16:39:44+00:00"}],"tickets":[],"results":[],"checks":[],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-31T16:39:44+00:00","payload":{"ledger_id":"L20260601-003943-06","root_id":"P000","title":"差异矩阵分析"}}]},{"ledger_id":"L20260601-003943-04","schema_version":6,"root_id":"P000","title":"代码实施","status":"doing","updated_at":"2026-05-31T16:39:43+00:00","created_at":"2026-05-31T16:39:43+00:00","effort":"medium","language":"zh","completion_pct":0,"counts":{"problems":1,"tickets":0,"results":0,"checks":0,"events":1,"open":1,"done":0,"blocked":0,"followup":0},"problem_counts":{"todo":1},"ticket_counts":{},"check_counts":{},"problems":[{"id":"P000","title":"代码实施","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_02_代码实施.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 代码实施","status":"todo","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":[],"subproblem_ids":[],"result_ids":[],"check_ids":[],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-31T16:39:43+00:00","updated_at":"2026-05-31T16:39:43+00:00"}],"tickets":[],"results":[],"checks":[],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-31T16:39:43+00:00","payload":{"ledger_id":"L20260601-003943-04","root_id":"P000","title":"代码实施"}}]},{"ledger_id":"L20260601-003943-02","schema_version":6,"root_id":"P000","title":"扫描两端工程","status":"doing","updated_at":"2026-05-31T16:39:43+00:00","created_at":"2026-05-31T16:39:43+00:00","effort":"medium","language":"zh","completion_pct":0,"counts":{"problems":1,"tickets":0,"results":0,"checks":0,"events":1,"open":1,"done":0,"blocked":0,"followup":0},"problem_counts":{"todo":1},"ticket_counts":{},"check_counts":{},"problems":[{"id":"P000","title":"扫描两端工程","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_01_扫描两端工程.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 扫描两端工程","status":"todo","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":[],"subproblem_ids":[],"result_ids":[],"check_ids":[],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-31T16:39:43+00:00","updated_at":"2026-05-31T16:39:43+00:00"}],"tickets":[],"results":[],"checks":[],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-31T16:39:43+00:00","payload":{"ledger_id":"L20260601-003943-02","root_id":"P000","title":"扫描两端工程"}}]},{"ledger_id":"L20260601-003943-01","schema_version":6,"root_id":"P000","title":"专项计划","status":"doing","updated_at":"2026-05-31T16:39:43+00:00","created_at":"2026-05-31T16:39:43+00:00","effort":"medium","language":"zh","completion_pct":0,"counts":{"problems":1,"tickets":0,"results":0,"checks":0,"events":1,"open":1,"done":0,"blocked":0,"followup":0},"problem_counts":{"todo":1},"ticket_counts":{},"check_counts":{},"problems":[{"id":"P000","title":"专项计划","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_01_专项计划.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 专项计划","status":"todo","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":[],"subproblem_ids":[],"result_ids":[],"check_ids":[],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-31T16:39:43+00:00","updated_at":"2026-05-31T16:39:43+00:00"}],"tickets":[],"results":[],"checks":[],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-31T16:39:43+00:00","payload":{"ledger_id":"L20260601-003943-01","root_id":"P000","title":"专项计划"}}]},{"ledger_id":"L20260530-234419-05","schema_version":6,"root_id":"P000","title":"同步方案输出","status":"done","updated_at":"2026-05-30T15:53:40+00:00","created_at":"2026-05-30T15:44:20+00:00","effort":"medium","language":"zh","completion_pct":100,"counts":{"problems":1,"tickets":1,"results":1,"checks":1,"events":12,"open":0,"done":1,"blocked":0,"followup":0},"problem_counts":{"done":1},"ticket_counts":{"done":1},"check_counts":{"success":1},"problems":[{"id":"P000","title":"同步方案输出","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_03_同步方案输出.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 同步方案输出","status":"done","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":["T000"],"subproblem_ids":[],"result_ids":["R000"],"check_ids":["C000"],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-30T15:44:20+00:00","updated_at":"2026-05-30T15:53:40+00:00"}],"tickets":[{"id":"T000","title":"PWA 与小程序同步方案输出","problem_id":"P000","status":"done","classification":"one_go","classification_reason":"同步方案输出是文档型分析任务，边界明确，可在一个结果中完成并通过矩阵回溯验证","problem_definition":"需要把 PWA 与小程序差异矩阵转化为可执行的同步方案，明确哪些能力应立即同步、哪些保持平台分叉、哪些需要后端或真机验证先行，避免在没有边界的情况下直接迁移 PWA 代码导致微信端体验或稳定性回退。","proposed_solution":"输出一份分阶段开发计划，按 P0/P1/P2/P3 拆分后端接口、数据模型、生成流程、首页播放器、内容安全、积分策略、后台管理和验证发布。方案采用“业务语义对齐、平台实现分叉”的原则：两端共享动作模型、prompt、接口协议和数据字段，小程序保留 Taro/微信端实现方式。","acceptance_criteria":["明确回答 Miao 是否是 PWA 工程，以及两端是否适合直接代码同步。","给出 PWA 最近更新需要同步到小程序的完整范围。","输出按优先级拆分的实施步骤，每一步包含目标、涉及模块、风险和验证方式。","明确不可直接同步或需产品决策的项，如积分自动补足、后台管理入口、PWA 离线能力。","标出上架前必须补齐的后端和真机验证项。"],"verification_plan":"- 方案必须可回溯到 \u0060result_pwa_mini_matrix.md\u0060 的差异结论。\n- 检查每个高风险差异是否都有对应实施或保留策略。\n- 检查计划是否避免把浏览器 \u0060video/canvas\u0060、Service Worker、React Router state 等 PWA 实现直接套入小程序。\n- 检查验证策略是否覆盖 \u0060npm test\u0060、\u0060npm run build:weapp\u0060、\u0060npm run build:h5\u0060、真机视频播放/上传/登录/隐私授权。","risks":["生产服务端是否已经部署 PWA 最新 AI 和持久化能力，需要接口实测确认。","小程序本地提取视频尾帧能力不确定，推荐优先服务端提帧或生成任务返回尾帧。","四段式视频状态机属于核心体验迁移，必须灰度并保留旧动作 key 兼容。"],"assumptions":[],"result_ids":["R000"],"body_path":"problems/P000/tickets/T000.md","created_at":"2026-05-30T15:52:25+00:00","updated_at":"2026-05-30T15:53:20+00:00"}],"results":[{"id":"R000","ticket_id":"T000","problem_id":"P000","summary":"\u0060/Users/yxj/Documents/Codex/AiStudio/Miao\u0060 是当前 Miao PWA/全栈主工程，包含 React/Vite 前端与 Express 后端。\u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini\u0060 是 Taro 微信小程序工程。\n\n两端不适合直接代码级合并。正确策略是“业务语义对齐，平台实现分叉”：动作模型、AI prompt、接口协议、CatInfo 数据字段、积分/生成状态语义保持一致；PWA 继续使用浏览器 \u0060video/canvas\u0060、React Router、Service Worker，小程序继续使用 Taro、微信 Video、微信登录/隐私授权/上传能力。\n\n最近 PWA 更新中，最需要同步到小程序的是猫咪互动视频主链路：\u0060v1_approach\u0060、\u0060v2_wait\u0060、\u0060v3_return\u0060、\u0060v4_fetch\u0060 四段式视频状态机，以及 first/last frame 约束、首页剧情播放器和后续动作失败反馈。小程序当前仍是 \u0060idle/tail/rubbing/blink\u0060 旧动作模型，这是当前最大业务差异。","done":[],"verification":[],"known_gaps":[],"artifacts":[],"body_path":"problems/P000/results/R000.md","created_at":"2026-05-30T15:53:20+00:00"}],"checks":[{"id":"C000","problem_id":"P000","status":"success","summary":"同步方案已覆盖工程定位、差异范围、同步边界、实施优先级和验证策略","evidence":["\u0060docs/plans/result_pwa_mini_sync_plan.md\u0060","\u0060docs/plans/result_pwa_mini_matrix.md\u0060","\u0060docs/plans/result_pwa_mini_scan.md\u0060","\u0060/Users/yxj/Documents/Codex/AiStudio/Miao/src/services/ai/actionPrompts.ts\u0060","\u0060/Users/yxj/Documents/Codex/AiStudio/Miao/src/pages/GenerationProgress.tsx\u0060","\u0060/Users/yxj/Documents/Codex/AiStudio/Miao/src/pages/Home.tsx\u0060","\u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/src/services/volcanoService.ts\u0060","\u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/src/pages/generation-progress/index.tsx\u0060","\u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/src/pages/home/index.tsx\u0060"],"criteria_map":["回答是否为PWA工程、是否能同步、哪些同步、哪些不应直接同步、如何验证"],"execution_map":["基于扫描结果和差异矩阵输出分阶段计划"],"stress_test":["对浏览器实现直接迁移、旧用户数据兼容、内容安全后端缺口和真机限制做了约束"],"residual_risk":["代码未实施，生产后端和微信真机行为仍需后续验证"],"blocking_gaps":[],"result_ids":["R000"],"followup_problem_id":null,"body_path":"problems/P000/checks/C000.md","created_at":"2026-05-30T15:53:40+00:00"}],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-30T15:44:20+00:00","payload":{"ledger_id":"L20260530-234419-05","root_id":"P000","title":"同步方案输出"}},{"id":"E001","type":"ticket_created","at":"2026-05-30T15:52:25+00:00","payload":{"problem_id":"P000","ticket_id":"T000","title":"PWA 与小程序同步方案输出"}},{"id":"E002","type":"ticket_status_changed","at":"2026-05-30T15:52:25+00:00","payload":{"from":"created","id":"T000","to":"defined"}},{"id":"E003","type":"ticket_status_changed","at":"2026-05-30T15:52:30+00:00","payload":{"from":"defined","id":"T000","to":"classified"}},{"id":"E004","type":"ticket_classified","at":"2026-05-30T15:52:30+00:00","payload":{"classification":"one_go","reason":"同步方案输出是文档型分析任务，边界明确，可在一个结果中完成并通过矩阵回溯验证","ticket_id":"T000"}},{"id":"E005","type":"problem_status_changed","at":"2026-05-30T15:52:38+00:00","payload":{"from":"todo","id":"P000","to":"doing"}},{"id":"E006","type":"ticket_status_changed","at":"2026-05-30T15:52:38+00:00","payload":{"from":"classified","id":"T000","to":"executing"}},{"id":"E007","type":"ticket_status_changed","at":"2026-05-30T15:53:20+00:00","payload":{"from":"executing","id":"T000","to":"done"}},{"id":"E008","type":"result_recorded","at":"2026-05-30T15:53:20+00:00","payload":{"result_id":"R000","ticket_id":"T000"}},{"id":"E009","type":"problem_status_changed","at":"2026-05-30T15:53:40+00:00","payload":{"from":"doing","id":"P000","to":"checking"}},{"id":"E010","type":"problem_status_changed","at":"2026-05-30T15:53:40+00:00","payload":{"from":"checking","id":"P000","to":"done"}},{"id":"E011","type":"check_recorded","at":"2026-05-30T15:53:40+00:00","payload":{"check_id":"C000","followup_id":null,"problem_id":"P000","status":"success"}}]},{"ledger_id":"L20260530-234419-04","schema_version":6,"root_id":"P000","title":"差异矩阵分析","status":"done","updated_at":"2026-05-30T15:51:45+00:00","created_at":"2026-05-30T15:44:20+00:00","effort":"medium","language":"zh","completion_pct":100,"counts":{"problems":1,"tickets":1,"results":1,"checks":1,"events":12,"open":0,"done":1,"blocked":0,"followup":0},"problem_counts":{"done":1},"ticket_counts":{"done":1},"check_counts":{"success":1},"problems":[{"id":"P000","title":"差异矩阵分析","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_02_差异矩阵分析.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 差异矩阵分析","status":"done","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":["T000"],"subproblem_ids":[],"result_ids":["R000"],"check_ids":["C000"],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-30T15:44:20+00:00","updated_at":"2026-05-30T15:51:45+00:00"}],"tickets":[{"id":"T000","title":"差异矩阵分析","problem_id":"P000","status":"done","classification":"one_go","classification_reason":"差异矩阵是只读分析产物，输入证据已在扫描阶段收集，范围明确，可一次性完成。","problem_definition":"需要基于已完成的跨工程扫描，把 PWA 与小程序的差异从文件级线索转化为可决策的功能/业务逻辑矩阵，明确哪些差异必须同步、哪些可以保持平台差异、哪些需要先补后端或验证环境。","proposed_solution":"按照业务域拆分差异：路由页面、猫咪创建与 AI 生成、首页互动状态机、视频持久化与播放、积分兑换、账号认证、好友/日记/评论/通知、后台管理、内容安全、平台能力。每项给出当前状态、影响、同步可行性、推荐优先级。","acceptance_criteria":["输出能直接回答“最近 PWA 更新是否已同步到小程序”。","标出至少 P0/P1/P2 三层同步优先级。","区分“业务必须一致”和“平台实现可不同”。","标出需要后端支持、微信能力支持或真机验证的项。"],"verification_plan":"- 使用扫描结果和关键源码证据交叉验证。\n- 对近期 PWA 提交涉及的核心文件逐项映射到小程序对应文件。\n- 不把页面命名一致误判为业务逻辑一致。","risks":["部分 PWA 服务端能力如果已部署到生产，小程序可直接受益；如果未部署，则仍是后端差异。","小程序当前工作区存在未提交修复，本矩阵默认按“当前工作区”评估，不按远端 \u0060master\u0060 原始状态评估。"],"assumptions":[],"result_ids":["R000"],"body_path":"problems/P000/tickets/T000.md","created_at":"2026-05-30T15:48:56+00:00","updated_at":"2026-05-30T15:51:25+00:00"}],"results":[{"id":"R000","ticket_id":"T000","problem_id":"P000","summary":"\u0060Miao\u0060 当前就是 PWA/全栈主工程。它近期更新后，小程序与 PWA 的“页面覆盖率”仍然很高，但“核心猫咪生成与互动业务逻辑”已经出现明显分叉。\n\n最大差异不是登录、日记、积分这些常规模块，而是 PWA 已经升级到“首帧确认图 + 四段式视频状态机 + 前后帧约束 + 首页剧情流播放”的新模型；小程序当前仍是旧的 \u0060idle/tail/rubbing/blink\u0060 多动作视频模型。","done":[],"verification":[],"known_gaps":[],"artifacts":[],"body_path":"problems/P000/results/R000.md","created_at":"2026-05-30T15:51:25+00:00"}],"checks":[{"id":"C000","problem_id":"P000","status":"success","summary":"差异矩阵已覆盖两端工程业务域差异、最近PWA更新未同步项、同步可行性与优先级","evidence":["\u0060docs/plans/result_pwa_mini_matrix.md\u0060","\u0060/Users/yxj/Documents/Codex/AiStudio/Miao/src/services/ai/actionPrompts.ts\u0060","\u0060/Users/yxj/Documents/Codex/AiStudio/Miao/src/pages/GenerationProgress.tsx\u0060","\u0060/Users/yxj/Documents/Codex/AiStudio/Miao/src/pages/Home.tsx\u0060","\u0060/Users/yxj/Documents/Codex/AiStudio/Miao/server.ts\u0060","\u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/src/services/volcanoService.ts\u0060","\u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/src/pages/generation-progress/index.tsx\u0060","\u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/src/pages/home/index.tsx\u0060","\u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/src/types/cat.ts\u0060"],"criteria_map":["覆盖页面服务数据模型生成流程首页播放器内容安全后台积分等主要业务域"],"execution_map":["基于两端源码和近期提交进行只读比对"],"stress_test":["区分业务语义对齐和平台实现分叉，避免直接照搬PWA浏览器实现"],"residual_risk":["小程序视频提帧和生产后端部署状态仍需实施阶段验证"],"blocking_gaps":[],"result_ids":["R000"],"followup_problem_id":null,"body_path":"problems/P000/checks/C000.md","created_at":"2026-05-30T15:51:45+00:00"}],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-30T15:44:20+00:00","payload":{"ledger_id":"L20260530-234419-04","root_id":"P000","title":"差异矩阵分析"}},{"id":"E001","type":"ticket_created","at":"2026-05-30T15:48:56+00:00","payload":{"problem_id":"P000","ticket_id":"T000","title":"差异矩阵分析"}},{"id":"E002","type":"ticket_status_changed","at":"2026-05-30T15:48:56+00:00","payload":{"from":"created","id":"T000","to":"defined"}},{"id":"E003","type":"ticket_status_changed","at":"2026-05-30T15:49:03+00:00","payload":{"from":"defined","id":"T000","to":"classified"}},{"id":"E004","type":"ticket_classified","at":"2026-05-30T15:49:03+00:00","payload":{"classification":"one_go","reason":"差异矩阵是只读分析产物，输入证据已在扫描阶段收集，范围明确，可一次性完成。","ticket_id":"T000"}},{"id":"E005","type":"problem_status_changed","at":"2026-05-30T15:49:12+00:00","payload":{"from":"todo","id":"P000","to":"doing"}},{"id":"E006","type":"ticket_status_changed","at":"2026-05-30T15:49:12+00:00","payload":{"from":"classified","id":"T000","to":"executing"}},{"id":"E007","type":"ticket_status_changed","at":"2026-05-30T15:51:25+00:00","payload":{"from":"executing","id":"T000","to":"done"}},{"id":"E008","type":"result_recorded","at":"2026-05-30T15:51:25+00:00","payload":{"result_id":"R000","ticket_id":"T000"}},{"id":"E009","type":"problem_status_changed","at":"2026-05-30T15:51:45+00:00","payload":{"from":"doing","id":"P000","to":"checking"}},{"id":"E010","type":"problem_status_changed","at":"2026-05-30T15:51:45+00:00","payload":{"from":"checking","id":"P000","to":"done"}},{"id":"E011","type":"check_recorded","at":"2026-05-30T15:51:45+00:00","payload":{"check_id":"C000","followup_id":null,"problem_id":"P000","status":"success"}}]},{"ledger_id":"L20260530-234419-02","schema_version":6,"root_id":"P000","title":"扫描两端工程","status":"done","updated_at":"2026-05-30T15:48:21+00:00","created_at":"2026-05-30T15:44:19+00:00","effort":"medium","language":"zh","completion_pct":100,"counts":{"problems":1,"tickets":1,"results":1,"checks":1,"events":12,"open":0,"done":1,"blocked":0,"followup":0},"problem_counts":{"done":1},"ticket_counts":{"done":1},"check_counts":{"success":1},"problems":[{"id":"P000","title":"扫描两端工程","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_01_扫描两端工程.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 扫描两端工程","status":"done","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":["T000"],"subproblem_ids":[],"result_ids":["R000"],"check_ids":["C000"],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-30T15:44:19+00:00","updated_at":"2026-05-30T15:48:21+00:00"}],"tickets":[{"id":"T000","title":"扫描两端工程","problem_id":"P000","status":"done","classification":"one_go","classification_reason":"本任务是只读工程扫描和证据收集，范围明确，可通过文件结构、路由、服务和 Git 变更一次性完成；后续差异矩阵在下一任务展开。","problem_definition":"需要重新检查 \u0060Miao\u0060 PWA 工程与 \u0060miao-wechat-mini\u0060 小程序工程的最新差异，识别页面功能、服务层、数据模型、接口协议、存储同步、鉴权登录、内容生成、社交关系、通知积分和调试能力的对齐状态。","proposed_solution":"从两个工程的文件结构、路由配置、依赖配置、服务目录、页面目录、接口调用和最近 Git 变更入手，建立可核查的功能清单和业务逻辑清单。重点判断 PWA 最近更新是否已同步到小程序，以及哪些差异属于平台适配差异、可同步差异或不建议同步差异。","acceptance_criteria":["明确确认 \u0060Miao\u0060 是否为 PWA 主工程，并记录其技术栈和入口结构。","列出 PWA 与小程序各自的页面、服务、核心业务模块。","识别 PWA 最近更新的文件和业务区域。","形成后续差异矩阵分析可直接使用的证据清单。"],"verification_plan":"- 使用 \u0060git status\u0060、\u0060git log\u0060、\u0060rg --files\u0060、\u0060find\u0060、\u0060package.json\u0060、路由配置和服务目录扫描两个工程。\n- 对页面和服务文件进行模块归类，而不是只看文件名。\n- 对接口路径、存储 key、核心业务状态流进行抽样核对。","risks":["PWA 最近更新如果未提交，只能基于当前工作区状态判断。","两端技术栈差异较大，某些能力不能逐字复制，只能做业务语义对齐。","当前小程序工程有未提交稳定性修复，分析时需要区分“已有改动”和“尚未提交状态”。"],"assumptions":[],"result_ids":["R000"],"body_path":"problems/P000/tickets/T000.md","created_at":"2026-05-30T15:44:45+00:00","updated_at":"2026-05-30T15:47:49+00:00"}],"results":[{"id":"R000","ticket_id":"T000","problem_id":"P000","summary":"已完成 \u0060Miao\u0060 PWA 工程与 \u0060miao-wechat-mini\u0060 小程序工程的只读扫描。确认 \u0060Miao\u0060 是当前 PWA/全栈工程：React 19 + Vite + React Router + Express，服务端入口为 \u0060server.ts\u0060。小程序工程为 Taro 4 + React，通过适配层调用同一类 \u0060/api/v1/*\u0060 后端接口。","done":[],"verification":[],"known_gaps":[],"artifacts":[],"body_path":"problems/P000/results/R000.md","created_at":"2026-05-30T15:47:49+00:00"}],"checks":[{"id":"C000","problem_id":"P000","status":"success","summary":"两端工程扫描完成，证据足以支撑差异矩阵。","evidence":["\u0060docs/plans/result_pwa_mini_scan.md\u0060","\u0060Miao/package.json\u0060","\u0060Miao/src/App.tsx\u0060","\u0060Miao/server.ts\u0060","\u0060miao-wechat-mini/package.json\u0060","\u0060miao-wechat-mini/src/app.config.ts\u0060","\u0060miao-wechat-mini/src/services/volcanoService.ts\u0060","\u0060miao-wechat-mini/src/pages/generation-progress/index.tsx\u0060","\u0060miao-wechat-mini/src/pages/home/index.tsx\u0060"],"criteria_map":["确认PWA技术栈、列出两端页面/服务、识别PWA近期更新、形成证据清单均已满足。"],"execution_map":["通过package、路由配置、服务目录、server路由、git log/git show、关键页面/服务源码完成只读扫描。"],"stress_test":["抽查核心差异关键字：v1_approach/v2_wait/v3_return/v4_fetch、has_last_frame、actionGenerationError、idle/tail/rubbing/blink、adminService。"],"residual_risk":["PWA未提交变更不存在；小程序当前有未提交稳定性修复，后续分析需区分已改工作区与已提交基线。"],"blocking_gaps":[],"result_ids":["R000"],"followup_problem_id":null,"body_path":"problems/P000/checks/C000.md","created_at":"2026-05-30T15:48:21+00:00"}],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-30T15:44:19+00:00","payload":{"ledger_id":"L20260530-234419-02","root_id":"P000","title":"扫描两端工程"}},{"id":"E001","type":"ticket_created","at":"2026-05-30T15:44:45+00:00","payload":{"problem_id":"P000","ticket_id":"T000","title":"扫描两端工程"}},{"id":"E002","type":"ticket_status_changed","at":"2026-05-30T15:44:45+00:00","payload":{"from":"created","id":"T000","to":"defined"}},{"id":"E003","type":"ticket_status_changed","at":"2026-05-30T15:44:53+00:00","payload":{"from":"defined","id":"T000","to":"classified"}},{"id":"E004","type":"ticket_classified","at":"2026-05-30T15:44:53+00:00","payload":{"classification":"one_go","reason":"本任务是只读工程扫描和证据收集，范围明确，可通过文件结构、路由、服务和 Git 变更一次性完成；后续差异矩阵在下一任务展开。","ticket_id":"T000"}},{"id":"E005","type":"ticket_status_changed","at":"2026-05-30T15:45:13+00:00","payload":{"from":"classified","id":"T000","to":"executing"}},{"id":"E006","type":"problem_status_changed","at":"2026-05-30T15:45:13+00:00","payload":{"from":"todo","id":"P000","to":"doing"}},{"id":"E007","type":"ticket_status_changed","at":"2026-05-30T15:47:49+00:00","payload":{"from":"executing","id":"T000","to":"done"}},{"id":"E008","type":"result_recorded","at":"2026-05-30T15:47:49+00:00","payload":{"result_id":"R000","ticket_id":"T000"}},{"id":"E009","type":"problem_status_changed","at":"2026-05-30T15:48:21+00:00","payload":{"from":"doing","id":"P000","to":"checking"}},{"id":"E010","type":"problem_status_changed","at":"2026-05-30T15:48:21+00:00","payload":{"from":"checking","id":"P000","to":"done"}},{"id":"E011","type":"check_recorded","at":"2026-05-30T15:48:21+00:00","payload":{"check_id":"C000","followup_id":null,"problem_id":"P000","status":"success"}}]},{"ledger_id":"L20260530-234419-06","schema_version":6,"root_id":"P000","title":"验证交付","status":"doing","updated_at":"2026-05-30T15:44:20+00:00","created_at":"2026-05-30T15:44:20+00:00","effort":"medium","language":"zh","completion_pct":0,"counts":{"problems":1,"tickets":0,"results":0,"checks":0,"events":1,"open":1,"done":0,"blocked":0,"followup":0},"problem_counts":{"todo":1},"ticket_counts":{},"check_counts":{},"problems":[{"id":"P000","title":"验证交付","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_03_验证交付.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 验证交付","status":"todo","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":[],"subproblem_ids":[],"result_ids":[],"check_ids":[],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-30T15:44:20+00:00","updated_at":"2026-05-30T15:44:20+00:00"}],"tickets":[],"results":[],"checks":[],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-30T15:44:20+00:00","payload":{"ledger_id":"L20260530-234419-06","root_id":"P000","title":"验证交付"}}]},{"ledger_id":"L20260530-234419-03","schema_version":6,"root_id":"P000","title":"代码实施","status":"doing","updated_at":"2026-05-30T15:44:19+00:00","created_at":"2026-05-30T15:44:19+00:00","effort":"medium","language":"zh","completion_pct":0,"counts":{"problems":1,"tickets":0,"results":0,"checks":0,"events":1,"open":1,"done":0,"blocked":0,"followup":0},"problem_counts":{"todo":1},"ticket_counts":{},"check_counts":{},"problems":[{"id":"P000","title":"代码实施","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_02_代码实施.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 代码实施","status":"todo","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":[],"subproblem_ids":[],"result_ids":[],"check_ids":[],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-30T15:44:19+00:00","updated_at":"2026-05-30T15:44:19+00:00"}],"tickets":[],"results":[],"checks":[],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-30T15:44:19+00:00","payload":{"ledger_id":"L20260530-234419-03","root_id":"P000","title":"代码实施"}}]},{"ledger_id":"L20260530-234419-01","schema_version":6,"root_id":"P000","title":"专项计划","status":"doing","updated_at":"2026-05-30T15:44:19+00:00","created_at":"2026-05-30T15:44:19+00:00","effort":"medium","language":"zh","completion_pct":0,"counts":{"problems":1,"tickets":0,"results":0,"checks":0,"events":1,"open":1,"done":0,"blocked":0,"followup":0},"problem_counts":{"todo":1},"ticket_counts":{},"check_counts":{},"problems":[{"id":"P000","title":"专项计划","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_01_专项计划.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 专项计划","status":"todo","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":[],"subproblem_ids":[],"result_ids":[],"check_ids":[],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-30T15:44:19+00:00","updated_at":"2026-05-30T15:44:19+00:00"}],"tickets":[],"results":[],"checks":[],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-30T15:44:19+00:00","payload":{"ledger_id":"L20260530-234419-01","root_id":"P000","title":"专项计划"}}]},{"ledger_id":"L20260530-143802-03","schema_version":6,"root_id":"P000","title":"验证交付","status":"done","updated_at":"2026-05-30T06:48:39+00:00","created_at":"2026-05-30T06:38:02+00:00","effort":"medium","language":"zh","completion_pct":100,"counts":{"problems":1,"tickets":1,"results":1,"checks":1,"events":12,"open":0,"done":1,"blocked":0,"followup":0},"problem_counts":{"done":1},"ticket_counts":{"done":1},"check_counts":{"success":1},"problems":[{"id":"P000","title":"验证交付","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_03_验证交付.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 验证交付","status":"done","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":["T000"],"subproblem_ids":[],"result_ids":["R000"],"check_ids":["C000"],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-30T06:38:02+00:00","updated_at":"2026-05-30T06:48:39+00:00"}],"tickets":[{"id":"T000","title":"验证交付 Ticket","problem_id":"P000","status":"done","classification":"one_go","classification_reason":"交付任务只运行既定验证清单、更新记录并提交推送，步骤明确且可一次完成。","problem_definition":"需要完成 Storage/Sync 稳定性专项的完整交付验证，确保代码修复不破坏现有功能，并提交推送。","proposed_solution":"执行完整验证清单：\n\n1. \u0060npm test\u0060\n2. \u0060npm run lint\u0060\n3. \u0060npm run build:weapp\u0060\n4. 分享朋友圈 JSON 注入检查\n5. \u0060npm run build:h5\u0060\n6. \u0060npm audit --omit=dev --audit-level=high\u0060\n7. \u0060closure.py check\u0060\n8. \u0060git status --short --branch\u0060\n9. 提交并推送","acceptance_criteria":["验证命令通过，或仅存在已知非阻断 H5 warning。","计划文档 checklist 更新。","Closure Lodestar 显示所有 task ledgers closed。","提交推送到 \u0060origin/master\u0060。"],"verification_plan":"按 Proposed Solution 执行。","risks":["H5 构建可能继续输出 bundle size 和 Taro 上游 warning，该 warning 不阻断。"],"assumptions":["用户期望本轮直接完成代码实施并推送。"],"result_ids":["R000"],"body_path":"problems/P000/tickets/T000.md","created_at":"2026-05-30T06:44:56+00:00","updated_at":"2026-05-30T06:48:32+00:00"}],"results":[{"id":"R000","ticket_id":"T000","problem_id":"P000","summary":"Storage/Sync 稳定性专项已完成完整验证，代码修复范围与计划一致，未发现阻断问题。","done":["执行单元测试、lint、微信小程序构建、H5 构建和 production audit。","验证分享朋友圈 JSON 注入结果。","更新专项计划验证清单。","保留 H5 构建中的已知非阻断 warning 说明。"],"verification":["\u0060npm test\u0060：8 个测试文件、24 个用例通过。","\u0060npm run lint\u0060：通过。","\u0060npm run build:weapp\u0060：通过。","分享朋友圈 JSON 注入检查：通过，输出 \u0060share timeline json verified\u0060。","\u0060npm run build:h5\u0060：通过。","\u0060npm audit --omit=dev --audit-level=high\u0060：通过，输出 \u0060found 0 vulnerabilities\u0060。"],"known_gaps":[],"artifacts":["\u0060docs/plans/2026-05-30-storage-sync-stability-plan.md\u0060","\u0060src/services/syncQueue.ts\u0060","\u0060src/services/storage.ts\u0060","\u0060src/services/__tests__/syncQueue.test.ts\u0060","\u0060src/services/__tests__/storageStability.test.ts\u0060"],"body_path":"problems/P000/results/R000.md","created_at":"2026-05-30T06:48:32+00:00"}],"checks":[{"id":"C000","problem_id":"P000","status":"success","summary":"任务 03 成功。验证链路覆盖单元测试、lint、双端构建、分享 JSON 注入检查和 production audit。","evidence":["\u0060docs/plans/result_task03_storage_sync_delivery.md\u0060","\u0060npm test\u0060：24 tests passed。","\u0060npm run lint\u0060：exit 0。","\u0060npm run build:weapp\u0060：exit 0。","分享朋友圈 JSON 注入检查：\u0060share timeline json verified\u0060。","\u0060npm run build:h5\u0060：exit 0。","\u0060npm audit --omit=dev --audit-level=high\u0060：\u0060found 0 vulnerabilities\u0060。"],"criteria_map":["验证命令通过：满足。","计划文档 checklist 更新：满足。","已知 H5 warning 不阻断交付：满足。","提交推送前仍需执行最终 Closure check 和 git status：进入收尾命令。"],"execution_map":["本任务只做验证、文档和交付状态收敛，没有新增业务代码变更。"],"stress_test":["双端构建覆盖小程序与 H5 打包链路，production audit 覆盖线上依赖高危漏洞门槛。"],"residual_risk":["H5 bundle size warning 仍存在，建议后续作为性能专项处理。"],"blocking_gaps":[],"result_ids":["R000"],"followup_problem_id":null,"body_path":"problems/P000/checks/C000.md","created_at":"2026-05-30T06:48:39+00:00"}],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-30T06:38:02+00:00","payload":{"ledger_id":"L20260530-143802-03","root_id":"P000","title":"验证交付"}},{"id":"E001","type":"ticket_created","at":"2026-05-30T06:44:56+00:00","payload":{"problem_id":"P000","ticket_id":"T000","title":"验证交付 Ticket"}},{"id":"E002","type":"ticket_status_changed","at":"2026-05-30T06:44:56+00:00","payload":{"from":"created","id":"T000","to":"defined"}},{"id":"E003","type":"ticket_status_changed","at":"2026-05-30T06:44:56+00:00","payload":{"from":"defined","id":"T000","to":"classified"}},{"id":"E004","type":"ticket_classified","at":"2026-05-30T06:44:56+00:00","payload":{"classification":"one_go","reason":"交付任务只运行既定验证清单、更新记录并提交推送，步骤明确且可一次完成。","ticket_id":"T000"}},{"id":"E005","type":"problem_status_changed","at":"2026-05-30T06:44:56+00:00","payload":{"from":"todo","id":"P000","to":"doing"}},{"id":"E006","type":"ticket_status_changed","at":"2026-05-30T06:44:56+00:00","payload":{"from":"classified","id":"T000","to":"executing"}},{"id":"E007","type":"ticket_status_changed","at":"2026-05-30T06:48:32+00:00","payload":{"from":"executing","id":"T000","to":"done"}},{"id":"E008","type":"result_recorded","at":"2026-05-30T06:48:32+00:00","payload":{"result_id":"R000","ticket_id":"T000"}},{"id":"E009","type":"problem_status_changed","at":"2026-05-30T06:48:39+00:00","payload":{"from":"doing","id":"P000","to":"checking"}},{"id":"E010","type":"problem_status_changed","at":"2026-05-30T06:48:39+00:00","payload":{"from":"checking","id":"P000","to":"done"}},{"id":"E011","type":"check_recorded","at":"2026-05-30T06:48:39+00:00","payload":{"check_id":"C000","followup_id":null,"problem_id":"P000","status":"success"}}]},{"ledger_id":"L20260530-143802-02","schema_version":6,"root_id":"P000","title":"代码实施","status":"done","updated_at":"2026-05-30T06:44:26+00:00","created_at":"2026-05-30T06:38:02+00:00","effort":"medium","language":"zh","completion_pct":100,"counts":{"problems":1,"tickets":1,"results":1,"checks":1,"events":12,"open":0,"done":1,"blocked":0,"followup":0},"problem_counts":{"done":1},"ticket_counts":{"done":1},"check_counts":{"success":1},"problems":[{"id":"P000","title":"代码实施","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_02_代码实施.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 代码实施","status":"done","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":["T000"],"subproblem_ids":[],"result_ids":["R000"],"check_ids":["C000"],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-30T06:38:02+00:00","updated_at":"2026-05-30T06:44:26+00:00"}],"tickets":[{"id":"T000","title":"Storage/Sync 代码实施 Ticket","problem_id":"P000","status":"done","classification":"one_go","classification_reason":"代码实施范围已限制在两个服务文件和测试文件，改动可由单元测试与类型检查直接验证。","problem_definition":"需要按专项计划完成小范围稳定性修复，提升同步失败任务的可观测和恢复能力，减少 TimeLetter 无变化保存导致的重复同步，并避免 cachedRead 返回对象污染内存缓存。","proposed_solution":"1. 修改 \u0060src/services/syncQueue.ts\u0060：\n   - 导出 \u0060SyncTask\u0060 类型。\n   - 增加 \u0060getPendingTasks()\u0060、\u0060getExhaustedTasks()\u0060、\u0060clearExhaustedTasks()\u0060、\u0060retryExhaustedTasks()\u0060。\n   - 快照返回副本，避免外部修改内部队列。\n2. 修改 \u0060src/services/storage.ts\u0060：\n   - \u0060cachedRead()\u0060 新解析路径返回 \u0060safeClone()\u0060。\n   - \u0060saveTimeLetters()\u0060 仅对新增或内容变化的信件 enqueue upsert。\n3. 修改/新增测试：\n   - \u0060syncQueue.test.ts\u0060 覆盖 exhausted/retry/clear。\n   - 新增 storage 稳定性测试覆盖 cachedRead 和 saveTimeLetters。","acceptance_criteria":["新增测试失败任务状态、重试、清理。","新增测试 TimeLetter 无变化保存不重复同步。","新增测试 cachedRead 防御性副本。","\u0060npm test\u0060 和 \u0060npm run lint\u0060 通过。"],"verification_plan":"先跑 \u0060npm test\u0060 和 \u0060npm run lint\u0060，完整构建在任务 03。","risks":["不得改变现有数据结构和服务端同步 API。"],"assumptions":["SyncQueue 的新增 API 先作为服务层能力保留，后续可接入设置页或调试面板。"],"result_ids":["R000"],"body_path":"problems/P000/tickets/T000.md","created_at":"2026-05-30T06:40:04+00:00","updated_at":"2026-05-30T06:44:26+00:00"}],"results":[{"id":"R000","ticket_id":"T000","problem_id":"P000","summary":"已完成 Storage/Sync 稳定性专项代码实施，并补充对应单元测试。","done":["\u0060src/services/syncQueue.ts\u0060","导出 \u0060SyncTask\u0060。","新增 \u0060getPendingTasks()\u0060、\u0060getExhaustedTasks()\u0060、\u0060clearExhaustedTasks()\u0060、\u0060retryExhaustedTasks()\u0060。","快照返回防御性副本。","\u0060src/services/storage.ts\u0060","\u0060cachedRead()\u0060 解析路径返回防御性副本。","\u0060saveTimeLetters()\u0060 仅对新增或内容变化信件 enqueue upsert。","新增 \u0060setSyncQueueForTesting()\u0060 作为测试注入点，避免测试穿透 lazy require。","测试","\u0060syncQueue.test.ts\u0060 覆盖 exhausted、retry、clear 和快照不可变性。","\u0060storageStability.test.ts\u0060 覆盖 cachedRead 防御性副本和 TimeLetter 冗余同步收敛。"],"verification":["\u0060npm test\u0060：8 个测试文件、24 个用例通过。","\u0060npm run lint\u0060：通过。"],"known_gaps":[],"artifacts":["\u0060src/services/syncQueue.ts\u0060","\u0060src/services/storage.ts\u0060","\u0060src/services/__tests__/syncQueue.test.ts\u0060","\u0060src/services/__tests__/storageStability.test.ts\u0060"],"body_path":"problems/P000/results/R000.md","created_at":"2026-05-30T06:44:26+00:00"}],"checks":[{"id":"C000","problem_id":"P000","status":"success","summary":"任务 02 成功。计划中的代码修复已完成，并通过单元测试和类型检查。","evidence":["\u0060docs/plans/result_task02_storage_sync_implementation.md\u0060","\u0060npm test\u0060：24 tests passed。","\u0060npm run lint\u0060：exit 0。"],"criteria_map":["SyncQueue 可观测/恢复 API：满足。","TimeLetter 无变化保存不重复 enqueue：满足。","cachedRead 防御性副本：满足。","测试覆盖新增行为：满足。"],"execution_map":["实现范围限制在计划内服务文件和测试文件，没有修改页面业务流程。"],"stress_test":["测试覆盖失败重试达到上限、重新入队、清理 exhausted、外部修改快照、TimeLetter 重复保存和 changed upsert。"],"residual_risk":["完整双端构建和 audit 尚未执行，进入任务 03。"],"blocking_gaps":[],"result_ids":["R000"],"followup_problem_id":null,"body_path":"problems/P000/checks/C000.md","created_at":"2026-05-30T06:44:26+00:00"}],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-30T06:38:02+00:00","payload":{"ledger_id":"L20260530-143802-02","root_id":"P000","title":"代码实施"}},{"id":"E001","type":"ticket_created","at":"2026-05-30T06:40:04+00:00","payload":{"problem_id":"P000","ticket_id":"T000","title":"Storage/Sync 代码实施 Ticket"}},{"id":"E002","type":"ticket_status_changed","at":"2026-05-30T06:40:04+00:00","payload":{"from":"created","id":"T000","to":"defined"}},{"id":"E003","type":"ticket_status_changed","at":"2026-05-30T06:40:04+00:00","payload":{"from":"defined","id":"T000","to":"classified"}},{"id":"E004","type":"ticket_classified","at":"2026-05-30T06:40:04+00:00","payload":{"classification":"one_go","reason":"代码实施范围已限制在两个服务文件和测试文件，改动可由单元测试与类型检查直接验证。","ticket_id":"T000"}},{"id":"E005","type":"problem_status_changed","at":"2026-05-30T06:40:04+00:00","payload":{"from":"todo","id":"P000","to":"doing"}},{"id":"E006","type":"ticket_status_changed","at":"2026-05-30T06:40:05+00:00","payload":{"from":"classified","id":"T000","to":"executing"}},{"id":"E007","type":"ticket_status_changed","at":"2026-05-30T06:44:26+00:00","payload":{"from":"executing","id":"T000","to":"done"}},{"id":"E008","type":"result_recorded","at":"2026-05-30T06:44:26+00:00","payload":{"result_id":"R000","ticket_id":"T000"}},{"id":"E009","type":"problem_status_changed","at":"2026-05-30T06:44:26+00:00","payload":{"from":"doing","id":"P000","to":"checking"}},{"id":"E010","type":"problem_status_changed","at":"2026-05-30T06:44:26+00:00","payload":{"from":"checking","id":"P000","to":"done"}},{"id":"E011","type":"check_recorded","at":"2026-05-30T06:44:26+00:00","payload":{"check_id":"C000","followup_id":null,"problem_id":"P000","status":"success"}}]},{"ledger_id":"L20260530-143802-01","schema_version":6,"root_id":"P000","title":"专项计划","status":"done","updated_at":"2026-05-30T06:39:31+00:00","created_at":"2026-05-30T06:38:02+00:00","effort":"medium","language":"zh","completion_pct":100,"counts":{"problems":1,"tickets":1,"results":1,"checks":1,"events":12,"open":0,"done":1,"blocked":0,"followup":0},"problem_counts":{"done":1},"ticket_counts":{"done":1},"check_counts":{"success":1},"problems":[{"id":"P000","title":"专项计划","description":"Close the Lodestar task represented by \u0060/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_01_专项计划.md\u0060 using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 专项计划","status":"done","parent_id":null,"created_from_check_id":null,"created_from_ticket_id":null,"success_criteria":["Recursive ledger reaches \u0060next_action=none\u0060 or the task explicitly records why no ledger is needed.","Implementation satisfies this task's context and scope.","Verification evidence is recorded in recursive result/check bodies and summarized in \u0060progress.md\u0060."],"ticket_ids":["T000"],"subproblem_ids":[],"result_ids":["R000"],"check_ids":["C000"],"followup_ids":[],"package_path":"problems/P000","body_path":"problems/P000/README.md","created_at":"2026-05-30T06:38:02+00:00","updated_at":"2026-05-30T06:39:31+00:00"}],"tickets":[{"id":"T000","title":"Storage/Sync 稳定性专项计划 Ticket","problem_id":"P000","status":"done","classification":"one_go","classification_reason":"专项计划只基于已知 storage/sync 风险形成本轮边界和验收标准，不直接修改生产代码，范围明确且可一次完成。","problem_definition":"当前系统主链路验证通过，但 \u0060storage.ts\u0060 和 \u0060syncQueue.ts\u0060 是数据一致性风险最高的区域。本轮需要制定完整计划，并在可控范围内实施小范围、高确定性的稳定性修复。","proposed_solution":"本轮实施以下事项：\n\n1. \u0060SyncQueue\u0060 增加 pending/exhausted 任务快照、失败任务清理和失败任务重新入队能力，提升同步失败后的可观测性和恢复能力。\n2. \u0060saveTimeLetters\u0060 增加与历史数据比较，只有新增或实际变化的信件才 enqueue upsert，避免无变化保存导致重复同步。\n3. \u0060cachedRead\u0060 对解析后的对象也返回防御性副本，避免调用方无意修改内存缓存，造成“未保存但后续读取已变化”的隐性状态污染。\n4. 补充单元测试覆盖以上行为。","acceptance_criteria":["形成完整计划文档。","代码改动限制在 \u0060storage.ts\u0060、\u0060syncQueue.ts\u0060 和测试文件。","新增测试覆盖失败任务状态、失败任务重试/清理、time letter 无变化保存不重复同步、cachedRead 防御性副本。","完整验证通过。"],"verification_plan":"- \u0060npm test\u0060\n- \u0060npm run lint\u0060\n- \u0060npm run build:weapp\u0060\n- 分享 JSON 检查\n- \u0060npm run build:h5\u0060\n- \u0060npm audit --omit=dev --audit-level=high\u0060","risks":["不能改变现有同步语义；只增加可观测/恢复能力和减少冗余同步。","不在本轮拆分 \u0060storage.ts\u0060，避免扩大影响面。"],"assumptions":["当前主线分支是继续实施目标分支。"],"result_ids":["R000"],"body_path":"problems/P000/tickets/T000.md","created_at":"2026-05-30T06:38:30+00:00","updated_at":"2026-05-30T06:39:18+00:00"}],"results":[{"id":"R000","ticket_id":"T000","problem_id":"P000","summary":"已形成 Storage/Sync 稳定性专项计划，限定本轮只做 SyncQueue 可观测/恢复、TimeLetter 冗余同步收敛、cachedRead 防御性副本三项修复。","done":["新增计划文档 \u0060docs/plans/2026-05-30-storage-sync-stability-plan.md\u0060。","明确本轮实施范围、验证清单和不纳入事项。"],"verification":["计划覆盖用户要求的整体稳定性方向。","每个实施项都有对应测试验收。"],"known_gaps":[],"artifacts":["\u0060docs/plans/2026-05-30-storage-sync-stability-plan.md\u0060"],"body_path":"problems/P000/results/R000.md","created_at":"2026-05-30T06:39:18+00:00"}],"checks":[{"id":"C000","problem_id":"P000","status":"success","summary":"任务 01 成功。专项计划已覆盖本轮稳定性目标，并限定了实现边界。","evidence":["\u0060docs/plans/2026-05-30-storage-sync-stability-plan.md\u0060","\u0060docs/plans/result_task01_storage_sync_plan.md\u0060"],"criteria_map":["完整开发计划：满足。","每项具备验证方式：满足。","本轮边界清晰：满足。"],"execution_map":["任务 01 只输出计划，代码修改进入任务 02。"],"stress_test":["计划没有改变生产代码；风险在任务 02 通过测试和构建验证。"],"residual_risk":["实现阶段如发现影响同步语义的改动，应停止并降级为后续专项。"],"blocking_gaps":[],"result_ids":["R000"],"followup_problem_id":null,"body_path":"problems/P000/checks/C000.md","created_at":"2026-05-30T06:39:31+00:00"}],"events":[{"id":"E000","type":"ledger_initialized","at":"2026-05-30T06:38:02+00:00","payload":{"ledger_id":"L20260530-143802-01","root_id":"P000","title":"专项计划"}},{"id":"E001","type":"ticket_created","at":"2026-05-30T06:38:30+00:00","payload":{"problem_id":"P000","ticket_id":"T000","title":"Storage/Sync 稳定性专项计划 Ticket"}},{"id":"E002","type":"ticket_status_changed","at":"2026-05-30T06:38:30+00:00","payload":{"from":"created","id":"T000","to":"defined"}},{"id":"E003","type":"ticket_status_changed","at":"2026-05-30T06:38:36+00:00","payload":{"from":"defined","id":"T000","to":"classified"}},{"id":"E004","type":"ticket_classified","at":"2026-05-30T06:38:36+00:00","payload":{"classification":"one_go","reason":"专项计划只基于已知 storage/sync 风险形成本轮边界和验收标准，不直接修改生产代码，范围明确且可一次完成。","ticket_id":"T000"}},{"id":"E005","type":"problem_status_changed","at":"2026-05-30T06:38:40+00:00","payload":{"from":"todo","id":"P000","to":"doing"}},{"id":"E006","type":"ticket_status_changed","at":"2026-05-30T06:38:45+00:00","payload":{"from":"classified","id":"T000","to":"executing"}},{"id":"E007","type":"ticket_status_changed","at":"2026-05-30T06:39:18+00:00","payload":{"from":"executing","id":"T000","to":"done"}},{"id":"E008","type":"result_recorded","at":"2026-05-30T06:39:18+00:00","payload":{"result_id":"R000","ticket_id":"T000"}},{"id":"E009","type":"problem_status_changed","at":"2026-05-30T06:39:31+00:00","payload":{"from":"doing","id":"P000","to":"checking"}},{"id":"E010","type":"problem_status_changed","at":"2026-05-30T06:39:31+00:00","payload":{"from":"checking","id":"P000","to":"done"}},{"id":"E011","type":"check_recorded","at":"2026-05-30T06:39:31+00:00","payload":{"check_id":"C000","followup_id":null,"problem_id":"P000","status":"success"}}]}]};
+  </script>
+  <script>
+    const data = window.DASHBOARD_DATA;
+
+    // Theme
+    const THEME_KEY = "cp-dashboard-theme";
+    function applyTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem(THEME_KEY, theme);
+      const btn = document.getElementById("themeToggle");
+      const sun = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+      const moon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+      btn.innerHTML = (theme === "dark" ? sun : moon) + " " + (theme === "dark" ? "Light" : "Dark");
+    }
+    const savedTheme = localStorage.getItem(THEME_KEY) || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    applyTheme(savedTheme);
+    document.getElementById("themeToggle").addEventListener("click", () => {
+      applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+    });
+
+    function progressRing(pct, size, stroke) {
+      const r = (size - stroke) / 2;
+      const c = 2 * Math.PI * r;
+      const offset = c - (Math.min(Math.max(pct, 0), 100) / 100) * c;
+      const showLabel = size >= 40;
+      return '<svg class="progress-ring" width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + " " + size + '">' +
+        '<circle class="track" cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" fill="none" stroke-width="' + stroke + '"/>' +
+        '<circle class="fill" cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" fill="none" stroke-width="' + stroke + '" stroke-linecap="round" stroke-dasharray="' + c + '" stroke-dashoffset="' + offset + '" transform="rotate(-90 ' + size / 2 + " " + size / 2 + ')"/>' +
+        (showLabel ? '<text x="' + size / 2 + '" y="' + size / 2 + '" text-anchor="middle" dominant-baseline="central" font-size="' + Math.round(size * 0.28) + '">' + Math.round(pct) + '%</text>' : "") +
+        '</svg>';
+    }
+    const state = {
+      selectedLedgerId: location.hash ? decodeURIComponent(location.hash.slice(1)) : (data.active_ledger_id || data.ledgers[0]?.ledger_id || ""),
+      selectedEntity: null,
+      query: "",
+      statusFilter: "all",
+      forceOpen: null,
+      toggledNodes: new Set(),
+    };
+
+    const byId = (id) => document.getElementById(id);
+    const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
+    })[char]);
+    const statusBadge = (status) => '<span class="badge ' + escapeHtml(status || "unknown") + '">' + escapeHtml(status || "unknown") + '</span>';
+    const compactDate = (value) => {
+      if (!value) return "-";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleString([], { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+    };
+    const normalizeText = (value) => String(value ?? "").toLowerCase();
+    const selectedLedger = () => data.ledgers.find((ledger) => ledger.ledger_id === state.selectedLedgerId) || data.ledgers[0];
+
+    function matchesQuery(ledger, query) {
+      if (!query) return true;
+      const haystack = [
+        ledger.ledger_id,
+        ledger.title,
+        ledger.status,
+        ...ledger.problems.flatMap((item) => [item.id, item.title, item.status, item.description]),
+        ...ledger.tickets.flatMap((item) => [item.id, item.title, item.status, item.classification, item.problem_definition, item.proposed_solution]),
+        ...ledger.results.flatMap((item) => [item.id, item.summary, ...(item.done || []), ...(item.verification || [])]),
+        ...ledger.checks.flatMap((item) => [item.id, item.summary, item.status, ...(item.evidence || []), ...(item.blocking_gaps || [])]),
+      ].join(" ").toLowerCase();
+      return haystack.includes(query);
+    }
+
+    function matchesStatus(ledger, filter) {
+      if (filter === "all") return true;
+      if (filter === "open") return ledger.status !== "done";
+      if (filter === "done") return ledger.status === "done";
+      if (filter === "blocked") return ledger.counts.blocked > 0;
+      if (filter === "followup") return ledger.counts.followup > 0 || ledger.problems.some((problem) => (problem.followup_ids || []).length > 0);
+      return true;
+    }
+
+    function renderSubtitle() {
+      byId("subtitle").textContent = data.workspace + " · " + data.ledger_dir + " · generated " + compactDate(data.generated_at);
+      byId("ledgerSummary").textContent = data.totals.ledgers + " ledgers · " + data.totals.problems + " problems · " + data.totals.open + " open";
+    }
+
+    function renderLedgers() {
+      const query = normalizeText(state.query);
+      const ledgers = data.ledgers.filter((ledger) => matchesStatus(ledger, state.statusFilter) && matchesQuery(ledger, query));
+      byId("ledgerList").innerHTML = ledgers.map((ledger) => {
+        const selected = ledger.ledger_id === selectedLedger()?.ledger_id ? " is-selected" : "";
+        const active = ledger.ledger_id === data.active_ledger_id ? '<span class="badge doing">active</span>' : "";
+        const pct = ledger.completion_pct ?? 0;
+        return '<li class="ledger-item"><button class="ledger-button' + selected + '" data-ledger-id="' + escapeHtml(ledger.ledger_id) + '">' +
+          '<div class="ledger-title"><strong>' + escapeHtml(ledger.title) + '</strong><span style="display:flex;align-items:center;gap:6px">' + progressRing(pct, 24, 3) + statusBadge(ledger.status) + '</span></div>' +
+          '<div class="ledger-meta"><span>' + escapeHtml(ledger.ledger_id) + '</span>' + active + '<span>' + compactDate(ledger.updated_at) + '</span></div>' +
+          '<div class="ledger-meta"><span>' + ledger.counts.problems + 'P</span><span>' + ledger.counts.tickets + 'T</span><span>' + ledger.counts.results + 'R</span><span>' + ledger.counts.checks + 'C</span><span>' + ledger.counts.open + ' open</span></div>' +
+          '</button></li>';
+      }).join("") || '<li class="empty">No ledgers match the current filters.</li>';
+    }
+
+    function renderStats(ledger) {
+      const pct = ledger?.completion_pct ?? 0;
+      const stats = [
+        ["Ledgers", data.totals.ledgers],
+        ["Problems", ledger?.counts.problems ?? 0],
+        ["Tickets", ledger?.counts.tickets ?? 0],
+        ["Results", ledger?.counts.results ?? 0],
+        ["Checks", ledger?.counts.checks ?? 0],
+        ["Open", ledger?.counts.open ?? 0],
+      ];
+      const ringHtml = '<div class="stat" style="display:flex;align-items:center;justify-content:center">' + progressRing(pct, 48, 4) + '</div>';
+      byId("stats").innerHTML = ringHtml + stats.map(([label, value]) => '<div class="stat"><div class="value">' + escapeHtml(value) + '</div><div class="label">' + escapeHtml(label) + '</div></div>').join("");
+    }
+
+    function indexById(items) {
+      return Object.fromEntries(items.map((item) => [item.id, item]));
+    }
+
+    function entitySearchText(entity) {
+      return normalizeText(JSON.stringify(entity));
+    }
+
+    function bodyLink(ledger, bodyPath) {
+      if (!bodyPath) return "";
+      return data.ledger_dir_from_output + "/" + ledger.ledger_id + "/" + bodyPath;
+    }
+
+    function renderPtrcRows(ledger, problem, indexes) {
+      const rows = [];
+      for (const ticketId of problem.ticket_ids || []) {
+        const ticket = indexes.tickets[ticketId];
+        if (ticket) rows.push(renderChildRow(ledger, "ticket", ticket, "T", ticket.status + (ticket.classification ? " · " + ticket.classification : "")));
+      }
+      for (const resultId of problem.result_ids || []) {
+        const result = indexes.results[resultId];
+        if (result) rows.push(renderChildRow(ledger, "result", result, "R", result.summary || "result"));
+      }
+      for (const checkId of problem.check_ids || []) {
+        const check = indexes.checks[checkId];
+        if (check) rows.push(renderChildRow(ledger, "check", check, "C", check.summary || check.status));
+      }
+      return rows.length ? '<div class="ptrc">' + rows.join("") + '</div>' : "";
+    }
+
+    function renderChildRow(ledger, type, entity, label, subtitle) {
+      const selected = state.selectedEntity?.type === type && state.selectedEntity?.id === entity.id ? " is-selected" : "";
+      const link = bodyLink(ledger, entity.body_path);
+      return '<div class="child-row' + selected + '" data-entity-type="' + type + '" data-entity-id="' + escapeHtml(entity.id) + '">' +
+        '<span class="type-pill">' + label + '</span>' +
+        '<span class="row-title"><strong>' + escapeHtml(entity.id + ": " + (entity.title || entity.summary || entity.status || "")) + '</strong><span>' + escapeHtml(subtitle || "") + '</span></span>' +
+        '<span class="entity-meta">' + (entity.status ? statusBadge(entity.status) : "") + (link ? '<a href="' + escapeHtml(link) + '" target="_blank" rel="noreferrer">body</a>' : "") + '</span>' +
+        '</div>';
+    }
+
+    function renderProblemNode(ledger, problem, childrenMap, indexes, query) {
+      const children = childrenMap[problem.id] || [];
+      const descendantHtml = children.map((child) => renderProblemNode(ledger, child, childrenMap, indexes, query)).filter(Boolean);
+      const selfMatches = !query || entitySearchText(problem).includes(query);
+      if (query && !selfMatches && descendantHtml.length === 0) return "";
+      const selected = state.selectedEntity?.type === "problem" && state.selectedEntity?.id === problem.id ? " is-selected" : "";
+      const defaultOpen = problem.status !== "done";
+      const toggled = state.toggledNodes.has(problem.id);
+      const isOpen = state.forceOpen === true || query || (state.forceOpen === null && (defaultOpen !== toggled));
+      const open = isOpen ? " open" : "";
+      const source = problem.created_from_check_id ? "follow-up from " + problem.created_from_check_id : (problem.created_from_ticket_id ? "child from " + problem.created_from_ticket_id : "root");
+      const link = bodyLink(ledger, problem.body_path);
+      return '<details class="tree-node"' + open + '>' +
+        '<summary>' +
+          '<div class="problem-row' + selected + '" data-entity-type="problem" data-entity-id="' + escapeHtml(problem.id) + '">' +
+            '<span class="chevron">▶</span>' +
+            '<span class="row-title"><strong>' + escapeHtml(problem.id + ": " + problem.title) + '</strong><span>' + escapeHtml(source) + '</span></span>' +
+            '<span class="entity-meta">' + statusBadge(problem.status) + '<span>' + (problem.ticket_ids || []).length + 'T</span><span>' + (problem.result_ids || []).length + 'R</span><span>' + (problem.check_ids || []).length + 'C</span>' + (link ? '<a href="' + escapeHtml(link) + '" target="_blank" rel="noreferrer">body</a>' : "") + '</span>' +
+          '</div>' +
+        '</summary>' +
+        renderPtrcRows(ledger, problem, indexes) +
+        (descendantHtml.length ? '<div class="children">' + descendantHtml.join("") + '</div>' : "") +
+      '</details>';
+    }
+
+    function renderTree(ledger) {
+      if (!ledger) {
+        byId("ledgerHeader").innerHTML = '<h2>No ledger data</h2>';
+        byId("tree").innerHTML = '<div class="empty">No ledgers found.</div>';
+        return;
+      }
+      byId("ledgerHeader").innerHTML =
+        '<h2>' + escapeHtml(ledger.title) + '</h2>' +
+        '<div class="ledger-meta">' + statusBadge(ledger.status) + '<span>' + escapeHtml(ledger.ledger_id) + '</span><span>updated ' + compactDate(ledger.updated_at) + '</span><span>schema v' + escapeHtml(ledger.schema_version) + '</span></div>';
+      const childrenMap = {};
+      for (const problem of ledger.problems) {
+        const parent = problem.parent_id || "__root__";
+        if (!childrenMap[parent]) childrenMap[parent] = [];
+        childrenMap[parent].push(problem);
+      }
+      for (const key of Object.keys(childrenMap)) {
+        childrenMap[key].sort((a, b) => a.id.localeCompare(b.id));
+      }
+      const indexes = {
+        tickets: indexById(ledger.tickets),
+        results: indexById(ledger.results),
+        checks: indexById(ledger.checks),
+      };
+      const rootProblems = childrenMap.__root__ || ledger.problems.filter((problem) => problem.id === ledger.root_id);
+      const query = normalizeText(state.query);
+      byId("tree").innerHTML = rootProblems.map((problem) => renderProblemNode(ledger, problem, childrenMap, indexes, query)).filter(Boolean).join("") || '<div class="empty">No tree nodes match the current search.</div>';
+    }
+
+    function renderDetails(ledger) {
+      if (!ledger) {
+        byId("details").innerHTML = '<div class="empty">No details.</div>';
+        return;
+      }
+      const selected = state.selectedEntity || { type: "ledger", id: ledger.ledger_id };
+      const collections = {
+        ledger: { [ledger.ledger_id]: ledger },
+        problem: indexById(ledger.problems),
+        ticket: indexById(ledger.tickets),
+        result: indexById(ledger.results),
+        check: indexById(ledger.checks),
+      };
+      const entity = collections[selected.type]?.[selected.id] || ledger;
+      const type = collections[selected.type]?.[selected.id] ? selected.type : "ledger";
+      byId("details").innerHTML = detailHtml(ledger, type, entity);
+    }
+
+    function listHtml(values) {
+      const items = Array.isArray(values) ? values.filter((item) => item !== "") : [];
+      if (!items.length) return '<span class="muted">none</span>';
+      return '<ul class="list">' + items.map((item) => '<li>' + escapeHtml(item) + '</li>').join("") + '</ul>';
+    }
+
+    function detailHtml(ledger, type, entity) {
+      const title = type === "ledger" ? ledger.title : (entity.id + ": " + (entity.title || entity.summary || entity.status || ""));
+      const link = entity.body_path ? bodyLink(ledger, entity.body_path) : "";
+      const rows = Object.entries({
+        type,
+        id: entity.id || ledger.ledger_id,
+        status: entity.status || ledger.status,
+        updated: entity.updated_at || ledger.updated_at,
+        created: entity.created_at || ledger.created_at,
+        body: link ? '<a href="' + escapeHtml(link) + '" target="_blank" rel="noreferrer">' + escapeHtml(entity.body_path) + '</a>' : "",
+      }).filter(([, value]) => value !== "");
+      let html = '<h2 class="detail-title">' + escapeHtml(title) + '</h2>';
+      html += '<dl class="kv">' + rows.map(([key, value]) => '<dt>' + escapeHtml(key) + '</dt><dd>' + (String(value).startsWith("<a ") ? value : escapeHtml(value)) + '</dd>').join("") + '</dl>';
+      const sections = [
+        ["Description", entity.description],
+        ["Problem Definition", entity.problem_definition],
+        ["Proposed Solution", entity.proposed_solution],
+        ["Summary", entity.summary],
+        ["Success Criteria", entity.success_criteria],
+        ["Acceptance Criteria", entity.acceptance_criteria],
+        ["Verification Plan", entity.verification_plan],
+        ["Done", entity.done],
+        ["Verification", entity.verification],
+        ["Known Gaps", entity.known_gaps],
+        ["Evidence", entity.evidence],
+        ["Criteria Map", entity.criteria_map],
+        ["Execution Map", entity.execution_map],
+        ["Stress Test", entity.stress_test],
+        ["Residual Risk", entity.residual_risk],
+        ["Blocking Gaps", entity.blocking_gaps],
+        ["Artifacts", entity.artifacts],
+      ];
+      for (const [heading, value] of sections) {
+        const hasValue = Array.isArray(value) ? value.length : Boolean(value);
+        if (!hasValue) continue;
+        html += '<section class="detail-section"><h3>' + escapeHtml(heading) + '</h3>';
+        html += Array.isArray(value) ? listHtml(value) : '<div class="text-block">' + escapeHtml(value) + '</div>';
+        html += '</section>';
+      }
+      if (type === "ledger") {
+        html += '<section class="detail-section"><h3>Status Counts</h3><div class="text-block">' + escapeHtml(JSON.stringify(ledger.problem_counts, null, 2)) + '</div></section>';
+        if (ledger.events && ledger.events.length) {
+          const shown = ledger.events.slice(-60).reverse();
+          html += '<section class="detail-section"><h3>Timeline (' + ledger.events.length + ' events)</h3><ul class="timeline" style="max-height:320px;overflow:auto">';
+          for (const ev of shown) {
+            const evDetail = ev.payload ? Object.values(ev.payload).filter(v => typeof v === "string").join(" — ") : "";
+            html += '<li class="timeline-item"><span class="timeline-time">' + escapeHtml(compactDate(ev.at || ev.created_at)) + '</span><span class="timeline-dot"></span><div class="timeline-content"><strong>' + escapeHtml(ev.type || "event") + '</strong> <span>' + escapeHtml(evDetail) + '</span></div></li>';
+          }
+          html += '</ul></section>';
+        }
+      }
+      html += '<p class="footer-note">Body links open the Markdown source from the ledger package.</p>';
+      return html;
+    }
+
+    function render() {
+      const ledger = selectedLedger();
+      if (ledger && state.selectedLedgerId !== ledger.ledger_id) {
+        state.selectedLedgerId = ledger.ledger_id;
+      }
+      renderSubtitle();
+      renderLedgers();
+      renderStats(ledger);
+      renderTree(ledger);
+      renderDetails(ledger);
+    }
+
+    byId("ledgerList").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-ledger-id]");
+      if (!button) return;
+      state.selectedLedgerId = button.dataset.ledgerId;
+      state.selectedEntity = null;
+      location.hash = encodeURIComponent(state.selectedLedgerId);
+      render();
+    });
+    byId("tree").addEventListener("click", (event) => {
+      const link = event.target.closest("a");
+      if (link) return;
+      // Chevron click toggles collapse for that node
+      const chevron = event.target.closest(".chevron");
+      if (chevron) {
+        const row = chevron.closest("[data-entity-id]");
+        if (row) {
+          event.preventDefault();
+          event.stopPropagation();
+          const id = row.dataset.entityId;
+          state.forceOpen = null;
+          if (state.toggledNodes.has(id)) state.toggledNodes.delete(id);
+          else state.toggledNodes.add(id);
+          render();
+          return;
+        }
+      }
+      const button = event.target.closest("[data-entity-type]");
+      if (!button) return;
+      event.preventDefault();
+      event.stopPropagation();
+      state.selectedEntity = { type: button.dataset.entityType, id: button.dataset.entityId };
+      render();
+    });
+    byId("search").addEventListener("input", (event) => {
+      state.query = event.target.value;
+      render();
+    });
+    byId("statusFilter").addEventListener("change", (event) => {
+      state.statusFilter = event.target.value;
+      render();
+    });
+    byId("expandAll").addEventListener("click", () => {
+      state.toggledNodes.clear();
+      state.forceOpen = true;
+      render();
+    });
+    byId("collapseAll").addEventListener("click", () => {
+      state.toggledNodes.clear();
+      state.forceOpen = false;
+      render();
+    });
+
+    // View tabs
+    let currentView = "tree";
+    document.querySelector(".view-tabs").addEventListener("click", (event) => {
+      const tab = event.target.closest("[data-view]");
+      if (!tab) return;
+      currentView = tab.dataset.view;
+      document.querySelectorAll(".view-tab").forEach((t) => t.classList.toggle("active", t.dataset.view === currentView));
+      byId("tree").style.display = currentView === "tree" ? "" : "none";
+      const gc = byId("graphContainer");
+      gc.classList.toggle("visible", currentView === "graph");
+      if (currentView === "graph") renderGraph(selectedLedger());
+    });
+
+    // D3 Force Graph
+    let graphSim = null;
+    function renderGraph(ledger) {
+      const container = byId("graphContainer");
+      container.innerHTML = "";
+      if (!ledger || typeof d3 === "undefined") {
+        container.innerHTML = '<div class="empty">No graph data or D3 not loaded.</div>';
+        return;
+      }
+      const rect = container.getBoundingClientRect();
+      const w = rect.width || 600;
+      const h = rect.height || 400;
+
+      const statusColor = (s) => {
+        const colors = { done: "#16a34a", doing: "#2563eb", checking: "#2563eb", followup: "#2563eb", blocked: "#dc2626", todo: "#d97706", created: "#d97706", defined: "#d97706", classified: "#d97706", success: "#16a34a", not_success: "#dc2626" };
+        return colors[s] || "#6b7280";
+      };
+      const typeRadius = { problem: 8, ticket: 6, result: 5, check: 5 };
+
+      const nodes = [];
+      const links = [];
+      const nodeMap = {};
+
+      for (const p of ledger.problems) {
+        const n = { id: p.id, label: p.id, title: p.title, type: "problem", status: p.status, entity: p };
+        nodes.push(n);
+        nodeMap[p.id] = n;
+      }
+      for (const t of ledger.tickets) {
+        const n = { id: t.id, label: t.id, title: t.title, type: "ticket", status: t.status, entity: t };
+        nodes.push(n);
+        nodeMap[t.id] = n;
+        if (t.problem_id && nodeMap[t.problem_id]) links.push({ source: t.problem_id, target: t.id });
+      }
+      for (const r of ledger.results) {
+        const n = { id: r.id, label: r.id, title: r.summary, type: "result", status: "done", entity: r };
+        nodes.push(n);
+        nodeMap[r.id] = n;
+        if (r.ticket_id && nodeMap[r.ticket_id]) links.push({ source: r.ticket_id, target: r.id });
+      }
+      for (const c of ledger.checks) {
+        const n = { id: c.id, label: c.id, title: c.summary, type: "check", status: c.status, entity: c };
+        nodes.push(n);
+        nodeMap[c.id] = n;
+        if (c.problem_id && nodeMap[c.problem_id]) links.push({ source: c.problem_id, target: c.id });
+      }
+      for (const p of ledger.problems) {
+        if (p.parent_id && nodeMap[p.parent_id]) links.push({ source: p.parent_id, target: p.id });
+      }
+
+      const svg = d3.select(container).append("svg").attr("viewBox", [0, 0, w, h]);
+      const g = svg.append("g");
+      svg.call(d3.zoom().scaleExtent([0.3, 4]).on("zoom", (event) => g.attr("transform", event.transform)));
+
+      const link = g.append("g").selectAll("line").data(links).join("line").attr("class", "graph-link").attr("stroke-width", 1.5);
+      const node = g.append("g").selectAll("g").data(nodes).join("g").attr("class", "graph-node");
+      node.append("circle").attr("r", (d) => typeRadius[d.type] || 6).attr("fill", (d) => statusColor(d.status)).attr("stroke", "var(--panel)").attr("stroke-width", 1.5);
+      node.append("text").attr("class", "graph-label").attr("dy", -12).attr("text-anchor", "middle").text((d) => d.label);
+
+      const tooltip = byId("graphTooltip");
+      node.on("mouseover", (event, d) => {
+        tooltip.style.opacity = "1";
+        tooltip.innerHTML = '<strong>' + escapeHtml(d.id) + '</strong><br>' + escapeHtml(d.title || "") + '<br><span class="badge ' + escapeHtml(d.status) + '">' + escapeHtml(d.status) + '</span>';
+      }).on("mousemove", (event) => {
+        const cr = container.getBoundingClientRect();
+        tooltip.style.left = (event.clientX - cr.left + 12) + "px";
+        tooltip.style.top = (event.clientY - cr.top - 10) + "px";
+      }).on("mouseout", () => { tooltip.style.opacity = "0"; })
+        .on("click", (event, d) => {
+          state.selectedEntity = { type: d.type, id: d.id };
+          render();
+        });
+
+      node.call(d3.drag().on("start", (event, d) => {
+        if (!event.active) graphSim.alphaTarget(0.3).restart();
+        d.fx = d.x; d.fy = d.y;
+      }).on("drag", (event, d) => {
+        d.fx = event.x; d.fy = event.y;
+      }).on("end", (event, d) => {
+        if (!event.active) graphSim.alphaTarget(0);
+        d.fx = null; d.fy = null;
+      }));
+
+      if (graphSim) graphSim.stop();
+      graphSim = d3.forceSimulation(nodes)
+        .force("link", d3.forceLink(links).id((d) => d.id).distance(60))
+        .force("charge", d3.forceManyBody().strength(-120))
+        .force("center", d3.forceCenter(w / 2, h / 2))
+        .force("collision", d3.forceCollide().radius(16))
+        .on("tick", () => {
+          link.attr("x1", (d) => d.source.x).attr("y1", (d) => d.source.y).attr("x2", (d) => d.target.x).attr("y2", (d) => d.target.y);
+          node.attr("transform", (d) => "translate(" + d.x + "," + d.y + ")");
+        });
+    }
+
+    render();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" async></script>
+
+</body>
+</html>

@@ -124,6 +124,8 @@ export default function UploadMaterial() {
       breed: 'AI 生成',
       color: '上传',
       avatar: firstFrameUrl,
+      placeholderImage: firstFrameUrl,
+      anchorFrame: firstFrameUrl,
       source: 'uploaded' as const,
       createdAt: Date.now(),
       generationStatus: 'pending' as const,

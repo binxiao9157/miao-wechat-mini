@@ -21,6 +21,34 @@ import './index.less';
 
 type Phase = 'generating' | 'confirm' | 'success' | 'error';
 
+type GenerationAbortController = {
+  signal?: AbortSignal;
+  abort: () => void;
+};
+
+const createGenerationAbortController = (): GenerationAbortController => {
+  try {
+    if (typeof AbortController === 'function') {
+      return new AbortController();
+    }
+  } catch (error) {
+    console.warn('[GenerationProgress] AbortController unavailable, continuing without cancellation signal:', error);
+  }
+
+  return {
+    signal: undefined,
+    abort: () => undefined,
+  };
+};
+
+const abortGenerationController = (controller?: GenerationAbortController | null) => {
+  try {
+    controller?.abort();
+  } catch (error) {
+    console.warn('[GenerationProgress] AbortController abort failed:', error);
+  }
+};
+
 // 沉浸式状态文案轮播
 const getImmersiveStatus = (p: number): string => {
   if (p < 20) return ['正在感知猫咪的灵魂印记...', '正在编织柔软的毛发肌理...'][Math.floor(p / 10) % 2];
@@ -48,10 +76,19 @@ export default function GenerationProgress() {
   const [isUnlocking, setIsUnlocking] = useState(false);
 
   // 从 storage 获取刚创建的猫咪信息
-  const catRef = useRef<{ id: string; name: string; breed: string; color: string; avatar: string; source: 'created' | 'uploaded' } | null>(null);
+  const catRef = useRef<{
+    id: string;
+    name: string;
+    breed: string;
+    color: string;
+    avatar: string;
+    source: 'created' | 'uploaded';
+    placeholderImage?: string;
+    anchorFrame?: string;
+  } | null>(null);
   const startedRef = useRef(false);
   const unlockStartedRef = useRef(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const abortControllerRef = useRef<GenerationAbortController | null>(null);
   const confirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const runIdRef = useRef(0);
 
@@ -63,9 +100,9 @@ export default function GenerationProgress() {
   };
 
   const beginGenerationRun = () => {
-    abortControllerRef.current?.abort();
+    abortGenerationController(abortControllerRef.current);
     clearConfirmTimer();
-    const controller = new AbortController();
+    const controller = createGenerationAbortController();
     abortControllerRef.current = controller;
     runIdRef.current += 1;
     return { controller, runId: runIdRef.current };
@@ -78,31 +115,44 @@ export default function GenerationProgress() {
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
-    const { controller, runId } = beginGenerationRun();
-    const activeCat = routeCatId
-      ? storage.getCatById(routeCatId) || storage.getActiveCat()
-      : storage.getActiveCat();
-    if (!activeCat) {
-      safeBack();
-      return () => controller.abort();
-    }
-    if (isCatReady(activeCat)) {
-      reLaunch('/pages/home/index');
-      return () => controller.abort();
-    }
-    catRef.current = {
-      id: activeCat.id,
-      name: activeCat.name,
-      breed: activeCat.breed,
-      color: activeCat.color,
-      avatar: activeCat.avatar,
-      source: activeCat.source,
-    };
+    let controller: GenerationAbortController | null = null;
+    try {
+      const generationRun = beginGenerationRun();
+      controller = generationRun.controller;
+      const { runId } = generationRun;
+      const activeCat = routeCatId
+        ? storage.getCatById(routeCatId) || storage.getActiveCat()
+        : storage.getActiveCat();
+      if (!activeCat) {
+        safeBack();
+        return () => abortGenerationController(controller);
+      }
+      if (isCatReady(activeCat)) {
+        reLaunch('/pages/home/index');
+        return () => abortGenerationController(controller);
+      }
+      catRef.current = {
+        id: activeCat.id,
+        name: activeCat.name,
+        breed: activeCat.breed,
+        color: activeCat.color,
+        avatar: activeCat.avatar,
+        source: activeCat.source,
+        placeholderImage: activeCat.placeholderImage,
+        anchorFrame: activeCat.anchorFrame,
+      };
 
-    setAnchorImage(activeCat.avatar);
-    startGeneration(activeCat, controller.signal, runId);
+      setAnchorImage(activeCat.anchorFrame || activeCat.placeholderImage || activeCat.avatar);
+      startGeneration(activeCat, controller.signal, runId);
+    } catch (error: any) {
+      const message = error?.message || '生成初始化失败，请重试';
+      console.error('生成初始化失败:', error);
+      setPhase('error');
+      setStatusText(message);
+      setErrorMsg(message);
+    }
     return () => {
-      controller.abort();
+      abortGenerationController(controller);
       clearConfirmTimer();
       runIdRef.current += 1;
       if (abortControllerRef.current === controller) {
@@ -146,7 +196,7 @@ export default function GenerationProgress() {
       setProgress(5);
       setStatusText('正在注入生命力...');
 
-      const imageUrl = cat.avatar;
+      const imageUrl = cat.anchorFrame || cat.placeholderImage || cat.avatar;
 
       setProgress(10);
       setStatusText('正在编织它的动作姿态...');
@@ -194,8 +244,8 @@ export default function GenerationProgress() {
           breed: cat.breed,
           furColor: cat.color,
           source: cat.source === 'uploaded' ? 'upload' : cat.source,
-          placeholderImage: cat.avatar,
-          anchorFrame: cat.avatar,
+          placeholderImage: cat.placeholderImage || imageUrl,
+          anchorFrame: cat.anchorFrame || imageUrl,
         }
       );
       if (!isActiveRun(runId, signal)) return;
@@ -293,7 +343,8 @@ export default function GenerationProgress() {
         }
       }
 
-      await FileManager.updateCatVideos(cat.id, {}, false);
+      const finalActionError = failed > 0 ? `有 ${failed} 个后续动作暂未生成成功` : null;
+      await FileManager.updateCatVideos(cat.id, {}, false, undefined, { actionGenerationError: finalActionError });
     } catch (e) {
       console.error('后台生成任务失败:', e);
       await FileManager.updateCatVideos(cat.id, {}, false, undefined, { actionGenerationError: '后续动作生成失败，稍后可重试' });

@@ -2,10 +2,10 @@
 
 ## STATUS
 
-- **Goal:** 重新检查 Miao PWA 与 miao-wechat-mini 小程序的功能与业务逻辑差异，评估同步对齐可能性
+- **Goal:** 审计最近大范围提交对 Taro 小程序真机体验和稳定性的影响，修复已暴露回归并建立发布防线
 - **Mode:** Execute
 - **Phase:** Completed
-- **Task:** docs/plans/task_03_同步方案输出.md
+- **Task:** docs/plans/task_03_发布验证闭环.md
 - **Blockers:** None
 
 ## Key Decisions

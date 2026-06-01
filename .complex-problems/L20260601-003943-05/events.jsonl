@@ -1,0 +1,12 @@
+{"at": "2026-05-31T16:39:43+00:00", "id": "E000", "payload": {"ledger_id": "L20260601-003943-05", "root_id": "P000", "title": "回归修复实施"}, "root_id": "P000", "type": "ledger_initialized"}
+{"at": "2026-05-31T16:45:02+00:00", "id": "E001", "payload": {"problem_id": "P000", "ticket_id": "T000", "title": "发布回归修复实施"}, "root_id": "P000", "type": "ticket_created"}
+{"at": "2026-05-31T16:45:02+00:00", "id": "E002", "payload": {"from": "created", "id": "T000", "to": "defined"}, "root_id": "P000", "type": "ticket_status_changed"}
+{"at": "2026-05-31T16:45:02+00:00", "id": "E003", "payload": {"from": "defined", "id": "T000", "to": "classified"}, "root_id": "P000", "type": "ticket_status_changed"}
+{"at": "2026-05-31T16:45:02+00:00", "id": "E004", "payload": {"classification": "one_go", "reason": "修复目标已经由审计收敛到少量 Taro 页面与静态防线，且多数生成/滚动修复已在本地完成，剩余首页 cover overlay 可在一次 bounded implementation 中完成。", "ticket_id": "T000"}, "root_id": "P000", "type": "ticket_classified"}
+{"at": "2026-05-31T16:47:40+00:00", "id": "E005", "payload": {"from": "todo", "id": "P000", "to": "doing"}, "root_id": "P000", "type": "problem_status_changed"}
+{"at": "2026-05-31T16:47:40+00:00", "id": "E006", "payload": {"from": "classified", "id": "T000", "to": "executing"}, "root_id": "P000", "type": "ticket_status_changed"}
+{"at": "2026-05-31T16:47:40+00:00", "id": "E007", "payload": {"from": "executing", "id": "T000", "to": "done"}, "root_id": "P000", "type": "ticket_status_changed"}
+{"at": "2026-05-31T16:47:40+00:00", "id": "E008", "payload": {"result_id": "R000", "ticket_id": "T000"}, "root_id": "P000", "type": "result_recorded"}
+{"at": "2026-05-31T16:48:05+00:00", "id": "E009", "payload": {"from": "doing", "id": "P000", "to": "checking"}, "root_id": "P000", "type": "problem_status_changed"}
+{"at": "2026-05-31T16:48:05+00:00", "id": "E010", "payload": {"from": "checking", "id": "P000", "to": "done"}, "root_id": "P000", "type": "problem_status_changed"}
+{"at": "2026-05-31T16:48:05+00:00", "id": "E011", "payload": {"check_id": "C000", "followup_id": null, "problem_id": "P000", "status": "success"}, "root_id": "P000", "type": "check_recorded"}

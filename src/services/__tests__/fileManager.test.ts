@@ -96,4 +96,33 @@ describe('FileManager.updateCatVideos', () => {
       generationStatus: 'ready',
     }));
   });
+
+  it('clears stale unlock progress and previous action error after successful completion', async () => {
+    vi.mocked(storage.getCatById).mockReturnValue({
+      ...baseCat,
+      isUnlocking: true,
+      actionGenerationError: '有 1 个后续动作暂未生成成功',
+      unlockProgress: {
+        completed: 2,
+        total: 3,
+        currentAction: 'v4_fetch',
+        failed: 1,
+        updatedAt: 1,
+      },
+    });
+
+    await FileManager.updateCatVideos(
+      'cat-1',
+      {},
+      false,
+      undefined,
+      { actionGenerationError: null },
+    );
+
+    expect(storage.saveCatInfo).toHaveBeenCalledWith(expect.objectContaining({
+      isUnlocking: false,
+      unlockProgress: undefined,
+      actionGenerationError: undefined,
+    }));
+  });
 });

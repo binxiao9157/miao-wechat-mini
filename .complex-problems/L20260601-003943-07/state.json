@@ -1,0 +1,141 @@
+{
+  "checks": {
+    "C000": {
+      "blocking_gaps": [],
+      "body_path": "problems/P000/checks/C000.md",
+      "created_at": "2026-05-31T16:52:02+00:00",
+      "criteria_map": [
+        "测试、lint、weapp/h5 构建、release scan、API contract、audit 均满足。"
+      ],
+      "evidence": [
+        "docs/plans/result_03_发布验证闭环.md"
+      ],
+      "execution_map": [
+        "按发布验证顺序执行并读取 exit code。"
+      ],
+      "followup_problem_id": null,
+      "id": "C000",
+      "problem_id": "P000",
+      "residual_risk": [
+        "仍需微信真机和线上 /api/health 验证。"
+      ],
+      "result_ids": [
+        "R000"
+      ],
+      "root_id": "P000",
+      "status": "success",
+      "stress_test": [
+        "检查 dist 中存在 cover-view/cover-image，确认 cover 化进入产物。"
+      ],
+      "summary": "发布验证闭环成功，本地发布前检查全部通过。"
+    }
+  },
+  "counters": {
+    "check": 1,
+    "event": 12,
+    "problem": 1,
+    "result": 1,
+    "ticket": 1
+  },
+  "created_at": "2026-05-31T16:39:44+00:00",
+  "effort": "medium",
+  "language": "zh",
+  "ledger_id": "L20260601-003943-07",
+  "problems": {
+    "P000": {
+      "body_path": "problems/P000/README.md",
+      "check_ids": [
+        "C000"
+      ],
+      "created_at": "2026-05-31T16:39:44+00:00",
+      "created_from_check_id": null,
+      "created_from_ticket_id": null,
+      "created_from_ticket_mode": null,
+      "description": "Close the Lodestar task represented by `/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_03_发布验证闭环.md` using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 发布验证闭环",
+      "followup_ids": [],
+      "id": "P000",
+      "package_path": "problems/P000",
+      "parent_id": null,
+      "result_ids": [
+        "R000"
+      ],
+      "root_id": "P000",
+      "status": "done",
+      "subproblem_ids": [],
+      "success_criteria": [
+        "Recursive ledger reaches `next_action=none` or the task explicitly records why no ledger is needed.",
+        "Implementation satisfies this task's context and scope.",
+        "Verification evidence is recorded in recursive result/check bodies and summarized in `progress.md`."
+      ],
+      "ticket_ids": [
+        "T000"
+      ],
+      "title": "发布验证闭环",
+      "updated_at": "2026-05-31T16:52:02+00:00"
+    }
+  },
+  "results": {
+    "R000": {
+      "artifacts": [
+        "dist",
+        "docs/plans/result_03_发布验证闭环.md"
+      ],
+      "body_path": "problems/P000/results/R000.md",
+      "created_at": "2026-05-31T16:51:37+00:00",
+      "done": [
+        "npm test、lint、build:weapp、release:scan、release:api-contract、audit、build:h5 均通过。"
+      ],
+      "id": "R000",
+      "known_gaps": [
+        "真机验证和线上 /api/health 版本确认仍需用户部署/上传后执行。"
+      ],
+      "problem_id": "P000",
+      "root_id": "P000",
+      "summary": "发布前本地验证通过。",
+      "ticket_id": "T000",
+      "verification": [
+        "113 tests passed；weapp/h5 编译成功；release scan/API contract passed；audit 0 vulnerabilities。"
+      ]
+    }
+  },
+  "root_id": "P000",
+  "schema_version": 6,
+  "tickets": {
+    "T000": {
+      "acceptance_criteria": [
+        "`npm test` 通过。",
+        "`npm run lint` 通过。",
+        "`npm run build:weapp` 通过。",
+        "`npm run release:scan` 通过。",
+        "`npm run release:api-contract` 通过。",
+        "输出真机验证清单：生成后首页 tabbar、首页点击剧情、错误重试、积分/Miao 上滑、诊断/health/后端部署版本。"
+      ],
+      "assumptions": [
+        "本机依赖已经安装。",
+        "后端源码路径为默认 `../Miao`。"
+      ],
+      "body_path": "problems/P000/tickets/T000.md",
+      "classification": "one_go",
+      "classification_reason": "验证命令清晰、顺序固定、可一次执行并记录证据；失败时再回到修复任务。",
+      "created_at": "2026-05-31T16:48:47+00:00",
+      "id": "T000",
+      "problem_definition": "回归修复已经完成代码实施，但必须通过全量测试、类型检查、Taro weapp 构建、发布静态扫描和后端 API 合约检查，才能认为本地产物具备再次上传真机验证的基础。",
+      "problem_id": "P000",
+      "proposed_solution": "运行本轮发布前验证命令，记录通过/失败证据。若失败，回到修复任务；若通过，输出真机验证清单和剩余风险。",
+      "result_ids": [
+        "R000"
+      ],
+      "risks": [
+        "本地 API 合约检查只能检查源码存在，不代表服务器已经部署。",
+        "`CoverView` 视觉和微信 `Video` 行为仍需要真机验证。",
+        "微信开发者工具上传不在本任务自动执行，除非用户明确要求。"
+      ],
+      "root_id": "P000",
+      "status": "done",
+      "title": "发布验证闭环",
+      "updated_at": "2026-05-31T16:51:37+00:00",
+      "verification_plan": "- 顺序运行全部发布前命令，读取 exit code 和关键输出。\n- 检查 git diff/stat，确认修改范围符合本轮目标。\n- 记录无法由本地自动验证覆盖的真机风险。"
+    }
+  },
+  "updated_at": "2026-05-31T16:52:02+00:00"
+}

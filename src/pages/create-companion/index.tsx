@@ -57,6 +57,8 @@ export default function CreateCompanion() {
       breed: selectedPreset.name,
       color: '预设',
       avatar: selectedPreset.imageUrl,
+      placeholderImage: selectedPreset.imageUrl,
+      anchorFrame: selectedPreset.imageUrl,
       source: 'created' as const,
       createdAt: Date.now(),
       generationStatus: 'pending' as const,

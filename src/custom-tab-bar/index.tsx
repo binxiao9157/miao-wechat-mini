@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image } from '@tarojs/components';
+import { CoverView, CoverImage } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { switchTab } from '../utils/navigateAdapter';
 import './index.less';
@@ -71,13 +71,13 @@ export default function CustomTabBar() {
   if (hidden) return null;
 
   return (
-    <View className={`miao-tabbar ${activeRoute === 'pages/home/index' ? 'on-home' : ''}`}>
+    <CoverView className={`miao-tabbar ${activeRoute === 'pages/home/index' ? 'on-home' : ''}`}>
       {tabs.map((tab) => {
         const tabRoute = tab.pagePath.replace(/^\//, '');
         const active = activeRoute === tabRoute;
         const iconSrc = active ? TAB_ICONS[tab.iconKey].active : TAB_ICONS[tab.iconKey].inactive;
         return (
-          <View
+          <CoverView
             key={tab.pagePath}
             className={`miao-tab ${active ? 'active' : ''} ${tab.center ? 'center' : ''}`}
             onClick={() => {
@@ -85,19 +85,18 @@ export default function CustomTabBar() {
               switchTab(tab.pagePath);
             }}
           >
-            <View className="miao-tab-icon">
-              <Image
+            <CoverView className="miao-tab-icon">
+              <CoverImage
                 className="tab-icon-img"
                 src={iconSrc}
-                mode="aspectFit"
                 style={{ width: tab.center ? 22 : 20, height: tab.center ? 22 : 20 }}
               />
-            </View>
-            <Text className="miao-tab-text">{tab.text}</Text>
-            {active && <View className="miao-tab-dot" />}
-          </View>
+            </CoverView>
+            <CoverView className="miao-tab-text">{tab.text}</CoverView>
+            {active && <CoverView className="miao-tab-dot" />}
+          </CoverView>
         );
       })}
-    </View>
+    </CoverView>
   );
 }

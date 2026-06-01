@@ -1,0 +1,142 @@
+{
+  "checks": {
+    "C000": {
+      "blocking_gaps": [],
+      "body_path": "problems/P000/checks/C000.md",
+      "created_at": "2026-05-31T16:48:05+00:00",
+      "criteria_map": [
+        "首页 tabbar/overlay、生成 pending、catId/首帧、Profile/Points 滚动结构均有修复。"
+      ],
+      "evidence": [
+        "docs/plans/result_02_回归修复实施.md"
+      ],
+      "execution_map": [
+        "定向测试覆盖 codeQuality、home、generation-progress、profile/navigate/debug、volcano/fileManager/videoActions。"
+      ],
+      "followup_problem_id": null,
+      "id": "C000",
+      "problem_id": "P000",
+      "residual_risk": [
+        "CoverView 视觉和微信 Video 多实例仍需真机确认。"
+      ],
+      "result_ids": [
+        "R000"
+      ],
+      "root_id": "P000",
+      "status": "success",
+      "stress_test": [
+        "从首页 Video 原生层级扩展排查到所有 overlay，并统一 cover 化。"
+      ],
+      "summary": "回归修复实施满足本任务目标，剩余进入发布验证。"
+    }
+  },
+  "counters": {
+    "check": 1,
+    "event": 12,
+    "problem": 1,
+    "result": 1,
+    "ticket": 1
+  },
+  "created_at": "2026-05-31T16:39:43+00:00",
+  "effort": "medium",
+  "language": "zh",
+  "ledger_id": "L20260601-003943-05",
+  "problems": {
+    "P000": {
+      "body_path": "problems/P000/README.md",
+      "check_ids": [
+        "C000"
+      ],
+      "created_at": "2026-05-31T16:39:43+00:00",
+      "created_from_check_id": null,
+      "created_from_ticket_id": null,
+      "created_from_ticket_mode": null,
+      "description": "Close the Lodestar task represented by `/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_02_回归修复实施.md` using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 回归修复实施",
+      "followup_ids": [],
+      "id": "P000",
+      "package_path": "problems/P000",
+      "parent_id": null,
+      "result_ids": [
+        "R000"
+      ],
+      "root_id": "P000",
+      "status": "done",
+      "subproblem_ids": [],
+      "success_criteria": [
+        "Recursive ledger reaches `next_action=none` or the task explicitly records why no ledger is needed.",
+        "Implementation satisfies this task's context and scope.",
+        "Verification evidence is recorded in recursive result/check bodies and summarized in `progress.md`."
+      ],
+      "ticket_ids": [
+        "T000"
+      ],
+      "title": "回归修复实施",
+      "updated_at": "2026-05-31T16:48:05+00:00"
+    }
+  },
+  "results": {
+    "R000": {
+      "artifacts": [
+        "src/pages/home/index.tsx",
+        "src/utils/__tests__/codeQuality.test.ts"
+      ],
+      "body_path": "problems/P000/results/R000.md",
+      "created_at": "2026-05-31T16:47:40+00:00",
+      "done": [
+        "首页 overlay、tabbar、生成 pending、catId、首帧元数据、Profile/Points 滚动结构均已有代码修复。"
+      ],
+      "id": "R000",
+      "known_gaps": [
+        "全量测试、lint、build:weapp、发布扫描进入下一任务。"
+      ],
+      "problem_id": "P000",
+      "root_id": "P000",
+      "summary": "完成发布回归修复实施，新增首页 Video overlay cover 化并保留生成/滚动防线。",
+      "ticket_id": "T000",
+      "verification": [
+        "已运行 codeQuality、home、generation-progress、profile/navigate/debug、volcano/fileManager/videoActions 定向测试并通过。"
+      ]
+    }
+  },
+  "root_id": "P000",
+  "schema_version": 6,
+  "tickets": {
+    "T000": {
+      "acceptance_criteria": [
+        "首页视频页面底部 tabbar 使用 `CoverView/CoverImage`，不会被微信 `Video` 原生层盖住。",
+        "首页视频上层主点击区域、错误重试层、剧情/生成提示、互动气泡、积分 toast 使用 cover 组件或不会被 `Video` 盖住。",
+        "生成页兼容无 `AbortController` 的真机环境，初始化异常进入 error，不停留在 pending。",
+        "创建/上传进入生成页时携带显式 `catId` 并保存 `placeholderImage/anchorFrame`。",
+        "积分页和 Miao 页 header 位于各自 `ScrollView` 内。",
+        "对上述结构补测试或静态扫描防线。"
+      ],
+      "assumptions": [
+        "不回退 PWA 四段视频模型。",
+        "当前小程序仍是 Taro 框架，所有修复在 Taro 组件层实现。",
+        "用户会在上传后进行真实机器验证。"
+      ],
+      "body_path": "problems/P000/tickets/T000.md",
+      "classification": "one_go",
+      "classification_reason": "修复目标已经由审计收敛到少量 Taro 页面与静态防线，且多数生成/滚动修复已在本地完成，剩余首页 cover overlay 可在一次 bounded implementation 中完成。",
+      "created_at": "2026-05-31T16:45:02+00:00",
+      "id": "T000",
+      "problem_definition": "审计确认近期系统优化后存在 P0/P1 回归风险：生成流程可能停在 pending，首页 `Video` 原生层遮挡 tabbar 和上层交互，积分/Miao 页面 header 固定，发布防线尚需补充验证。需要在不改变 Taro 架构、不回退 PWA 视频模型的前提下修复这些问题。",
+      "problem_id": "P000",
+      "proposed_solution": "保留已经完成的生成链路、catId、首帧元数据、tabbar cover、ScrollView header 修复；继续补齐首页视频上方 overlay 的原生层级兼容，把点击层、错误重试、提示和 toast 改为可覆盖 `Video` 的 cover 组件或等价实现。补充静态回归测试，确保关键 overlay 不再使用普通 `View/Text`。",
+      "result_ids": [
+        "R000"
+      ],
+      "risks": [
+        "`CoverView` 样式支持弱于普通 `View`，可能需要真机微调视觉。",
+        "微信 `Video` 多实例在不同基础库上表现可能不同，仍需真机长测。",
+        "当前任务不处理 H5 体积和 Taro 上游 audit 残留。"
+      ],
+      "root_id": "P000",
+      "status": "done",
+      "title": "发布回归修复实施",
+      "updated_at": "2026-05-31T16:47:40+00:00",
+      "verification_plan": "- 先运行针对 codeQuality 和 generation-progress 的定向测试。\n- 再运行全量 `npm test`、`npm run lint`、`npm run build:weapp`。\n- 真机验证点留给发布验证闭环任务：生成后首页 tabbar 可见、首页点击可触发剧情、错误重试可点、积分/Miao 上滑 header 不固定。"
+    }
+  },
+  "updated_at": "2026-05-31T16:48:05+00:00"
+}

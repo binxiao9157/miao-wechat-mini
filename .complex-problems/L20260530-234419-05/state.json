@@ -1,0 +1,136 @@
+{
+  "checks": {
+    "C000": {
+      "blocking_gaps": [],
+      "body_path": "problems/P000/checks/C000.md",
+      "created_at": "2026-05-30T15:53:40+00:00",
+      "criteria_map": [
+        "回答是否为PWA工程、是否能同步、哪些同步、哪些不应直接同步、如何验证"
+      ],
+      "evidence": [
+        "`docs/plans/result_pwa_mini_sync_plan.md`",
+        "`docs/plans/result_pwa_mini_matrix.md`",
+        "`docs/plans/result_pwa_mini_scan.md`",
+        "`/Users/yxj/Documents/Codex/AiStudio/Miao/src/services/ai/actionPrompts.ts`",
+        "`/Users/yxj/Documents/Codex/AiStudio/Miao/src/pages/GenerationProgress.tsx`",
+        "`/Users/yxj/Documents/Codex/AiStudio/Miao/src/pages/Home.tsx`",
+        "`/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/src/services/volcanoService.ts`",
+        "`/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/src/pages/generation-progress/index.tsx`",
+        "`/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/src/pages/home/index.tsx`"
+      ],
+      "execution_map": [
+        "基于扫描结果和差异矩阵输出分阶段计划"
+      ],
+      "followup_problem_id": null,
+      "id": "C000",
+      "problem_id": "P000",
+      "residual_risk": [
+        "代码未实施，生产后端和微信真机行为仍需后续验证"
+      ],
+      "result_ids": [
+        "R000"
+      ],
+      "root_id": "P000",
+      "status": "success",
+      "stress_test": [
+        "对浏览器实现直接迁移、旧用户数据兼容、内容安全后端缺口和真机限制做了约束"
+      ],
+      "summary": "同步方案已覆盖工程定位、差异范围、同步边界、实施优先级和验证策略"
+    }
+  },
+  "counters": {
+    "check": 1,
+    "event": 12,
+    "problem": 1,
+    "result": 1,
+    "ticket": 1
+  },
+  "created_at": "2026-05-30T15:44:20+00:00",
+  "effort": "medium",
+  "language": "zh",
+  "ledger_id": "L20260530-234419-05",
+  "problems": {
+    "P000": {
+      "body_path": "problems/P000/README.md",
+      "check_ids": [
+        "C000"
+      ],
+      "created_at": "2026-05-30T15:44:20+00:00",
+      "created_from_check_id": null,
+      "created_from_ticket_id": null,
+      "created_from_ticket_mode": null,
+      "description": "Close the Lodestar task represented by `/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini/docs/plans/task_03_同步方案输出.md` using recursive problem, ticket, result, and check state.\n\nTask context:\n\n# 同步方案输出",
+      "followup_ids": [],
+      "id": "P000",
+      "package_path": "problems/P000",
+      "parent_id": null,
+      "result_ids": [
+        "R000"
+      ],
+      "root_id": "P000",
+      "status": "done",
+      "subproblem_ids": [],
+      "success_criteria": [
+        "Recursive ledger reaches `next_action=none` or the task explicitly records why no ledger is needed.",
+        "Implementation satisfies this task's context and scope.",
+        "Verification evidence is recorded in recursive result/check bodies and summarized in `progress.md`."
+      ],
+      "ticket_ids": [
+        "T000"
+      ],
+      "title": "同步方案输出",
+      "updated_at": "2026-05-30T15:53:40+00:00"
+    }
+  },
+  "results": {
+    "R000": {
+      "artifacts": [],
+      "body_path": "problems/P000/results/R000.md",
+      "created_at": "2026-05-30T15:53:20+00:00",
+      "done": [],
+      "id": "R000",
+      "known_gaps": [],
+      "problem_id": "P000",
+      "root_id": "P000",
+      "summary": "`/Users/yxj/Documents/Codex/AiStudio/Miao` 是当前 Miao PWA/全栈主工程，包含 React/Vite 前端与 Express 后端。`/Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini` 是 Taro 微信小程序工程。\n\n两端不适合直接代码级合并。正确策略是“业务语义对齐，平台实现分叉”：动作模型、AI prompt、接口协议、CatInfo 数据字段、积分/生成状态语义保持一致；PWA 继续使用浏览器 `video/canvas`、React Router、Service Worker，小程序继续使用 Taro、微信 Video、微信登录/隐私授权/上传能力。\n\n最近 PWA 更新中，最需要同步到小程序的是猫咪互动视频主链路：`v1_approach`、`v2_wait`、`v3_return`、`v4_fetch` 四段式视频状态机，以及 first/last frame 约束、首页剧情播放器和后续动作失败反馈。小程序当前仍是 `idle/tail/rubbing/blink` 旧动作模型，这是当前最大业务差异。",
+      "ticket_id": "T000",
+      "verification": []
+    }
+  },
+  "root_id": "P000",
+  "schema_version": 6,
+  "tickets": {
+    "T000": {
+      "acceptance_criteria": [
+        "明确回答 Miao 是否是 PWA 工程，以及两端是否适合直接代码同步。",
+        "给出 PWA 最近更新需要同步到小程序的完整范围。",
+        "输出按优先级拆分的实施步骤，每一步包含目标、涉及模块、风险和验证方式。",
+        "明确不可直接同步或需产品决策的项，如积分自动补足、后台管理入口、PWA 离线能力。",
+        "标出上架前必须补齐的后端和真机验证项。"
+      ],
+      "assumptions": [],
+      "body_path": "problems/P000/tickets/T000.md",
+      "classification": "one_go",
+      "classification_reason": "同步方案输出是文档型分析任务，边界明确，可在一个结果中完成并通过矩阵回溯验证",
+      "created_at": "2026-05-30T15:52:25+00:00",
+      "id": "T000",
+      "problem_definition": "需要把 PWA 与小程序差异矩阵转化为可执行的同步方案，明确哪些能力应立即同步、哪些保持平台分叉、哪些需要后端或真机验证先行，避免在没有边界的情况下直接迁移 PWA 代码导致微信端体验或稳定性回退。",
+      "problem_id": "P000",
+      "proposed_solution": "输出一份分阶段开发计划，按 P0/P1/P2/P3 拆分后端接口、数据模型、生成流程、首页播放器、内容安全、积分策略、后台管理和验证发布。方案采用“业务语义对齐、平台实现分叉”的原则：两端共享动作模型、prompt、接口协议和数据字段，小程序保留 Taro/微信端实现方式。",
+      "result_ids": [
+        "R000"
+      ],
+      "risks": [
+        "生产服务端是否已经部署 PWA 最新 AI 和持久化能力，需要接口实测确认。",
+        "小程序本地提取视频尾帧能力不确定，推荐优先服务端提帧或生成任务返回尾帧。",
+        "四段式视频状态机属于核心体验迁移，必须灰度并保留旧动作 key 兼容。"
+      ],
+      "root_id": "P000",
+      "status": "done",
+      "title": "PWA 与小程序同步方案输出",
+      "updated_at": "2026-05-30T15:53:20+00:00",
+      "verification_plan": "- 方案必须可回溯到 `result_pwa_mini_matrix.md` 的差异结论。\n- 检查每个高风险差异是否都有对应实施或保留策略。\n- 检查计划是否避免把浏览器 `video/canvas`、Service Worker、React Router state 等 PWA 实现直接套入小程序。\n- 检查验证策略是否覆盖 `npm test`、`npm run build:weapp`、`npm run build:h5`、真机视频播放/上传/登录/隐私授权。"
+    }
+  },
+  "updated_at": "2026-05-30T15:53:40+00:00"
+}

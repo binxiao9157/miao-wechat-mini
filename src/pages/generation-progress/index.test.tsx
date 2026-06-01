@@ -178,4 +178,45 @@ describe('GenerationProgress lifecycle', () => {
       );
     });
   });
+
+  it('still starts video generation when AbortController is unavailable in the mini runtime', async () => {
+    const originalAbortController = globalThis.AbortController;
+    vi.stubGlobal('AbortController', undefined);
+    vi.mocked(FileManager.downloadVideos).mockResolvedValue({ v1_approach: 'https://cdn.example.com/v1.mp4' });
+
+    try {
+      render(<GenerationProgress />);
+
+      await waitFor(() => {
+        expect(VolcanoService.submitTask).toHaveBeenCalledWith(
+          activeCat.avatar,
+          expect.objectContaining({
+            firstFrame: activeCat.avatar,
+          }),
+        );
+      });
+    } finally {
+      vi.stubGlobal('AbortController', originalAbortController);
+    }
+  });
+
+  it('shows an error state when generation startup fails before submitting a task', async () => {
+    const Taro = await import('@tarojs/taro');
+    vi.mocked(Taro.default.getCurrentInstance).mockReturnValue({ router: { params: {} } } as any);
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.mocked(storage.getActiveCat).mockImplementation(() => {
+      throw new Error('本地猫咪数据读取失败');
+    });
+
+    try {
+      const { container } = render(<GenerationProgress />);
+
+      await waitFor(() => {
+        expect(container.textContent).toContain('本地猫咪数据读取失败');
+      });
+      expect(VolcanoService.submitTask).not.toHaveBeenCalled();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
 });

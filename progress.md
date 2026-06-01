@@ -20,6 +20,15 @@ Required fields: timestamp, current task, current recursive ledger, next action,
 
 - None recorded.
 
+## Release Approval Rule Checkpoint - 2026-06-01T16:35:00+08:00
+
+- Lodestar task: `docs/plans/task_06_正式发布前全量审计.md`
+- Current task: 沉淀正式版发布代码工程审批规则。
+- Current recursive ledger: pending。
+- Next action: 后续发布审批统一按 `docs/RELEASE-CODE-APPROVAL-RULE.md` 执行。
+- Verification status: 文档规则新增；无需运行产品构建。
+- Summary: 已将“准备发布正式版”为目标的全量工程审计范围、P0/P1/P2 输出要求、修复执行和验证提交门槛固化为仓库规则。
+
 ## Audit Remediation Checkpoint - 2026-06-01T15:30:15+08:00
 
 - Lodestar task: `docs/plans/task_04_审计问题修复.md`

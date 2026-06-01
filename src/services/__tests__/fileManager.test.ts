@@ -126,3 +126,29 @@ describe('FileManager.updateCatVideos', () => {
     }));
   });
 });
+
+describe('FileManager.downloadVideos', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(storage.getCatById).mockReturnValue(null);
+  });
+
+  it('does not save a generated cat when the caller cancels before commit', async () => {
+    await FileManager.downloadVideos(
+      { v1_approach: 'https://cdn.example.com/v1.mp4' },
+      'cat-cancelled',
+      'Cancelled',
+      'https://cdn.example.com/cat.png',
+      {
+        breed: '狸花',
+        furColor: 'brown',
+        source: 'upload',
+        placeholderImage: 'https://cdn.example.com/cat.png',
+        anchorFrame: 'https://cdn.example.com/cat.png',
+      },
+      { shouldCommit: () => false },
+    );
+
+    expect(storage.saveCatInfo).not.toHaveBeenCalled();
+  });
+});

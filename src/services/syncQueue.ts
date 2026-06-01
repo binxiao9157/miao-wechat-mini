@@ -158,12 +158,16 @@ class SyncQueue {
       }
 
       for (const task of tasks) {
+        this.dirty.delete(this.getTaskKey(task));
+      }
+      this.persist();
+
+      for (const task of tasks) {
         const key = this.getTaskKey(task);
         try {
           await this.executeTask(username, task);
-          this.dirty.delete(key);
         } catch (error: any) {
-          if ((task.retries ?? 0) < this.MAX_RETRIES) {
+          if (!this.dirty.has(key) && (task.retries ?? 0) < this.MAX_RETRIES) {
             const nextTask = {
               ...task,
               retries: (task.retries ?? 0) + 1,

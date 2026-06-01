@@ -151,6 +151,9 @@ describe('GenerationProgress lifecycle', () => {
           anchorFrame: activeCat.avatar,
           placeholderImage: activeCat.avatar,
         }),
+        expect.objectContaining({
+          shouldCommit: expect.any(Function),
+        }),
       );
     });
   });

@@ -115,13 +115,18 @@ interface UpdateCatVideosOptions {
   actionGenerationError?: string | null;
 }
 
+interface DownloadVideosOptions {
+  shouldCommit?: () => boolean;
+}
+
 export class FileManager {
   public static async downloadVideos(
     videoUrls: { [key: string]: string },
     groupId: string,
     catName: string,
     avatarUrl: string,
-    metadata?: { breed?: string; furColor?: string; source?: 'upload' | 'created'; placeholderImage?: string; anchorFrame?: string }
+    metadata?: { breed?: string; furColor?: string; source?: 'upload' | 'created'; placeholderImage?: string; anchorFrame?: string },
+    options?: DownloadVideosOptions
   ): Promise<{ [key: string]: string }> {
     const finalPaths: { [key: string]: string } = {};
 
@@ -137,6 +142,10 @@ export class FileManager {
       compressForStorage(metadata?.placeholderImage, 200, 0.5),
       compressForStorage(metadata?.anchorFrame, 600, 0.7),
     ]);
+
+    if (options?.shouldCommit && !options.shouldCommit()) {
+      return finalPaths;
+    }
 
     const existingCat = storage.getCatById(groupId);
     const newCat: CatInfo = {

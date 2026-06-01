@@ -87,6 +87,85 @@ describe('syncQueue', () => {
     await Promise.all([secondFlush, thirdFlush]);
   });
 
+  it('keeps a newer same-key task enqueued when an older in-flight task succeeds', async () => {
+    const { syncQueue } = await import('../syncQueue');
+    const { serverSync } = await import('../storage');
+    let releaseSync!: () => void;
+    vi.mocked(serverSync.syncDiaryToServer).mockImplementationOnce(
+      () => new Promise<void>(resolve => { releaseSync = resolve; }),
+    );
+
+    syncQueue.enqueue({
+      type: 'diary',
+      action: 'upsert',
+      id: 'd1',
+      payload: { id: 'd1', content: 'old' },
+    });
+
+    const flush = syncQueue.flushNow();
+    await vi.waitFor(() => {
+      expect(serverSync.syncDiaryToServer).toHaveBeenCalledWith('alice', { id: 'd1', content: 'old' });
+    });
+
+    syncQueue.enqueue({
+      type: 'diary',
+      action: 'upsert',
+      id: 'd1',
+      payload: { id: 'd1', content: 'new' },
+    });
+    releaseSync();
+    await flush;
+
+    expect(syncQueue.getPendingTasks()).toMatchObject([
+      {
+        type: 'diary',
+        action: 'upsert',
+        id: 'd1',
+        payload: { id: 'd1', content: 'new' },
+      },
+    ]);
+  });
+
+  it('keeps a newer same-key task when an older in-flight task fails', async () => {
+    const { syncQueue } = await import('../syncQueue');
+    const { serverSync } = await import('../storage');
+    let rejectSync!: (error: Error) => void;
+    vi.mocked(serverSync.syncDiaryToServer).mockImplementationOnce(
+      () => new Promise<void>((_resolve, reject) => { rejectSync = reject; }),
+    );
+
+    syncQueue.enqueue({
+      type: 'diary',
+      action: 'upsert',
+      id: 'd1',
+      payload: { id: 'd1', content: 'old' },
+    });
+
+    const flush = syncQueue.flushNow();
+    await vi.waitFor(() => {
+      expect(serverSync.syncDiaryToServer).toHaveBeenCalledWith('alice', { id: 'd1', content: 'old' });
+    });
+
+    syncQueue.enqueue({
+      type: 'diary',
+      action: 'upsert',
+      id: 'd1',
+      payload: { id: 'd1', content: 'new' },
+    });
+    rejectSync(new Error('offline'));
+    await flush;
+
+    expect(syncQueue.getPendingTasks()).toMatchObject([
+      {
+        type: 'diary',
+        action: 'upsert',
+        id: 'd1',
+        retries: 0,
+        payload: { id: 'd1', content: 'new' },
+      },
+    ]);
+  });
+
   it('drops malformed persisted delete tasks instead of deleting with an empty id', async () => {
     setItem('miao_pending_sync_tasks', JSON.stringify([
       { type: 'diary', action: 'delete' },

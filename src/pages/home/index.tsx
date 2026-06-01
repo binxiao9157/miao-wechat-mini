@@ -255,8 +255,10 @@ export default function Home() {
         lastOnlineUpdate: Date.now(),
         history: [...pointsInfo.history],
       };
+      let awarded = false;
       if (!nextPoints.history.some(item => item.id === transactionId)) {
         nextPoints.total += 10;
+        awarded = true;
         nextPoints.history.unshift({
           id: transactionId,
           type: 'earn',
@@ -267,7 +269,7 @@ export default function Home() {
         if (nextPoints.history.length > 50) nextPoints.history.pop();
       }
       storage.savePoints(nextPoints);
-      showPointsToast(10, '每日登录奖励');
+      if (awarded) showPointsToast(10, '每日登录奖励');
     }
   }, [showPointsToast]);
 
@@ -290,8 +292,10 @@ export default function Home() {
 
         if (p.onlineMinutes >= 10 && p.onlineMinutes - diffMinutes < 10) {
           const transactionId = `online-10min:${new Date().toISOString().slice(0, 10)}`;
+          let awarded = false;
           if (!p.history.some(item => item.id === transactionId)) {
             p.total += 10;
+            awarded = true;
             p.history.unshift({
               id: transactionId,
               type: 'earn',
@@ -301,7 +305,7 @@ export default function Home() {
             });
             if (p.history.length > 50) p.history.pop();
           }
-          showPointsToast(10, '在线时长奖励');
+          if (awarded) showPointsToast(10, '在线时长奖励');
         }
         storage.savePoints(p);
       }
@@ -319,8 +323,10 @@ export default function Home() {
       const nextInteractionPoints = p.dailyInteractionPoints + 5;
       const transactionId = `interaction:${today}:${nextInteractionPoints}`;
       p.dailyInteractionPoints += 5;
+      let awarded = false;
       if (!p.history.some(item => item.id === transactionId)) {
         p.total += 5;
+        awarded = true;
         p.history.unshift({
           id: transactionId,
           type: 'earn',
@@ -331,7 +337,7 @@ export default function Home() {
         if (p.history.length > 50) p.history.pop();
       }
       storage.savePoints(p);
-      showPointsToast(5, '互动奖励');
+      if (awarded) showPointsToast(5, '互动奖励');
     }
   }, [showPointsToast]);
 

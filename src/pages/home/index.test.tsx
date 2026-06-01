@@ -114,6 +114,7 @@ vi.mock('../../utils/clientDiagnostics', () => ({
 
 import Home from './index';
 import { reportPlaybackDiagnostic } from '../../utils/clientDiagnostics';
+import { storage } from '../../services/storage';
 
 describe('Home PWA playback model', () => {
   beforeEach(() => {
@@ -281,5 +282,28 @@ describe('Home PWA playback model', () => {
     expect(container.querySelectorAll('.unlock-progress-badge')).toHaveLength(1);
     expect(screen.getByText('正在解锁更多动作')).toBeTruthy();
     expect(screen.queryByText('剧情流暂未完成')).toBeNull();
+  });
+
+  it('does not show a daily login reward toast when the idempotency key already exists', () => {
+    const today = new Date().toISOString().slice(0, 10);
+    vi.mocked(storage.getPoints).mockReturnValue({
+      total: 10,
+      lastLoginDate: null,
+      dailyInteractionPoints: 0,
+      lastInteractionDate: null,
+      onlineMinutes: 0,
+      lastOnlineUpdate: Date.now(),
+      history: [{
+        id: `daily-login:${today}`,
+        type: 'earn',
+        amount: 10,
+        reason: '每日登录奖励',
+        timestamp: Date.now(),
+      }],
+    });
+
+    render(<Home />);
+
+    expect(screen.queryByText('+10 每日登录奖励')).toBeNull();
   });
 });

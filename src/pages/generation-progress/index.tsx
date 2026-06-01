@@ -241,7 +241,8 @@ export default function GenerationProgress() {
           source: cat.source === 'uploaded' ? 'upload' : cat.source,
           placeholderImage: cat.placeholderImage || imageUrl,
           anchorFrame: cat.anchorFrame || imageUrl,
-        }
+        },
+        { shouldCommit: () => isActiveRun(runId, signal) }
       );
       if (!isActiveRun(runId, signal)) return;
 
@@ -415,7 +416,8 @@ export default function GenerationProgress() {
       cancelText: '继续等待',
     });
     if (!result.confirm) return;
-    abortControllerRef.current?.abort();
+    abortGenerationController(abortControllerRef.current);
+    runIdRef.current += 1;
     refundRedemption('取消生成退还');
     if (cat) {
       storage.deleteCatById(cat.id);

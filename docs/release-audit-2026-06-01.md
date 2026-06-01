@@ -4,9 +4,9 @@ Goal: prepare the mini program and its backend contract for a formal production 
 
 ## Latest Code Confirmation
 
-- `miao-wechat-mini`: fetched `origin/master`; no newer remote commit was found. Local `master` includes the release approval rule doc commit on top of `origin/master`.
-- `Miao_remote`: fetched `origin/main`; no newer remote commit was found. Local `main` includes the media upload support commit on top of `origin/main`.
-- Existing untracked backend docs were left untouched.
+- `miao-wechat-mini`: fetched `origin/master`; local `master` is current at `434dad1`.
+- `Miao`: fetched `origin/main`; local `main` is current at `67b7f3e`.
+- The formal release approval rule now includes the Chinese production-release audit requirements and is guarded by `src/utils/__tests__/codeQuality.test.ts`.
 
 ## P0
 
@@ -34,6 +34,15 @@ No confirmed P0 issue was found in this pass.
 
 ## P2
 
+### Release Approval Rule Needed Canonical Chinese Scope
+
+- Evidence: `docs/RELEASE-CODE-APPROVAL-RULE.md`.
+- Trigger: future release approval is performed from the repo document, but the user's required Chinese rule text is not present as the canonical rule.
+- Impact: reviewers may treat release approval as a narrower build/happy-path check instead of a full production readiness audit.
+- Real: yes. The document had the same intent in English, but did not include the requested Chinese approval rule verbatim enough for future local review.
+- Fix implemented: added the Chinese release approval rule and a code-quality guardrail test that checks the required audit scope and output requirements.
+- Verification: `npm test -- src/utils/__tests__/codeQuality.test.ts` passed as part of `npm run release:check`.
+
 ### Unused ESLint Dev Dependencies
 
 - Evidence: `package.json`; there is no `.eslintrc.*` or `eslint.config.*`, and `npm run lint` is `tsc --noEmit`.
@@ -45,12 +54,13 @@ No confirmed P0 issue was found in this pass.
 
 ## Remaining Risks
 
-- Full dev dependency audit still reports high vulnerabilities in Taro build-tool transitive dependencies such as `@tarojs/cli`, `@tarojs/webpack5-runner`, `@tarojs/plugin-platform-h5`, `html-minifier`, `got`, `git-clone`, `lodash-es`, and `serialize-javascript`. `npm audit fix` cannot resolve them without breaking changes or a Taro toolchain change; production dependency audit is clean.
+- Full dev dependency audit still reports high vulnerabilities in Taro build-tool transitive dependencies such as `@tarojs/cli`, `@tarojs/webpack5-runner`, `@tarojs/plugin-platform-h5`, `html-minifier`, `got`, `git-clone`, `lodash-es`, and `serialize-javascript`. `npm audit fix` removed only non-required install artifacts and left no committable package changes; `npm audit fix --force` would install incompatible Taro packages. Production dependency audit is clean.
 - WeChat real-device validation, upload domain whitelist, and production upload settings still require verification in WeChat DevTools and the Mini Program admin console.
 
 ## Verification Completed
 
 - Mini: `npm run release:check` passed.
+- Mini: `npm audit --audit-level=high` still reports dev-toolchain-only high vulnerabilities listed under Remaining Risks.
 - Backend: `npm run lint` passed.
 - Backend: `npm run verify:baseline` passed.
 - Backend production dependency audit: `npm audit --omit=dev --audit-level=high` passed.

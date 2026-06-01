@@ -267,6 +267,24 @@ describe('code quality guardrails', () => {
     expect(localDevelopmentDoc).toContain('npm test');
   });
 
+  it('keeps the formal release approval rule aligned with production audit scope', () => {
+    const approvalRule = fs.readFileSync(path.join(projectRoot, 'docs/RELEASE-CODE-APPROVAL-RULE.md'), 'utf8');
+
+    [
+      '准备发布正式版',
+      '系统性代码审计',
+      '构建、类型检查、测试、发布脚本、依赖和配置',
+      'Taro/微信 JSCore、原生组件、Canvas、Video、文件系统、storage、eventCenter',
+      '客户端实际调用的所有接口是否在服务端存在',
+      'base64 存储、临时文件清理、图片/视频压缩、包体积、未使用依赖',
+      '远端仓库最新代码同步、release scan、微信项目配置、域名/上传/sourceMap 设置',
+      '按 P0/P1/P2 分级列出真实问题',
+      '修完后必须运行 lint、test、build、release scan、API contract 等验证',
+    ].forEach(requiredText => {
+      expect(approvalRule).toContain(requiredText);
+    });
+  });
+
   it('does not keep unused H5-only dependencies in the app package', () => {
     const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
     const dependencies = packageJson.dependencies || {};

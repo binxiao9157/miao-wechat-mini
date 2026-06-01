@@ -5,7 +5,7 @@ import { VolcanoService, ACTION_PROMPTS } from '../../services/volcanoService';
 import { FileManager } from '../../services/fileManager';
 import { storage, type CatInfo } from '../../services/storage';
 import { isCatReady } from '../../services/catLifecycle';
-import type { FourStageVideoAction } from '../../services/videoActions';
+import { startSecondaryUnlock } from '../../services/secondaryUnlockService';
 import { useAuthContext } from '../../context/AuthContext';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { navigateTo, reLaunch, safeBack } from '../../utils/navigateAdapter';
@@ -295,66 +295,6 @@ export default function GenerationProgress() {
     pointsSpentRef.current = 0;
   };
 
-  const runSecondaryUnlock = async (cat: NonNullable<typeof catRef.current>, signal?: AbortSignal) => {
-    const secondaryActions: FourStageVideoAction[] = ['v2_wait', 'v3_return', 'v4_fetch'];
-    let completed = 0;
-    let failed = 0;
-    try {
-      const anchorFrame = anchorImage || cat.anchorFrame || cat.avatar;
-      await FileManager.updateCatVideos(cat.id, {}, true, {
-        completed,
-        total: secondaryActions.length,
-        currentAction: secondaryActions[0],
-        failed,
-      });
-
-      for (const action of secondaryActions) {
-        if (signal?.aborted) return;
-        try {
-          await FileManager.updateCatVideos(cat.id, {}, true, {
-            completed,
-            total: secondaryActions.length,
-            currentAction: action,
-            failed,
-          });
-          const actionPrompt = ACTION_PROMPTS[action];
-          const task = await VolcanoService.submitTask(anchorFrame, {
-            prompt: actionPrompt.prompt,
-            duration: actionPrompt.duration,
-            firstFrame: anchorFrame,
-            lastFrame: anchorFrame,
-            hasLastFrame: action === 'v2_wait',
-          });
-          const videoUrl = await VolcanoService.pollTaskResult(task.id, undefined, signal);
-          completed += 1;
-          const actionError = failed > 0 ? `有 ${failed} 个后续动作暂未生成成功` : null;
-          await FileManager.updateCatVideos(cat.id, { [action]: videoUrl }, true, {
-            completed,
-            total: secondaryActions.length,
-            currentAction: action,
-            failed,
-          }, { actionGenerationError: actionError });
-          await new Promise(resolve => setTimeout(resolve, 3000));
-        } catch (e) {
-          failed += 1;
-          await FileManager.updateCatVideos(cat.id, {}, true, {
-            completed,
-            total: secondaryActions.length,
-            currentAction: action,
-            failed,
-          }, { actionGenerationError: `有 ${failed} 个后续动作暂未生成成功` });
-          console.error(`动作 ${action} 生成失败:`, e);
-        }
-      }
-
-      const finalActionError = failed > 0 ? `有 ${failed} 个后续动作暂未生成成功` : null;
-      await FileManager.updateCatVideos(cat.id, {}, false, undefined, { actionGenerationError: finalActionError });
-    } catch (e) {
-      console.error('后台生成任务失败:', e);
-      await FileManager.updateCatVideos(cat.id, {}, false, undefined, { actionGenerationError: '后续动作生成失败，稍后可重试' });
-    }
-  };
-
   const handleUnlockAll = async () => {
     if (unlockStartedRef.current) return;
 
@@ -383,7 +323,7 @@ export default function GenerationProgress() {
     refreshCatStatus();
     Taro.showToast({ title: '已开始后台解锁', icon: 'none' });
 
-    void runSecondaryUnlock(cat);
+    void startSecondaryUnlock(cat, anchorImage);
     reLaunch('/pages/home/index');
   };
 

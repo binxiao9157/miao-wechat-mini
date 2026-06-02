@@ -20,6 +20,12 @@ const GREETING_NIGHT = '该休息啦~';
 const STORY_VIDEO_ID = 'catStoryVideo';
 const STORY_VIDEO_KEYS = ['v1', 'v2', 'v3', 'v4'] as const;
 const HOME_BUBBLE_DURATION_MS = 1000;
+const STORY_BUBBLES = {
+  v1: '我来啦~',
+  v2: '喵呜？陪我玩好不好？',
+  v3: '你不理我，那我走了...',
+  v4: '好耶！好耶！',
+} as const;
 
 type StoryVideoKey = typeof STORY_VIDEO_KEYS[number];
 
@@ -456,7 +462,7 @@ export default function Home() {
     if (urls.v2) {
       setPlaybackState('LOOPING_V2');
       setV2LoopCount(0);
-      showFloatingBubble('喵呜？要把人家的毛球抢走吗？');
+      showFloatingBubble(STORY_BUBBLES.v2);
       playStoryVideo('v2');
       return;
     }
@@ -476,7 +482,7 @@ export default function Home() {
 
       if (urls.v3) {
         setPlaybackState('PLAYING_V3');
-        showFloatingBubble('唔，不抢那我就把球抱回去自个儿玩啦...');
+        showFloatingBubble(STORY_BUBBLES.v3);
         playStoryVideo('v3');
       } else {
         pauseAllVideos();
@@ -552,7 +558,7 @@ export default function Home() {
       }
 
       setPlaybackState('PLAYING_V1');
-      showFloatingBubble('它叼着一个毛球，渴望地朝你跑了过来！');
+      showFloatingBubble(STORY_BUBBLES.v1);
       grantInteractionPoints();
       playStoryVideo('v1');
       return;
@@ -576,7 +582,7 @@ export default function Home() {
       }
 
       setPlaybackState('PLAYING_V4');
-      showFloatingBubble('好耶！把它的毛球投掷到远处～它跑去抢落点捡球了！');
+      showFloatingBubble(STORY_BUBBLES.v4);
       grantInteractionPoints();
       playStoryVideo('v4');
       return;

@@ -166,10 +166,12 @@ describe('Home PWA playback model', () => {
     render(<Home />);
 
     fireEvent.click(screen.getByTestId('story-touch-layer'));
+    expect(screen.getByText('我来啦~')).toBeTruthy();
     expect(videoContexts.catStoryVideo.play).toHaveBeenCalled();
 
     fireEvent.ended(screen.getByTestId('catStoryVideo'));
     expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v2.mp4');
+    expect(screen.getByText('喵呜？陪我玩好不好？')).toBeTruthy();
     expect(videoContexts.catStoryVideo.play).toHaveBeenCalled();
   });
 
@@ -293,6 +295,7 @@ describe('Home PWA playback model', () => {
 
     fireEvent.ended(screen.getByTestId('catStoryVideo'));
     expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v3.mp4');
+    expect(screen.getByText('你不理我，那我走了...')).toBeTruthy();
   });
 
   it('switches from V2 waiting to V4 when the user interacts', () => {
@@ -304,6 +307,7 @@ describe('Home PWA playback model', () => {
 
     fireEvent.click(screen.getByTestId('story-touch-layer'));
     expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v4.mp4');
+    expect(screen.getByText('好耶！好耶！')).toBeTruthy();
   });
 
   it('resets and plays the single native video before starting a story segment', () => {

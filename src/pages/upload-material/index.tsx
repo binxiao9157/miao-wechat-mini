@@ -3,7 +3,6 @@ import { View, Text, Image, Input, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { redirectTo, safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
-import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 
 const ARROWLEFT_DARK = require('../../assets/profile-icons/arrowleft-dark.png');
 const X_DARK = require('../../assets/profile-icons/x-dark.png');
@@ -92,16 +91,13 @@ export default function UploadMaterial() {
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [nickname, setNickname] = useState('');
-  const [showToast, setShowToast] = useState<string | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isSavingImage, setIsSavingImage] = useState(false);
   const [firstFrameUrl, setFirstFrameUrl] = useState<string | null>(null);
-  const { setManagedTimeout } = useManagedTimeout();
 
   const triggerToast = (msg: string) => {
-    setShowToast(msg);
-    Taro.showToast({ title: msg, icon: msg.includes('失败') ? 'none' : 'success' });
-    setManagedTimeout(() => setShowToast(null), 2500);
+    const icon = msg.includes('已保存') || msg.includes('成功') ? 'success' : 'none';
+    Taro.showToast({ title: msg, icon });
   };
 
   const prepareSelectedImage = async (filePath: string): Promise<string> => {
@@ -259,12 +255,6 @@ export default function UploadMaterial() {
 
   return (
     <View className="upload-material-page" style={navSpace as React.CSSProperties}>
-      {showToast && (
-        <View className="toast">
-          <Text className="toast-text">{showToast}</Text>
-        </View>
-      )}
-
       {/* Back Button */}
       <View className="back-btn" onClick={() => safeBack()}>
         <Image className="icon-img" src={ARROWLEFT_DARK} mode="aspectFit" style={{ width: 24, height: 24 }} />

@@ -31,10 +31,6 @@ vi.mock('../../hooks/useNavSpace', () => ({
   useNavSpace: vi.fn(() => ({})),
 }));
 
-vi.mock('../../hooks/useManagedTimeout', () => ({
-  useManagedTimeout: vi.fn(() => ({ setManagedTimeout: vi.fn() })),
-}));
-
 vi.mock('../../utils/navigateAdapter', () => ({
   redirectTo: vi.fn(),
   safeBack: vi.fn(),
@@ -170,7 +166,13 @@ describe('UploadMaterial generated image actions', () => {
 
     fireEvent.click(await screen.findByText('保存图片'));
 
-    expect(await screen.findByText('已保存到相册')).toBeTruthy();
+    await waitFor(() => {
+      expect(Taro.showToast).toHaveBeenCalledWith(expect.objectContaining({
+        title: '已保存到相册',
+        icon: 'success',
+      }));
+    });
+    expect(container.querySelector('.toast')).toBeFalsy();
     expect(screen.queryByText('保存中...')).toBeFalsy();
   });
 
@@ -194,8 +196,12 @@ describe('UploadMaterial generated image actions', () => {
     expect(await screen.findByText('保存中...')).toBeTruthy();
 
     await waitFor(() => {
-      expect(screen.getByText('已保存到相册')).toBeTruthy();
+      expect(Taro.showToast).toHaveBeenCalledWith(expect.objectContaining({
+        title: '已保存到相册',
+        icon: 'success',
+      }));
     }, { timeout: 2500 });
+    expect(container.querySelector('.toast')).toBeFalsy();
     expect(screen.queryByText('保存中...')).toBeFalsy();
     expect(screen.getByText('保存图片')).toBeTruthy();
   }, 4000);

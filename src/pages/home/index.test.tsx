@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CatInfo } from '../../services/storage';
 
@@ -95,6 +95,9 @@ vi.mock('../../services/storage', () => ({
       history: [],
     })),
     savePoints: vi.fn(),
+    saveCatInfo: vi.fn((cat: CatInfo) => {
+      currentActiveCat = cat;
+    }),
     updatePoints: vi.fn((updater: (points: any) => void) => {
       const points = {
         total: 0,
@@ -134,9 +137,15 @@ vi.mock('../../utils/clientDiagnostics', () => ({
   reportPlaybackDiagnostic: vi.fn(),
 }));
 
+vi.mock('../../services/secondaryUnlockService', () => ({
+  isSecondaryUnlockRunning: vi.fn(() => false),
+  startSecondaryUnlock: vi.fn(async () => undefined),
+}));
+
 import Home from './index';
 import { reportPlaybackDiagnostic } from '../../utils/clientDiagnostics';
 import { storage } from '../../services/storage';
+import { startSecondaryUnlock } from '../../services/secondaryUnlockService';
 
 describe('Home PWA playback model', () => {
   beforeEach(() => {
@@ -376,6 +385,76 @@ describe('Home PWA playback model', () => {
     expect(container.querySelectorAll('.unlock-progress-badge')).toHaveLength(1);
     expect(screen.getByText('正在解锁更多动作')).toBeTruthy();
     expect(screen.queryByText('剧情流暂未完成')).toBeNull();
+  });
+
+  it('resumes unfinished background action generation after returning to home', async () => {
+    currentActiveCat = {
+      ...defaultActiveCat,
+      isUnlocking: true,
+      unlockProgress: { total: 3, completed: 1, failed: 0, updatedAt: Date.now() - 30 * 60 * 1000 },
+      videoPaths: {
+        v1_approach: 'https://cdn.example.com/v1.mp4',
+        v2_wait: 'https://cdn.example.com/v2.mp4',
+      },
+    };
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(startSecondaryUnlock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: currentActiveCat.id,
+          videoPaths: currentActiveCat.videoPaths,
+        }),
+        currentActiveCat.anchorFrame || currentActiveCat.placeholderImage || currentActiveCat.avatar,
+      );
+    });
+  });
+
+  it('does not resume action generation for basic cats that were not unlocking', () => {
+    currentActiveCat = {
+      ...defaultActiveCat,
+      isUnlocking: false,
+      videoPaths: {
+        v1_approach: 'https://cdn.example.com/v1.mp4',
+      },
+    };
+
+    render(<Home />);
+
+    expect(startSecondaryUnlock).not.toHaveBeenCalled();
+  });
+
+  it('lets users resume an already stuck incomplete story flow manually', async () => {
+    currentActiveCat = {
+      ...defaultActiveCat,
+      isUnlocking: false,
+      videoPaths: {
+        v1_approach: 'https://cdn.example.com/v1.mp4',
+        v2_wait: 'https://cdn.example.com/v2.mp4',
+      },
+    };
+
+    render(<Home />);
+    fireEvent.click(screen.getByText('点击继续生成剧情流'));
+
+    expect(storage.saveCatInfo).toHaveBeenCalledWith(expect.objectContaining({
+      id: currentActiveCat.id,
+      isUnlocking: true,
+      unlockProgress: expect.objectContaining({
+        completed: 1,
+        total: 3,
+        currentAction: 'v3_return',
+      }),
+    }));
+    await waitFor(() => {
+      expect(startSecondaryUnlock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: currentActiveCat.id,
+        }),
+        currentActiveCat.anchorFrame || currentActiveCat.placeholderImage || currentActiveCat.avatar,
+      );
+    });
   });
 
   it('does not show a daily login reward toast when the idempotency key already exists', () => {

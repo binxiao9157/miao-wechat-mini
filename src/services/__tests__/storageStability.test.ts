@@ -302,7 +302,7 @@ describe('storage stability behavior', () => {
     expect(points.history.map(item => item.id)).toEqual(['tx-2', 'tx-1']);
   });
 
-  it('clears stale background unlock state when reading cats', async () => {
+  it('keeps stale background unlock state resumable when reading cats', async () => {
     vi.useFakeTimers();
     try {
       vi.setSystemTime(new Date('2026-06-01T12:00:00Z'));
@@ -330,9 +330,13 @@ describe('storage stability behavior', () => {
 
       const [cat] = storage.getCatList();
 
-      expect(cat.isUnlocking).toBe(false);
-      expect(cat.unlockProgress).toBeUndefined();
-      expect(cat.actionGenerationError).toContain('超时');
+      expect(cat.isUnlocking).toBe(true);
+      expect(cat.unlockProgress).toMatchObject({
+        completed: 1,
+        total: 3,
+        currentAction: 'v3_return',
+      });
+      expect(cat.actionGenerationError).toBeUndefined();
     } finally {
       vi.useRealTimers();
     }

@@ -575,7 +575,6 @@ function normalizePlayableVideoUrl(url?: string): string | undefined {
 }
 
 const SECONDARY_UNLOCK_ACTIONS = ['v2_wait', 'v3_return', 'v4_fetch'] as const;
-const UNLOCK_PROGRESS_STALE_MS = 20 * 60 * 1000;
 
 function hasAllSecondaryUnlockVideos(cat: CatInfo): boolean {
   const videoPaths = cat.videoPaths || {};
@@ -593,16 +592,6 @@ function normalizeCatUnlockState(cat: CatInfo): CatInfo {
       isUnlocking: false,
       unlockProgress: undefined,
       actionGenerationError: hasAllVideos ? undefined : cat.actionGenerationError,
-    };
-  }
-
-  const lastProgressAt = cat.unlockProgress?.updatedAt || cat.generationUpdatedAt || cat.updatedAt || cat.createdAt || 0;
-  if (lastProgressAt > 0 && Date.now() - lastProgressAt > UNLOCK_PROGRESS_STALE_MS) {
-    return {
-      ...cat,
-      isUnlocking: false,
-      unlockProgress: undefined,
-      actionGenerationError: cat.actionGenerationError || '后续动作生成超时，稍后可重试',
     };
   }
 

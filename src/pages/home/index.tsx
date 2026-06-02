@@ -5,6 +5,7 @@ import { storage, CatInfo } from '../../services/storage';
 import CatAvatar from '../../components/common/CatAvatar';
 import { getPrimaryVideoUrl } from '../../services/catLifecycle';
 import { hasFourStageVideos } from '../../services/videoActions';
+import { isSecondaryUnlockRunning, startSecondaryUnlock } from '../../services/secondaryUnlockService';
 import { on, off } from '../../utils/eventAdapter';
 import { navigateTo } from '../../utils/navigateAdapter';
 import { reportPlaybackDiagnostic } from '../../utils/clientDiagnostics';
@@ -18,6 +19,7 @@ const GREETING_NIGHT = '该休息啦~';
 
 const STORY_VIDEO_ID = 'catStoryVideo';
 const STORY_VIDEO_KEYS = ['v1', 'v2', 'v3', 'v4'] as const;
+const SECONDARY_STORY_ACTIONS = ['v2_wait', 'v3_return', 'v4_fetch'] as const;
 
 type StoryVideoKey = typeof STORY_VIDEO_KEYS[number];
 
@@ -51,6 +53,18 @@ function getStoryUrls(cat: CatInfo | null) {
 
 function getStoryUrlByKey(urls: ReturnType<typeof getStoryUrls>, key: StoryVideoKey): string {
   return urls[key] || '';
+}
+
+function getSecondaryUnlockProgress(cat: CatInfo) {
+  const completed = SECONDARY_STORY_ACTIONS.filter(action => !!cat.videoPaths?.[action]).length;
+  const currentAction = SECONDARY_STORY_ACTIONS.find(action => !cat.videoPaths?.[action]) || SECONDARY_STORY_ACTIONS[SECONDARY_STORY_ACTIONS.length - 1];
+  return {
+    completed,
+    total: SECONDARY_STORY_ACTIONS.length,
+    currentAction,
+    failed: cat.unlockProgress?.failed || 0,
+    updatedAt: Date.now(),
+  };
 }
 
 function HomeCoverBubble({ text, visible, exiting }: { text: string; visible: boolean; exiting?: boolean }) {
@@ -100,6 +114,7 @@ export default function Home() {
   const playRetryTimersRef = useRef<any[]>([]);
   const requestedVideoKeyRef = useRef<StoryVideoKey | null>(null);
   const playRequestNonceRef = useRef(0);
+  const resumeUnlockCatIdsRef = useRef<Set<string>>(new Set());
 
   const urls = getStoryUrls(cat);
   const hasVideo = !!getPrimaryVideoUrl(cat);
@@ -410,6 +425,37 @@ export default function Home() {
   }, [cat?.id, resetPlayback]);
 
   useEffect(() => {
+    if (!cat?.id) return;
+
+    const shouldResumeUnlock = cat.isUnlocking && hasVideo && !hasStoryModel;
+    if (!shouldResumeUnlock) {
+      resumeUnlockCatIdsRef.current.delete(cat.id);
+      return;
+    }
+    if (resumeUnlockCatIdsRef.current.has(cat.id) || isSecondaryUnlockRunning(cat.id)) return;
+
+    resumeUnlockCatIdsRef.current.add(cat.id);
+    const anchorImage = cat.anchorFrame || cat.placeholderImage || cat.avatar;
+    const taskCat = {
+      id: cat.id,
+      name: cat.name,
+      breed: cat.breed,
+      color: cat.color,
+      avatar: cat.avatar,
+      source: cat.source,
+      anchorFrame: cat.anchorFrame,
+      placeholderImage: cat.placeholderImage,
+      videoPaths: cat.videoPaths,
+    };
+
+    void startSecondaryUnlock(taskCat, anchorImage).finally(() => {
+      resumeUnlockCatIdsRef.current.delete(cat.id);
+      const updatedCat = storage.getActiveCat();
+      if (updatedCat?.id === cat.id) setCat(updatedCat);
+    });
+  }, [cat, hasStoryModel, hasVideo]);
+
+  useEffect(() => {
     const actionError = cat?.actionGenerationError || '';
     if (!actionError || actionError === lastActionErrorRef.current) return;
     lastActionErrorRef.current = actionError;
@@ -592,6 +638,21 @@ export default function Home() {
     playStoryVideo('v1');
   };
 
+  const handleResumeUnlock = () => {
+    if (!cat || cat.isUnlocking || !hasVideo || hasStoryModel) return;
+
+    const nextCat: CatInfo = {
+      ...cat,
+      isUnlocking: true,
+      unlockProgress: getSecondaryUnlockProgress(cat),
+      actionGenerationError: undefined,
+      generationUpdatedAt: Date.now(),
+    };
+    storage.saveCatInfo(nextCat);
+    setCat(nextCat);
+    showFloatingBubble('已继续生成后续剧情，请稍后再来互动～', 4000);
+  };
+
   return (
     <View className="home-page">
       {cat && (
@@ -645,9 +706,9 @@ export default function Home() {
           )}
 
           {!cat.isUnlocking && !hasStoryModel && hasVideo && !videoError && (
-            <CoverView className="unlock-progress-badge">
+            <CoverView className="unlock-progress-badge" onClick={handleResumeUnlock}>
               <CoverView className="unlock-progress-title">剧情流暂未完成</CoverView>
-              <CoverView className="unlock-progress-text">请重新生成或等待同步</CoverView>
+              <CoverView className="unlock-progress-text">点击继续生成剧情流</CoverView>
             </CoverView>
           )}
 

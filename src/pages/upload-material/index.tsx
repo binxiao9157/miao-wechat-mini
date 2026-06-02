@@ -17,6 +17,38 @@ import { checkMediaContent, checkTextContent } from '../../services/contentSafet
 import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
 import './index.less';
 
+const API_BASE_URL = (process.env.TARO_APP_API_BASE_URL || 'https://www.mmdd10.tech').replace(/\/$/, '');
+
+function isWeApp(): boolean {
+  try {
+    return Taro.getEnv() === Taro.ENV_TYPE.WEAPP;
+  } catch {
+    return process.env.TARO_ENV === 'weapp';
+  }
+}
+
+function normalizeRemoteImageUrl(url: string): string {
+  if (!url) return url;
+  if (url.startsWith('//')) return `https:${url}`;
+  if (url.startsWith('/')) return `${API_BASE_URL}${url}`;
+  return url;
+}
+
+function resolveImageDownloadUrl(imageUrl: string): string {
+  const normalizedUrl = normalizeRemoteImageUrl(imageUrl);
+  if (!isWeApp() || !/^https?:\/\//i.test(normalizedUrl)) return normalizedUrl;
+
+  try {
+    const imageHost = new URL(normalizedUrl).host;
+    const apiHost = new URL(API_BASE_URL).host;
+    if (imageHost === apiHost) return normalizedUrl;
+  } catch {
+    return normalizedUrl;
+  }
+
+  return `${API_BASE_URL}/api/proxy-resource?url=${encodeURIComponent(normalizedUrl)}`;
+}
+
 export default function UploadMaterial() {
   const navSpace = useNavSpace();
   const router = Taro.getCurrentInstance().router;
@@ -27,6 +59,7 @@ export default function UploadMaterial() {
   const [nickname, setNickname] = useState('');
   const [showToast, setShowToast] = useState<string | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isSavingImage, setIsSavingImage] = useState(false);
   const [firstFrameUrl, setFirstFrameUrl] = useState<string | null>(null);
   const { setManagedTimeout } = useManagedTimeout();
 
@@ -106,7 +139,7 @@ export default function UploadMaterial() {
       if (uploadImage !== selectedImage) setSelectedImage(uploadImage);
       const task = await VolcanoService.submitImageTask(prompt, uploadImage);
       const imageUrl = await VolcanoService.pollImageResult(task.id, task.image_url);
-      setFirstFrameUrl(imageUrl);
+      setFirstFrameUrl(normalizeRemoteImageUrl(imageUrl));
     } catch (e: any) {
       console.error('Stage 1 Error:', e);
       triggerToast(e.message || '形象生成失败，请重试');
@@ -142,34 +175,50 @@ export default function UploadMaterial() {
     handleGenerateImage();
   };
 
-  const handleSaveImage = async () => {
-    if (!firstFrameUrl) return;
-    if (!await ensurePrivacyAuthorized('保存生成图片到相册')) return;
-
-    const saveLocalImage = (filePath: string) => {
-      Taro.saveImageToPhotosAlbum({
-        filePath,
-        success: () => triggerToast('已保存到相册'),
-        fail: () => triggerToast('保存失败，请长按图片手动保存'),
-      });
-    };
-
-    if (firstFrameUrl.startsWith('http')) {
+  const downloadImageToLocalFile = (url: string): Promise<string> => (
+    new Promise((resolve, reject) => {
       Taro.downloadFile({
-        url: firstFrameUrl,
+        url,
         success: (downloadRes) => {
           if (downloadRes.statusCode === 200 && downloadRes.tempFilePath) {
-            saveLocalImage(downloadRes.tempFilePath);
-          } else {
-            triggerToast('下载图片失败');
+            resolve(downloadRes.tempFilePath);
+            return;
           }
+          reject(new Error(`download status ${downloadRes.statusCode || 'unknown'}`));
         },
-        fail: () => triggerToast('下载图片失败'),
+        fail: (error) => reject(error),
       });
-      return;
-    }
+    })
+  );
 
-    saveLocalImage(firstFrameUrl);
+  const saveLocalImage = (filePath: string): Promise<void> => (
+    new Promise((resolve, reject) => {
+      Taro.saveImageToPhotosAlbum({
+        filePath,
+        success: () => resolve(),
+        fail: (error) => reject(error),
+      });
+    })
+  );
+
+  const handleSaveImage = async () => {
+    if (!firstFrameUrl || isSavingImage) return;
+    if (!await ensurePrivacyAuthorized('保存生成图片到相册')) return;
+
+    setIsSavingImage(true);
+    try {
+      const downloadUrl = resolveImageDownloadUrl(firstFrameUrl);
+      const localPath = /^https?:\/\//i.test(downloadUrl)
+        ? await downloadImageToLocalFile(downloadUrl)
+        : downloadUrl;
+      await saveLocalImage(localPath);
+      triggerToast('已保存到相册');
+    } catch (error) {
+      console.warn('[UploadMaterial] save generated image failed:', error);
+      triggerToast('保存失败，请长按图片手动保存');
+    } finally {
+      setIsSavingImage(false);
+    }
   };
 
   const isReady = selectedImage && nickname.trim();
@@ -258,7 +307,7 @@ export default function UploadMaterial() {
                   <Text className="confirm-btn-text secondary">重新生成</Text>
                 </View>
                 <View className="confirm-btn secondary" onClick={handleSaveImage}>
-                  <Text className="confirm-btn-text secondary">保存图片</Text>
+                  <Text className="confirm-btn-text secondary">{isSavingImage ? '保存中...' : '保存图片'}</Text>
                 </View>
               </View>
             </View>

@@ -66,6 +66,9 @@ describe('UploadMaterial generated image actions', () => {
     vi.clearAllMocks();
     (Taro as any).getCurrentInstance = vi.fn(() => ({ router: { params: {} } }));
     vi.mocked(Taro.getEnv).mockReturnValue(Taro.ENV_TYPE.WEB);
+    vi.mocked(Taro.getPrivacySetting).mockImplementation(({ success }: any) => {
+      success?.({ needAuthorization: false });
+    });
     vi.mocked(Taro.chooseMedia).mockImplementation(async ({ success }: any) => {
       success?.({ tempFiles: [{ tempFilePath: 'wxfile://tmp/source.png' }] });
       return { tempFiles: [{ tempFilePath: 'wxfile://tmp/source.png' }] } as any;
@@ -109,6 +112,64 @@ describe('UploadMaterial generated image actions', () => {
     }));
     expect(Taro.saveImageToPhotosAlbum).not.toHaveBeenCalledWith(expect.objectContaining({
       filePath: 'https://cdn.example.com/generated.png',
+    }));
+  });
+
+  it('proxies third-party generated images before saving in the mini program', async () => {
+    vi.mocked(Taro.getEnv).mockReturnValue(Taro.ENV_TYPE.WEAPP);
+    vi.mocked(VolcanoService.pollImageResult).mockResolvedValueOnce('https://cdn.example.com/generated.png?x=1&token=a+b');
+
+    const { container } = render(<UploadMaterial />);
+
+    fireEvent.click(screen.getByText('点击上传照片'));
+    await waitFor(() => {
+      expect(container.querySelector('.image-preview')).toBeTruthy();
+    });
+    fireEvent.change(screen.getByPlaceholderText('给猫咪起个好听的名字'), { target: { value: 'Miao' } });
+    fireEvent.click(screen.getByText('开始生成数字形象'));
+
+    await waitFor(() => {
+      expect(VolcanoService.pollImageResult).toHaveBeenCalled();
+    });
+
+    fireEvent.click(await screen.findByText('保存图片'));
+
+    await waitFor(() => {
+      expect((Taro as any).downloadFile).toHaveBeenCalledWith(expect.objectContaining({
+        url: `https://www.mmdd10.tech/api/proxy-resource?url=${encodeURIComponent('https://cdn.example.com/generated.png?x=1&token=a+b')}`,
+      }));
+    });
+    expect(Taro.saveImageToPhotosAlbum).toHaveBeenCalledWith(expect.objectContaining({
+      filePath: 'wxfile://tmp/generated-local.png',
+    }));
+  });
+
+  it('normalizes relative generated image paths before saving in the mini program', async () => {
+    vi.mocked(Taro.getEnv).mockReturnValue(Taro.ENV_TYPE.WEAPP);
+    vi.mocked(VolcanoService.pollImageResult).mockResolvedValueOnce('/uploads/media/generated.png');
+
+    const { container } = render(<UploadMaterial />);
+
+    fireEvent.click(screen.getByText('点击上传照片'));
+    await waitFor(() => {
+      expect(container.querySelector('.image-preview')).toBeTruthy();
+    });
+    fireEvent.change(screen.getByPlaceholderText('给猫咪起个好听的名字'), { target: { value: 'Miao' } });
+    fireEvent.click(screen.getByText('开始生成数字形象'));
+
+    await waitFor(() => {
+      expect(VolcanoService.pollImageResult).toHaveBeenCalled();
+    });
+
+    fireEvent.click(await screen.findByText('保存图片'));
+
+    await waitFor(() => {
+      expect((Taro as any).downloadFile).toHaveBeenCalledWith(expect.objectContaining({
+        url: 'https://www.mmdd10.tech/uploads/media/generated.png',
+      }));
+    });
+    expect(Taro.saveImageToPhotosAlbum).toHaveBeenCalledWith(expect.objectContaining({
+      filePath: 'wxfile://tmp/generated-local.png',
     }));
   });
 });

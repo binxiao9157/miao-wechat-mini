@@ -145,29 +145,31 @@ export default function UploadMaterial() {
   const handleSaveImage = async () => {
     if (!firstFrameUrl) return;
     if (!await ensurePrivacyAuthorized('保存生成图片到相册')) return;
-    Taro.saveImageToPhotosAlbum({
-      filePath: firstFrameUrl,
-      success: () => triggerToast('已保存到相册'),
-      fail: () => {
-        if (firstFrameUrl.startsWith('http')) {
-          Taro.downloadFile({
-            url: firstFrameUrl,
-            success: (downloadRes) => {
-              if (downloadRes.statusCode === 200) {
-                Taro.saveImageToPhotosAlbum({
-                  filePath: downloadRes.tempFilePath,
-                  success: () => triggerToast('已保存到相册'),
-                  fail: () => triggerToast('保存失败，请长按图片手动保存'),
-                });
-              }
-            },
-            fail: () => triggerToast('下载图片失败'),
-          });
-        } else {
-          triggerToast('保存失败，请长按图片手动保存');
-        }
-      },
-    });
+
+    const saveLocalImage = (filePath: string) => {
+      Taro.saveImageToPhotosAlbum({
+        filePath,
+        success: () => triggerToast('已保存到相册'),
+        fail: () => triggerToast('保存失败，请长按图片手动保存'),
+      });
+    };
+
+    if (firstFrameUrl.startsWith('http')) {
+      Taro.downloadFile({
+        url: firstFrameUrl,
+        success: (downloadRes) => {
+          if (downloadRes.statusCode === 200 && downloadRes.tempFilePath) {
+            saveLocalImage(downloadRes.tempFilePath);
+          } else {
+            triggerToast('下载图片失败');
+          }
+        },
+        fail: () => triggerToast('下载图片失败'),
+      });
+      return;
+    }
+
+    saveLocalImage(firstFrameUrl);
   };
 
   const isReady = selectedImage && nickname.trim();

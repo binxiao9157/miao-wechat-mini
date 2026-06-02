@@ -20,9 +20,17 @@ vi.mock('../volcanoService', () => ({
   },
 }));
 
+vi.mock('../../utils/httpAdapter', () => ({
+  request: vi.fn(async () => ({
+    data: { frameUrl: 'https://api.example.com/uploads/video-frames/cat-1/last.jpg' },
+  })),
+}));
+
 import { FileManager } from '../fileManager';
 import { setSecondaryUnlockFrameResolverForTesting, startSecondaryUnlock } from '../secondaryUnlockService';
 import { VolcanoService } from '../volcanoService';
+import { request } from '../../utils/httpAdapter';
+import Taro from '@tarojs/taro';
 
 describe('secondary unlock service', () => {
   const cat: SecondaryUnlockCat = {
@@ -144,6 +152,45 @@ describe('secondary unlock service', () => {
       firstFrame: 'frame:v2-last',
       lastFrame: cat.anchorFrame,
       hasLastFrame: true,
+    }));
+  });
+
+  it('uses the server frame extraction contract in the mini program runtime', async () => {
+    vi.mocked(Taro.getEnv).mockReturnValue(Taro.ENV_TYPE.WEAPP);
+    setSecondaryUnlockFrameResolverForTesting(null);
+
+    const task = startSecondaryUnlock({
+      ...cat,
+      videoPaths: {
+        v1_approach: 'https://cdn.example.com/v1.mp4',
+      },
+    });
+
+    await vi.waitFor(() => {
+      expect(VolcanoService.submitTask).toHaveBeenCalledTimes(1);
+    });
+    await vi.advanceTimersByTimeAsync(3000);
+    await vi.waitFor(() => {
+      expect(VolcanoService.submitTask).toHaveBeenCalledTimes(2);
+    });
+    await vi.advanceTimersByTimeAsync(3000);
+    await vi.waitFor(() => {
+      expect(VolcanoService.submitTask).toHaveBeenCalledTimes(3);
+    });
+    await vi.advanceTimersByTimeAsync(3000);
+    await task;
+
+    expect(request).toHaveBeenCalledWith(expect.objectContaining({
+      url: '/api/v1/assets/video-last-frame',
+      method: 'POST',
+      data: {
+        videoUrl: 'https://cdn.example.com/v1.mp4',
+        catId: cat.id,
+      },
+    }));
+    expect(VolcanoService.submitTask).toHaveBeenNthCalledWith(1, 'https://api.example.com/uploads/video-frames/cat-1/last.jpg', expect.objectContaining({
+      firstFrame: 'https://api.example.com/uploads/video-frames/cat-1/last.jpg',
+      lastFrame: 'https://api.example.com/uploads/video-frames/cat-1/last.jpg',
     }));
   });
 });

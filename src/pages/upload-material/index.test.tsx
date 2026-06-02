@@ -1,0 +1,114 @@
+import React from 'react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import Taro from '@tarojs/taro';
+import UploadMaterial from './index';
+import { VolcanoService } from '../../services/volcanoService';
+
+vi.mock('@tarojs/components', async () => {
+  const React = await import('react');
+  const toDomProps = (props: Record<string, any>) => {
+    const { onClick, className, children, ...rest } = props;
+    return { onClick, className, children, ...rest };
+  };
+  return {
+    View: (props: any) => React.createElement('div', toDomProps(props)),
+    Text: (props: any) => React.createElement('span', toDomProps(props)),
+    Image: ({ src, className, onClick }: any) => React.createElement('img', { src, className, onClick, alt: '' }),
+    ScrollView: (props: any) => React.createElement('div', toDomProps(props)),
+    Input: ({ value, onInput, placeholder, className }: any) => (
+      React.createElement('input', {
+        value,
+        placeholder,
+        className,
+        onChange: (event: any) => onInput?.({ detail: { value: event.target.value } }),
+      })
+    ),
+  };
+});
+
+vi.mock('../../hooks/useNavSpace', () => ({
+  useNavSpace: vi.fn(() => ({})),
+}));
+
+vi.mock('../../hooks/useManagedTimeout', () => ({
+  useManagedTimeout: vi.fn(() => ({ setManagedTimeout: vi.fn() })),
+}));
+
+vi.mock('../../utils/navigateAdapter', () => ({
+  redirectTo: vi.fn(),
+  safeBack: vi.fn(),
+}));
+
+vi.mock('../../services/storage', () => ({
+  storage: {
+    saveCatInfo: vi.fn(),
+  },
+}));
+
+vi.mock('../../services/contentSafetyService', () => ({
+  checkTextContent: vi.fn(async () => undefined),
+  checkMediaContent: vi.fn(async () => undefined),
+}));
+
+vi.mock('../../services/volcanoService', () => ({
+  IMAGE_PROMPTS: {
+    anchor: vi.fn(() => 'anchor prompt'),
+  },
+  VolcanoService: {
+    submitImageTask: vi.fn(async () => ({ id: 'image-task-1' })),
+    pollImageResult: vi.fn(async () => 'https://cdn.example.com/generated.png'),
+  },
+}));
+
+describe('UploadMaterial generated image actions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (Taro as any).getCurrentInstance = vi.fn(() => ({ router: { params: {} } }));
+    vi.mocked(Taro.getEnv).mockReturnValue(Taro.ENV_TYPE.WEB);
+    vi.mocked(Taro.chooseMedia).mockImplementation(async ({ success }: any) => {
+      success?.({ tempFiles: [{ tempFilePath: 'wxfile://tmp/source.png' }] });
+      return { tempFiles: [{ tempFilePath: 'wxfile://tmp/source.png' }] } as any;
+    });
+    (Taro as any).downloadFile = vi.fn(async ({ success }: any) => {
+      success?.({ statusCode: 200, tempFilePath: 'wxfile://tmp/generated-local.png' });
+      return { statusCode: 200, tempFilePath: 'wxfile://tmp/generated-local.png' };
+    });
+    vi.mocked(Taro.saveImageToPhotosAlbum).mockImplementation(async ({ success }: any) => {
+      success?.();
+      return {} as any;
+    });
+  });
+
+  it('downloads a remote generated image before saving it to the photo album', async () => {
+    const { container } = render(<UploadMaterial />);
+
+    fireEvent.click(screen.getByText('点击上传照片'));
+    await waitFor(() => {
+      expect(container.querySelector('.image-preview')).toBeTruthy();
+    });
+    fireEvent.change(screen.getByPlaceholderText('给猫咪起个好听的名字'), { target: { value: 'Miao' } });
+    await waitFor(() => {
+      expect(container.querySelector('.generate-btn.active')).toBeTruthy();
+    });
+    fireEvent.click(screen.getByText('开始生成数字形象'));
+
+    await waitFor(() => {
+      expect(VolcanoService.pollImageResult).toHaveBeenCalled();
+    });
+
+    fireEvent.click(await screen.findByText('保存图片'));
+
+    await waitFor(() => {
+      expect((Taro as any).downloadFile).toHaveBeenCalledWith(expect.objectContaining({
+        url: 'https://cdn.example.com/generated.png',
+      }));
+    });
+    expect(Taro.saveImageToPhotosAlbum).toHaveBeenCalledWith(expect.objectContaining({
+      filePath: 'wxfile://tmp/generated-local.png',
+    }));
+    expect(Taro.saveImageToPhotosAlbum).not.toHaveBeenCalledWith(expect.objectContaining({
+      filePath: 'https://cdn.example.com/generated.png',
+    }));
+  });
+});

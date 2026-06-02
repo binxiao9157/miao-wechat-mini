@@ -67,6 +67,7 @@ describe('EditProfile', () => {
     vi.mocked(uploadFile).mockReset();
     vi.mocked(request).mockReset();
     vi.mocked(Taro.showToast).mockReset();
+    vi.mocked(Taro.chooseImage).mockReset();
     updateProfile.mockReset();
   });
 
@@ -103,5 +104,56 @@ describe('EditProfile', () => {
       expect(Taro.showToast).toHaveBeenCalledWith({ title: '图片上传失败', icon: 'none' });
     });
     expect(request).not.toHaveBeenCalled();
+  });
+
+  it('keeps the uploaded avatar URL when the profile response omits avatar', async () => {
+    vi.mocked(uploadFile).mockResolvedValue({ url: 'https://cdn.example.com/avatar.png' });
+    vi.mocked(request).mockResolvedValue({
+      data: { user: { nickname: 'Alice' } },
+    } as any);
+
+    render(<EditProfile />);
+    fireEvent.click(screen.getByText('保存'));
+
+    await waitFor(() => {
+      expect(updateProfile).toHaveBeenCalledWith({
+        nickname: 'Alice',
+        avatar: 'https://cdn.example.com/avatar.png',
+      });
+    });
+  });
+
+  it('uses album source when choosing avatar from album', async () => {
+    vi.mocked(Taro.chooseImage).mockImplementation(async ({ fail }: any) => {
+      fail?.({ errMsg: 'cancel' });
+      return { tempFilePaths: [], tempFiles: [] } as any;
+    });
+
+    const { container } = render(<EditProfile />);
+    fireEvent.click(container.querySelector('.avatar-wrapper') as HTMLElement);
+    fireEvent.click(screen.getByText('从相册选择'));
+
+    await waitFor(() => {
+      expect(Taro.chooseImage).toHaveBeenCalledWith(expect.objectContaining({
+        sourceType: ['album'],
+      }));
+    });
+  });
+
+  it('uses camera source when taking a profile photo', async () => {
+    vi.mocked(Taro.chooseImage).mockImplementation(async ({ fail }: any) => {
+      fail?.({ errMsg: 'cancel' });
+      return { tempFilePaths: [], tempFiles: [] } as any;
+    });
+
+    const { container } = render(<EditProfile />);
+    fireEvent.click(container.querySelector('.avatar-wrapper') as HTMLElement);
+    fireEvent.click(screen.getByText('拍照'));
+
+    await waitFor(() => {
+      expect(Taro.chooseImage).toHaveBeenCalledWith(expect.objectContaining({
+        sourceType: ['camera'],
+      }));
+    });
   });
 });

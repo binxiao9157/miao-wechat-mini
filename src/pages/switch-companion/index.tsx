@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView } from '@tarojs/components';
-import { useDidShow } from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import CatAvatar from '../../components/common/CatAvatar';
 import PageHeader from '../../components/layout/PageHeader';
 import { reLaunch } from '../../utils/navigateAdapter';
@@ -17,7 +17,6 @@ export default function SwitchCompanion() {
   const [cats, setCats] = useState<CatInfo[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [points, setPoints] = useState(0);
-  const [deletingCat, setDeletingCat] = useState<CatInfo | null>(null);
 
   const REDEEM_THRESHOLD = storage.getUnlockThreshold();
 
@@ -56,18 +55,21 @@ export default function SwitchCompanion() {
     }
   };
 
-  const handleDeleteCat = (cat: CatInfo, e: any) => {
+  const handleDeleteCat = async (cat: CatInfo, e: any) => {
     e.stopPropagation();
-    setDeletingCat(cat);
-  };
+    const result = await Taro.showModal({
+      title: '确认告别',
+      content: `确定要和 ${cat.name} 说再见吗？此操作不可撤销。`,
+      confirmText: '确认告别',
+      cancelText: '取消',
+      confirmColor: '#FF4D4F',
+    });
+    if (!result.confirm) return;
 
-  const confirmDelete = () => {
-    if (!deletingCat) return;
-    const remaining = storage.deleteCatById(deletingCat.id);
+    const remaining = storage.deleteCatById(cat.id);
     setCats(remaining);
     setActiveId(storage.getActiveCatId());
     setPoints(storage.getPoints().total);
-    setDeletingCat(null);
 
     if (remaining.length === 0) {
       reLaunch('/pages/empty-cat/index');
@@ -166,26 +168,6 @@ export default function SwitchCompanion() {
         </View>
       )}
       </ScrollView>
-
-      {/* 删除确认弹窗 */}
-      {deletingCat && (
-        <View className="delete-overlay" onClick={() => setDeletingCat(null)}>
-          <View className="delete-dialog" onClick={(e) => e.stopPropagation()}>
-            <Text className="delete-title">确认告别</Text>
-            <Text className="delete-desc">
-              确定要和 {deletingCat.name} 说再见吗？此操作不可撤销。
-            </Text>
-            <View className="delete-actions">
-              <View className="delete-btn cancel" onClick={() => setDeletingCat(null)}>
-                <Text className="delete-btn-text">取消</Text>
-              </View>
-              <View className="delete-btn confirm" onClick={confirmDelete}>
-                <Text className="delete-btn-text white">确认告别</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      )}
     </View>
   );
 }

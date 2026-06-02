@@ -2,17 +2,27 @@ import { ACTION_PROMPTS, VolcanoService } from './volcanoService';
 import { FileManager } from './fileManager';
 import type { CatInfo } from './storage';
 import type { FourStageVideoAction } from './videoActions';
+import { request } from '../utils/httpAdapter';
+import Taro from '@tarojs/taro';
 
 export type SecondaryUnlockCat = Pick<
   CatInfo,
   'id' | 'name' | 'breed' | 'color' | 'avatar' | 'source' | 'anchorFrame' | 'placeholderImage' | 'videoPaths'
 >;
-export type VideoLastFrameResolver = (videoUrl: string, fallbackFrame: string) => Promise<string>;
+export type VideoLastFrameResolver = (videoUrl: string, fallbackFrame: string, catId?: string) => Promise<string>;
 
 const SECONDARY_ACTIONS: FourStageVideoAction[] = ['v2_wait', 'v3_return', 'v4_fetch'];
 const activeUnlockTasks = new Map<string, Promise<void>>();
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+function isMiniProgramRuntime() {
+  try {
+    return Taro.getEnv() === Taro.ENV_TYPE.WEAPP;
+  } catch {
+    return false;
+  }
+}
 
 async function extractLastFrameInWeb(videoUrl: string, fallbackFrame: string): Promise<string> {
   if (typeof document === 'undefined') return fallbackFrame;
@@ -63,16 +73,37 @@ async function extractLastFrameInWeb(videoUrl: string, fallbackFrame: string): P
   });
 }
 
-let videoLastFrameResolver: VideoLastFrameResolver = extractLastFrameInWeb;
-
-export function setSecondaryUnlockFrameResolverForTesting(resolver: VideoLastFrameResolver | null) {
-  videoLastFrameResolver = resolver || extractLastFrameInWeb;
+async function extractLastFrameViaServer(videoUrl: string, fallbackFrame: string, catId?: string): Promise<string> {
+  if (!videoUrl || videoUrl.startsWith('miao-mock://')) return fallbackFrame;
+  const response = await request({
+    url: '/api/v1/assets/video-last-frame',
+    method: 'POST',
+    timeout: 150000,
+    data: {
+      videoUrl,
+      catId,
+    },
+  });
+  return response.data?.frameUrl || response.data?.url || fallbackFrame;
 }
 
-async function resolveLastFrame(videoUrl: string | undefined, fallbackFrame: string): Promise<string> {
+async function extractLastFrame(videoUrl: string, fallbackFrame: string, catId?: string): Promise<string> {
+  if (isMiniProgramRuntime()) {
+    return extractLastFrameViaServer(videoUrl, fallbackFrame, catId);
+  }
+  return extractLastFrameInWeb(videoUrl, fallbackFrame);
+}
+
+let videoLastFrameResolver: VideoLastFrameResolver = extractLastFrame;
+
+export function setSecondaryUnlockFrameResolverForTesting(resolver: VideoLastFrameResolver | null) {
+  videoLastFrameResolver = resolver || extractLastFrame;
+}
+
+async function resolveLastFrame(videoUrl: string | undefined, fallbackFrame: string, catId?: string): Promise<string> {
   if (!videoUrl) return fallbackFrame;
   try {
-    return await videoLastFrameResolver(videoUrl, fallbackFrame);
+    return await videoLastFrameResolver(videoUrl, fallbackFrame, catId);
   } catch {
     return fallbackFrame;
   }
@@ -84,7 +115,7 @@ async function runSecondaryUnlock(cat: SecondaryUnlockCat, anchorImage?: string 
 
   try {
     const anchorFrame = anchorImage || cat.anchorFrame || cat.placeholderImage || cat.avatar;
-    const v1LastFrame = await resolveLastFrame(cat.videoPaths?.v1_approach, anchorFrame);
+    const v1LastFrame = await resolveLastFrame(cat.videoPaths?.v1_approach, anchorFrame, cat.id);
     let v2LastFrame = v1LastFrame;
     await FileManager.updateCatVideos(cat.id, {}, true, {
       completed,
@@ -114,7 +145,7 @@ async function runSecondaryUnlock(cat: SecondaryUnlockCat, anchorImage?: string 
         });
         const videoUrl = await VolcanoService.pollTaskResult(task.id);
         if (action === 'v2_wait') {
-          v2LastFrame = await resolveLastFrame(videoUrl, v1LastFrame);
+          v2LastFrame = await resolveLastFrame(videoUrl, v1LastFrame, cat.id);
         }
         completed += 1;
 

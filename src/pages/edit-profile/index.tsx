@@ -52,8 +52,13 @@ export default function EditProfile() {
         method: 'PATCH',
         data: { nickname: nickname.trim(), avatar: avatarUrl },
       });
-      if (res.data?.user) {
-        updateProfile({ nickname: res.data.user.nickname, avatar: res.data.user.avatar });
+      const savedUser = res.data?.user;
+      if (savedUser) {
+        const nextNickname = savedUser.nickname || nickname.trim();
+        const nextAvatar = savedUser.avatar || avatarUrl;
+        updateProfile({ nickname: nextNickname, avatar: nextAvatar });
+        setNickname(nextNickname);
+        setAvatar(nextAvatar);
       }
       setShowSuccessToast(true);
       setManagedTimeout(() => safeBack(), 1500);

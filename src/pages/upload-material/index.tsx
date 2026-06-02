@@ -18,6 +18,7 @@ import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
 import './index.less';
 
 const API_BASE_URL = (process.env.TARO_APP_API_BASE_URL || 'https://www.mmdd10.tech').replace(/\/$/, '');
+const SAVE_ALBUM_CALLBACK_TIMEOUT_MS = 1500;
 
 function isWeApp(): boolean {
   try {
@@ -51,21 +52,28 @@ function resolveImageDownloadUrl(imageUrl: string): string {
 
 function waitForTaroCallbackOrPromise<T>(
   call: (handlers: { success: (res: T) => void; fail: (error: unknown) => void }) => Promise<T> | void,
+  fallbackResolveMs?: number,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     let settled = false;
+    let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
     const settleResolve = (res: T) => {
       if (settled) return;
       settled = true;
+      if (fallbackTimer) clearTimeout(fallbackTimer);
       resolve(res);
     };
     const settleReject = (error: unknown) => {
       if (settled) return;
       settled = true;
+      if (fallbackTimer) clearTimeout(fallbackTimer);
       reject(error);
     };
 
     try {
+      if (fallbackResolveMs) {
+        fallbackTimer = setTimeout(() => settleResolve(undefined as T), fallbackResolveMs);
+      }
       const promise = call({ success: settleResolve, fail: settleReject });
       if (promise && typeof (promise as any).then === 'function') {
         (promise as Promise<T>).then(settleResolve).catch(settleReject);
@@ -92,6 +100,7 @@ export default function UploadMaterial() {
 
   const triggerToast = (msg: string) => {
     setShowToast(msg);
+    Taro.showToast({ title: msg, icon: msg.includes('失败') ? 'none' : 'success' });
     setManagedTimeout(() => setShowToast(null), 2500);
   };
 
@@ -223,7 +232,7 @@ export default function UploadMaterial() {
         success,
         fail,
       }) as any
-    ));
+    ), SAVE_ALBUM_CALLBACK_TIMEOUT_MS);
   };
 
   const handleSaveImage = async () => {

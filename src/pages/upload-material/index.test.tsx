@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Taro from '@tarojs/taro';
 import UploadMaterial from './index';
 import { VolcanoService } from '../../services/volcanoService';
@@ -63,6 +63,7 @@ vi.mock('../../services/volcanoService', () => ({
 
 describe('UploadMaterial generated image actions', () => {
   beforeEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
     (Taro as any).getCurrentInstance = vi.fn(() => ({ router: { params: {} } }));
     vi.mocked(Taro.getEnv).mockReturnValue(Taro.ENV_TYPE.WEB);
@@ -84,6 +85,10 @@ describe('UploadMaterial generated image actions', () => {
       success?.();
       return {} as any;
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('downloads a remote generated image before saving it to the photo album', async () => {
@@ -168,6 +173,32 @@ describe('UploadMaterial generated image actions', () => {
     expect(await screen.findByText('已保存到相册')).toBeTruthy();
     expect(screen.queryByText('保存中...')).toBeFalsy();
   });
+
+  it('recovers the saving state when the album API never calls back after saving', async () => {
+    vi.mocked(Taro.saveImageToPhotosAlbum).mockImplementation(() => new Promise(() => {}) as any);
+
+    const { container } = render(<UploadMaterial />);
+
+    fireEvent.click(screen.getByText('点击上传照片'));
+    await waitFor(() => {
+      expect(container.querySelector('.image-preview')).toBeTruthy();
+    });
+    fireEvent.change(screen.getByPlaceholderText('给猫咪起个好听的名字'), { target: { value: 'Miao' } });
+    fireEvent.click(screen.getByText('开始生成数字形象'));
+
+    await waitFor(() => {
+      expect(VolcanoService.pollImageResult).toHaveBeenCalled();
+    });
+
+    fireEvent.click(await screen.findByText('保存图片'));
+    expect(await screen.findByText('保存中...')).toBeTruthy();
+
+    await waitFor(() => {
+      expect(screen.getByText('已保存到相册')).toBeTruthy();
+    }, { timeout: 2500 });
+    expect(screen.queryByText('保存中...')).toBeFalsy();
+    expect(screen.getByText('保存图片')).toBeTruthy();
+  }, 4000);
 
   it('saves the downloaded generated image without canvas transformation in the mini program', async () => {
     vi.mocked(Taro.getEnv).mockReturnValue(Taro.ENV_TYPE.WEAPP);

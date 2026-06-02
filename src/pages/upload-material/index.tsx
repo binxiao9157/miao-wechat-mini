@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, Input, ScrollView, Canvas } from '@tarojs/components';
+import { View, Text, Image, Input, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { redirectTo, safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
@@ -18,7 +18,6 @@ import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
 import './index.less';
 
 const API_BASE_URL = (process.env.TARO_APP_API_BASE_URL || 'https://www.mmdd10.tech').replace(/\/$/, '');
-const SAVE_WATERMARK_CANVAS_ID = 'miaoSaveWatermarkCanvas';
 
 function isWeApp(): boolean {
   try {
@@ -217,61 +216,6 @@ export default function UploadMaterial() {
     throw new Error(`download status ${downloadRes.statusCode || 'unknown'}`);
   };
 
-  const getImageSize = (filePath: string): Promise<{ width: number; height: number }> => (
-    waitForTaroCallbackOrPromise<any>(({ success, fail }) => (
-      Taro.getImageInfo({
-        src: filePath,
-        success,
-        fail,
-      }) as any
-    ))
-  );
-
-  const exportWatermarkedImage = async (filePath: string): Promise<string> => {
-    if (!isWeApp()) return filePath;
-
-    const imageInfo = await getImageSize(filePath);
-    const width = Math.max(1, Math.round(imageInfo.width || 0));
-    const height = Math.max(1, Math.round(imageInfo.height || 0));
-    const ctx = Taro.createCanvasContext(SAVE_WATERMARK_CANVAS_ID);
-    const fontSize = Math.max(22, Math.round(width * 0.038));
-    const margin = Math.max(24, Math.round(width * 0.035));
-    const badgeWidth = Math.max(126, Math.round(fontSize * 3.8));
-    const badgeHeight = Math.max(46, Math.round(fontSize * 1.65));
-    const badgeX = Math.max(0, width - badgeWidth - margin);
-    const badgeY = Math.max(0, height - badgeHeight - margin);
-
-    ctx.drawImage(filePath, 0, 0, width, height);
-    ctx.save?.();
-    ctx.setFillStyle?.('rgba(74, 45, 32, 0.68)');
-    ctx.fillRect(badgeX, badgeY, badgeWidth, badgeHeight);
-    ctx.setFillStyle?.('rgba(255, 250, 245, 0.96)');
-    ctx.setFontSize?.(fontSize);
-    ctx.setTextAlign?.('center');
-    ctx.setTextBaseline?.('middle');
-    ctx.fillText('MIAO', badgeX + badgeWidth / 2, badgeY + badgeHeight / 2);
-    ctx.restore?.();
-
-    await new Promise<void>((resolve) => {
-      ctx.draw(false, () => resolve());
-    });
-
-    const exportRes = await waitForTaroCallbackOrPromise<any>(({ success, fail }) => (
-      Taro.canvasToTempFilePath({
-        canvasId: SAVE_WATERMARK_CANVAS_ID,
-        width,
-        height,
-        destWidth: width,
-        destHeight: height,
-        fileType: 'jpg',
-        quality: 0.95,
-        success,
-        fail,
-      }) as any
-    ));
-    return exportRes.tempFilePath || filePath;
-  };
-
   const saveLocalImage = async (filePath: string): Promise<void> => {
     await waitForTaroCallbackOrPromise<any>(({ success, fail }) => (
       Taro.saveImageToPhotosAlbum({
@@ -292,8 +236,7 @@ export default function UploadMaterial() {
       const localPath = /^https?:\/\//i.test(downloadUrl)
         ? await downloadImageToLocalFile(downloadUrl)
         : downloadUrl;
-      const savePath = await exportWatermarkedImage(localPath);
-      await saveLocalImage(savePath);
+      await saveLocalImage(localPath);
       triggerToast('已保存到相册');
     } catch (error) {
       console.warn('[UploadMaterial] save generated image failed:', error);
@@ -396,12 +339,6 @@ export default function UploadMaterial() {
           </View>
         </View>
       )}
-
-      <Canvas
-        id={SAVE_WATERMARK_CANVAS_ID}
-        canvasId={SAVE_WATERMARK_CANVAS_ID}
-        style={{ position: 'fixed', left: '-9999px', top: '-9999px', width: '1024px', height: '1024px', opacity: 0, pointerEvents: 'none' }}
-      />
 
       {isDrawing && (
         <View className="loading-overlay">

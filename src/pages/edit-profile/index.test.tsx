@@ -123,6 +123,28 @@ describe('EditProfile', () => {
     });
   });
 
+  it('stores uploaded relative avatar paths as absolute API URLs for mini image rendering', async () => {
+    vi.mocked(uploadFile).mockResolvedValue({ url: '/uploads/avatars/alice.png' });
+    vi.mocked(request).mockResolvedValue({
+      data: { user: { nickname: 'Alice', avatar: '/uploads/avatars/alice.png' } },
+    } as any);
+
+    render(<EditProfile />);
+    fireEvent.click(screen.getByText('保存'));
+
+    await waitFor(() => {
+      expect(request).toHaveBeenCalledWith({
+        url: '/api/v1/me',
+        method: 'PATCH',
+        data: { nickname: 'Alice', avatar: 'https://www.mmdd10.tech/uploads/avatars/alice.png' },
+      });
+    });
+    expect(updateProfile).toHaveBeenCalledWith({
+      nickname: 'Alice',
+      avatar: 'https://www.mmdd10.tech/uploads/avatars/alice.png',
+    });
+  });
+
   it('uses album source when choosing avatar from album', async () => {
     vi.mocked(Taro.chooseImage).mockImplementation(async ({ fail }: any) => {
       fail?.({ errMsg: 'cancel' });

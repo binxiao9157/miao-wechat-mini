@@ -16,6 +16,16 @@ import { checkMediaContent, checkTextContent } from '../../services/contentSafet
 import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
 import './index.less';
 
+const API_BASE_URL = (process.env.TARO_APP_API_BASE_URL || 'https://www.mmdd10.tech').replace(/\/$/, '');
+
+function normalizeRemoteAvatarUrl(url: string | undefined | null): string {
+  const value = String(url || '').trim();
+  if (!value) return '';
+  if (/^(https?:|wxfile:|file:|data:|miao-mock:)/.test(value)) return value;
+  if (value.startsWith('/')) return `${API_BASE_URL}${value}`;
+  return value;
+}
+
 export default function EditProfile() {
   const { user, updateProfile } = useAuthContext();
   const [nickname, setNickname] = useState(user?.nickname || '');
@@ -34,7 +44,7 @@ export default function EditProfile() {
     setIsSaving(true);
     try {
       await checkTextContent(nickname, 'profile');
-      let avatarUrl = avatar;
+      let avatarUrl = normalizeRemoteAvatarUrl(avatar);
       if (avatar && (avatar.startsWith('wxfile://') || avatar.startsWith('http://tmp') || avatar.includes('tmp'))) {
         await checkMediaContent(avatar, 'image', 'profile');
         const uploadData = await uploadFile({
@@ -42,7 +52,7 @@ export default function EditProfile() {
           filePath: avatar,
           name: 'file',
         });
-        avatarUrl = uploadData?.url || uploadData?.data?.url;
+        avatarUrl = normalizeRemoteAvatarUrl(uploadData?.url || uploadData?.data?.url);
         if (!avatarUrl) {
           throw new Error('头像上传失败，请重试');
         }
@@ -55,7 +65,7 @@ export default function EditProfile() {
       const savedUser = res.data?.user;
       if (savedUser) {
         const nextNickname = savedUser.nickname || nickname.trim();
-        const nextAvatar = savedUser.avatar || avatarUrl;
+        const nextAvatar = normalizeRemoteAvatarUrl(savedUser.avatar || avatarUrl);
         updateProfile({ nickname: nextNickname, avatar: nextAvatar });
         setNickname(nextNickname);
         setAvatar(nextAvatar);

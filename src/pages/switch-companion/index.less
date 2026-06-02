@@ -64,19 +64,40 @@
 
 .delete-btn {
   position: absolute;
-  top: 16rpx;
-  left: 16rpx;
-  width: 56rpx;
-  height: 56rpx;
-  background: rgba(255, 77, 79, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 50%;
+  top: 18rpx;
+  left: 18rpx;
+  width: 64rpx;
+  height: 64rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
   z-index: 5;
+}
+
+.delete-btn-surface {
+  width: 46rpx;
+  height: 46rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1rpx solid rgba(93, 64, 55, 0.10);
+  box-shadow: 0 8rpx 20rpx rgba(93, 64, 55, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+
+.delete-btn:active .delete-btn-surface {
+  background: rgba(255, 244, 242, 0.96);
+  border-color: rgba(255, 118, 103, 0.28);
+  box-shadow: 0 6rpx 16rpx rgba(255, 118, 103, 0.16);
+  transform: scale(0.92);
+}
+
+.delete-icon {
+  opacity: 0.62;
 }
 
 .ai-badge {

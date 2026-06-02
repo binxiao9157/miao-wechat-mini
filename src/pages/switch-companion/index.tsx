@@ -9,7 +9,7 @@ const PLUS_WHITE = require('../../assets/profile-icons/plus-white.png');
 const CHECKCIRCLE_GREEN = require('../../assets/profile-icons/checkcircle-green.png');
 const COINS_PRIMARY = require('../../assets/profile-icons/coins-primary.png');
 const SPARKLES_PRIMARY = require('../../assets/profile-icons/sparkles-primary.png');
-const TRASH2_RED2 = require('../../assets/profile-icons/trash2-red2.png');
+const TRASH2_GRAY = require('../../assets/profile-icons/trash2-gray.png');
 import { storage, CatInfo } from '../../services/storage';
 import './index.less';
 
@@ -101,7 +101,9 @@ export default function SwitchCompanion() {
             {/* 删除按钮 */}
             {cats.length > 1 && (
               <View className="delete-btn" onClick={(e) => handleDeleteCat(cat, e)}>
-                <Image className="icon-img" src={TRASH2_RED2} mode="aspectFit" style={{ width: 12, height: 12 }} />
+                <View className="delete-btn-surface">
+                  <Image className="icon-img delete-icon" src={TRASH2_GRAY} mode="aspectFit" style={{ width: 13, height: 13 }} />
+                </View>
               </View>
             )}
 

@@ -19,7 +19,7 @@ const GREETING_NIGHT = '该休息啦~';
 
 const STORY_VIDEO_ID = 'catStoryVideo';
 const STORY_VIDEO_KEYS = ['v1', 'v2', 'v3', 'v4'] as const;
-const SECONDARY_STORY_ACTIONS = ['v2_wait', 'v3_return', 'v4_fetch'] as const;
+const HOME_BUBBLE_DURATION_MS = 1000;
 
 type StoryVideoKey = typeof STORY_VIDEO_KEYS[number];
 
@@ -53,18 +53,6 @@ function getStoryUrls(cat: CatInfo | null) {
 
 function getStoryUrlByKey(urls: ReturnType<typeof getStoryUrls>, key: StoryVideoKey): string {
   return urls[key] || '';
-}
-
-function getSecondaryUnlockProgress(cat: CatInfo) {
-  const completed = SECONDARY_STORY_ACTIONS.filter(action => !!cat.videoPaths?.[action]).length;
-  const currentAction = SECONDARY_STORY_ACTIONS.find(action => !cat.videoPaths?.[action]) || SECONDARY_STORY_ACTIONS[SECONDARY_STORY_ACTIONS.length - 1];
-  return {
-    completed,
-    total: SECONDARY_STORY_ACTIONS.length,
-    currentAction,
-    failed: cat.unlockProgress?.failed || 0,
-    updatedAt: Date.now(),
-  };
 }
 
 function HomeCoverBubble({ text, visible, exiting }: { text: string; visible: boolean; exiting?: boolean }) {
@@ -123,7 +111,7 @@ export default function Home() {
   const activeStoryVideoSrc = getStoryUrlByKey(urls, activeStoryVideoKey) || urls.v1;
   const isPlayingStoryVideo = playbackState !== 'READY';
 
-  const showFloatingBubble = useCallback((text: string, duration = 3000) => {
+  const showFloatingBubble = useCallback((text: string, duration = HOME_BUBBLE_DURATION_MS) => {
     if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current);
     if (bubbleExitTimerRef.current) clearTimeout(bubbleExitTimerRef.current);
     setBubbleExiting(false);
@@ -136,7 +124,7 @@ export default function Home() {
         setBubbleVisible(false);
         setBubbleExiting(false);
       }, 300);
-    }, duration);
+    }, Math.min(duration, HOME_BUBBLE_DURATION_MS));
   }, []);
 
   const showPointsToast = useCallback((amount: number, label?: string) => {
@@ -638,21 +626,6 @@ export default function Home() {
     playStoryVideo('v1');
   };
 
-  const handleResumeUnlock = () => {
-    if (!cat || cat.isUnlocking || !hasVideo || hasStoryModel) return;
-
-    const nextCat: CatInfo = {
-      ...cat,
-      isUnlocking: true,
-      unlockProgress: getSecondaryUnlockProgress(cat),
-      actionGenerationError: undefined,
-      generationUpdatedAt: Date.now(),
-    };
-    storage.saveCatInfo(nextCat);
-    setCat(nextCat);
-    showFloatingBubble('已继续生成后续剧情，请稍后再来互动～', 4000);
-  };
-
   return (
     <View className="home-page">
       {cat && (
@@ -705,13 +678,6 @@ export default function Home() {
             </CoverView>
           )}
 
-          {!cat.isUnlocking && !hasStoryModel && hasVideo && !videoError && (
-            <CoverView className="unlock-progress-badge" onClick={handleResumeUnlock}>
-              <CoverView className="unlock-progress-title">剧情流暂未完成</CoverView>
-              <CoverView className="unlock-progress-text">点击继续生成剧情流</CoverView>
-            </CoverView>
-          )}
-
           <HomeCoverBubble
             text={bubbleText}
             visible={bubbleVisible}
@@ -724,16 +690,6 @@ export default function Home() {
             </CoverView>
           )}
 
-          {cat.isUnlocking && (
-            <CoverView className="unlock-progress-badge">
-              <CoverView className="unlock-progress-title">正在解锁更多动作</CoverView>
-              <CoverView className="unlock-progress-text">
-                {cat.unlockProgress
-                  ? `${cat.unlockProgress.completed}/${cat.unlockProgress.total} 已完成`
-                  : '后台生成中'}
-              </CoverView>
-            </CoverView>
-          )}
         </View>
       )}
 

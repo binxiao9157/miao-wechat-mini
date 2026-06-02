@@ -147,7 +147,7 @@ describe('code quality guardrails', () => {
     expect(homeSource).toContain('<CoverView\n                className="story-touch-layer"');
     expect(homeSource).toContain('<CoverView className="video-error-overlay">');
     expect(homeSource).toContain('<CoverView className="retry-btn" onClick={handleRetryVideo}>');
-    expect(homeSource).toContain('<CoverView className="unlock-progress-badge">');
+    expect(homeSource).not.toContain('unlock-progress-badge');
     expect(homeSource).toContain('<CoverView className="points-toast">');
     expect(homeSource).toContain('<HomeCoverBubble');
   });
@@ -160,12 +160,11 @@ describe('code quality guardrails', () => {
     expect(pointsSource.indexOf('<ScrollView className="points-scroll"')).toBeLessThan(pointsSource.indexOf('<View className="header">'));
   });
 
-  it('keeps home unlock progress above the safe-area tab bar', () => {
+  it('does not render a bottom unlock progress prompt above the tab bar', () => {
     const homeStyles = fs.readFileSync(path.join(srcRoot, 'pages/home/index.less'), 'utf8');
-    const badgeBlock = homeStyles.match(/\.unlock-progress-badge\s*\{[\s\S]+?\n\}/)?.[0] || '';
 
-    expect(badgeBlock).toContain('env(safe-area-inset-bottom)');
-    expect(badgeBlock).toContain('bottom: calc(env(safe-area-inset-bottom) + 196rpx)');
+    expect(homeStyles).not.toContain('.unlock-progress-badge');
+    expect(homeStyles).not.toContain('bottom: calc(env(safe-area-inset-bottom) + 196rpx)');
   });
 
   it('persists first-frame metadata before opening generation progress', () => {

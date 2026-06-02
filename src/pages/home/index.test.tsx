@@ -367,10 +367,10 @@ describe('Home PWA playback model', () => {
     fireEvent.ended(screen.getByTestId('catStoryVideo'));
 
     expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v1.mp4');
-    expect(screen.getByText('剧情流暂未完成')).toBeTruthy();
+    expect(screen.queryByText('剧情流暂未完成')).toBeNull();
   });
 
-  it('shows only the active unlock progress badge while background actions are generating', () => {
+  it('does not show a bottom unlock progress badge while background actions are generating', () => {
     currentActiveCat = {
       ...defaultActiveCat,
       isUnlocking: true,
@@ -382,8 +382,8 @@ describe('Home PWA playback model', () => {
 
     const { container } = render(<Home />);
 
-    expect(container.querySelectorAll('.unlock-progress-badge')).toHaveLength(1);
-    expect(screen.getByText('正在解锁更多动作')).toBeTruthy();
+    expect(container.querySelectorAll('.unlock-progress-badge')).toHaveLength(0);
+    expect(screen.queryByText('正在解锁更多动作')).toBeNull();
     expect(screen.queryByText('剧情流暂未完成')).toBeNull();
   });
 
@@ -423,38 +423,6 @@ describe('Home PWA playback model', () => {
     render(<Home />);
 
     expect(startSecondaryUnlock).not.toHaveBeenCalled();
-  });
-
-  it('lets users resume an already stuck incomplete story flow manually', async () => {
-    currentActiveCat = {
-      ...defaultActiveCat,
-      isUnlocking: false,
-      videoPaths: {
-        v1_approach: 'https://cdn.example.com/v1.mp4',
-        v2_wait: 'https://cdn.example.com/v2.mp4',
-      },
-    };
-
-    render(<Home />);
-    fireEvent.click(screen.getByText('点击继续生成剧情流'));
-
-    expect(storage.saveCatInfo).toHaveBeenCalledWith(expect.objectContaining({
-      id: currentActiveCat.id,
-      isUnlocking: true,
-      unlockProgress: expect.objectContaining({
-        completed: 1,
-        total: 3,
-        currentAction: 'v3_return',
-      }),
-    }));
-    await waitFor(() => {
-      expect(startSecondaryUnlock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: currentActiveCat.id,
-        }),
-        currentActiveCat.anchorFrame || currentActiveCat.placeholderImage || currentActiveCat.avatar,
-      );
-    });
   });
 
   it('does not show a daily login reward toast when the idempotency key already exists', () => {

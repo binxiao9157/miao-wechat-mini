@@ -39,6 +39,7 @@ vi.mock('@tarojs/taro', () => ({
   default: {
     getCurrentInstance: vi.fn(() => ({ router: { params: {} } })),
     showToast: vi.fn(),
+    showModal: vi.fn(async () => ({ confirm: true })),
   },
   navigateTo: vi.fn(),
   reLaunch: vi.fn(),
@@ -53,6 +54,8 @@ vi.mock('../../hooks/useNavSpace', () => ({
 }));
 
 vi.mock('../../utils/navigateAdapter', () => ({
+  navigateTo: vi.fn(),
+  reLaunch: vi.fn(),
   safeBack: vi.fn(async () => undefined),
 }));
 
@@ -94,6 +97,8 @@ import { useAuthContext } from '../../context/AuthContext';
 import { FileManager } from '../../services/fileManager';
 import { storage } from '../../services/storage';
 import { VolcanoService } from '../../services/volcanoService';
+import Taro from '@tarojs/taro';
+import { reLaunch } from '../../utils/navigateAdapter';
 
 describe('GenerationProgress lifecycle', () => {
   beforeEach(() => {
@@ -221,5 +226,30 @@ describe('GenerationProgress lifecycle', () => {
     } finally {
       consoleError.mockRestore();
     }
+  });
+
+  it('keeps a completed generated cat when leaving from the confirm preview', async () => {
+    vi.mocked(FileManager.downloadVideos).mockResolvedValue({ v1_approach: 'https://cdn.example.com/v1.mp4' });
+
+    const { container } = render(<GenerationProgress />);
+
+    await waitFor(() => {
+      expect(container.querySelector('.confirm-view')).toBeTruthy();
+    });
+    await waitFor(() => {
+      expect(container.textContent).toContain('我是你的梦中情猫吗？');
+    }, { timeout: 2500 });
+
+    const backButton = container.querySelector('.back-btn-top') as HTMLElement;
+    expect(backButton).toBeTruthy();
+    await act(async () => {
+      backButton.click();
+    });
+
+    expect(Taro.showModal).toHaveBeenCalledWith(expect.objectContaining({
+      title: '离开确认？',
+    }));
+    expect(storage.deleteCatById).not.toHaveBeenCalled();
+    expect(reLaunch).toHaveBeenCalledWith('/pages/home/index');
   });
 });

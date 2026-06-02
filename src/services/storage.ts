@@ -1188,6 +1188,13 @@ export const storage = {
     storage.persistPoints(points, true);
   },
 
+  updatePoints: (updater: (points: PointsInfo) => void, enqueueSnapshot: boolean = true): PointsInfo => {
+    const points = storage.getPoints();
+    updater(points);
+    storage.persistPoints(points, enqueueSnapshot);
+    return storage.getPoints();
+  },
+
   persistPoints: (points: PointsInfo, enqueueSnapshot: boolean = true) => {
     const nextPoints = {
       ...points,

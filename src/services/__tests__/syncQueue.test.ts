@@ -300,6 +300,34 @@ describe('syncQueue', () => {
     }
   });
 
+  it('backs off automatic retries after a failed task', async () => {
+    vi.useFakeTimers();
+    try {
+      const { syncQueue } = await import('../syncQueue');
+      const { serverSync } = await import('../storage');
+      const syncDiaryToServer = vi.mocked(serverSync.syncDiaryToServer);
+      syncDiaryToServer.mockRejectedValue(new Error('offline'));
+
+      syncQueue.enqueue({
+        type: 'diary',
+        action: 'upsert',
+        id: 'd1',
+        payload: { id: 'd1', content: 'hello' },
+      });
+
+      await syncQueue.flushNow();
+      expect(syncDiaryToServer).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(syncDiaryToServer).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(syncDiaryToServer).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('clears only exhausted tasks', async () => {
     const { syncQueue } = await import('../syncQueue');
     const { serverSync } = await import('../storage');

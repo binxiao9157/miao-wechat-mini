@@ -350,6 +350,18 @@ export default function GenerationProgress() {
 
   const handleGoBack = async () => {
     const cat = catRef.current;
+    if (phase === 'confirm' || redemptionCompletedRef.current) {
+      const result = await Taro.showModal({
+        title: '离开确认？',
+        content: '猫咪已生成完成，离开后会保留当前猫咪。',
+        confirmText: '返回首页',
+        cancelText: '继续查看',
+      });
+      if (!result.confirm) return;
+      reLaunch('/pages/home/index');
+      return;
+    }
+
     const result = await Taro.showModal({
       title: '取消生成？',
       content: '取消后会删除当前未完成的猫咪，并退回本次兑换积分。',
@@ -374,8 +386,8 @@ export default function GenerationProgress() {
   return (
     <View className="generation-progress-page">
       {/* 返回按钮 */}
-      {phase === 'generating' && (
-          <View className="back-btn-top" style={navSpace as React.CSSProperties} onClick={handleGoBack}>
+      {(phase === 'generating' || phase === 'confirm') && (
+        <View className="back-btn-top" style={navSpace as React.CSSProperties} onClick={handleGoBack}>
           <Image className="icon-img" src={ARROWLEFT_WHITE} mode="aspectFit" style={{ width: 20, height: 20 }} />
         </View>
       )}

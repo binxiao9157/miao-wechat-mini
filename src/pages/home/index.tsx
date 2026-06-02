@@ -247,100 +247,95 @@ export default function Home() {
   }, [loadCat]);
 
   const checkDailyLogin = useCallback(() => {
-    const pointsInfo = storage.getPoints();
     const today = new Date().toISOString().slice(0, 10);
-    if (pointsInfo.lastLoginDate !== today) {
-      const transactionId = `daily-login:${today}`;
-      const nextPoints = {
-        ...pointsInfo,
-        lastLoginDate: today,
-        onlineMinutes: 0,
-        lastOnlineUpdate: Date.now(),
-        history: [...pointsInfo.history],
-      };
-      let awarded = false;
-      if (!nextPoints.history.some(item => item.id === transactionId)) {
-        nextPoints.total += 10;
+    const transactionId = `daily-login:${today}`;
+    let awarded = false;
+
+    storage.updatePoints(points => {
+      if (points.lastLoginDate === today) return;
+
+      points.lastLoginDate = today;
+      points.onlineMinutes = 0;
+      points.lastOnlineUpdate = Date.now();
+      points.history = [...points.history];
+
+      if (!points.history.some(item => item.id === transactionId)) {
+        points.total += 10;
         awarded = true;
-        nextPoints.history.unshift({
+        points.history.unshift({
           id: transactionId,
           type: 'earn',
           amount: 10,
           reason: '每日登录奖励',
           timestamp: Date.now(),
         });
-        if (nextPoints.history.length > 50) nextPoints.history.pop();
+        if (points.history.length > 50) points.history.pop();
       }
-      storage.savePoints(nextPoints);
-      if (awarded) showPointsToast(10, '每日登录奖励');
-    }
+    });
+
+    if (awarded) showPointsToast(10, '每日登录奖励');
   }, [showPointsToast]);
 
   const startOnlineTimer = useCallback(() => {
     if (onlineTimerRef.current) clearInterval(onlineTimerRef.current);
     onlineTimerRef.current = setInterval(() => {
-      const p = storage.getPoints();
       const now = Date.now();
+      let awarded = false;
 
-      if (now - p.lastOnlineUpdate > 5 * 60000) {
-        p.lastOnlineUpdate = now;
-        storage.savePoints(p);
-        return;
-      }
-
-      const diffMinutes = Math.floor((now - p.lastOnlineUpdate) / 60000);
-      if (diffMinutes >= 1) {
-        p.onlineMinutes += diffMinutes;
-        p.lastOnlineUpdate = now;
-
-        if (p.onlineMinutes >= 10 && p.onlineMinutes - diffMinutes < 10) {
-          const transactionId = `online-10min:${new Date().toISOString().slice(0, 10)}`;
-          let awarded = false;
-          if (!p.history.some(item => item.id === transactionId)) {
-            p.total += 10;
-            awarded = true;
-            p.history.unshift({
-              id: transactionId,
-              type: 'earn',
-              amount: 10,
-              reason: '在线时长奖励',
-              timestamp: Date.now(),
-            });
-            if (p.history.length > 50) p.history.pop();
-          }
-          if (awarded) showPointsToast(10, '在线时长奖励');
+      storage.updatePoints(points => {
+        if (now - points.lastOnlineUpdate > 5 * 60000) {
+          points.lastOnlineUpdate = now;
+          return;
         }
-        storage.savePoints(p);
-      }
+
+        const diffMinutes = Math.floor((now - points.lastOnlineUpdate) / 60000);
+        if (diffMinutes >= 1) {
+          const previousOnlineMinutes = points.onlineMinutes;
+          points.onlineMinutes += diffMinutes;
+          points.lastOnlineUpdate = now;
+
+          if (points.onlineMinutes >= 10 && previousOnlineMinutes < 10) {
+            const transactionId = `online-10min:${new Date().toISOString().slice(0, 10)}`;
+            if (!points.history.some(item => item.id === transactionId)) {
+              points.total += 10;
+              awarded = true;
+              points.history.unshift({
+                id: transactionId,
+                type: 'earn',
+                amount: 10,
+                reason: '在线时长奖励',
+                timestamp: Date.now(),
+              });
+              if (points.history.length > 50) points.history.pop();
+            }
+          }
+        }
+      });
+
+      if (awarded) showPointsToast(10, '在线时长奖励');
     }, 60000);
   }, [showPointsToast]);
 
   const grantInteractionPoints = useCallback(() => {
-    const p = storage.getPoints();
     const today = new Date().toISOString().slice(0, 10);
-    if (p.lastInteractionDate !== today) {
-      p.dailyInteractionPoints = 0;
-      p.lastInteractionDate = today;
-    }
-    if (p.dailyInteractionPoints < 20) {
-      const nextInteractionPoints = p.dailyInteractionPoints + 5;
-      const transactionId = `interaction:${today}:${nextInteractionPoints}`;
-      p.dailyInteractionPoints += 5;
-      let awarded = false;
-      if (!p.history.some(item => item.id === transactionId)) {
-        p.total += 5;
-        awarded = true;
-        p.history.unshift({
-          id: transactionId,
-          type: 'earn',
-          amount: 5,
-          reason: '互动奖励',
-          timestamp: Date.now(),
-        });
-        if (p.history.length > 50) p.history.pop();
+    let transactionId = '';
+
+    storage.updatePoints(points => {
+      if (points.lastInteractionDate !== today) {
+        points.dailyInteractionPoints = 0;
+        points.lastInteractionDate = today;
       }
-      storage.savePoints(p);
-      if (awarded) showPointsToast(5, '互动奖励');
+
+      if (points.dailyInteractionPoints < 20) {
+        const nextInteractionPoints = points.dailyInteractionPoints + 5;
+        transactionId = `interaction:${today}:${nextInteractionPoints}`;
+        points.dailyInteractionPoints = nextInteractionPoints;
+      }
+    });
+
+    if (transactionId) {
+      storage.addPoints(5, '互动奖励', transactionId);
+      showPointsToast(5, '互动奖励');
     }
   }, [showPointsToast]);
 
@@ -626,7 +621,6 @@ export default function Home() {
                 autoplay={isPlayingStoryVideo}
                 initialTime={0}
                 objectFit="cover"
-                onLoadedMetaData={() => setStoryVideoReady(true)}
                 onPlay={() => handleVideoPlay(activeStoryVideoKey)}
                 onEnded={handleActiveVideoEnded}
                 onError={() => handleVideoError(activeStoryVideoKey)}

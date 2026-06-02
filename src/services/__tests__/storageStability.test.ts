@@ -180,6 +180,37 @@ describe('storage stability behavior', () => {
     });
   });
 
+  it('applies point mutations against the latest stored value', async () => {
+    const { storage, setSyncQueueForTesting } = await import('../storage');
+    setSyncQueueForTesting(syncQueue);
+    storage.saveUserInfo({ username: 'alice', nickname: 'Alice', avatar: '' });
+
+    storage.updatePoints(points => {
+      points.total += 10;
+      points.history.unshift({
+        id: 'tx-1',
+        type: 'earn',
+        amount: 10,
+        reason: 'first',
+        timestamp: Date.now(),
+      });
+    });
+    storage.updatePoints(points => {
+      points.total += 5;
+      points.history.unshift({
+        id: 'tx-2',
+        type: 'earn',
+        amount: 5,
+        reason: 'second',
+        timestamp: Date.now(),
+      });
+    });
+
+    const points = storage.getPoints();
+    expect(points.total).toBe(15);
+    expect(points.history.map(item => item.id)).toEqual(['tx-2', 'tx-1']);
+  });
+
   it('clears stale background unlock state when reading cats', async () => {
     vi.useFakeTimers();
     try {

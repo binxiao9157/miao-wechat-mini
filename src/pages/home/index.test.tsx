@@ -38,8 +38,16 @@ const resetVideoContextMocks = () => {
 vi.mock('@tarojs/components', async () => {
   const React = await import('react');
   const toDomProps = (props: Record<string, any>) => {
-    const { className, children, onClick, onEnded, onError, ...rest } = props;
-    return { className, children, onClick, onEnded, onError, ...rest };
+    const { className, children, onClick, onEnded, onError, onLoadedMetaData, ...rest } = props;
+    return {
+      className,
+      children,
+      onClick,
+      onEnded,
+      onError,
+      onLoadedMetadata: onLoadedMetaData,
+      ...rest,
+    };
   };
   return {
     View: (props: any) => React.createElement('div', toDomProps(props)),
@@ -87,6 +95,20 @@ vi.mock('../../services/storage', () => ({
       history: [],
     })),
     savePoints: vi.fn(),
+    updatePoints: vi.fn((updater: (points: any) => void) => {
+      const points = {
+        total: 0,
+        lastLoginDate: new Date().toISOString().slice(0, 10),
+        dailyInteractionPoints: 0,
+        lastInteractionDate: null,
+        onlineMinutes: 0,
+        lastOnlineUpdate: Date.now(),
+        history: [],
+      };
+      updater(points);
+      return points;
+    }),
+    addPoints: vi.fn(),
   },
 }));
 
@@ -158,6 +180,19 @@ describe('Home PWA playback model', () => {
     }));
   });
 
+  it('uses idempotent point transactions for story interactions', () => {
+    render(<Home />);
+
+    fireEvent.click(screen.getByTestId('story-touch-layer'));
+
+    expect(storage.addPoints).toHaveBeenCalledWith(
+      5,
+      '互动奖励',
+      expect.stringMatching(/^interaction:\d{4}-\d{2}-\d{2}:5$/),
+    );
+    expect(storage.savePoints).not.toHaveBeenCalled();
+  });
+
   it('marks the requested story video for native autoplay after tap', () => {
     render(<Home />);
 
@@ -215,6 +250,51 @@ describe('Home PWA playback model', () => {
     fireEvent.ended(screen.getByTestId('catStoryVideo'));
     expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v2.mp4');
     expect(screen.getByTestId('catStoryVideo').className).toContain('loading');
+  });
+
+  it('does not reveal a switched story video on metadata before native playback starts', () => {
+    render(<Home />);
+
+    fireEvent.click(screen.getByTestId('story-touch-layer'));
+    fireEvent.loadedMetadata(screen.getByTestId('catStoryVideo'));
+    expect(screen.getByTestId('catStoryVideo').className).toContain('loading');
+
+    fireEvent.play(screen.getByTestId('catStoryVideo'));
+    expect(screen.getByTestId('catStoryVideo').className).not.toContain('loading');
+
+    fireEvent.ended(screen.getByTestId('catStoryVideo'));
+    expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v2.mp4');
+    expect(screen.getByTestId('catStoryVideo').className).toContain('loading');
+
+    fireEvent.loadedMetadata(screen.getByTestId('catStoryVideo'));
+    expect(screen.getByTestId('catStoryVideo').className).toContain('loading');
+  });
+
+  it('replays V2 five times before falling through to V3 without interaction', () => {
+    render(<Home />);
+
+    fireEvent.click(screen.getByTestId('story-touch-layer'));
+    fireEvent.ended(screen.getByTestId('catStoryVideo'));
+    expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v2.mp4');
+
+    for (let i = 0; i < 4; i += 1) {
+      fireEvent.ended(screen.getByTestId('catStoryVideo'));
+      expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v2.mp4');
+    }
+
+    fireEvent.ended(screen.getByTestId('catStoryVideo'));
+    expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v3.mp4');
+  });
+
+  it('switches from V2 waiting to V4 when the user interacts', () => {
+    render(<Home />);
+
+    fireEvent.click(screen.getByTestId('story-touch-layer'));
+    fireEvent.ended(screen.getByTestId('catStoryVideo'));
+    expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v2.mp4');
+
+    fireEvent.click(screen.getByTestId('story-touch-layer'));
+    expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v4.mp4');
   });
 
   it('resets and plays the single native video before starting a story segment', () => {

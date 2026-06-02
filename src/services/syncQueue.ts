@@ -19,6 +19,8 @@ class SyncQueue {
   private dirty = new Map<string, SyncTask>();
   private timer: ReturnType<typeof setTimeout> | null = null;
   private readonly DEBOUNCE_MS = 5000;
+  private readonly RETRY_BASE_MS = 5000;
+  private readonly MAX_RETRY_DELAY_MS = 60000;
   private readonly MAX_RETRIES = 3;
   private flushing = false;
   private flushWaiters: Array<() => void> = [];
@@ -65,6 +67,21 @@ class SyncQueue {
   private resolveFlushWaiters() {
     const waiters = this.flushWaiters.splice(0);
     for (const resolve of waiters) resolve();
+  }
+
+  private getRetryDelayMs(task: SyncTask): number {
+    const retries = task.retries ?? 0;
+    if (retries <= 0) return 0;
+    return Math.min(this.RETRY_BASE_MS * (2 ** retries), this.MAX_RETRY_DELAY_MS);
+  }
+
+  private getRemainingRetryDelayMs(task: SyncTask, now: number): number {
+    if (!task.lastTriedAt) return 0;
+    return Math.max(0, this.getRetryDelayMs(task) - (now - task.lastTriedAt));
+  }
+
+  private isTaskDue(task: SyncTask, now: number): boolean {
+    return this.getRemainingRetryDelayMs(task, now) <= 0;
   }
 
   private hydrate() {
@@ -138,19 +155,34 @@ class SyncQueue {
     if (hasRetriedTask) this.scheduleFlush();
   }
 
-  private scheduleFlush() {
+  private scheduleFlush(delayMs: number = this.DEBOUNCE_MS) {
     if (this.timer) clearTimeout(this.timer);
-    this.timer = setTimeout(() => this.flush(), this.DEBOUNCE_MS);
+    this.timer = setTimeout(() => this.flush(), Math.max(0, delayMs));
   }
 
-  async flush() {
+  private scheduleNextPendingFlush() {
+    const tasks = Array.from(this.dirty.values()).filter(task => (task.retries ?? 0) < this.MAX_RETRIES);
+    if (tasks.length === 0) return;
+    const now = Date.now();
+    const delay = Math.min(...tasks.map(task => this.getRemainingRetryDelayMs(task, now)));
+    this.scheduleFlush(delay > 0 ? delay : this.DEBOUNCE_MS);
+  }
+
+  async flush(force = false) {
     this.hydrate();
     if (this.flushing) {
       await new Promise<void>(resolve => { this.flushWaiters.push(resolve); });
       return;
     }
-    const tasks = Array.from(this.dirty.values()).filter(task => (task.retries ?? 0) < this.MAX_RETRIES);
+    const now = Date.now();
+    const tasks = Array.from(this.dirty.values()).filter(task => (
+      (task.retries ?? 0) < this.MAX_RETRIES && (force || this.isTaskDue(task, now))
+    ));
     this.timer = null;
+    if (tasks.length === 0) {
+      this.scheduleNextPendingFlush();
+      return;
+    }
     this.flushing = true;
 
     try {
@@ -189,7 +221,7 @@ class SyncQueue {
 
       // 如果 flush 期间有新任务入队，再调度一次
       if (Array.from(this.dirty.values()).some(task => (task.retries ?? 0) < this.MAX_RETRIES)) {
-        this.scheduleFlush();
+        this.scheduleNextPendingFlush();
       }
     }
   }
@@ -235,7 +267,7 @@ class SyncQueue {
       clearTimeout(this.timer);
       this.timer = null;
     }
-    await this.flush();
+    await this.flush(true);
   }
 }
 

@@ -203,6 +203,20 @@ describe('Home PWA playback model', () => {
     }
   });
 
+  it('hides a newly switched native story video until playback is ready', () => {
+    render(<Home />);
+
+    fireEvent.click(screen.getByTestId('story-touch-layer'));
+    expect(screen.getByTestId('catStoryVideo').className).toContain('loading');
+
+    fireEvent.play(screen.getByTestId('catStoryVideo'));
+    expect(screen.getByTestId('catStoryVideo').className).not.toContain('loading');
+
+    fireEvent.ended(screen.getByTestId('catStoryVideo'));
+    expect(screen.getByTestId('catStoryVideo').getAttribute('src')).toBe('https://cdn.example.com/v2.mp4');
+    expect(screen.getByTestId('catStoryVideo').className).toContain('loading');
+  });
+
   it('resets and plays the single native video before starting a story segment', () => {
     render(<Home />);
     resetVideoContextMocks();

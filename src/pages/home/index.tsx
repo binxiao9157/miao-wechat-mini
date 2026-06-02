@@ -72,6 +72,7 @@ export default function Home() {
   const [playbackState, setPlaybackState] = useState<PlaybackState>('READY');
   const [v2LoopCount, setV2LoopCount] = useState(0);
   const [videoError, setVideoError] = useState(false);
+  const [storyVideoReady, setStoryVideoReady] = useState(true);
   const [playRequest, setPlayRequest] = useState<{ key: StoryVideoKey; nonce: number } | null>(null);
 
   useShareAppMessage(() => ({
@@ -194,6 +195,7 @@ export default function Home() {
     clearPlaybackTimers();
     requestedVideoKeyRef.current = key;
     setVideoError(false);
+    setStoryVideoReady(false);
     pauseAllVideos();
     setPlayRequest({ key, nonce: playRequestNonceRef.current + 1 });
     playRequestNonceRef.current += 1;
@@ -219,6 +221,7 @@ export default function Home() {
     setPlaybackState('READY');
     setV2LoopCount(0);
     setVideoError(false);
+    setStoryVideoReady(true);
     resetAllVideoPositions();
   }, [clearPlaybackTimers, pauseAllVideos, resetAllVideoPositions]);
 
@@ -582,6 +585,7 @@ export default function Home() {
     });
     requestedVideoKeyRef.current = null;
     clearPlaybackTimers();
+    setStoryVideoReady(true);
     setVideoError(false);
   };
 
@@ -610,7 +614,7 @@ export default function Home() {
               <Video
                 key={`${activeStoryVideoKey}:${activeStoryVideoSrc}`}
                 id={STORY_VIDEO_ID}
-                className={`cat-video story-video ${isPlayingStoryVideo ? 'active' : ''}`}
+                className={`cat-video story-video ${isPlayingStoryVideo ? 'active' : ''} ${isPlayingStoryVideo && !storyVideoReady ? 'loading' : ''}`}
                 src={activeStoryVideoSrc}
                 muted
                 showFullscreenBtn={false}
@@ -622,6 +626,7 @@ export default function Home() {
                 autoplay={isPlayingStoryVideo}
                 initialTime={0}
                 objectFit="cover"
+                onLoadedMetaData={() => setStoryVideoReady(true)}
                 onPlay={() => handleVideoPlay(activeStoryVideoKey)}
                 onEnded={handleActiveVideoEnded}
                 onError={() => handleVideoError(activeStoryVideoKey)}

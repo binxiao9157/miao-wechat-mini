@@ -21,7 +21,7 @@ vi.mock('../volcanoService', () => ({
 }));
 
 import { FileManager } from '../fileManager';
-import { startSecondaryUnlock } from '../secondaryUnlockService';
+import { setSecondaryUnlockFrameResolverForTesting, startSecondaryUnlock } from '../secondaryUnlockService';
 import { VolcanoService } from '../volcanoService';
 
 describe('secondary unlock service', () => {
@@ -39,9 +39,11 @@ describe('secondary unlock service', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();
+    setSecondaryUnlockFrameResolverForTesting(async (_videoUrl, fallbackFrame) => fallbackFrame);
   });
 
   afterEach(() => {
+    setSecondaryUnlockFrameResolverForTesting(null);
     vi.useRealTimers();
   });
 
@@ -72,12 +74,12 @@ describe('secondary unlock service', () => {
     expect(VolcanoService.submitTask).toHaveBeenNthCalledWith(2, cat.anchorFrame, expect.objectContaining({
       prompt: 'v3 prompt',
       duration: 7,
-      hasLastFrame: false,
+      hasLastFrame: true,
     }));
     expect(VolcanoService.submitTask).toHaveBeenNthCalledWith(3, cat.anchorFrame, expect.objectContaining({
       prompt: 'v4 prompt',
       duration: 7,
-      hasLastFrame: false,
+      hasLastFrame: true,
     }));
     expect(VolcanoService.pollTaskResult).toHaveBeenNthCalledWith(1, 'task-v2 prompt');
     expect(FileManager.updateCatVideos).toHaveBeenLastCalledWith(cat.id, {}, false, undefined, {
@@ -98,5 +100,50 @@ describe('secondary unlock service', () => {
     await first;
 
     expect(VolcanoService.submitTask).toHaveBeenCalledTimes(3);
+  });
+
+  it('chains secondary video frames using the PWA waterfall model', async () => {
+    setSecondaryUnlockFrameResolverForTesting(async (videoUrl, fallbackFrame) => (
+      videoUrl.includes('/task-v2 prompt.mp4') ? 'frame:v2-last' :
+      videoUrl.includes('/v1.mp4') ? 'frame:v1-last' :
+      fallbackFrame
+    ));
+
+    const task = startSecondaryUnlock({
+      ...cat,
+      videoPaths: {
+        v1_approach: 'https://cdn.example.com/v1.mp4',
+      },
+    });
+
+    await vi.waitFor(() => {
+      expect(VolcanoService.submitTask).toHaveBeenCalledTimes(1);
+    });
+    await vi.advanceTimersByTimeAsync(3000);
+    await vi.waitFor(() => {
+      expect(VolcanoService.submitTask).toHaveBeenCalledTimes(2);
+    });
+    await vi.advanceTimersByTimeAsync(3000);
+    await vi.waitFor(() => {
+      expect(VolcanoService.submitTask).toHaveBeenCalledTimes(3);
+    });
+    await vi.advanceTimersByTimeAsync(3000);
+    await task;
+
+    expect(VolcanoService.submitTask).toHaveBeenNthCalledWith(1, 'frame:v1-last', expect.objectContaining({
+      firstFrame: 'frame:v1-last',
+      lastFrame: 'frame:v1-last',
+      hasLastFrame: true,
+    }));
+    expect(VolcanoService.submitTask).toHaveBeenNthCalledWith(2, 'frame:v2-last', expect.objectContaining({
+      firstFrame: 'frame:v2-last',
+      lastFrame: cat.anchorFrame,
+      hasLastFrame: true,
+    }));
+    expect(VolcanoService.submitTask).toHaveBeenNthCalledWith(3, 'frame:v2-last', expect.objectContaining({
+      firstFrame: 'frame:v2-last',
+      lastFrame: cat.anchorFrame,
+      hasLastFrame: true,
+    }));
   });
 });

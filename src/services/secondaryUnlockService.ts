@@ -5,13 +5,78 @@ import type { FourStageVideoAction } from './videoActions';
 
 export type SecondaryUnlockCat = Pick<
   CatInfo,
-  'id' | 'name' | 'breed' | 'color' | 'avatar' | 'source' | 'anchorFrame' | 'placeholderImage'
+  'id' | 'name' | 'breed' | 'color' | 'avatar' | 'source' | 'anchorFrame' | 'placeholderImage' | 'videoPaths'
 >;
+export type VideoLastFrameResolver = (videoUrl: string, fallbackFrame: string) => Promise<string>;
 
 const SECONDARY_ACTIONS: FourStageVideoAction[] = ['v2_wait', 'v3_return', 'v4_fetch'];
 const activeUnlockTasks = new Map<string, Promise<void>>();
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function extractLastFrameInWeb(videoUrl: string, fallbackFrame: string): Promise<string> {
+  if (typeof document === 'undefined') return fallbackFrame;
+
+  return new Promise((resolve) => {
+    const video = document.createElement('video');
+    const cleanup = () => {
+      try {
+        video.src = '';
+        video.load();
+      } catch {
+        // noop
+      }
+    };
+    const finish = (frame: string) => {
+      clearTimeout(timeout);
+      cleanup();
+      resolve(frame);
+    };
+    const timeout = setTimeout(() => finish(fallbackFrame), 15000);
+
+    video.crossOrigin = 'anonymous';
+    video.muted = true;
+    video.playsInline = true;
+    video.src = videoUrl;
+
+    video.addEventListener('loadedmetadata', () => {
+      try {
+        video.currentTime = Math.max(0, video.duration - 0.1);
+      } catch {
+        finish(fallbackFrame);
+      }
+    });
+    video.addEventListener('seeked', () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 480;
+        canvas.height = video.videoHeight || 854;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return finish(fallbackFrame);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        finish(canvas.toDataURL('image/jpeg', 0.92));
+      } catch {
+        finish(fallbackFrame);
+      }
+    });
+    video.addEventListener('error', () => finish(fallbackFrame));
+  });
+}
+
+let videoLastFrameResolver: VideoLastFrameResolver = extractLastFrameInWeb;
+
+export function setSecondaryUnlockFrameResolverForTesting(resolver: VideoLastFrameResolver | null) {
+  videoLastFrameResolver = resolver || extractLastFrameInWeb;
+}
+
+async function resolveLastFrame(videoUrl: string | undefined, fallbackFrame: string): Promise<string> {
+  if (!videoUrl) return fallbackFrame;
+  try {
+    return await videoLastFrameResolver(videoUrl, fallbackFrame);
+  } catch {
+    return fallbackFrame;
+  }
+}
 
 async function runSecondaryUnlock(cat: SecondaryUnlockCat, anchorImage?: string | null) {
   let completed = 0;
@@ -19,6 +84,8 @@ async function runSecondaryUnlock(cat: SecondaryUnlockCat, anchorImage?: string 
 
   try {
     const anchorFrame = anchorImage || cat.anchorFrame || cat.placeholderImage || cat.avatar;
+    const v1LastFrame = await resolveLastFrame(cat.videoPaths?.v1_approach, anchorFrame);
+    let v2LastFrame = v1LastFrame;
     await FileManager.updateCatVideos(cat.id, {}, true, {
       completed,
       total: SECONDARY_ACTIONS.length,
@@ -36,14 +103,19 @@ async function runSecondaryUnlock(cat: SecondaryUnlockCat, anchorImage?: string 
         });
 
         const actionPrompt = ACTION_PROMPTS[action];
-        const task = await VolcanoService.submitTask(anchorFrame, {
+        const actionFirstFrame = action === 'v2_wait' ? v1LastFrame : v2LastFrame;
+        const actionLastFrame = action === 'v2_wait' ? v1LastFrame : anchorFrame;
+        const task = await VolcanoService.submitTask(actionFirstFrame, {
           prompt: actionPrompt.prompt,
           duration: actionPrompt.duration,
-          firstFrame: anchorFrame,
-          lastFrame: anchorFrame,
-          hasLastFrame: action === 'v2_wait',
+          firstFrame: actionFirstFrame,
+          lastFrame: actionLastFrame,
+          hasLastFrame: true,
         });
         const videoUrl = await VolcanoService.pollTaskResult(task.id);
+        if (action === 'v2_wait') {
+          v2LastFrame = await resolveLastFrame(videoUrl, v1LastFrame);
+        }
         completed += 1;
 
         await FileManager.updateCatVideos(cat.id, { [action]: videoUrl }, true, {

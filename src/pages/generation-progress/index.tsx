@@ -308,6 +308,7 @@ export default function GenerationProgress() {
       source: activeCat.source,
       anchorFrame: activeCat.anchorFrame,
       placeholderImage: activeCat.placeholderImage,
+      videoPaths: activeCat.videoPaths,
     } : null);
 
     if (!cat) {

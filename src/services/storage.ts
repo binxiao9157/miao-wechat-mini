@@ -1228,15 +1228,32 @@ export const storage = {
     return points.total;
   },
 
+  ensureDebugPoints: (minimum: number = storage.getUnlockThreshold(), reason: string = '调试积分补足') => {
+    const target = Math.max(0, Number(minimum) || 0);
+    const points = storage.getPoints();
+    if (!storage.getIsPointsCheat() || points.total >= target) {
+      return points;
+    }
+
+    const topUpAmount = target - points.total;
+    const transactionId = `debug-points-cheat:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
+    storage.addPoints(topUpAmount, reason, transactionId);
+    trigger('points-updated', { total: target });
+    return storage.getPoints();
+  },
+
   getUnlockThreshold: (): number => {
     const cats = storage.getCatList();
     return cats.length * 200;
   },
 
   deductPoints: (amount: number, reason: string = '积分消耗', transactionId?: string) => {
-    const points = storage.getPoints();
+    let points = storage.getPoints();
     if (transactionId && points.history.some(item => item.id === transactionId)) {
       return true;
+    }
+    if (points.total < amount) {
+      points = storage.ensureDebugPoints(amount);
     }
     if (points.total >= amount) {
       points.total -= amount;
@@ -1495,6 +1512,10 @@ export const storage = {
       return;
     }
     storage.setItem(getUserKey(USER_DATA_KEYS.IS_POINTS_CHEAT), enabled.toString());
+    if (enabled) {
+      storage.ensureDebugPoints(storage.getUnlockThreshold());
+    }
+    trigger('points-updated', { total: storage.getPoints().total });
   },
 
   getIsPointsCheat: (): boolean => {

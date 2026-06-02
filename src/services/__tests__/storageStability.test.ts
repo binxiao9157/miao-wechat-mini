@@ -180,6 +180,97 @@ describe('storage stability behavior', () => {
     });
   });
 
+  it('tops up real points when debug points cheat is enabled', async () => {
+    vi.stubEnv('TARO_APP_DEBUG_BUILD', 'true');
+
+    try {
+      const { storage, setSyncQueueForTesting } = await import('../storage');
+      setSyncQueueForTesting(syncQueue);
+      storage.saveUserInfo({ username: 'debug-points-user', nickname: 'Debug', avatar: '' });
+      storage.saveCatList([
+        {
+          id: 'cat-debug',
+          name: 'Debug Cat',
+          breed: '狸花',
+          color: 'brown',
+          source: 'uploaded',
+          avatar: 'avatar-debug',
+          createdAt: 1,
+        },
+      ]);
+      storage.savePoints({
+        total: 70,
+        lastLoginDate: null,
+        dailyInteractionPoints: 0,
+        lastInteractionDate: null,
+        onlineMinutes: 0,
+        lastOnlineUpdate: Date.now(),
+        history: [],
+      });
+      syncQueue.enqueue.mockClear();
+
+      storage.setIsPointsCheat(true);
+
+      const points = storage.getPoints();
+      expect(points.total).toBe(200);
+      expect(points.history[0]).toMatchObject({
+        type: 'earn',
+        amount: 130,
+        reason: '调试积分补足',
+      });
+      expect(syncQueue.enqueue).toHaveBeenCalledWith({
+        type: 'points',
+        id: expect.stringMatching(/^debug-points-cheat:/),
+        action: 'transaction',
+        payload: expect.objectContaining({
+          type: 'earn',
+          amount: 130,
+          reason: '调试积分补足',
+        }),
+      });
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it('auto tops up before point deduction while debug points cheat is enabled', async () => {
+    vi.stubEnv('TARO_APP_DEBUG_BUILD', 'true');
+
+    try {
+      const { storage, setSyncQueueForTesting } = await import('../storage');
+      setSyncQueueForTesting(syncQueue);
+      storage.saveUserInfo({ username: 'debug-deduct-user', nickname: 'Debug', avatar: '' });
+      storage.savePoints({
+        total: 70,
+        lastLoginDate: null,
+        dailyInteractionPoints: 0,
+        lastInteractionDate: null,
+        onlineMinutes: 0,
+        lastOnlineUpdate: Date.now(),
+        history: [],
+      });
+      storage.setIsPointsCheat(true);
+      syncQueue.enqueue.mockClear();
+
+      expect(storage.deductPoints(200, '解锁新伙伴', 'unlock:debug-cat')).toBe(true);
+
+      const points = storage.getPoints();
+      expect(points.total).toBe(0);
+      expect(points.history[0]).toMatchObject({
+        id: 'unlock:debug-cat',
+        type: 'spend',
+        amount: 200,
+      });
+      expect(points.history[1]).toMatchObject({
+        type: 'earn',
+        amount: 130,
+        reason: '调试积分补足',
+      });
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('applies point mutations against the latest stored value', async () => {
     const { storage, setSyncQueueForTesting } = await import('../storage');
     setSyncQueueForTesting(syncQueue);

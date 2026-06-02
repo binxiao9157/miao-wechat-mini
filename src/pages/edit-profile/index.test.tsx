@@ -6,6 +6,7 @@ import EditProfile from './index';
 import { useAuthContext } from '../../context/AuthContext';
 import { request } from '../../utils/httpAdapter';
 import { uploadFile } from '../../utils/uploadAdapter';
+import { switchTab } from '../../utils/navigateAdapter';
 
 vi.mock('@tarojs/components', async () => {
   const React = await import('react');
@@ -44,6 +45,13 @@ vi.mock('../../utils/uploadAdapter', () => ({
 vi.mock('../../utils/navigateAdapter', () => ({
   safeBack: vi.fn(async () => undefined),
   navigateTo: vi.fn(async () => undefined),
+  switchTab: vi.fn(async () => undefined),
+}));
+
+vi.mock('../../hooks/useManagedTimeout', () => ({
+  useManagedTimeout: () => ({
+    setManagedTimeout: (callback: () => void) => callback(),
+  }),
 }));
 
 vi.mock('../../services/contentSafetyService', () => ({
@@ -68,6 +76,7 @@ describe('EditProfile', () => {
     vi.mocked(request).mockReset();
     vi.mocked(Taro.showToast).mockReset();
     vi.mocked(Taro.chooseImage).mockReset();
+    vi.mocked(switchTab).mockReset();
     updateProfile.mockReset();
   });
 
@@ -142,6 +151,26 @@ describe('EditProfile', () => {
     expect(updateProfile).toHaveBeenCalledWith({
       nickname: 'Alice',
       avatar: 'https://www.mmdd10.tech/uploads/avatars/alice.png',
+    });
+  });
+
+  it('returns to the profile tab after saving profile changes', async () => {
+    vi.mocked(uploadFile).mockResolvedValue({ url: 'https://cdn.example.com/avatar.png' });
+    vi.mocked(request).mockResolvedValue({
+      data: { user: { nickname: 'Alice', avatar: 'https://cdn.example.com/avatar.png' } },
+    } as any);
+
+    render(<EditProfile />);
+    fireEvent.click(screen.getByText('保存'));
+
+    await waitFor(() => {
+      expect(updateProfile).toHaveBeenCalledWith({
+        nickname: 'Alice',
+        avatar: 'https://cdn.example.com/avatar.png',
+      });
+    });
+    await waitFor(() => {
+      expect(switchTab).toHaveBeenCalledWith('/pages/profile/index');
     });
   });
 

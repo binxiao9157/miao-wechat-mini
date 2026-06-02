@@ -99,6 +99,7 @@ export default function Profile() {
   useDidShow(() => {
     Taro.eventCenter.trigger('tabbar:show');
     Taro.eventCenter.trigger('tabbar:route', 'pages/profile/index');
+    loadProfile();
   });
 
   const navSpace = useNavSpace();
@@ -122,9 +123,12 @@ export default function Profile() {
     Taro.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] } as any);
     loadProfile();
     const handleNotificationsRead = () => setUnreadCount(getUnreadNotificationCount());
+    const handleProfileUpdated = () => loadProfile();
     Taro.eventCenter.on('notifications-read', handleNotificationsRead);
+    Taro.eventCenter.on('profile:updated', handleProfileUpdated);
     return () => {
       Taro.eventCenter.off('notifications-read', handleNotificationsRead);
+      Taro.eventCenter.off('profile:updated', handleProfileUpdated);
       if (adminTapTimerRef.current) clearTimeout(adminTapTimerRef.current);
     };
   }, []);

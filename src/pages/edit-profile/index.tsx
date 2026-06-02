@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Input, Image, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
-import { navigateTo, safeBack } from '../../utils/navigateAdapter';
+import { navigateTo, switchTab } from '../../utils/navigateAdapter';
 import PageHeader from '../../components/layout/PageHeader';
 const CAMERA_PNG = require('../../assets/profile-icons/camera-primary.png');
 const CHECKCIRCLE_PNG = require('../../assets/profile-icons/checkcircle-green.png');
@@ -69,9 +69,10 @@ export default function EditProfile() {
         updateProfile({ nickname: nextNickname, avatar: nextAvatar });
         setNickname(nextNickname);
         setAvatar(nextAvatar);
+        Taro.eventCenter.trigger('profile:updated', { nickname: nextNickname, avatar: nextAvatar });
       }
       setShowSuccessToast(true);
-      setManagedTimeout(() => safeBack(), 1500);
+      setManagedTimeout(() => switchTab('/pages/profile/index'), 1500);
     } catch (e: any) {
       Taro.showToast({ title: e.message || '保存失败', icon: 'none' });
     } finally {

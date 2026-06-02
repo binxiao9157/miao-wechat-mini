@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 let currentUser: any = null;
+let didShowCallback: (() => void) | null = null;
 
 vi.mock('@tarojs/components', async () => {
   const React = await import('react');
@@ -31,7 +32,9 @@ vi.mock('@tarojs/taro', () => ({
       off: vi.fn(),
     },
   },
-  useDidShow: vi.fn(),
+  useDidShow: vi.fn((callback: () => void) => {
+    didShowCallback = callback;
+  }),
   useShareAppMessage: vi.fn(),
   useShareTimeline: vi.fn(),
 }));
@@ -91,6 +94,7 @@ describe('Profile logout action', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     currentUser = null;
+    didShowCallback = null;
   });
 
   it('still clears local auth and returns to login when guest taps logout', async () => {
@@ -120,5 +124,19 @@ describe('Profile logout action', () => {
     }));
     expect(storage.clearCurrentUser).toHaveBeenCalled();
     await waitFor(() => expect(reLaunch).toHaveBeenCalledWith('/pages/login/index'));
+  });
+
+  it('refreshes the profile avatar when returning to the profile tab', async () => {
+    currentUser = { username: 'alice', nickname: 'Alice', avatar: 'https://cdn.example.com/old.png' };
+
+    const { container } = render(<Profile />);
+    expect(container.querySelector('.avatar')?.getAttribute('src')).toBe('https://cdn.example.com/old.png');
+
+    currentUser = { username: 'alice', nickname: 'Alice', avatar: 'https://cdn.example.com/new.png' };
+    didShowCallback?.();
+
+    await waitFor(() => {
+      expect(container.querySelector('.avatar')?.getAttribute('src')).toBe('https://cdn.example.com/new.png');
+    });
   });
 });

@@ -15,6 +15,7 @@ vi.mock('@tarojs/components', async () => {
     View: (props: any) => React.createElement('div', toDomProps(props)),
     Text: (props: any) => React.createElement('span', toDomProps(props)),
     Image: ({ src, className, onClick }: any) => React.createElement('img', { src, className, onClick, alt: '' }),
+    Canvas: (props: any) => React.createElement('canvas', toDomProps(props)),
     ScrollView: (props: any) => React.createElement('div', toDomProps(props)),
     Input: ({ value, onInput, placeholder, className }: any) => (
       React.createElement('input', {
@@ -76,6 +77,29 @@ describe('UploadMaterial generated image actions', () => {
     (Taro as any).downloadFile = vi.fn(async ({ success }: any) => {
       success?.({ statusCode: 200, tempFilePath: 'wxfile://tmp/generated-local.png' });
       return { statusCode: 200, tempFilePath: 'wxfile://tmp/generated-local.png' };
+    });
+    (Taro as any).getImageInfo = vi.fn(async ({ success }: any) => {
+      const res = { width: 1024, height: 768 };
+      success?.(res);
+      return res;
+    });
+    const ctx = {
+      save: vi.fn(),
+      restore: vi.fn(),
+      drawImage: vi.fn(),
+      setFillStyle: vi.fn(),
+      fillRect: vi.fn(),
+      setFontSize: vi.fn(),
+      setTextAlign: vi.fn(),
+      setTextBaseline: vi.fn(),
+      fillText: vi.fn(),
+      draw: vi.fn((_: boolean, callback: () => void) => callback?.()),
+    };
+    (Taro as any).createCanvasContext = vi.fn(() => ctx);
+    (Taro as any).canvasToTempFilePath = vi.fn(async ({ success }: any) => {
+      const res = { tempFilePath: 'wxfile://tmp/generated-miao-watermark.png' };
+      success?.(res);
+      return res;
     });
     vi.mocked(Taro.saveImageToPhotosAlbum).mockImplementation(async ({ success }: any) => {
       success?.();
@@ -140,6 +164,75 @@ describe('UploadMaterial generated image actions', () => {
       }));
     });
     expect(Taro.saveImageToPhotosAlbum).toHaveBeenCalledWith(expect.objectContaining({
+      filePath: 'wxfile://tmp/generated-miao-watermark.png',
+    }));
+  });
+
+  it('shows saved feedback when saveImageToPhotosAlbum resolves without a success callback', async () => {
+    vi.mocked(Taro.saveImageToPhotosAlbum).mockImplementation(async () => ({} as any));
+
+    const { container } = render(<UploadMaterial />);
+
+    fireEvent.click(screen.getByText('点击上传照片'));
+    await waitFor(() => {
+      expect(container.querySelector('.image-preview')).toBeTruthy();
+    });
+    fireEvent.change(screen.getByPlaceholderText('给猫咪起个好听的名字'), { target: { value: 'Miao' } });
+    fireEvent.click(screen.getByText('开始生成数字形象'));
+
+    await waitFor(() => {
+      expect(VolcanoService.pollImageResult).toHaveBeenCalled();
+    });
+
+    fireEvent.click(await screen.findByText('保存图片'));
+
+    expect(await screen.findByText('已保存到相册')).toBeTruthy();
+    expect(screen.queryByText('保存中...')).toBeFalsy();
+  });
+
+  it('adds a MIAO watermark before saving generated images in the mini program', async () => {
+    vi.mocked(Taro.getEnv).mockReturnValue(Taro.ENV_TYPE.WEAPP);
+    const ctx = {
+      save: vi.fn(),
+      restore: vi.fn(),
+      drawImage: vi.fn(),
+      setFillStyle: vi.fn(),
+      fillRect: vi.fn(),
+      setFontSize: vi.fn(),
+      setTextAlign: vi.fn(),
+      setTextBaseline: vi.fn(),
+      fillText: vi.fn(),
+      draw: vi.fn((_: boolean, callback: () => void) => callback?.()),
+    };
+    (Taro as any).createCanvasContext = vi.fn(() => ctx);
+    (Taro as any).canvasToTempFilePath = vi.fn(async ({ success }: any) => {
+      const res = { tempFilePath: 'wxfile://tmp/generated-miao-watermark.png' };
+      success?.(res);
+      return res;
+    });
+
+    const { container } = render(<UploadMaterial />);
+
+    fireEvent.click(screen.getByText('点击上传照片'));
+    await waitFor(() => {
+      expect(container.querySelector('.image-preview')).toBeTruthy();
+    });
+    fireEvent.change(screen.getByPlaceholderText('给猫咪起个好听的名字'), { target: { value: 'Miao' } });
+    fireEvent.click(screen.getByText('开始生成数字形象'));
+
+    await waitFor(() => {
+      expect(VolcanoService.pollImageResult).toHaveBeenCalled();
+    });
+
+    fireEvent.click(await screen.findByText('保存图片'));
+
+    await waitFor(() => {
+      expect(ctx.fillText).toHaveBeenCalledWith('MIAO', expect.any(Number), expect.any(Number));
+    });
+    expect(Taro.saveImageToPhotosAlbum).toHaveBeenCalledWith(expect.objectContaining({
+      filePath: 'wxfile://tmp/generated-miao-watermark.png',
+    }));
+    expect(Taro.saveImageToPhotosAlbum).not.toHaveBeenCalledWith(expect.objectContaining({
       filePath: 'wxfile://tmp/generated-local.png',
     }));
   });
@@ -169,7 +262,7 @@ describe('UploadMaterial generated image actions', () => {
       }));
     });
     expect(Taro.saveImageToPhotosAlbum).toHaveBeenCalledWith(expect.objectContaining({
-      filePath: 'wxfile://tmp/generated-local.png',
+      filePath: 'wxfile://tmp/generated-miao-watermark.png',
     }));
   });
 });

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, Input, ScrollView } from '@tarojs/components';
+import { View, Text, Image, Input, ScrollView, Canvas } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { redirectTo, safeBack } from '../../utils/navigateAdapter';
 import { useNavSpace } from '../../hooks/useNavSpace';
@@ -18,6 +18,7 @@ import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
 import './index.less';
 
 const API_BASE_URL = (process.env.TARO_APP_API_BASE_URL || 'https://www.mmdd10.tech').replace(/\/$/, '');
+const SAVE_WATERMARK_CANVAS_ID = 'miaoSaveWatermarkCanvas';
 
 function isWeApp(): boolean {
   try {
@@ -47,6 +48,33 @@ function resolveImageDownloadUrl(imageUrl: string): string {
   }
 
   return `${API_BASE_URL}/api/proxy-resource?url=${encodeURIComponent(normalizedUrl)}`;
+}
+
+function waitForTaroCallbackOrPromise<T>(
+  call: (handlers: { success: (res: T) => void; fail: (error: unknown) => void }) => Promise<T> | void,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const settleResolve = (res: T) => {
+      if (settled) return;
+      settled = true;
+      resolve(res);
+    };
+    const settleReject = (error: unknown) => {
+      if (settled) return;
+      settled = true;
+      reject(error);
+    };
+
+    try {
+      const promise = call({ success: settleResolve, fail: settleReject });
+      if (promise && typeof (promise as any).then === 'function') {
+        (promise as Promise<T>).then(settleResolve).catch(settleReject);
+      }
+    } catch (error) {
+      settleReject(error);
+    }
+  });
 }
 
 export default function UploadMaterial() {
@@ -175,31 +203,84 @@ export default function UploadMaterial() {
     handleGenerateImage();
   };
 
-  const downloadImageToLocalFile = (url: string): Promise<string> => (
-    new Promise((resolve, reject) => {
+  const downloadImageToLocalFile = async (url: string): Promise<string> => {
+    const downloadRes = await waitForTaroCallbackOrPromise<any>(({ success, fail }) => (
       Taro.downloadFile({
         url,
-        success: (downloadRes) => {
-          if (downloadRes.statusCode === 200 && downloadRes.tempFilePath) {
-            resolve(downloadRes.tempFilePath);
-            return;
-          }
-          reject(new Error(`download status ${downloadRes.statusCode || 'unknown'}`));
-        },
-        fail: (error) => reject(error),
-      });
-    })
+        success,
+        fail,
+      }) as any
+    ));
+    if (downloadRes.statusCode === 200 && downloadRes.tempFilePath) {
+      return downloadRes.tempFilePath;
+    }
+    throw new Error(`download status ${downloadRes.statusCode || 'unknown'}`);
+  };
+
+  const getImageSize = (filePath: string): Promise<{ width: number; height: number }> => (
+    waitForTaroCallbackOrPromise<any>(({ success, fail }) => (
+      Taro.getImageInfo({
+        src: filePath,
+        success,
+        fail,
+      }) as any
+    ))
   );
 
-  const saveLocalImage = (filePath: string): Promise<void> => (
-    new Promise((resolve, reject) => {
+  const exportWatermarkedImage = async (filePath: string): Promise<string> => {
+    if (!isWeApp()) return filePath;
+
+    const imageInfo = await getImageSize(filePath);
+    const width = Math.max(1, Math.round(imageInfo.width || 0));
+    const height = Math.max(1, Math.round(imageInfo.height || 0));
+    const ctx = Taro.createCanvasContext(SAVE_WATERMARK_CANVAS_ID);
+    const fontSize = Math.max(22, Math.round(width * 0.038));
+    const margin = Math.max(24, Math.round(width * 0.035));
+    const badgeWidth = Math.max(126, Math.round(fontSize * 3.8));
+    const badgeHeight = Math.max(46, Math.round(fontSize * 1.65));
+    const badgeX = Math.max(0, width - badgeWidth - margin);
+    const badgeY = Math.max(0, height - badgeHeight - margin);
+
+    ctx.drawImage(filePath, 0, 0, width, height);
+    ctx.save?.();
+    ctx.setFillStyle?.('rgba(74, 45, 32, 0.68)');
+    ctx.fillRect(badgeX, badgeY, badgeWidth, badgeHeight);
+    ctx.setFillStyle?.('rgba(255, 250, 245, 0.96)');
+    ctx.setFontSize?.(fontSize);
+    ctx.setTextAlign?.('center');
+    ctx.setTextBaseline?.('middle');
+    ctx.fillText('MIAO', badgeX + badgeWidth / 2, badgeY + badgeHeight / 2);
+    ctx.restore?.();
+
+    await new Promise<void>((resolve) => {
+      ctx.draw(false, () => resolve());
+    });
+
+    const exportRes = await waitForTaroCallbackOrPromise<any>(({ success, fail }) => (
+      Taro.canvasToTempFilePath({
+        canvasId: SAVE_WATERMARK_CANVAS_ID,
+        width,
+        height,
+        destWidth: width,
+        destHeight: height,
+        fileType: 'jpg',
+        quality: 0.95,
+        success,
+        fail,
+      }) as any
+    ));
+    return exportRes.tempFilePath || filePath;
+  };
+
+  const saveLocalImage = async (filePath: string): Promise<void> => {
+    await waitForTaroCallbackOrPromise<any>(({ success, fail }) => (
       Taro.saveImageToPhotosAlbum({
         filePath,
-        success: () => resolve(),
-        fail: (error) => reject(error),
-      });
-    })
-  );
+        success,
+        fail,
+      }) as any
+    ));
+  };
 
   const handleSaveImage = async () => {
     if (!firstFrameUrl || isSavingImage) return;
@@ -211,7 +292,8 @@ export default function UploadMaterial() {
       const localPath = /^https?:\/\//i.test(downloadUrl)
         ? await downloadImageToLocalFile(downloadUrl)
         : downloadUrl;
-      await saveLocalImage(localPath);
+      const savePath = await exportWatermarkedImage(localPath);
+      await saveLocalImage(savePath);
       triggerToast('已保存到相册');
     } catch (error) {
       console.warn('[UploadMaterial] save generated image failed:', error);
@@ -314,6 +396,12 @@ export default function UploadMaterial() {
           </View>
         </View>
       )}
+
+      <Canvas
+        id={SAVE_WATERMARK_CANVAS_ID}
+        canvasId={SAVE_WATERMARK_CANVAS_ID}
+        style={{ position: 'fixed', left: '-9999px', top: '-9999px', width: '1024px', height: '1024px', opacity: 0, pointerEvents: 'none' }}
+      />
 
       {isDrawing && (
         <View className="loading-overlay">

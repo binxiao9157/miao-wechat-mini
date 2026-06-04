@@ -76,4 +76,59 @@ describe('storage release audit sync behavior', () => {
       },
     }));
   });
+
+  it('uploads every local diary image before syncing multi-image diaries', async () => {
+    const httpAdapter = await import('../../utils/httpAdapter');
+    const uploadAdapter = await import('../../utils/uploadAdapter');
+    const { mediaStorage, serverSync } = await import('../storage');
+
+    vi.mocked(uploadAdapter.uploadFile).mockImplementation(async ({ filePath }: any) => {
+      const name = String(filePath).includes('img-2') ? 'img-2.jpg' : 'img-1.jpg';
+      return { url: `/uploads/media/${name}` };
+    });
+
+    await mediaStorage.saveMediaFile('img-1', 'wxfile://tmp/img-1.jpg', 'image/jpeg');
+    await mediaStorage.saveMediaFile('img-2', 'wxfile://tmp/img-2.jpg', 'image/jpeg');
+
+    await serverSync.syncDiaryToServer('alice', {
+      id: 'diary-images',
+      catId: 'cat-1',
+      content: 'three photos',
+      media: 'miao_media:img-1',
+      mediaType: 'image',
+      images: ['miao_media:img-1', 'miao_media:img-2'],
+      createdAt: 1,
+      likes: 0,
+      isLiked: false,
+      comments: [],
+    });
+
+    expect(uploadAdapter.uploadFile).toHaveBeenCalledTimes(2);
+    expect(uploadAdapter.uploadFile).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      url: '/api/v1/upload',
+      filePath: 'wxfile://tmp/img-1.jpg',
+      formData: expect.objectContaining({
+        purpose: 'diary',
+        mediaType: 'image',
+      }),
+    }));
+    expect(uploadAdapter.uploadFile).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      url: '/api/v1/upload',
+      filePath: 'wxfile://tmp/img-2.jpg',
+      formData: expect.objectContaining({
+        purpose: 'diary',
+        mediaType: 'image',
+      }),
+    }));
+    expect(httpAdapter.request).toHaveBeenCalledWith(expect.objectContaining({
+      url: '/api/v1/diaries',
+      method: 'POST',
+      data: {
+        diary: expect.objectContaining({
+          media: '/uploads/media/img-1.jpg',
+          images: ['/uploads/media/img-1.jpg', '/uploads/media/img-2.jpg'],
+        }),
+      },
+    }));
+  });
 });

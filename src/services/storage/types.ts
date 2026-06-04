@@ -67,6 +67,7 @@ export interface DiaryEntry {
   content: string;
   media?: string;
   mediaType?: 'image' | 'video';
+  images?: string[];
   createdAt: number;
   likes: number;
   isLiked: boolean;

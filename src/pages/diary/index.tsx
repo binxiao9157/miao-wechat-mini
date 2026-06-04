@@ -29,10 +29,12 @@ import './index.less';
 
 interface DiaryWithMedia extends DiaryEntry {
   mediaUrl?: string;
+  imageUrls?: string[];
   catName?: string;
 }
 
-type FriendDiaryWithMedia = FriendDiaryEntry & { mediaUrl?: string };
+type FriendDiaryWithMedia = FriendDiaryEntry & { mediaUrl?: string; imageUrls?: string[] };
+type SelectedMedia = { url: string; type: 'image' | 'video'; tempFilePath?: string };
 
 export default function Diary() {
   const navSpace = useNavSpace();
@@ -41,7 +43,7 @@ export default function Diary() {
   const [showCompose, setShowCompose] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [newContent, setNewContent] = useState('');
-  const [selectedMedia, setSelectedMedia] = useState<{ url: string; type: 'image' | 'video'; tempFilePath?: string } | null>(null);
+  const [selectedMediaList, setSelectedMediaList] = useState<SelectedMedia[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [commentingId, setCommentingId] = useState<string | null>(null);
   const [commentText, setCommentText] = useState('');
@@ -142,36 +144,51 @@ export default function Diary() {
   const [selectedCatForQR, setSelectedCatForQR] = useState<{ id: string; name: string; avatar: string } | null>(null);
   const [catList, setCatList] = useState<{ id: string; name: string; avatar: string }[]>([]);
 
-  // 加载媒体文件
-  const loadMediaForDiary = async <T extends DiaryEntry>(diary: T): Promise<T & { mediaUrl?: string }> => {
-    if (!diary.media) {
-      return { ...diary, mediaUrl: '' };
-    }
-
+  const resolveDiaryMediaUrl = async (media?: string, cacheId?: string): Promise<string> => {
+    if (!media) return '';
     try {
-      if (diary.media.startsWith('miao_media:')) {
-        const mediaId = diary.media.replace('miao_media:', '');
+      if (media.startsWith('miao_media:')) {
+        const mediaId = media.replace('miao_media:', '');
         const mediaData = await mediaStorage.getMedia(mediaId);
-        return { ...diary, mediaUrl: mediaData || '' };
+        return mediaData || '';
       }
 
-      if (diary.media.startsWith('data:')) {
-        const cacheId = `remote_${diary.id}`;
-        await mediaStorage.saveMedia(cacheId, diary.media);
-        const mediaData = await mediaStorage.getMedia(cacheId);
-        return { ...diary, mediaUrl: mediaData || diary.media };
+      if (media.startsWith('data:')) {
+        const stableCacheId = cacheId || `remote_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+        await mediaStorage.saveMedia(stableCacheId, media);
+        const mediaData = await mediaStorage.getMedia(stableCacheId);
+        return mediaData || media;
       }
 
-      return { ...diary, mediaUrl: diary.media };
+      return media;
     } catch (e) {
       console.error('加载媒体失败:', e);
-      return { ...diary, mediaUrl: diary.media || '' };
+      return media || '';
     }
+  };
+
+  // 加载媒体文件
+  const loadMediaForDiary = async <T extends DiaryEntry>(diary: T): Promise<T & { mediaUrl?: string; imageUrls?: string[] }> => {
+    const imageRefs = diary.images && diary.images.length > 0
+      ? diary.images
+      : (diary.mediaType !== 'video' && diary.media ? [diary.media] : []);
+    const imageUrls = imageRefs.length > 0
+      ? (await Promise.all(imageRefs.map((image, index) => resolveDiaryMediaUrl(image, `remote_${diary.id}_img_${index}`)))).filter(Boolean)
+      : [];
+    const mediaUrl = diary.mediaType === 'video'
+      ? await resolveDiaryMediaUrl(diary.media, `remote_${diary.id}`)
+      : (imageUrls[0] || '');
+
+    return {
+      ...diary,
+      mediaUrl,
+      imageUrls,
+    };
   };
 
   const persistDisplayedDiaries = (updatedVisible: DiaryWithMedia[]): DiaryEntry[] => {
     const updatedById = new Map<string, DiaryEntry>(
-      updatedVisible.map(({ mediaUrl, ...rest }) => [rest.id, rest])
+      updatedVisible.map(({ mediaUrl, imageUrls, ...rest }) => [rest.id, rest])
     );
     const allDiaries = storage.getDiaries();
     const merged = allDiaries.map(d => updatedById.get(d.id) || d);
@@ -186,15 +203,10 @@ export default function Diary() {
 
   // 静默同步好友动态（交互后刷新，不阻塞 UI）
   const syncFriendDiariesQuiet = () => {
-    friendService.syncFriendDiaries().then(() => {
+    friendService.syncFriendDiaries().then(async () => {
       const fresh = storage.getFriendDiaries();
-      setFriendDiaries(prev => {
-        // 合并：以服务端数据为基准，保留本地媒体加载状态
-        return fresh.map(fd => {
-          const local = prev.find(d => d.id === fd.id);
-          return local?.mediaUrl ? { ...fd, mediaUrl: local.mediaUrl } : fd;
-        });
-      });
+      const freshWithMedia = await Promise.all(fresh.map(loadMediaForDiary));
+      setFriendDiaries(freshWithMedia);
     }).catch((error) => {
       console.warn('[Diary] quiet friend diary sync failed:', error);
     });
@@ -309,17 +321,28 @@ export default function Diary() {
   // 选择图片
   const chooseImage = async () => {
     if (!await ensurePrivacyAuthorized('选择日记图片')) return;
+    const currentImages = selectedMediaList.filter(item => item.type === 'image');
+    const hasVideo = selectedMediaList.some(item => item.type === 'video');
+    if (hasVideo) {
+      Taro.showToast({ title: '已选择视频时不能添加图片', icon: 'none' });
+      return;
+    }
+    const maxCount = 9 - currentImages.length;
+    if (maxCount <= 0) {
+      Taro.showToast({ title: '最多只能选择9张图片', icon: 'none' });
+      return;
+    }
     Taro.chooseMedia({
-      count: 1,
+      count: maxCount,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
       success: (res) => {
-        const tempFile = res.tempFiles[0];
-        setSelectedMedia({
+        const added = res.tempFiles.slice(0, maxCount).map((tempFile) => ({
           url: tempFile.tempFilePath,
-          type: 'image',
-          tempFilePath: tempFile.tempFilePath
-        });
+          type: 'image' as const,
+          tempFilePath: tempFile.tempFilePath,
+        }));
+        setSelectedMediaList([...currentImages, ...added]);
       },
       fail: (err) => {
         console.error('选择图片失败:', err);
@@ -331,6 +354,10 @@ export default function Diary() {
   // 选择视频
   const chooseVideo = async () => {
     if (!await ensurePrivacyAuthorized('选择日记视频')) return;
+    if (selectedMediaList.length > 0) {
+      Taro.showToast({ title: selectedMediaList[0].type === 'image' ? '已选择图片时不能添加视频' : '已选择视频', icon: 'none' });
+      return;
+    }
     Taro.chooseMedia({
       count: 1,
       mediaType: ['video'],
@@ -343,11 +370,11 @@ export default function Diary() {
           Taro.showToast({ title: '视频不能超过20MB', icon: 'none' });
           return;
         }
-        setSelectedMedia({
+        setSelectedMediaList([{
           url: tempFile.tempFilePath,
           type: 'video',
           tempFilePath: tempFile.tempFilePath
-        });
+        }]);
       },
       fail: (err) => {
         console.error('选择视频失败:', err);
@@ -358,11 +385,15 @@ export default function Diary() {
 
   // 清除已选媒体
   const clearMedia = () => {
-    setSelectedMedia(null);
+    setSelectedMediaList([]);
+  };
+
+  const removeSelectedImage = (index: number) => {
+    setSelectedMediaList(prev => prev.filter((_, idx) => idx !== index));
   };
 
   const handleAddDiary = async () => {
-    if (!newContent.trim() && !selectedMedia) {
+    if (!newContent.trim() && selectedMediaList.length === 0) {
       Taro.showToast({ title: '请填写内容或选择媒体', icon: 'none' });
       return;
     }
@@ -371,19 +402,37 @@ export default function Diary() {
 
     try {
       await checkTextContent(newContent, 'diary');
-      if (selectedMedia?.tempFilePath) {
-        await checkMediaContent(selectedMedia.tempFilePath, selectedMedia.type, 'diary');
+      for (const media of selectedMediaList) {
+        if (media.tempFilePath) {
+          await checkMediaContent(media.tempFilePath, media.type, 'diary');
+        }
       }
       const diaryId = 'diary_' + Date.now();
       let mediaUrl: string | undefined;
       let mediaType: 'image' | 'video' | undefined;
+      const images: string[] = [];
 
       // 如果有媒体文件，保存到本地文件系统
-      if (selectedMedia?.tempFilePath) {
-        mediaType = selectedMedia.type;
-        const mimeType = selectedMedia.type === 'image' ? 'image/jpeg' : 'video/mp4';
-        await mediaStorage.saveMediaFile(diaryId, selectedMedia.tempFilePath, mimeType);
-        mediaUrl = `miao_media:${diaryId}`;
+      if (selectedMediaList.length > 0) {
+        const isVideo = selectedMediaList[0].type === 'video';
+        mediaType = isVideo ? 'video' : 'image';
+
+        if (isVideo) {
+          const video = selectedMediaList[0];
+          if (video.tempFilePath) {
+            await mediaStorage.saveMediaFile(diaryId, video.tempFilePath, 'video/mp4');
+            mediaUrl = `miao_media:${diaryId}`;
+          }
+        } else {
+          for (let i = 0; i < selectedMediaList.length; i += 1) {
+            const image = selectedMediaList[i];
+            if (!image.tempFilePath) continue;
+            const mediaId = `${diaryId}_img_${i}`;
+            await mediaStorage.saveMediaFile(mediaId, image.tempFilePath, 'image/jpeg');
+            images.push(`miao_media:${mediaId}`);
+          }
+          mediaUrl = images[0];
+        }
       }
 
       const newDiary: DiaryEntry = {
@@ -392,6 +441,7 @@ export default function Diary() {
         content: newContent,
         media: mediaUrl,
         mediaType: mediaType,
+        images: images.length > 0 ? images : undefined,
         createdAt: Date.now(),
         likes: 0,
         isLiked: false,
@@ -403,9 +453,10 @@ export default function Diary() {
       const success = storage.saveDiaries(updatedAll);
 
       if (success) {
-        setDiaries(prev => [newDiary, ...prev]);
+        const displayDiary = await loadMediaForDiary(newDiary);
+        setDiaries(prev => [displayDiary, ...prev]);
         setNewContent('');
-        setSelectedMedia(null);
+        setSelectedMediaList([]);
         setShowCompose(false);
         Taro.showToast({ title: '发布成功', icon: 'success' });
         // 刷新日记列表
@@ -752,7 +803,7 @@ export default function Diary() {
               </View>
               <View className="close-btn" onClick={() => {
                 setShowCompose(false);
-                setSelectedMedia(null);
+                setSelectedMediaList([]);
                 setNewContent('');
               }}>
                 <Image className="icon-img" src={X_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
@@ -779,12 +830,12 @@ export default function Diary() {
               />
 
               {/* 媒体预览区域 */}
-              {selectedMedia && (
-                <View className="media-preview">
-                  {selectedMedia.type === 'video' ? (
+              {selectedMediaList.length > 0 && (
+                <View className={selectedMediaList[0].type === 'video' ? 'media-preview' : 'image-preview-grid'}>
+                  {selectedMediaList[0].type === 'video' ? (
                     <Video
                       className="preview-video"
-                      src={selectedMedia.url}
+                      src={selectedMediaList[0].url}
                       controls={false}
                       showPlayBtn={false}
                       objectFit="cover"
@@ -793,11 +844,26 @@ export default function Diary() {
                       muted
                     />
                   ) : (
-                    <Image className="preview-image" src={selectedMedia.url} mode="aspectFill" />
+                    selectedMediaList.map((media, idx) => (
+                      <View key={`${media.url}-${idx}`} className="image-preview-item">
+                        <Image className="preview-image" src={media.url} mode="aspectFill" />
+                        <View className="remove-media-btn" onClick={() => removeSelectedImage(idx)}>
+                          <Image className="icon-img" src={X_WHITE} mode="aspectFit" style={{ width: 14, height: 14 }} />
+                        </View>
+                      </View>
+                    ))
                   )}
-                  <View className="remove-media-btn" onClick={clearMedia}>
-                    <Image className="icon-img" src={X_WHITE} mode="aspectFit" style={{ width: 16, height: 16 }} />
-                  </View>
+                  {selectedMediaList[0].type === 'video' && (
+                    <View className="remove-media-btn" onClick={clearMedia}>
+                      <Image className="icon-img" src={X_WHITE} mode="aspectFit" style={{ width: 16, height: 16 }} />
+                    </View>
+                  )}
+                  {selectedMediaList[0].type === 'image' && selectedMediaList.length < 9 && (
+                    <View className="add-image-tile" onClick={chooseImage}>
+                      <Image className="icon-img" src={IMAGE_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
+                      <Text>添加图片</Text>
+                    </View>
+                  )}
                 </View>
               )}
             </View>
@@ -805,10 +871,10 @@ export default function Diary() {
             <View className="compose-footer">
               {/* 媒体选择按钮 */}
               <View className="media-actions">
-                <View className="media-btn" onClick={chooseImage}>
+                <View className={`media-btn ${selectedMediaList.some(item => item.type === 'video') || selectedMediaList.length >= 9 ? 'disabled' : ''}`} onClick={chooseImage}>
                   <Image className="icon-img" src={IMAGE_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
                 </View>
-                <View className="media-btn" onClick={chooseVideo}>
+                <View className={`media-btn ${selectedMediaList.length > 0 ? 'disabled' : ''}`} onClick={chooseVideo}>
                   <Image className="icon-img" src={FILM_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
                 </View>
               </View>
@@ -816,7 +882,7 @@ export default function Diary() {
               <Button
                 className={`publish-btn ${isLoading ? 'loading' : ''}`}
                 onClick={handleAddDiary}
-                disabled={isLoading || (!newContent.trim() && !selectedMedia)}
+                disabled={isLoading || (!newContent.trim() && selectedMediaList.length === 0)}
               >
                 {isLoading ? '发布中...' : '发布'}
               </Button>

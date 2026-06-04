@@ -15,6 +15,7 @@ export interface DiaryCardDiary {
   content: string;
   media?: string;
   mediaUrl?: string;
+  imageUrls?: string[];
   mediaType?: 'image' | 'video';
   likes: number;
   isLiked: boolean;
@@ -57,6 +58,20 @@ export default function DiaryCard({
   const timeStr = (formatTime || defaultFormatTime)(diary.createdAt);
   const avatar = diary.authorAvatar || '';
   const nickname = diary.authorNickname || '未知';
+  const imageUrls = diary.imageUrls && diary.imageUrls.length > 0
+    ? diary.imageUrls
+    : (diary.mediaType !== 'video' && diary.mediaUrl ? [diary.mediaUrl] : []);
+  const imageGridClass = imageUrls.length === 1
+    ? 'diary-image-grid single'
+    : (imageUrls.length === 2 || imageUrls.length === 4 ? 'diary-image-grid two-col' : 'diary-image-grid three-col');
+
+  const previewImage = (index: number) => {
+    if (imageUrls.length === 0) return;
+    Taro.previewImage({
+      current: imageUrls[index],
+      urls: imageUrls,
+    });
+  };
 
   return (
     <View className="diary-item">
@@ -75,23 +90,23 @@ export default function DiaryCard({
 
       <Text className="diary-content">{diary.content}</Text>
 
-      {diary.mediaUrl && (
-        diary.mediaType === 'video' ? (
-          <Video
-            className="diary-media"
-            src={diary.mediaUrl}
-            poster={activeCatAvatar || diary.mediaUrl}
-            controls
-            showPlayBtn
-            objectFit="cover"
-          />
-        ) : (
-          <Image
-            className="diary-media"
-            src={diary.mediaUrl}
-            mode="aspectFill"
-          />
-        )
+      {diary.mediaType === 'video' && diary.mediaUrl ? (
+        <Video
+          className="diary-media"
+          src={diary.mediaUrl}
+          poster={activeCatAvatar || diary.mediaUrl}
+          controls
+          showPlayBtn
+          objectFit="cover"
+        />
+      ) : imageUrls.length > 0 && (
+        <View className={imageGridClass}>
+          {imageUrls.map((url, index) => (
+            <View key={`${url}-${index}`} className="diary-image-cell" onClick={() => previewImage(index)}>
+              <Image className="diary-image" src={url} mode="aspectFill" />
+            </View>
+          ))}
+        </View>
       )}
 
       <View className="diary-actions">

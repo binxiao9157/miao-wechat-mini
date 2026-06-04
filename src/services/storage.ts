@@ -395,34 +395,60 @@ async function deleteAllCatsFromServer(userId: string): Promise<void> {
   await request('/api/v1/cats', { method: 'DELETE' });
 }
 
+async function resolveLocalDiaryMediaForServer(media: string, fallbackMediaType?: 'image' | 'video'): Promise<string | undefined> {
+  if (!media.startsWith('miao_media:')) return media;
+
+  const mediaId = media.replace('miao_media:', '');
+  const mediaInfo = mediaStorage.getMediaInfo(mediaId);
+  if (mediaInfo?.filePath && !mediaInfo.filePath.startsWith('data:')) {
+    const uploadData = await uploadFile({
+      url: '/api/v1/upload',
+      filePath: mediaInfo.filePath,
+      name: 'file',
+      formData: {
+        purpose: 'diary',
+        mediaType: mediaInfo.mimeType.startsWith('video/') ? 'video' : 'image',
+      },
+      timeout: 120000,
+      retries: 1,
+    });
+    const uploadedUrl = uploadData?.url || uploadData?.data?.url;
+    if (uploadedUrl) return uploadedUrl;
+    throw new Error('日记媒体上传失败：服务器未返回文件地址');
+  }
+
+  const mediaData = await readLocalMediaAsDataUrl(mediaId);
+  const mimeType = mediaInfo?.mimeType || (fallbackMediaType === 'video' ? 'video/mp4' : 'image/jpeg');
+  if (mimeType.startsWith('video/')) {
+    throw new Error('日记视频媒体必须通过文件上传同步，已阻止 base64 JSON 同步');
+  }
+  return mediaData || undefined;
+}
+
 async function resolveServerDiaryPayload(diary: DiaryEntry): Promise<DiaryEntry> {
-  const { media, ...rest } = diary;
+  const payload: DiaryEntry = { ...diary };
 
-  if (media?.startsWith('miao_media:')) {
-    const mediaId = media.replace('miao_media:', '');
-    const mediaInfo = mediaStorage.getMediaInfo(mediaId);
-    if (mediaInfo?.filePath && !mediaInfo.filePath.startsWith('data:')) {
-      const uploadData = await uploadFile({
-        url: '/api/v1/upload',
-        filePath: mediaInfo.filePath,
-        name: 'file',
-        formData: {
-          purpose: 'diary',
-          mediaType: mediaInfo.mimeType.startsWith('video/') ? 'video' : 'image',
-        },
-        timeout: 120000,
-        retries: 1,
-      });
-      const uploadedUrl = uploadData?.url || uploadData?.data?.url;
-      if (uploadedUrl) return { ...diary, media: uploadedUrl };
-      throw new Error('日记媒体上传失败：服务器未返回文件地址');
+  if (diary.images && diary.images.length > 0) {
+    const resolvedImages: string[] = [];
+    for (const image of diary.images) {
+      const resolvedImage = await resolveLocalDiaryMediaForServer(image, 'image');
+      if (resolvedImage) resolvedImages.push(resolvedImage);
     }
+    payload.images = resolvedImages;
 
-    const mediaData = await readLocalMediaAsDataUrl(mediaId);
-    if (mediaInfo?.mimeType?.startsWith('video/')) {
-      throw new Error('日记视频媒体必须通过文件上传同步，已阻止 base64 JSON 同步');
+    if (diary.media && diary.images[0] === diary.media && resolvedImages[0]) {
+      payload.media = resolvedImages[0];
+    } else if (diary.media) {
+      payload.media = await resolveLocalDiaryMediaForServer(diary.media, diary.mediaType);
     }
-    return mediaData ? { ...diary, media: mediaData } : rest;
+    return payload;
+  }
+
+  if (diary.media?.startsWith('miao_media:')) {
+    const resolvedMedia = await resolveLocalDiaryMediaForServer(diary.media, diary.mediaType);
+    if (resolvedMedia) return { ...diary, media: resolvedMedia };
+    const { media, ...rest } = diary;
+    return rest;
   }
 
   return diary;
@@ -1316,7 +1342,14 @@ export const storage = {
     const diaries = storage.getDiaries();
     const diary = diaries.find(d => d.id === id);
     if (diary?.media?.startsWith('miao_media:')) {
-      mediaStorage.deleteMedia(id);
+      mediaStorage.deleteMedia(diary.media.replace('miao_media:', ''));
+    }
+    if (diary?.images && Array.isArray(diary.images)) {
+      diary.images.forEach((image) => {
+        if (image.startsWith('miao_media:')) {
+          mediaStorage.deleteMedia(image.replace('miao_media:', ''));
+        }
+      });
     }
     const updated = diaries.filter(d => d.id !== id);
     rememberDeleted('diary', id);

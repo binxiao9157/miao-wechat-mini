@@ -72,6 +72,43 @@
   overflow: hidden;
 }
 
+.diary-image-grid {
+  width: 100%;
+  display: grid;
+  gap: 8rpx;
+  margin-bottom: 20rpx;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+
+  &.single {
+    grid-template-columns: 1fr;
+
+    .diary-image-cell {
+      aspect-ratio: 1;
+    }
+  }
+
+  &.two-col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  &.three-col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .diary-image-cell {
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: var(--surface-container);
+  }
+
+  .diary-image {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+}
+
 .diary-actions {
   display: flex;
   align-items: center;

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, Image, Button, Input, Textarea, Video, Canvas, ScrollView } from '@tarojs/components';
 import CatAvatar from '../../components/common/CatAvatar';
 import Taro, { useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
-import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage } from '../../services/storage';
+import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage, persistDiaryMediaFile } from '../../services/storage';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { generateShareCard } from '../../utils/shareCard';
 import ShareSheet from '../../components/common/ShareSheet';
@@ -35,6 +35,13 @@ interface DiaryWithMedia extends DiaryEntry {
 
 type FriendDiaryWithMedia = FriendDiaryEntry & { mediaUrl?: string; imageUrls?: string[] };
 type SelectedMedia = { url: string; type: 'image' | 'video'; tempFilePath?: string };
+
+const getApiBaseURL = () => (process.env.TARO_APP_API_BASE_URL || 'https://www.mmdd10.tech').replace(/\/$/, '');
+
+const normalizeRemoteMediaUrl = (url: string): string => {
+  if (!url.startsWith('/')) return url;
+  return `${getApiBaseURL()}${url}`;
+};
 
 export default function Diary() {
   const navSpace = useNavSpace();
@@ -160,7 +167,7 @@ export default function Diary() {
         return mediaData || media;
       }
 
-      return media;
+      return normalizeRemoteMediaUrl(media);
     } catch (e) {
       console.error('加载媒体失败:', e);
       return media || '';
@@ -420,16 +427,15 @@ export default function Diary() {
         if (isVideo) {
           const video = selectedMediaList[0];
           if (video.tempFilePath) {
-            await mediaStorage.saveMediaFile(diaryId, video.tempFilePath, 'video/mp4');
-            mediaUrl = `miao_media:${diaryId}`;
+            mediaUrl = await persistDiaryMediaFile(diaryId, video.tempFilePath, 'video/mp4');
           }
         } else {
           for (let i = 0; i < selectedMediaList.length; i += 1) {
             const image = selectedMediaList[i];
             if (!image.tempFilePath) continue;
             const mediaId = `${diaryId}_img_${i}`;
-            await mediaStorage.saveMediaFile(mediaId, image.tempFilePath, 'image/jpeg');
-            images.push(`miao_media:${mediaId}`);
+            const imageRef = await persistDiaryMediaFile(mediaId, image.tempFilePath, 'image/jpeg');
+            images.push(imageRef);
           }
           mediaUrl = images[0];
         }

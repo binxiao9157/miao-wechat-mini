@@ -198,6 +198,30 @@ export const mediaStorage = {
   }
 };
 
+export async function persistDiaryMediaFile(id: string, filePath: string, mimeType: string): Promise<string> {
+  try {
+    await mediaStorage.saveMediaFile(id, filePath, mimeType);
+    return `miao_media:${id}`;
+  } catch (storageError) {
+    console.warn('[storage] local diary media persist failed, uploading fallback:', storageError);
+  }
+
+  const uploadData = await uploadFile({
+    url: '/api/v1/upload',
+    filePath,
+    name: 'file',
+    formData: {
+      purpose: 'diary',
+      mediaType: mimeType.startsWith('video/') ? 'video' : 'image',
+    },
+    timeout: 120000,
+    retries: 1,
+  });
+  const uploadedUrl = uploadData?.url || uploadData?.data?.url;
+  if (!uploadedUrl) throw new Error('日记媒体上传失败：服务器未返回文件地址');
+  return uploadedUrl;
+}
+
 async function readLocalMediaAsDataUrl(id: string): Promise<string | null> {
   const stored = getItem(`${MEDIA_STORAGE_PREFIX}${id}`);
   if (!stored) return null;

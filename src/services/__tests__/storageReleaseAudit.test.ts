@@ -131,4 +131,24 @@ describe('storage release audit sync behavior', () => {
       },
     }));
   });
+
+  it('falls back to cloud upload when local diary image persistence fails during publishing', async () => {
+    const uploadAdapter = await import('../../utils/uploadAdapter');
+    const { mediaStorage, persistDiaryMediaFile } = await import('../storage');
+
+    vi.mocked(uploadAdapter.uploadFile).mockResolvedValueOnce({ url: '/uploads/media/fallback.jpg' });
+    vi.spyOn(mediaStorage, 'saveMediaFile').mockRejectedValueOnce(new Error('saveFile failed'));
+
+    const imageRef = await persistDiaryMediaFile('diary-img-fallback', 'wxfile://tmp/fallback.jpg', 'image/jpeg');
+
+    expect(imageRef).toBe('/uploads/media/fallback.jpg');
+    expect(uploadAdapter.uploadFile).toHaveBeenCalledWith(expect.objectContaining({
+      url: '/api/v1/upload',
+      filePath: 'wxfile://tmp/fallback.jpg',
+      formData: expect.objectContaining({
+        purpose: 'diary',
+        mediaType: 'image',
+      }),
+    }));
+  });
 });

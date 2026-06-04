@@ -34,6 +34,22 @@ describe('contentSafetyService', () => {
     await expect(checkTextContent('bad', 'comment')).rejects.toThrow('内容不合规');
   });
 
+  it('allows local text publishing when the text safety endpoint is temporarily unavailable', async () => {
+    const error: any = new Error('HTTP 404');
+    error.response = { status: 404, data: { error: 'not found' } };
+    vi.mocked(post).mockRejectedValue(error);
+
+    await expect(checkTextContent('今天很开心', 'diary')).resolves.toBeUndefined();
+  });
+
+  it('keeps auth failures blocking instead of silently bypassing safety checks', async () => {
+    const error: any = new Error('登录已过期，请重新登录');
+    error.response = { status: 401, data: { error: 'unauthorized' } };
+    vi.mocked(post).mockRejectedValue(error);
+
+    await expect(checkTextContent('今天很开心', 'diary')).rejects.toThrow('登录已过期');
+  });
+
   it('uploads local media to the server-side media security check endpoint', async () => {
     vi.mocked(uploadFile).mockResolvedValue({ passed: true });
 

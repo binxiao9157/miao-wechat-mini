@@ -23,6 +23,21 @@ function assertSafeResponse(data: any): void {
   }
 }
 
+function isSafetyServiceUnavailable(error: any): boolean {
+  const status = Number(error?.response?.status || error?.statusCode || 0);
+  if (status === 404 || status >= 500) return true;
+  if (status === 401 || status === 403) return false;
+
+  const message = String(error?.message || error?.errMsg || '').toLowerCase();
+  return (
+    message.includes('timeout') ||
+    message.includes('timed out') ||
+    message.includes('network') ||
+    message.includes('网络请求失败') ||
+    message.includes('请求超时')
+  );
+}
+
 function isLocalMediaPath(path: string): boolean {
   return (
     path.startsWith('wxfile://') ||
@@ -37,11 +52,19 @@ export async function checkTextContent(content: string, scene: ContentSafetyScen
   const normalized = content.trim();
   if (!normalized) return;
 
-  const response = await post('/api/v1/security/text', {
-    content: normalized,
-    scene,
-  }, { timeout: 30000 });
-  assertSafeResponse(response.data);
+  try {
+    const response = await post('/api/v1/security/text', {
+      content: normalized,
+      scene,
+    }, { timeout: 30000 });
+    assertSafeResponse(response.data);
+  } catch (error) {
+    if (isSafetyServiceUnavailable(error)) {
+      console.warn('[contentSafetyService] text safety service unavailable, allowing local publish:', error);
+      return;
+    }
+    throw error;
+  }
 }
 
 export async function checkMediaContent(

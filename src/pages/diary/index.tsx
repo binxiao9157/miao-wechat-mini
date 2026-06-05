@@ -13,6 +13,7 @@ import { useManagedTimeout } from '../../hooks/useManagedTimeout';
 import { navigateTo, reLaunch } from '../../utils/navigateAdapter';
 import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
 import { checkMediaContent, checkTextContent } from '../../services/contentSafetyService';
+import { classifyDiagnosticSrc, reportClientDiagnostic } from '../../utils/clientDiagnostics';
 
 // Lucide-style PNG icons
 const USERPLUS_GRAY = require('../../assets/profile-icons/userplus-gray.png');
@@ -42,6 +43,17 @@ const normalizeRemoteMediaUrl = (url: string): string => {
   if (!url.startsWith('/')) return url;
   return `${getApiBaseURL()}${url}`;
 };
+
+const getErrorMessage = (error: unknown) => {
+  if (error instanceof Error) return error.message;
+  return String(error || 'unknown');
+};
+
+const getSelectedMediaSummary = (list: SelectedMedia[]) => ({
+  count: list.length,
+  types: list.map(item => item.type),
+  srcKinds: list.map(item => classifyDiagnosticSrc(item.tempFilePath || item.url).srcKind),
+});
 
 export default function Diary() {
   const navSpace = useNavSpace();
@@ -406,15 +418,44 @@ export default function Diary() {
     }
 
     setIsLoading(true);
+    const publishStartedAt = Date.now();
+    const initialMediaSummary = getSelectedMediaSummary(selectedMediaList);
+    reportClientDiagnostic('diary.publish.start', 'pages/diary/index', {
+      hasText: !!newContent.trim(),
+      textLength: newContent.trim().length,
+      ...initialMediaSummary,
+    });
 
     try {
       await checkTextContent(newContent, 'diary');
+      reportClientDiagnostic('diary.publish.text-safety.ok', 'pages/diary/index', {
+        hasText: !!newContent.trim(),
+        textLength: newContent.trim().length,
+      });
       for (const media of selectedMediaList) {
         if (media.tempFilePath) {
-          await checkMediaContent(media.tempFilePath, media.type, 'diary');
+          const mediaInfo = classifyDiagnosticSrc(media.tempFilePath);
+          try {
+            await checkMediaContent(media.tempFilePath, media.type, 'diary');
+            reportClientDiagnostic('diary.publish.media-safety.ok', 'pages/diary/index', {
+              mediaType: media.type,
+              ...mediaInfo,
+            });
+          } catch (error) {
+            reportClientDiagnostic('diary.publish.media-safety.fail', 'pages/diary/index', {
+              mediaType: media.type,
+              ...mediaInfo,
+              error: getErrorMessage(error),
+            });
+            throw error;
+          }
         }
       }
       const diaryId = 'diary_' + Date.now();
+      reportClientDiagnostic('diary.publish.diary-id.created', 'pages/diary/index', {
+        diaryId,
+        ...initialMediaSummary,
+      });
       let mediaUrl: string | undefined;
       let mediaType: 'image' | 'video' | undefined;
       const images: string[] = [];
@@ -428,6 +469,11 @@ export default function Diary() {
           const video = selectedMediaList[0];
           if (video.tempFilePath) {
             mediaUrl = await persistDiaryMediaFileForPublish(diaryId, video.tempFilePath, 'video/mp4');
+            reportClientDiagnostic('diary.publish.media-persist.done', 'pages/diary/index', {
+              diaryId,
+              mediaType: 'video',
+              refKind: classifyDiagnosticSrc(mediaUrl).srcKind,
+            });
           }
         } else {
           for (let i = 0; i < selectedMediaList.length; i += 1) {
@@ -436,6 +482,12 @@ export default function Diary() {
             const mediaId = `${diaryId}_img_${i}`;
             const imageRef = await persistDiaryMediaFileForPublish(mediaId, image.tempFilePath, 'image/jpeg');
             images.push(imageRef);
+            reportClientDiagnostic('diary.publish.media-persist.done', 'pages/diary/index', {
+              diaryId,
+              index: i,
+              mediaType: 'image',
+              refKind: classifyDiagnosticSrc(imageRef).srcKind,
+            });
           }
           mediaUrl = images[0];
         }
@@ -456,7 +508,21 @@ export default function Diary() {
 
       const allDiaries = storage.getDiaries();
       const updatedAll = [newDiary, ...allDiaries].sort((a, b) => b.createdAt - a.createdAt);
+      reportClientDiagnostic('diary.publish.before-save', 'pages/diary/index', {
+        diaryId,
+        existingCount: allDiaries.length,
+        nextCount: updatedAll.length,
+        mediaType,
+        imageCount: images.length,
+        mediaRefKind: classifyDiagnosticSrc(mediaUrl).srcKind,
+      });
       const success = storage.saveDiaries(updatedAll);
+      reportClientDiagnostic(success ? 'diary.publish.save.ok' : 'diary.publish.save.fail', 'pages/diary/index', {
+        diaryId,
+        mediaType,
+        imageCount: images.length,
+        elapsedMs: Date.now() - publishStartedAt,
+      });
 
       if (success) {
         const displayDiary = await loadMediaForDiary(newDiary);
@@ -472,8 +538,17 @@ export default function Diary() {
       }
     } catch (error) {
       console.error('发布日记失败:', error);
+      reportClientDiagnostic('diary.publish.exception', 'pages/diary/index', {
+        error: getErrorMessage(error),
+        elapsedMs: Date.now() - publishStartedAt,
+        ...initialMediaSummary,
+      });
       Taro.showToast({ title: '发布失败，请重试', icon: 'none' });
     } finally {
+      reportClientDiagnostic('diary.publish.finally', 'pages/diary/index', {
+        elapsedMs: Date.now() - publishStartedAt,
+        ...initialMediaSummary,
+      });
       setIsLoading(false);
     }
   };

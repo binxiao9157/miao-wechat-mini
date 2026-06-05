@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, Image, Button, Input, Textarea, Video, Canvas, ScrollView } from '@tarojs/components';
 import CatAvatar from '../../components/common/CatAvatar';
 import Taro, { useShareAppMessage, useShareTimeline, useDidShow } from '@tarojs/taro';
-import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage, persistDiaryMediaFile } from '../../services/storage';
+import { storage, DiaryEntry, FriendDiaryEntry, mediaStorage, persistDiaryMediaFileForPublish } from '../../services/storage';
 import { useNavSpace } from '../../hooks/useNavSpace';
 import { generateShareCard } from '../../utils/shareCard';
 import ShareSheet from '../../components/common/ShareSheet';
@@ -427,14 +427,14 @@ export default function Diary() {
         if (isVideo) {
           const video = selectedMediaList[0];
           if (video.tempFilePath) {
-            mediaUrl = await persistDiaryMediaFile(diaryId, video.tempFilePath, 'video/mp4');
+            mediaUrl = await persistDiaryMediaFileForPublish(diaryId, video.tempFilePath, 'video/mp4');
           }
         } else {
           for (let i = 0; i < selectedMediaList.length; i += 1) {
             const image = selectedMediaList[i];
             if (!image.tempFilePath) continue;
             const mediaId = `${diaryId}_img_${i}`;
-            const imageRef = await persistDiaryMediaFile(mediaId, image.tempFilePath, 'image/jpeg');
+            const imageRef = await persistDiaryMediaFileForPublish(mediaId, image.tempFilePath, 'image/jpeg');
             images.push(imageRef);
           }
           mediaUrl = images[0];

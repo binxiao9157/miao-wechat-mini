@@ -151,4 +151,56 @@ describe('storage release audit sync behavior', () => {
       }),
     }));
   });
+
+  it('keeps local diary publishing alive when both local persistence and fallback upload fail', async () => {
+    const uploadAdapter = await import('../../utils/uploadAdapter');
+    const { mediaStorage, persistDiaryMediaFileForPublish } = await import('../storage');
+
+    vi.spyOn(mediaStorage, 'saveMediaFile').mockRejectedValueOnce(new Error('saveFile failed'));
+    vi.mocked(uploadAdapter.uploadFile).mockRejectedValueOnce(new Error('upload failed'));
+
+    const imageRef = await persistDiaryMediaFileForPublish('diary-img-temp', 'wxfile://tmp/temp.jpg', 'image/jpeg');
+
+    expect(imageRef).toBe('wxfile://tmp/temp.jpg');
+  });
+
+  it('uploads raw temporary diary image paths during server sync', async () => {
+    const httpAdapter = await import('../../utils/httpAdapter');
+    const uploadAdapter = await import('../../utils/uploadAdapter');
+    const { serverSync } = await import('../storage');
+
+    vi.mocked(uploadAdapter.uploadFile).mockResolvedValueOnce({ url: '/uploads/media/temp.jpg' });
+
+    await serverSync.syncDiaryToServer('alice', {
+      id: 'diary-temp-image',
+      catId: 'cat-1',
+      content: 'temp image',
+      media: 'wxfile://tmp/temp.jpg',
+      mediaType: 'image',
+      images: ['wxfile://tmp/temp.jpg'],
+      createdAt: 1,
+      likes: 0,
+      isLiked: false,
+      comments: [],
+    });
+
+    expect(uploadAdapter.uploadFile).toHaveBeenCalledWith(expect.objectContaining({
+      url: '/api/v1/upload',
+      filePath: 'wxfile://tmp/temp.jpg',
+      formData: expect.objectContaining({
+        purpose: 'diary',
+        mediaType: 'image',
+      }),
+    }));
+    expect(httpAdapter.request).toHaveBeenCalledWith(expect.objectContaining({
+      url: '/api/v1/diaries',
+      method: 'POST',
+      data: {
+        diary: expect.objectContaining({
+          media: '/uploads/media/temp.jpg',
+          images: ['/uploads/media/temp.jpg'],
+        }),
+      },
+    }));
+  });
 });

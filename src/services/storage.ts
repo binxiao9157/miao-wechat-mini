@@ -222,6 +222,15 @@ export async function persistDiaryMediaFile(id: string, filePath: string, mimeTy
   return uploadedUrl;
 }
 
+export async function persistDiaryMediaFileForPublish(id: string, filePath: string, mimeType: string): Promise<string> {
+  try {
+    return await persistDiaryMediaFile(id, filePath, mimeType);
+  } catch (error) {
+    console.warn('[storage] diary media publish fallback uses temporary file path:', error);
+    return filePath;
+  }
+}
+
 async function readLocalMediaAsDataUrl(id: string): Promise<string | null> {
   const stored = getItem(`${MEDIA_STORAGE_PREFIX}${id}`);
   if (!stored) return null;
@@ -419,26 +428,43 @@ async function deleteAllCatsFromServer(userId: string): Promise<void> {
   await request('/api/v1/cats', { method: 'DELETE' });
 }
 
+function isLocalDiaryMediaPath(media: string): boolean {
+  return (
+    media.startsWith('wxfile://') ||
+    media.startsWith('file://') ||
+    media.startsWith('http://tmp/') ||
+    media.startsWith('http://usr/')
+  );
+}
+
+async function uploadDiaryMediaFileForServer(filePath: string, mimeType: string): Promise<string> {
+  const uploadData = await uploadFile({
+    url: '/api/v1/upload',
+    filePath,
+    name: 'file',
+    formData: {
+      purpose: 'diary',
+      mediaType: mimeType.startsWith('video/') ? 'video' : 'image',
+    },
+    timeout: 120000,
+    retries: 1,
+  });
+  const uploadedUrl = uploadData?.url || uploadData?.data?.url;
+  if (!uploadedUrl) throw new Error('日记媒体上传失败：服务器未返回文件地址');
+  return uploadedUrl;
+}
+
 async function resolveLocalDiaryMediaForServer(media: string, fallbackMediaType?: 'image' | 'video'): Promise<string | undefined> {
+  if (isLocalDiaryMediaPath(media)) {
+    const mimeType = fallbackMediaType === 'video' ? 'video/mp4' : 'image/jpeg';
+    return uploadDiaryMediaFileForServer(media, mimeType);
+  }
   if (!media.startsWith('miao_media:')) return media;
 
   const mediaId = media.replace('miao_media:', '');
   const mediaInfo = mediaStorage.getMediaInfo(mediaId);
   if (mediaInfo?.filePath && !mediaInfo.filePath.startsWith('data:')) {
-    const uploadData = await uploadFile({
-      url: '/api/v1/upload',
-      filePath: mediaInfo.filePath,
-      name: 'file',
-      formData: {
-        purpose: 'diary',
-        mediaType: mediaInfo.mimeType.startsWith('video/') ? 'video' : 'image',
-      },
-      timeout: 120000,
-      retries: 1,
-    });
-    const uploadedUrl = uploadData?.url || uploadData?.data?.url;
-    if (uploadedUrl) return uploadedUrl;
-    throw new Error('日记媒体上传失败：服务器未返回文件地址');
+    return uploadDiaryMediaFileForServer(mediaInfo.filePath, mediaInfo.mimeType);
   }
 
   const mediaData = await readLocalMediaAsDataUrl(mediaId);

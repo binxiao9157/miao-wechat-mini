@@ -68,6 +68,18 @@ describe('contentSafetyService', () => {
     });
   });
 
+  it('allows local media publishing when the media safety upload is temporarily interrupted', async () => {
+    vi.mocked(uploadFile).mockRejectedValue(new Error('图片上传被中断，请保持页面打开并重试'));
+
+    await expect(checkMediaContent('wxfile://tmp/cat.png', 'image', 'diary')).resolves.toBeUndefined();
+  });
+
+  it('rejects unsafe local media with a user-facing message', async () => {
+    vi.mocked(uploadFile).mockResolvedValue({ passed: false, message: '图片不合规' });
+
+    await expect(checkMediaContent('wxfile://tmp/cat.png', 'image', 'diary')).rejects.toThrow('图片不合规');
+  });
+
   it('submits remote media urls to the server-side media security endpoint', async () => {
     vi.mocked(post).mockResolvedValue({ data: { passed: true } } as any);
 
@@ -78,5 +90,13 @@ describe('contentSafetyService', () => {
       mediaType: 'video',
       scene: 'diary',
     }, { timeout: 60000 });
+  });
+
+  it('allows remote media publishing when the media safety endpoint is temporarily unavailable', async () => {
+    const error: any = new Error('HTTP 500');
+    error.response = { status: 500, data: { error: 'server unavailable' } };
+    vi.mocked(post).mockRejectedValue(error);
+
+    await expect(checkMediaContent('https://cdn.example.com/cat.jpg', 'image', 'diary')).resolves.toBeUndefined();
   });
 });

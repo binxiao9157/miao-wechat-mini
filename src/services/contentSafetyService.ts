@@ -33,6 +33,11 @@ function isSafetyServiceUnavailable(error: any): boolean {
     message.includes('timeout') ||
     message.includes('timed out') ||
     message.includes('network') ||
+    message.includes('interrupted') ||
+    message.includes('上传被中断') ||
+    message.includes('fail socket') ||
+    message.includes('fail connection') ||
+    message.includes('fail abort') ||
     message.includes('网络请求失败') ||
     message.includes('请求超时')
   );
@@ -75,27 +80,43 @@ export async function checkMediaContent(
   if (!mediaUrl) return;
 
   if (isLocalMediaPath(mediaUrl)) {
-    const data = await uploadFile({
-      url: '/api/v1/security/media-file',
-      filePath: mediaUrl,
-      name: 'media',
-      formData: {
-        mediaType,
-        scene,
-      },
-      timeout: 120000,
-      retries: 1,
-    });
-    assertSafeResponse(data);
+    try {
+      const data = await uploadFile({
+        url: '/api/v1/security/media-file',
+        filePath: mediaUrl,
+        name: 'media',
+        formData: {
+          mediaType,
+          scene,
+        },
+        timeout: 120000,
+        retries: 1,
+      });
+      assertSafeResponse(data);
+    } catch (error) {
+      if (isSafetyServiceUnavailable(error)) {
+        console.warn('[contentSafetyService] media safety service unavailable, allowing local publish:', error);
+        return;
+      }
+      throw error;
+    }
     return;
   }
 
-  const response = await post('/api/v1/security/media', {
-    mediaUrl,
-    mediaType,
-    scene,
-  }, { timeout: 60000 });
-  assertSafeResponse(response.data);
+  try {
+    const response = await post('/api/v1/security/media', {
+      mediaUrl,
+      mediaType,
+      scene,
+    }, { timeout: 60000 });
+    assertSafeResponse(response.data);
+  } catch (error) {
+    if (isSafetyServiceUnavailable(error)) {
+      console.warn('[contentSafetyService] media safety service unavailable, allowing local publish:', error);
+      return;
+    }
+    throw error;
+  }
 }
 
 export const contentSafetyService = {

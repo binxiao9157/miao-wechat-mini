@@ -61,18 +61,23 @@ function uploadFileOnce(options: UploadOptions, fullUrl: string, token: string):
       success: (res) => {
         if (res.statusCode < 200 || res.statusCode >= 300) {
           let message = `上传失败: HTTP ${res.statusCode}`;
+          let data: any = {};
           try {
-            const data = JSON.parse(res.data || '{}');
+            data = JSON.parse(res.data || '{}');
             message = data.message || data.error || message;
           } catch (error) {
             console.warn('[uploadAdapter] upload error response parse failed:', error);
           }
           if (res.statusCode === 401) {
             handleUnauthorizedUpload();
-            return reject(new Error('登录已过期，请重新登录'));
+            const authError: any = new Error('登录已过期，请重新登录');
+            authError.statusCode = 401;
+            authError.response = { status: 401, data };
+            return reject(authError);
           }
           const error: any = new Error(message);
           error.statusCode = res.statusCode;
+          error.response = { status: res.statusCode, data };
           return reject(error);
         }
         try {
@@ -114,7 +119,11 @@ export async function uploadFile(options: UploadOptions): Promise<any> {
     }
   }
 
-  throw new Error(normalizeUploadError(lastError?.errMsg || lastError?.message || '文件上传失败'));
+  const normalizedError: any = new Error(normalizeUploadError(lastError?.errMsg || lastError?.message || '文件上传失败'));
+  if (lastError?.statusCode) normalizedError.statusCode = lastError.statusCode;
+  if (lastError?.response) normalizedError.response = lastError.response;
+  if (lastError?.errMsg) normalizedError.errMsg = lastError.errMsg;
+  throw normalizedError;
 }
 
 export default { uploadFile };

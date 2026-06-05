@@ -43,6 +43,34 @@ function isSafetyServiceUnavailable(error: any): boolean {
   );
 }
 
+function isAuthFailure(error: any): boolean {
+  const status = Number(error?.response?.status || error?.statusCode || 0);
+  if (status === 401 || status === 403) return true;
+  const message = String(error?.message || error?.errMsg || '').toLowerCase();
+  return message.includes('登录已过期') || message.includes('unauthorized') || message.includes('forbidden');
+}
+
+function isMediaSafetyUploadUnavailable(error: any): boolean {
+  if (isAuthFailure(error)) return false;
+  if (isSafetyServiceUnavailable(error)) return true;
+
+  const status = Number(error?.response?.status || error?.statusCode || 0);
+  if (status >= 400 && status < 500) return true;
+
+  const code = String(error?.response?.data?.code || '').toUpperCase();
+  const message = String(error?.message || error?.errMsg || '').toLowerCase();
+  return (
+    code === 'MISSING_MEDIA' ||
+    code === 'MISSING_FILE' ||
+    code === 'INVALID_FILE_TYPE' ||
+    message.includes('http 400') ||
+    message.includes('no file uploaded') ||
+    message.includes('missing_media') ||
+    message.includes('missing_file') ||
+    message.includes('invalid_file_type')
+  );
+}
+
 function isLocalMediaPath(path: string): boolean {
   return (
     path.startsWith('wxfile://') ||
@@ -94,7 +122,7 @@ export async function checkMediaContent(
       });
       assertSafeResponse(data);
     } catch (error) {
-      if (isSafetyServiceUnavailable(error)) {
+      if (isMediaSafetyUploadUnavailable(error)) {
         console.warn('[contentSafetyService] media safety service unavailable, allowing local publish:', error);
         return;
       }

@@ -14,6 +14,7 @@ import { navigateTo, reLaunch } from '../../utils/navigateAdapter';
 import { ensurePrivacyAuthorized } from '../../utils/privacyAuthorization';
 import { checkMediaContent, checkTextContent } from '../../services/contentSafetyService';
 import { classifyDiagnosticSrc, reportClientDiagnostic } from '../../utils/clientDiagnostics';
+import { processDiaryTimeline } from '../../utils/diaryTimeline';
 
 // Lucide-style PNG icons
 const USERPLUS_GRAY = require('../../assets/profile-icons/userplus-gray.png');
@@ -74,6 +75,7 @@ export default function Diary() {
   const [scrollTop, setScrollTop] = useState(0);
   const [tabDirection, setTabDirection] = useState<'left' | 'right'>('right');
   const [friendDiaries, setFriendDiaries] = useState<FriendDiaryWithMedia[]>([]);
+  const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({});
   const [activeCat, setActiveCat] = useState<{ id: string; name: string; avatar?: string } | null>(null);
   const [sharingDiary, setSharingDiary] = useState<DiaryWithMedia | null>(null);
   const [showShareSheet, setShowShareSheet] = useState(false);
@@ -756,6 +758,41 @@ export default function Diary() {
     setShowShareSheet(true);
   };
 
+  const toggleMonthGroup = (monthLabel: string) => {
+    setExpandedMonths(prev => ({
+      ...prev,
+      [monthLabel]: !prev[monthLabel],
+    }));
+  };
+
+  const renderOwnDiaryCard = (diary: DiaryWithMedia) => (
+    <DiaryCard
+      key={diary.id}
+      diary={{
+        ...diary,
+        authorAvatar: storage.getUserInfo()?.avatar || '',
+        authorNickname: storage.getUserInfo()?.nickname || '未知',
+        isFriendDiary: false,
+      }}
+      currentUserId={storage.getUserInfo()?.username}
+      activeCatAvatar={activeCat?.avatar}
+      onLike={handleLike}
+      onComment={setCommentingId}
+      onShare={(id) => {
+        const d = diaries.find(d => d.id === id);
+        if (d) handleShare(d);
+      }}
+      onDelete={setDeletingId}
+      onCommentLongPress={(diaryId, commentId, content, canDelete, top, left) => {
+        setCommentActionSheet({ diaryId, commentId, content, canDelete, top, left });
+      }}
+      formatTime={formatTime}
+      timeline
+    />
+  );
+
+  const { recentGroups, olderGroups } = processDiaryTimeline(diaries);
+
   return (
     <View className="diary-page" style={navSpace as React.CSSProperties}>
       <ScrollView
@@ -812,30 +849,46 @@ export default function Diary() {
               </Text>
             </View>
           ) : (
-            diaries.map((diary) => (
-              <DiaryCard
-                key={diary.id}
-                diary={{
-                  ...diary,
-                  authorAvatar: storage.getUserInfo()?.avatar || '',
-                  authorNickname: storage.getUserInfo()?.nickname || '未知',
-                  isFriendDiary: false,
-                }}
-                currentUserId={storage.getUserInfo()?.username}
-                activeCatAvatar={activeCat?.avatar}
-                onLike={handleLike}
-                onComment={setCommentingId}
-                onShare={(id) => {
-                  const d = diaries.find(d => d.id === id);
-                  if (d) handleShare(d);
-                }}
-                onDelete={setDeletingId}
-                onCommentLongPress={(diaryId, commentId, content, canDelete, top, left) => {
-                  setCommentActionSheet({ diaryId, commentId, content, canDelete, top, left });
-                }}
-                formatTime={formatTime}
-              />
-            ))
+            <View className="timeline-wrap">
+              <View className="timeline-line" />
+              {recentGroups.map((group) => (
+                <View key={group.dateLabel} className="timeline-group">
+                  <View className="timeline-date-header">
+                    <View className="timeline-date-dot">
+                      <View className="timeline-date-dot-inner" />
+                    </View>
+                    <Text className={`timeline-date-label ${group.dateLabel === '今天' ? 'today' : ''}`}>
+                      {group.dateLabel}
+                    </Text>
+                  </View>
+                  <View className="timeline-items">
+                    {group.items.map(renderOwnDiaryCard)}
+                  </View>
+                </View>
+              ))}
+
+              {olderGroups.map((group) => {
+                const isExpanded = !!expandedMonths[group.monthLabel];
+                return (
+                  <View key={group.monthLabel} className="timeline-group older">
+                    <View className="timeline-month-header" onClick={() => toggleMonthGroup(group.monthLabel)}>
+                      <View className="timeline-date-dot muted">
+                        <View className="timeline-date-dot-inner" />
+                      </View>
+                      <View className="timeline-month-content">
+                        <Text className="timeline-month-label">{group.monthLabel} (共 {group.items.length} 篇)</Text>
+                        <Text className="timeline-month-toggle">{isExpanded ? '▲ 收起' : '▼ 展开'}</Text>
+                      </View>
+                    </View>
+                    {isExpanded && (
+                      <View className="timeline-items">
+                        {group.items.map(renderOwnDiaryCard)}
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
           )
         ) : (
           // 好友动态

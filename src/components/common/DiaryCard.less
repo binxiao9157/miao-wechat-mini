@@ -6,6 +6,14 @@
   box-shadow: var(--shadow-sm);
 }
 
+.diary-item.timeline-card {
+  margin: 0 0 28rpx;
+  border-radius: 28rpx;
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1rpx solid rgba(93, 64, 55, 0.06);
+}
+
 .diary-header {
   display: flex;
   align-items: center;
@@ -54,6 +62,27 @@
     font-size: 22rpx;
     color: var(--text-hint);
     margin-top: 4rpx;
+  }
+
+  .timeline-time-wrap {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .timeline-time {
+    font-size: 24rpx;
+    font-weight: 800;
+    color: rgba(93, 64, 55, 0.55);
+  }
+
+  .timeline-delete-btn {
+    width: 48rpx;
+    height: 48rpx;
+    border-radius: 24rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.55;
   }
 }
 

@@ -74,6 +74,22 @@ describe('contentSafetyService', () => {
     await expect(checkMediaContent('wxfile://tmp/cat.png', 'image', 'diary')).resolves.toBeUndefined();
   });
 
+  it('allows local media publishing when the media safety upload endpoint returns a contract error', async () => {
+    const error: any = new Error('上传失败: HTTP 400');
+    error.statusCode = 400;
+    vi.mocked(uploadFile).mockRejectedValue(error);
+
+    await expect(checkMediaContent('wxfile://tmp/cat.png', 'image', 'diary')).resolves.toBeUndefined();
+  });
+
+  it('keeps local media auth failures blocking instead of silently bypassing safety checks', async () => {
+    const error: any = new Error('登录已过期，请重新登录');
+    error.statusCode = 401;
+    vi.mocked(uploadFile).mockRejectedValue(error);
+
+    await expect(checkMediaContent('wxfile://tmp/cat.png', 'image', 'diary')).rejects.toThrow('登录已过期');
+  });
+
   it('rejects unsafe local media with a user-facing message', async () => {
     vi.mocked(uploadFile).mockResolvedValue({ passed: false, message: '图片不合规' });
 

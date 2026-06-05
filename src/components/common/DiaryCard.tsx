@@ -37,6 +37,7 @@ interface DiaryCardProps {
   onDelete?: (id: string) => void;
   onCommentLongPress?: (diaryId: string, commentId: string, commentContent: string, canDelete: boolean, top: number, left: number) => void;
   formatTime?: (timestamp: number) => string;
+  timeline?: boolean;
 }
 
 export default function DiaryCard({
@@ -49,6 +50,7 @@ export default function DiaryCard({
   onDelete,
   onCommentLongPress,
   formatTime,
+  timeline = false,
 }: DiaryCardProps) {
   const defaultFormatTime = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -74,18 +76,31 @@ export default function DiaryCard({
   };
 
   return (
-    <View className="diary-item">
+    <View className={`diary-item ${timeline ? 'timeline-card' : ''}`}>
       <View className="diary-header">
-        <Image className="avatar" src={avatar} mode="aspectFill" />
-        <View className="user-info">
-          <Text className="username">
-            {nickname}
-            {diary.isFriendDiary && diary.catName && (
-              <Text className="friend-badge">{diary.catName}</Text>
-            )}
-          </Text>
-          <Text className="time">{timeStr}</Text>
-        </View>
+        {timeline ? (
+          <View className="timeline-time-wrap">
+            <Text className="timeline-time">{timeStr}</Text>
+          </View>
+        ) : (
+          <>
+            <Image className="avatar" src={avatar} mode="aspectFill" />
+            <View className="user-info">
+              <Text className="username">
+                {nickname}
+                {diary.isFriendDiary && diary.catName && (
+                  <Text className="friend-badge">{diary.catName}</Text>
+                )}
+              </Text>
+              <Text className="time">{timeStr}</Text>
+            </View>
+          </>
+        )}
+        {timeline && !diary.isFriendDiary && onDelete && (
+          <View className="timeline-delete-btn" onClick={() => onDelete(diary.id)}>
+            <Image className="icon-img" src={TRASH2_GRAY} mode="aspectFit" style={{ width: 18, height: 18 }} />
+          </View>
+        )}
       </View>
 
       <Text className="diary-content">{diary.content}</Text>
@@ -121,7 +136,7 @@ export default function DiaryCard({
         <View className="action-btn" onClick={() => onShare?.(diary.id)}>
           <Image className="icon-img" src={SHARE_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
         </View>
-        {!diary.isFriendDiary && onDelete && (
+        {!timeline && !diary.isFriendDiary && onDelete && (
           <View className="action-btn delete-btn" onClick={() => onDelete(diary.id)}>
             <Image className="icon-img" src={TRASH2_GRAY} mode="aspectFit" style={{ width: 18, height: 18 }} />
           </View>

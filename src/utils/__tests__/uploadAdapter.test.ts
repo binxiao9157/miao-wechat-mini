@@ -45,4 +45,24 @@ describe('uploadAdapter', () => {
     expect(getItem('miao_current_user')).toBeNull();
     expect(Taro.eventCenter.trigger).toHaveBeenCalledWith('auth:unauthorized');
   });
+
+  it('preserves upload HTTP status for callers that need endpoint-specific fallback logic', async () => {
+    setItem('miao_auth_token', 'abc123');
+    vi.mocked(Taro.uploadFile).mockImplementation((options: any) => {
+      options.success({
+        statusCode: 400,
+        data: JSON.stringify({ code: 'MISSING_MEDIA', message: 'No file uploaded' }),
+      });
+      return {} as any;
+    });
+
+    try {
+      await uploadFile({ url: '/api/v1/security/media-file', filePath: 'wxfile://tmp/a.png', retries: 0 });
+      throw new Error('expected upload failure');
+    } catch (error: any) {
+      expect(error.message).toBe('No file uploaded');
+      expect(error.statusCode).toBe(400);
+      expect(error.response?.data?.code).toBe('MISSING_MEDIA');
+    }
+  });
 });

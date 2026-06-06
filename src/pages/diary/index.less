@@ -275,35 +275,43 @@
 .compose-modal {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: var(--color-overlay);
-  z-index: 1200;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(16rpx);
+  -webkit-backdrop-filter: blur(16rpx);
+  z-index: 3200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 
   .compose-content {
     position: absolute;
     left: 0;
     right: 0;
     width: 100%;
-    background: #fff;
-    border-radius: 48rpx 48rpx 0 0;
+    background: var(--background);
+    border-radius: 64rpx 64rpx 0 0;
     display: flex;
     flex-direction: column;
-    max-height: 74vh;
+    height: 75vh;
+    max-height: 85vh;
     overflow: hidden;
     box-shadow: 0 -18rpx 50rpx rgba(99, 62, 29, 0.12);
-    transition: bottom 0.22s ease;
+    transition: transform 0.18s ease, bottom 0.18s ease;
+    overscroll-behavior: contain;
   }
 
   .compose-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 42rpx 44rpx 24rpx;
+    padding: 48rpx 48rpx 32rpx;
     flex-shrink: 0;
+    border-bottom: 2rpx solid rgba(242, 230, 221, 0.7);
 
     .compose-title-wrap {
       .compose-title {
         font-size: 40rpx;
-        font-weight: 700;
+        font-weight: 900;
         color: var(--on-primary-container);
         display: block;
       }
@@ -311,58 +319,112 @@
       .compose-subtitle {
         font-size: 22rpx;
         color: var(--on-surface-variant);
-        font-weight: 600;
+        font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 2px;
+        letter-spacing: 4rpx;
         margin-top: 4px;
         display: block;
       }
     }
 
     .close-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 20px;
-      background: var(--surface-container-low);
+      width: 80rpx;
+      height: 80rpx;
+      border-radius: 40rpx;
+      background: var(--surface-container);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 24px;
       color: var(--text-secondary);
       line-height: 1;
+      touch-action: manipulation;
+
+      &:active {
+        transform: scale(0.9);
+      }
     }
   }
 
   .compose-body {
     flex: 1;
     overflow-y: auto;
-    padding: 0 44rpx 32rpx;
+    padding: 48rpx 48rpx 196rpx;
+    box-sizing: border-box;
+    overscroll-behavior: contain;
   }
 
   .compose-input {
     width: 100%;
     min-height: 240rpx;
-    padding: 34rpx 38rpx;
-    background: var(--color-warm-cream);
-    border: 2rpx solid var(--outline-variant);
-    border-radius: 36rpx;
-    font-size: 30rpx;
-    line-height: 1.6;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    font-size: 32rpx;
+    line-height: 1.625;
     color: var(--on-primary-container);
     box-sizing: border-box;
-    margin-bottom: 16px;
+    margin-bottom: 32rpx;
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  .upload-drop-zone {
+    min-height: 232rpx;
+    border: 4rpx dashed rgba(93, 64, 55, 0.14);
+    border-radius: 32rpx;
+    background: rgba(93, 64, 55, 0.02);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12rpx;
+    padding: 48rpx 28rpx;
+    box-sizing: border-box;
+    margin: 32rpx 0 48rpx;
+    touch-action: manipulation;
+
+    &:active {
+      border-color: rgba(255, 157, 118, 0.46);
+      background: rgba(255, 157, 118, 0.045);
+    }
+  }
+
+  .upload-drop-icon {
+    width: 96rpx;
+    height: 96rpx;
+    border-radius: 48rpx;
+    background: rgba(93, 64, 55, 0.055);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8rpx;
+  }
+
+  .upload-drop-title {
+    font-size: 28rpx;
+    font-weight: 800;
+    color: rgba(93, 64, 55, 0.76);
+  }
+
+  .upload-drop-subtitle {
+    font-size: 22rpx;
+    font-weight: 700;
+    color: rgba(93, 64, 55, 0.38);
+    text-align: center;
   }
 
   /* 媒体预览区域 */
   .media-preview {
     position: relative;
-    width: 120px;
-    height: 120px;
-    border-radius: 16px;
+    width: 256rpx;
+    height: 256rpx;
+    border-radius: 48rpx;
     overflow: hidden;
     background: #000;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-bottom: 48rpx;
+    box-shadow: 0 12rpx 32rpx rgba(0, 0, 0, 0.15);
 
     .preview-image {
       width: 100%;
@@ -376,12 +438,12 @@
 
     .remove-media-btn {
       position: absolute;
-      top: 6px;
-      right: 6px;
-      width: 28px;
-      height: 28px;
-      border-radius: 14px;
-      background: var(--color-overlay);
+      top: 16rpx;
+      right: 16rpx;
+      width: 56rpx;
+      height: 56rpx;
+      border-radius: 28rpx;
+      background: rgba(0, 0, 0, 0.6);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -393,17 +455,17 @@
   .image-preview-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 18rpx;
-    margin-bottom: 32rpx;
+    gap: 24rpx;
+    margin-bottom: 48rpx;
 
     .image-preview-item,
     .add-image-tile {
       position: relative;
       aspect-ratio: 1;
-      border-radius: 28rpx;
+      border-radius: 32rpx;
       overflow: hidden;
       background: var(--color-warm-cream);
-      box-shadow: 0 8rpx 20rpx rgba(99, 62, 29, 0.08);
+      box-shadow: 0 8rpx 24rpx rgba(99, 62, 29, 0.12);
     }
 
     .preview-image {
@@ -415,9 +477,9 @@
       position: absolute;
       top: 8rpx;
       right: 8rpx;
-      width: 44rpx;
-      height: 44rpx;
-      border-radius: 22rpx;
+      width: 48rpx;
+      height: 48rpx;
+      border-radius: 24rpx;
       background: rgba(0, 0, 0, 0.52);
       display: flex;
       align-items: center;
@@ -436,23 +498,31 @@
       gap: 12rpx;
       color: rgba(93, 64, 55, 0.45);
       font-size: 20rpx;
-      font-weight: 700;
+      font-weight: 800;
+      touch-action: manipulation;
     }
   }
 
   .compose-footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 4;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 28rpx 44rpx calc(env(safe-area-inset-bottom) + 28rpx);
-    border-top: 2rpx solid var(--outline-variant);
+    min-height: 168rpx;
+    padding: 32rpx 48rpx calc(env(safe-area-inset-bottom) + 32rpx);
+    border-top: 2rpx solid rgba(242, 230, 221, 0.7);
     flex-shrink: 0;
-    background: #fff;
+    background: var(--background);
+    box-sizing: border-box;
 
     /* 媒体选择按钮 */
     .media-actions {
       display: flex;
-      gap: 12px;
+      gap: 24rpx;
 
       .media-btn {
         width: 96rpx;
@@ -460,7 +530,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: var(--color-warm-cream);
+        background: var(--surface-container);
         border-radius: 32rpx;
         color: var(--on-surface-variant);
         transition: all 0.2s;
@@ -473,24 +543,33 @@
           opacity: 0.34;
           pointer-events: none;
         }
+
+        &.write-btn {
+          color: var(--primary);
+
+          .icon-img {
+            animation: composePulse 1.8s ease-in-out infinite;
+          }
+        }
       }
     }
 
     .publish-btn {
-      min-width: 172rpx;
-      padding: 0 44rpx;
-      height: 88rpx;
-      background: var(--primary);
+      min-width: 176rpx;
+      padding: 0 64rpx;
+      height: 96rpx;
+      background: var(--primary-strong);
       color: #fff;
       border: none;
       border-radius: 999rpx;
       font-size: 30rpx;
-      font-weight: 600;
+      font-weight: 800;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
       transition: all 0.2s;
+      touch-action: manipulation;
 
       &:active {
         transform: scale(0.95);
@@ -507,13 +586,29 @@
   }
 }
 
-.compose-modal.keyboard-open {
-  .compose-content {
-    max-height: 58vh;
+@keyframes composePulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
   }
+  50% {
+    opacity: 0.72;
+    transform: scale(1.04);
+  }
+}
 
-  .compose-footer {
-    padding-bottom: 28rpx;
+@media (prefers-reduced-motion: reduce) {
+  .compose-modal {
+    .compose-content,
+    .close-btn,
+    .media-btn,
+    .publish-btn {
+      transition: none;
+    }
+
+    .write-btn .icon-img {
+      animation: none;
+    }
   }
 }
 

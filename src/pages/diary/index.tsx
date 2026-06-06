@@ -25,6 +25,7 @@ const X_WHITE = require('../../assets/profile-icons/x-white.png');
 const IMAGE_GRAY = require('../../assets/profile-icons/image-outlined.svg');
 const FILM_GRAY = require('../../assets/profile-icons/video-outlined.svg');
 const SEND_ICON = require('../../assets/profile-icons/send-primary.png');
+const SPARKLES_PRIMARY = require('../../assets/profile-icons/sparkles-primary.png');
 import { friendService } from '../../services/friendService';
 import { del } from '../../utils/httpAdapter';
 import './index.less';
@@ -61,7 +62,6 @@ export default function Diary() {
   const [isSinglePage, setIsSinglePage] = useState(false);
   const [diaries, setDiaries] = useState<DiaryWithMedia[]>([]);
   const [showCompose, setShowCompose] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [newContent, setNewContent] = useState('');
   const [selectedMediaList, setSelectedMediaList] = useState<SelectedMedia[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -86,6 +86,7 @@ export default function Diary() {
   const sharingDiaryRef = useRef<DiaryWithMedia | null>(null);
   const activeCatRef = useRef<{ id: string; name: string; avatar?: string } | null>(null);
   const shareCardPathRef = useRef<string>('');
+  const shouldHideTabBar = commentingId || showCompose || showShareSheet || deletingId !== null;
 
   // 同步 activeCat 到 ref
   useEffect(() => { activeCatRef.current = activeCat; }, [activeCat]);
@@ -252,31 +253,14 @@ export default function Diary() {
     return () => clearInterval(intervalId);
   }, []);
 
-  useEffect(() => {
-    if (!showCompose) {
-      setKeyboardHeight(0);
-      return;
-    }
-
-    const handleKeyboardHeightChange = (res: Taro.onKeyboardHeightChange.CallbackResult) => {
-      setKeyboardHeight(Math.max(0, res.height || 0));
-    };
-
-    Taro.onKeyboardHeightChange(handleKeyboardHeightChange);
-    return () => {
-      Taro.offKeyboardHeightChange(handleKeyboardHeightChange);
-      setKeyboardHeight(0);
-    };
-  }, [showCompose]);
-
   // 弹窗打开时隐藏 TabBar，关闭时恢复
   useEffect(() => {
-    if (commentingId || showCompose || showShareSheet || deletingId !== null) {
+    if (shouldHideTabBar) {
       Taro.eventCenter.trigger('tabbar:hide');
     } else {
       Taro.eventCenter.trigger('tabbar:show');
     }
-  }, [commentingId, showCompose, showShareSheet, deletingId]);
+  }, [shouldHideTabBar]);
 
   // 页面卸载时恢复 TabBar
   useEffect(() => {
@@ -285,11 +269,23 @@ export default function Diary() {
     };
   }, []);
 
-  // 切回页面时确保 TabBar 显示（overlay 层 z-index > tab bar 所以不影响）
+  // 切回页面时尊重当前弹层状态，避免发布弹窗底部按钮被自定义 TabBar 盖住。
   useDidShow(() => {
-    Taro.eventCenter.trigger('tabbar:show');
+    Taro.eventCenter.trigger(shouldHideTabBar ? 'tabbar:hide' : 'tabbar:show');
     Taro.eventCenter.trigger('tabbar:route', 'pages/diary/index');
   });
+
+  const openComposeModal = () => {
+    setShowCompose(true);
+    Taro.eventCenter.trigger('tabbar:hide');
+  };
+
+  const closeComposeModal = () => {
+    setShowCompose(false);
+    setSelectedMediaList([]);
+    setNewContent('');
+    Taro.eventCenter.trigger('tabbar:show');
+  };
 
   const loadDiaries = async () => {
     const activeCatId = storage.getActiveCatId();
@@ -529,9 +525,7 @@ export default function Diary() {
       if (success) {
         const displayDiary = await loadMediaForDiary(newDiary);
         setDiaries(prev => [displayDiary, ...prev]);
-        setNewContent('');
-        setSelectedMediaList([]);
-        setShowCompose(false);
+        closeComposeModal();
         Taro.showToast({ title: '发布成功', icon: 'success' });
         // 刷新日记列表
         loadDiaries();
@@ -758,6 +752,23 @@ export default function Diary() {
     setShowShareSheet(true);
   };
 
+  const handleAutoWriteDiary = () => {
+    if (!activeCat) {
+      Taro.showToast({ title: '请先选择一只猫咪伙伴', icon: 'none' });
+      return;
+    }
+
+    const name = activeCat.name || '咪咪';
+    const templates = [
+      `今天关于 ${name} 的小瞬间特别温暖。它安静地待在身边，像把一天的疲惫都轻轻揉开了。`,
+      `${name} 今天又贡献了一个值得收藏的可爱片段。明明只是普通的一天，却因为它变得亮晶晶的。`,
+      `记录一下 ${name} 今天的陪伴。它靠近我的时候，世界好像一下子慢了下来。`,
+      `今天和 ${name} 一起度过了很舒服的时光。那些细碎的小动作，都想认真保存下来。`,
+    ];
+    const next = templates[Math.floor(Math.random() * templates.length)];
+    setNewContent(next);
+  };
+
   const toggleMonthGroup = (monthLabel: string) => {
     setExpandedMonths(prev => ({
       ...prev,
@@ -814,7 +825,7 @@ export default function Diary() {
             <View className="friend-btn" onClick={() => setShowAddFriendMenu(true)}>
               <Image className="icon-img" src={USERPLUS_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
             </View>
-            <View className="add-btn" onClick={() => setShowCompose(true)}>
+            <View className="add-btn" onClick={openComposeModal}>
               <Image className="icon-img" src={PLUS_WHITE} mode="aspectFit" style={{ width: 28, height: 28 }} />
             </View>
           </View>
@@ -925,21 +936,14 @@ export default function Diary() {
       </ScrollView>
 
       {showCompose && (
-        <View className={`compose-modal ${keyboardHeight > 0 ? 'keyboard-open' : ''}`}>
-          <View
-            className="compose-content"
-            style={{ bottom: keyboardHeight > 0 ? `${keyboardHeight}px` : '0px' }}
-          >
+        <View className="compose-modal">
+          <View className="compose-content">
             <View className="compose-header">
               <View className="compose-title-wrap">
                 <Text className="compose-title">记录此刻</Text>
-                <Text className="compose-subtitle">Capture the moment</Text>
+                <Text className="compose-subtitle">Share a warm moment</Text>
               </View>
-              <View className="close-btn" onClick={() => {
-                setShowCompose(false);
-                setSelectedMediaList([]);
-                setNewContent('');
-              }}>
+              <View className="close-btn" onClick={closeComposeModal}>
                 <Image className="icon-img" src={X_DARK} mode="aspectFit" style={{ width: 20, height: 20 }} />
               </View>
             </View>
@@ -947,21 +951,26 @@ export default function Diary() {
             <View className="compose-body">
               <Textarea
                 className="compose-input"
-                placeholder="这一刻在想什么..."
-                placeholderStyle="color: #8E8E8E"
+                placeholder={activeCat ? `分享关于 ${activeCat.name} 的第一个温暖瞬间吧～` : '写下你和猫咪的温暖日常吧...'}
+                placeholderStyle="color: rgba(93, 64, 55, 0.32); font-weight: 600;"
                 value={newContent}
                 onInput={(e) => setNewContent(e.detail.value)}
                 maxlength={500}
-                focus
-                autoFocus
                 fixed
-                adjustPosition={false}
+                adjustPosition
                 showConfirmBar={false}
                 cursorSpacing={24}
-                onFocus={(e) => setKeyboardHeight(Math.max(0, e.detail.height || 0))}
-                onBlur={() => setKeyboardHeight(0)}
-                onKeyboardHeightChange={(e) => setKeyboardHeight(Math.max(0, e.detail.height || 0))}
               />
+
+              {selectedMediaList.length === 0 && (
+                <View className="upload-drop-zone" onClick={chooseImage}>
+                  <View className="upload-drop-icon">
+                    <Image className="icon-img" src={IMAGE_GRAY} mode="aspectFit" style={{ width: 28, height: 28 }} />
+                  </View>
+                  <Text className="upload-drop-title">点击上传 / 批量选择多张图片</Text>
+                  <Text className="upload-drop-subtitle">支持批量选择（微信/相册中可按住/多选，最高 9 张）</Text>
+                </View>
+              )}
 
               {/* 媒体预览区域 */}
               {selectedMediaList.length > 0 && (
@@ -1011,6 +1020,9 @@ export default function Diary() {
                 <View className={`media-btn ${selectedMediaList.length > 0 ? 'disabled' : ''}`} onClick={chooseVideo}>
                   <Image className="icon-img" src={FILM_GRAY} mode="aspectFit" style={{ width: 24, height: 24 }} />
                 </View>
+                <View className="media-btn write-btn" onClick={handleAutoWriteDiary}>
+                  <Image className="icon-img" src={SPARKLES_PRIMARY} mode="aspectFit" style={{ width: 26, height: 26 }} />
+                </View>
               </View>
 
               <Button
@@ -1018,7 +1030,7 @@ export default function Diary() {
                 onClick={handleAddDiary}
                 disabled={isLoading || (!newContent.trim() && selectedMediaList.length === 0)}
               >
-                {isLoading ? '发布中...' : '发布'}
+                {isLoading ? '发布中…' : '发布'}
               </Button>
             </View>
           </View>

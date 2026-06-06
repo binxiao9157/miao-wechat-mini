@@ -1,0 +1,15 @@
+Subject: [PATCH] Require video last-frame endpoint in mini API contract
+Generated-At: 2026-06-06T13:49:47.987Z
+Repository: /Users/yxj/Documents/Codex/AiStudio/miao-wechat-mini
+diff --git a/scripts/check-api-contract.mjs b/scripts/check-api-contract.mjs
+index f35ad8e..92feab6 100644
+--- a/scripts/check-api-contract.mjs
++++ b/scripts/check-api-contract.mjs
+@@ -57,6 +57,7 @@ const requiredRoutes = [
+   { method: 'post', route: '/api/v1/ai/tasks-file', auth: 'required' },
+   { method: 'get', route: '/api/v1/ai/tasks/:taskId', auth: 'required' },
+   { method: 'post', route: '/api/v1/assets/persist-video', auth: 'required' },
++  { method: 'post', route: '/api/v1/assets/video-last-frame', auth: 'required' },
+   { method: 'post', route: '/api/v1/security/text', auth: 'required' },
+   { method: 'post', route: '/api/v1/security/media', auth: 'required' },
+   { method: 'post', route: '/api/v1/security/media-file', auth: 'required' },

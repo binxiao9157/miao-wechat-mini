@@ -57,6 +57,7 @@ const requiredRoutes = [
   { method: 'post', route: '/api/v1/ai/tasks-file', auth: 'required' },
   { method: 'get', route: '/api/v1/ai/tasks/:taskId', auth: 'required' },
   { method: 'post', route: '/api/v1/assets/persist-video', auth: 'required' },
+  { method: 'post', route: '/api/v1/assets/video-last-frame', auth: 'required' },
   { method: 'post', route: '/api/v1/security/text', auth: 'required' },
   { method: 'post', route: '/api/v1/security/media', auth: 'required' },
   { method: 'post', route: '/api/v1/security/media-file', auth: 'required' },
